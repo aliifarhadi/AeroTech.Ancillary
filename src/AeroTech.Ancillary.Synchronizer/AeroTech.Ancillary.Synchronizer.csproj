@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\AeroTech.Ancillary.Persistence\AeroTech.Ancillary.Persistence.csproj" />
+    <ProjectReference Include="..\AeroTech.Ancillary.Providers\AeroTech.Ancillary.Providers.csproj" />
+    <ProjectReference Include="..\AeroTech.Ancillary.Query\AeroTech.Ancillary.Query.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

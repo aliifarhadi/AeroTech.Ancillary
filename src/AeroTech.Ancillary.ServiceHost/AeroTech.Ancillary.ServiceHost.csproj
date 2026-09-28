@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\AeroTech.Ancillary.Consumers\AeroTech.Ancillary.Consumers.csproj" />
+    <ProjectReference Include="..\AeroTech.Ancillary.Persistence\AeroTech.Ancillary.Persistence.csproj" />
+    <ProjectReference Include="..\AeroTech.Ancillary.Providers\AeroTech.Ancillary.Providers.csproj" />
+    <ProjectReference Include="..\AeroTech.Ancillary.Query\AeroTech.Ancillary.Query.csproj" />
+    <ProjectReference Include="..\AeroTech.Ancillary.ReferenceData\AeroTech.Ancillary.ReferenceData.csproj" />
+    <ProjectReference Include="..\AeroTech.Ancillary.RestApi\AeroTech.Ancillary.RestApi.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+</Project>
