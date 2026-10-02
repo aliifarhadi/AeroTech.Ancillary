@@ -11,6 +11,8 @@
     <ProjectReference Include="../../src/AeroTech.Ancillary.Providers/AeroTech.Ancillary.Providers.csproj" />
     <ProjectReference Include="../../src/AeroTech.Ancillary.Persistence/AeroTech.Ancillary.Persistence.csproj" />
     <ProjectReference Include="../../src/AeroTech.Ancillary.Synchronizer/AeroTech.Ancillary.Synchronizer.csproj" />
+    <ProjectReference Include="../../src/AeroTech.Ancillary.Query/AeroTech.Ancillary.Query.csproj" />
+    <ProjectReference Include="../../Framework/AeroTech.Framework.Presentation/AeroTech.Framework.Presentation.csproj" />
   </ItemGroup>
 
   <ItemGroup>
