@@ -12,6 +12,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryQuote
         AncillaryProduct Product,
         string TravellerRef,
         string BoundRef,
+        string? FlightRef,
         IReadOnlyList<string> CoveredFlightRefs,
         int MaxQuantity,
         int Quantity,

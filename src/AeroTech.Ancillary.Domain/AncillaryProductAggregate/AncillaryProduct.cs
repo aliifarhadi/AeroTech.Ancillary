@@ -15,6 +15,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryProductAggregate
 
         private const string BaggageRfic = "C";
         private const string BaggageGroupCode = "BG";
+        private const string LoungeRfic = "E";
+        private const string LoungeGroupCode = "LG";
 
         private static readonly string[] BaggageServiceTypeCodes = ["C", "P"];
 
@@ -65,6 +67,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryProductAggregate
 
         public BaggageDetail? Baggage { get; private set; }
 
+        public LoungeDetail? Lounge { get; private set; }
+
         public AncillaryProductStatus Status { get; private set; }
 
         public DateTimeOffset CreatedAt { get; private set; }
@@ -88,16 +92,17 @@ namespace AeroTech.Ancillary.Domain.AncillaryProductAggregate
             SalesTerms terms,
             AncillaryInventoryControl inventoryControl,
             BaggageDetail? baggage,
+            LoungeDetail? lounge,
             ServiceSubCode? subCode,
             DateTimeOffset createdAt)
         {
+            SoldCombinations.EnsureSold(type, salesScope, documentType, inventoryControl, quantity.Unit);
             Require(ownerAirlineId > 0, nameof(OwnerAirlineId));
             Require(IsProductRef(productRef), nameof(ProductRef));
-            Require(Enum.IsDefined(type), nameof(Type));
 
             var product = new AncillaryProduct(id, ownerAirlineId, productRef, 1, type, createdAt);
 
-            product.Apply(name, description, salesScope, quantity, documentType, rfisc, serviceTypeCode, terms, inventoryControl, baggage, subCode);
+            product.Apply(name, description, salesScope, quantity, documentType, rfisc, serviceTypeCode, terms, inventoryControl, baggage, lounge, subCode);
 
             return product;
         }
@@ -113,12 +118,13 @@ namespace AeroTech.Ancillary.Domain.AncillaryProductAggregate
             SalesTerms terms,
             AncillaryInventoryControl inventoryControl,
             BaggageDetail? baggage,
+            LoungeDetail? lounge,
             ServiceSubCode? subCode)
         {
             if (Status != AncillaryProductStatus.Draft)
                 throw ExceptionFactory.AncillaryProductIsNotDraft();
 
-            Apply(name, description, salesScope, quantity, documentType, rfisc, serviceTypeCode, terms, inventoryControl, baggage, subCode);
+            Apply(name, description, salesScope, quantity, documentType, rfisc, serviceTypeCode, terms, inventoryControl, baggage, lounge, subCode);
         }
 
         public void Activate(ServiceSubCode? subCode, DateTimeOffset activatedAt)
@@ -126,7 +132,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProductAggregate
             if (Status is not (AncillaryProductStatus.Draft or AncillaryProductStatus.Suspended))
                 throw ExceptionFactory.AncillaryProductStatusChangeNotAllowed();
 
-            Apply(Name, Description, SalesScope, Quantity.Copy(), Document.Type, Document.Rfisc, Codes.ServiceTypeCode, Terms.Copy(), InventoryControl, Baggage?.Copy(), subCode);
+            Apply(Name, Description, SalesScope, Quantity.Copy(), Document.Type, Document.Rfisc, Codes.ServiceTypeCode, Terms.Copy(), InventoryControl, Baggage?.Copy(), Lounge?.Copy(), subCode);
 
             Status = AncillaryProductStatus.Active;
             ActivatedAt ??= activatedAt;
@@ -164,7 +170,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryProductAggregate
                 Codes = Codes.Copy(),
                 Terms = Terms.Copy(),
                 InventoryControl = InventoryControl,
-                Baggage = Baggage?.Copy()
+                Baggage = Baggage?.Copy(),
+                Lounge = Lounge?.Copy()
             };
         }
 
@@ -179,13 +186,14 @@ namespace AeroTech.Ancillary.Domain.AncillaryProductAggregate
             SalesTerms terms,
             AncillaryInventoryControl inventoryControl,
             BaggageDetail? baggage,
+            LoungeDetail? lounge,
             ServiceSubCode? subCode)
         {
+            SoldCombinations.EnsureSold(Type, salesScope, documentType, inventoryControl, quantity.Unit);
             Require(name is { Length: >= 1 and <= NameMaxLength }, nameof(Name));
             Require(description is null or { Length: <= DescriptionMaxLength }, nameof(Description));
-            Require(Enum.IsDefined(salesScope), nameof(SalesScope));
-            Require(Enum.IsDefined(inventoryControl), nameof(InventoryControl));
             Require((baggage is not null) == (Type == AncillaryProductType.ExtraBaggage), nameof(Baggage));
+            Require((lounge is not null) == (Type == AncillaryProductType.LoungeAccess), nameof(Lounge));
 
             var requested = new DocumentPolicy(documentType, rfisc, null);
 
@@ -208,6 +216,12 @@ namespace AeroTech.Ancillary.Domain.AncillaryProductAggregate
                 Require(subCode.Rfic == BaggageRfic, nameof(DocumentPolicy.Rfic));
                 Require(subCode.GroupCode == BaggageGroupCode, nameof(IndustryCodes.GroupCode));
                 Require(BaggageServiceTypeCodes.Contains(serviceTypeCode), nameof(IndustryCodes.ServiceTypeCode));
+            }
+
+            if (Type == AncillaryProductType.LoungeAccess)
+            {
+                Require(subCode.Rfic == LoungeRfic, nameof(DocumentPolicy.Rfic));
+                Require(subCode.GroupCode == LoungeGroupCode, nameof(IndustryCodes.GroupCode));
             }
 
             if (subCode.Source == ServiceSubCodeSource.Industry)
@@ -233,6 +247,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProductAggregate
             Terms = terms;
             InventoryControl = inventoryControl;
             Baggage = baggage;
+            Lounge = lounge;
         }
 
         private static bool IsProductRef(string? value)

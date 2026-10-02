@@ -24,6 +24,8 @@ namespace AeroTech.Ancillary.Query.AncillaryProductAggregate.Configurations
             builder.Property(product => product.Description2Code).HasMaxLength(2);
             builder.Property(product => product.FormOfRefundCode).HasMaxLength(10);
 
+            builder.PrimitiveCollection(product => product.LoungeAirportIds);
+
             builder.HasIndex(product => new { product.OwnerAirlineId, product.ProductRef, product.Version });
         }
     }

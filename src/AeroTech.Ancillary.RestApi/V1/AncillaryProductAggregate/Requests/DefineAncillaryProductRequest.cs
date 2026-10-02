@@ -15,5 +15,6 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryProductAggregate.Requests
         ProductCodes Codes,
         ProductTerms Terms,
         AncillaryInventoryControl InventoryControl,
-        ProductBaggage? Baggage);
+        ProductBaggage? Baggage,
+        ProductLounge? Lounge);
 }

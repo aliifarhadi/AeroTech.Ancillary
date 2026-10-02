@@ -14,5 +14,6 @@ namespace AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.Chan
         ProductCodes Codes,
         ProductTerms Terms,
         AncillaryInventoryControl InventoryControl,
-        ProductBaggage? Baggage) : IRequest<AncillaryProductResult>, IChangeAncillaryProductCommand;
+        ProductBaggage? Baggage,
+        ProductLounge? Lounge) : IRequest<AncillaryProductResult>, IChangeAncillaryProductCommand;
 }

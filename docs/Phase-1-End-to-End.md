@@ -1,7 +1,7 @@
 # Phase 1 — End to end across AirOffer, Ancillary and Ordering
 
 **Audience:** the Owner and the AirOffer and Ordering teams. Nothing here is built inside Ancillary.
-**Authorities:** Ancillary's side — `Ancillary-Domain-Master.md` (R5.3) §2 and §7. Ordering's side — `Ordering-P1-Ancillary-Implementation-Spec.md`. This document only connects the two and states how they are checked together.
+**Authorities:** Ancillary's side — `Ancillary-Domain-Master.md` (R5.4) §2 and §7. Ordering's side — `Ordering-P1-Ancillary-Implementation-Spec.md`. This document only connects the two and states how they are checked together.
 **Checked against source (heads of `k8s-stg` on 2026-10-02):** Ordering.Final `cd50a2a`, FlightFlow `d2180b2`, AirAvail/AirOffer `ac84040`.
 
 ## 1. What exists today and what does not
@@ -36,7 +36,7 @@ No price comparison is needed. A selection names the product version and the pri
 
 `POST Service/v1/OrderAncillaryOffers`. It does not exist today and must be built.
 
-Its request body and its answer are exactly Ancillary's quote request and answer (`contracts/ancillary-quotes-v1.openapi.yaml`). AirOffer forwards the request to Ancillary's `POST Service/v1/AncillaryQuotes` over HTTP and returns the answer unchanged, including the HTTP status and the business error codes of Ancillary. It stores nothing and adds nothing.
+Its request body and its answer are exactly Ancillary's quote request and answer (`Contracts/ancillary-quotes-v1.openapi.yaml`). AirOffer forwards the request to Ancillary's `POST Service/v1/AncillaryQuotes` over HTTP and returns the answer unchanged, including the HTTP status and the business error codes of Ancillary. It stores nothing and adds nothing.
 
 ## 4. Ordering
 

@@ -41,7 +41,8 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryProductAggregate
                 request.Codes,
                 request.Terms,
                 request.InventoryControl,
-                request.Baggage), cancellationToken));
+                request.Baggage,
+                request.Lounge), cancellationToken));
 
         [HttpPut("{ancillaryProductId:long}")]
         public async Task<IActionResult> Change(
@@ -58,7 +59,8 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryProductAggregate
                 request.Codes,
                 request.Terms,
                 request.InventoryControl,
-                request.Baggage), cancellationToken));
+                request.Baggage,
+                request.Lounge), cancellationToken));
 
         [HttpPost("{ancillaryProductId:long}/Activate")]
         public async Task<IActionResult> Activate(long ancillaryProductId, CancellationToken cancellationToken)

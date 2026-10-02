@@ -60,6 +60,8 @@ namespace AeroTech.Ancillary.Query.AncillaryProductAggregate.Models
 
         public AncillaryWeightUnit? BaggageWeightUnit { get; set; }
 
+        public List<int>? LoungeAirportIds { get; set; }
+
         public AncillaryProductStatus Status { get; set; }
 
         public DateTimeOffset CreatedAt { get; set; }

@@ -25,4 +25,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.Defi
         int? Pieces,
         decimal? Weight,
         AncillaryWeightUnit? WeightUnit);
+
+    public sealed record ProductLounge(
+        IReadOnlyList<int> AirportIds);
 }

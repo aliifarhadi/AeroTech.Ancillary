@@ -1,4 +1,4 @@
-### Phase 1 proof (R5.3) — run top to bottom against the local development database.
+### Phase 1 proof (R5.4) — run top to bottom against the local development database.
 ### Format: VS Code "REST Client" / Visual Studio / JetBrains HTTP client.
 ###
 ### Before running:
@@ -358,22 +358,22 @@ Authorization: Bearer {{token}}
 POST {{host}}/Backoffice/v1/ServiceSubCodes/{{subCode.response.body.data.id}}/Reactivate
 Authorization: Bearer {{token}}
 
-### 30. A value that does not exist in Phase 1 — expect 400
+### 30. A value that does not exist yet (Quota arrives in Phase 4) — expect 400
 POST {{host}}/Backoffice/v1/AncillaryProducts
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
   "ownerAirlineId": {{airlineId}},
-  "productRef": "LNG01",
-  "type": "LoungeAccess",
-  "name": "Lounge",
+  "productRef": "XBAGQ",
+  "type": "ExtraBaggage",
+  "name": "Quota bag",
   "description": null,
-  "salesScope": "TravellerSegment",
-  "quantity": { "unit": "Each", "min": 1, "max": 1 },
-  "document": { "type": "EmdStandalone", "rfisc": "0BX" },
-  "codes": { "serviceTypeCode": "F" },
+  "salesScope": "TravellerBound",
+  "quantity": { "unit": "Piece", "min": 1, "max": 1 },
+  "document": { "type": "EmdAssociated", "rfisc": "0CC" },
+  "codes": { "serviceTypeCode": "C" },
   "terms": { "refundable": false, "commissionable": null, "reusable": null, "formOfRefundCode": null, "interlineSettlementAllowed": null },
-  "inventoryControl": "Unlimited",
-  "baggage": null
+  "inventoryControl": "Quota",
+  "baggage": { "pieces": 1, "weight": 23, "weightUnit": "Kg" }
 }

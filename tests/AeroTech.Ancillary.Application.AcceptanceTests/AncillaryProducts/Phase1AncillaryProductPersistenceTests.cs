@@ -198,6 +198,7 @@ public sealed class Phase1AncillaryProductPersistenceTests(TestDatabase database
             new SalesTerms(false, null, null, null, null),
             AncillaryInventoryControl.Unlimited,
             new BaggageDetail(1, 23m, AncillaryWeightUnit.Kg),
+            null,
             subCode,
             _harness.Clock.Now);
 }

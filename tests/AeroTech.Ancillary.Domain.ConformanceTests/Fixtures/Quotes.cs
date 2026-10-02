@@ -48,6 +48,31 @@ public static class Quotes
     public static AncillaryQuoteExistingOccurrence Existing(string productRef, string travellerRef, string? boundRef, int quantity)
         => new(productRef, travellerRef, boundRef, null, quantity);
 
+    public static AncillaryQuoteExistingOccurrence ExistingOnFlight(string productRef, string travellerRef, string flightRef, int quantity)
+        => new(productRef, travellerRef, null, flightRef, quantity);
+
+    public static AncillaryQuoteBound[] TwoOneFlightBounds(int secondOriginAirportId = 2)
+        =>
+        [
+            Bound("B1", Flight("F1")),
+            Bound("B2", Flight("F2", secondOriginAirportId, 1, "2026-10-15T08:00:00+03:30"))
+        ];
+
+    public static AncillaryQuoteRequest LoungeGolden(params AncillaryQuoteSelection[] selections)
+        => Request([Traveller("T1", "ADT", "F1", "F2")], TwoOneFlightBounds(), selections);
+
+    public static AncillaryQuoteSelection LoungeSelection(
+        AncillaryProduct product,
+        AncillaryPriceRule rule,
+        string travellerRef = "T1",
+        string flightRef = "F1",
+        string? boundRef = null,
+        int quantity = 1)
+        => new(product.ProductRef, product.Version, rule.Id, travellerRef, boundRef, flightRef, quantity);
+
+    public static (string ProductRef, string TravellerRef, string BoundRef, string? FlightRef) Position(AncillaryQuoteItem item)
+        => (item.Product.ProductRef, item.TravellerRef, item.BoundRef, item.FlightRef);
+
     public static (string ProductRef, string TravellerRef, string BoundRef) Occurrence(AncillaryQuoteItem item)
         => (item.Product.ProductRef, item.TravellerRef, item.BoundRef);
 }

@@ -1,6 +1,6 @@
 # Phase 1 — Extra Baggage
 
-**Authority:** `Ancillary-Domain-Master.md` (R5.3). This document only says which part of it is built now and gives concrete examples.
+**Authority:** `Ancillary-Domain-Master.md` (R5.4). This document only says which part of it is built now and gives concrete examples.
 **Business outcome:** an airline user enables a baggage sub code, defines an "extra checked bag" product on it and its price, with any separate tax. For an existing order, AirOffer asks which bags can be sold to which traveller on which bound and for how much, and receives everything Ordering needs to record the sale and issue an EMD-A.
 
 ## 1. What is built
@@ -127,7 +127,7 @@ A malformed body (missing member, unknown value name, wrong length or format) is
 
 ## 3. Quote — `POST Service/v1/AncillaryQuotes`
 
-Wire contract: `contracts/ancillary-quotes-v1.openapi.yaml`. Meaning: Master §7.
+Wire contract: `Contracts/ancillary-quotes-v1.openapi.yaml`. Meaning: Master §7.
 
 Phase-1 specifics:
 
@@ -177,6 +177,7 @@ Response `data`:
       "unit": "Piece", "minQuantity": 1, "maxQuantity": 1, "quantity": 1,
       "codes": { "serviceTypeCode": "C", "groupCode": "BG", "subGroupCode": null, "description1Code": "B1", "description2Code": null },
       "baggage": { "pieces": 1, "weight": 23, "weightUnit": "Kg" },
+      "lounge": null,
       "terms": { "refundable": false, "commissionable": null, "reusable": null, "formOfRefundCode": null, "interlineSettlementAllowed": null },
       "document": { "type": "EmdAssociated", "rfic": "C", "rfisc": "0CC" },
       "inventory": { "control": "Unlimited", "remaining": null },
@@ -191,7 +192,7 @@ Response `data`:
 }
 ```
 
-The same request without `selections` returns the same item. Amounts are compared numerically, not as text.
+The same request without `selections` returns the same item. Amounts are compared numerically, not as text. (`"lounge": null` appears from Phase 2, when the member is added to the contract; in Phase 1 the item has no `lounge` member.)
 
 ## 4. Expected behaviour
 
@@ -230,7 +231,7 @@ A sub code is enabled before a product naming it is defined.
 | C03 | `productRef` `"xbag"`, `"X"`, `"X-BAG"` or 21 characters → HTTP 400. |
 | C04 | Change a Draft → all mutable fields replaced and the codes copied again from the named sub code; `ownerAirlineId`, `productRef`, `type`, `version` unchanged. |
 | C05 | Change an `Active`, `Suspended` or `Retired` version → `16103`. |
-| C06 | A value that does not exist in Phase 1 — `salesScope = "TravellerSegment"`, `document.type = "EmdStandalone"`, `inventoryControl = "Quota"`, `quantity.unit = "Each"`, `type = "LoungeAccess"` → HTTP 400 on Define and on Change. |
+| C06 | A value that does not exist in Phase 1 — `salesScope = "TravellerSegment"`, `document.type = "EmdStandalone"`, `inventoryControl = "Quota"`, `quantity.unit = "Each"`, `type = "LoungeAccess"` → HTTP 400 on Define and on Change. (From Phase 2 on, this row covers only the values that still do not exist; see `Phase-2-Lounge-Access.md` §5.) |
 | C07 | `baggage = null`; or `pieces` and `weight` both null; or `weight` without `weightUnit`; or `weightUnit` without `weight` → `16106`. |
 | C08 | `document.rfisc` null → `16106`. `rfisc = "0c"` → HTTP 400. `codes.serviceTypeCode` missing → HTTP 400. A request that carries `rfic`, `groupCode`, `subGroupCode` or a description code has those members ignored. |
 | C09 | `document.rfisc` naming a code the airline has not enabled, or a `Retired` one → `16109` on Define and on Change. |

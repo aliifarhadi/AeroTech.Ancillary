@@ -31,6 +31,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProductAggregate.Contracts
         int? BaggagePieces,
         decimal? BaggageWeight,
         AncillaryWeightUnit? BaggageWeightUnit,
+        IReadOnlyCollection<int>? LoungeAirportIds,
         AncillaryProductStatus Status,
         DateTimeOffset CreatedAt,
         DateTimeOffset? ActivatedAt,

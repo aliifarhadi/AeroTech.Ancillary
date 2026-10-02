@@ -1,5 +1,6 @@
 using AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.DefineAncillaryProduct;
 using AeroTech.Ancillary.Application.AncillaryProductAggregate.Projection;
+using AeroTech.Ancillary.Domain.AncillaryProductAggregate;
 using AeroTech.Ancillary.Domain.AncillaryProductAggregate.Contracts;
 using AeroTech.Ancillary.Domain.AncillaryProductAggregate.ValueObjects;
 using AeroTech.Ancillary.Domain.ServiceSubCodeAggregate.Contracts;
@@ -32,6 +33,8 @@ namespace AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.Chan
             var product = await _products.GetAsync(command.AncillaryProductId, cancellationToken)
                           ?? throw ExceptionFactory.AncillaryProductNotFound();
 
+            SoldCombinations.EnsureSold(product.Type, command.SalesScope, command.Document.Type, command.InventoryControl, command.Quantity.Unit);
+
             var quantity = new QuantityPolicy(command.Quantity.Unit, command.Quantity.Min, command.Quantity.Max);
             var terms = new SalesTerms(
                 command.Terms.Refundable,
@@ -42,6 +45,9 @@ namespace AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.Chan
             var baggage = command.Baggage is null
                 ? null
                 : new BaggageDetail(command.Baggage.Pieces, command.Baggage.Weight, command.Baggage.WeightUnit);
+            var lounge = command.Lounge is null
+                ? null
+                : new LoungeDetail(command.Lounge.AirportIds);
             var subCode = command.Document.Rfisc is null
                 ? null
                 : await _subCodes.FindActiveAsync(product.OwnerAirlineId, command.Document.Rfisc, cancellationToken);
@@ -57,6 +63,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.Chan
                 terms,
                 command.InventoryControl,
                 baggage,
+                lounge,
                 subCode);
 
             await _synchronizer.ProjectAsync(product.ToReadModelSnapshot(), cancellationToken);

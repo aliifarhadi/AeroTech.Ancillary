@@ -62,11 +62,14 @@ public sealed class Phase1RequestContractTests(TestDatabase database)
     private readonly AncillaryHarness _harness = new(database);
 
     [Theory]
-    [InlineData("salesScope", "TravellerSegment")]
-    [InlineData("document.type", "EmdStandalone")]
     [InlineData("inventoryControl", "Quota")]
-    [InlineData("quantity.unit", "Each")]
-    [InlineData("type", "LoungeAccess")]
+    [InlineData("inventoryControl", "SeatMap")]
+    [InlineData("document.type", "None")]
+    [InlineData("salesScope", "Traveller")]
+    [InlineData("salesScope", "Order")]
+    [InlineData("quantity.unit", "Kilogram")]
+    [InlineData("type", "PetInCabin")]
+    [InlineData("type", "Seat")]
     public void P1_C06_ValueOfALaterPhaseIsMalformedOnDefine(string member, string value)
     {
         var command = ApiJson.Deserialize<BackofficeDefineAncillaryProductCommand>(DefineProduct);
@@ -76,10 +79,12 @@ public sealed class Phase1RequestContractTests(TestDatabase database)
     }
 
     [Theory]
-    [InlineData("salesScope", "TravellerSegment")]
-    [InlineData("document.type", "EmdStandalone")]
     [InlineData("inventoryControl", "Quota")]
-    [InlineData("quantity.unit", "Each")]
+    [InlineData("inventoryControl", "SeatMap")]
+    [InlineData("document.type", "None")]
+    [InlineData("salesScope", "Traveller")]
+    [InlineData("salesScope", "Order")]
+    [InlineData("quantity.unit", "Kilogram")]
     public void P1_C06_ValueOfALaterPhaseIsMalformedOnChange(string member, string value)
     {
         var command = ApiJson.Deserialize<BackofficeChangeAncillaryProductCommand>(ChangeProduct);
@@ -89,17 +94,24 @@ public sealed class Phase1RequestContractTests(TestDatabase database)
     }
 
     [Theory]
-    [InlineData("salesScope", 2)]
-    [InlineData("document.type", 3)]
     [InlineData("inventoryControl", 2)]
-    [InlineData("quantity.unit", 3)]
-    [InlineData("type", 2)]
+    [InlineData("inventoryControl", 3)]
+    [InlineData("document.type", 1)]
+    [InlineData("salesScope", 3)]
+    [InlineData("salesScope", 4)]
+    [InlineData("quantity.unit", 2)]
+    [InlineData("type", 5)]
+    [InlineData("type", 3)]
     public void P1_C06_NumericValueOfALaterPhaseIsRejectedByTheValidator(string member, int value)
     {
         var command = ApiJson.Deserialize<BackofficeDefineAncillaryProductCommand>(ApiJson.With(DefineProduct, member, value));
 
         ValidationAssert.Rejects(new BackofficeDefineAncillaryProductCommandValidator(), command);
     }
+
+    [Fact]
+    public void P1_C06_FeeLineOfALaterPhaseIsMalformed()
+        => ApiJson.Malformed<BackofficeDefineAncillaryPriceRuleCommand>(DefinePriceRule.Replace("\"Tax\"", "\"Fee\""));
 
     [Fact]
     public async Task P1_C08_CopiedCodesSentInARequestAreIgnored()

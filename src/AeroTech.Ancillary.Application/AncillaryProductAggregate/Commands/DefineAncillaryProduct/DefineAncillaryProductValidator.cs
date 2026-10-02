@@ -18,6 +18,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.Defi
             RuleFor(command => command.Terms).NotNull().SetValidator(new ProductTermsValidator());
             RuleFor(command => command.InventoryControl).IsInEnum();
             RuleFor(command => command.Baggage!).SetValidator(new ProductBaggageValidator());
+            RuleFor(command => command.Lounge!).SetValidator(new ProductLoungeValidator());
         }
     }
 }

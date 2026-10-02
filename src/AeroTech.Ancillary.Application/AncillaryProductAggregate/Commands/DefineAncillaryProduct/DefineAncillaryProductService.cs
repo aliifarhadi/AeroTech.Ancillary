@@ -39,6 +39,8 @@ namespace AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.Defi
             if (await _products.ExistsAsync(command.OwnerAirlineId, command.ProductRef, cancellationToken))
                 throw ExceptionFactory.AncillaryProductReferenceAlreadyExists();
 
+            SoldCombinations.EnsureSold(command.Type, command.SalesScope, command.Document.Type, command.InventoryControl, command.Quantity.Unit);
+
             var quantity = new QuantityPolicy(command.Quantity.Unit, command.Quantity.Min, command.Quantity.Max);
             var terms = new SalesTerms(
                 command.Terms.Refundable,
@@ -49,6 +51,9 @@ namespace AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.Defi
             var baggage = command.Baggage is null
                 ? null
                 : new BaggageDetail(command.Baggage.Pieces, command.Baggage.Weight, command.Baggage.WeightUnit);
+            var lounge = command.Lounge is null
+                ? null
+                : new LoungeDetail(command.Lounge.AirportIds);
             var subCode = command.Document.Rfisc is null
                 ? null
                 : await _subCodes.FindActiveAsync(command.OwnerAirlineId, command.Document.Rfisc, cancellationToken);
@@ -68,6 +73,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.Defi
                 terms,
                 command.InventoryControl,
                 baggage,
+                lounge,
                 subCode,
                 _clock.GetDateTime());
 

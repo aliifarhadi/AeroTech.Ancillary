@@ -8,6 +8,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryQuote
         private readonly Dictionary<string, AncillaryQuoteTraveller> _travellers;
         private readonly Dictionary<string, AncillaryQuoteBound> _bounds;
         private readonly Dictionary<string, AncillaryQuoteFlight> _flights;
+        private readonly Dictionary<string, AncillaryQuoteBound> _boundsByFlight;
         private readonly Dictionary<string, PassengerTypeCode> _passengerTypes;
         private readonly IReadOnlyList<AncillaryQuoteExistingOccurrence> _existing;
 
@@ -15,12 +16,14 @@ namespace AeroTech.Ancillary.Domain.AncillaryQuote
             Dictionary<string, AncillaryQuoteTraveller> travellers,
             Dictionary<string, AncillaryQuoteBound> bounds,
             Dictionary<string, AncillaryQuoteFlight> flights,
+            Dictionary<string, AncillaryQuoteBound> boundsByFlight,
             Dictionary<string, PassengerTypeCode> passengerTypes,
             IReadOnlyList<AncillaryQuoteExistingOccurrence> existing)
         {
             _travellers = travellers;
             _bounds = bounds;
             _flights = flights;
+            _boundsByFlight = boundsByFlight;
             _passengerTypes = passengerTypes;
             _existing = existing;
         }
@@ -52,6 +55,9 @@ namespace AeroTech.Ancillary.Domain.AncillaryQuote
                 request.Travellers.ToDictionary(traveller => traveller.Ref, StringComparer.Ordinal),
                 request.Bounds.ToDictionary(bound => bound.Ref, StringComparer.Ordinal),
                 flightsByRef,
+                request.Bounds
+                    .SelectMany(bound => bound.Flights.Select(flight => (flight.Ref, Bound: bound)))
+                    .ToDictionary(flight => flight.Ref, flight => flight.Bound, StringComparer.Ordinal),
                 passengerTypes,
                 request.Existing);
 
@@ -83,9 +89,13 @@ namespace AeroTech.Ancillary.Domain.AncillaryQuote
         public IReadOnlyList<AncillaryQuoteFlight> CoveredFlights(AncillaryQuoteTraveller traveller, AncillaryQuoteBound bound)
             => bound.Flights.Where(flight => traveller.FlightRefs.Contains(flight.Ref, StringComparer.Ordinal)).ToList();
 
-        public int ExistingQuantity(string productRef, string travellerRef, string boundRef)
+        public AncillaryQuoteBound BoundOf(AncillaryQuoteFlight flight) => _boundsByFlight[flight.Ref];
+
+        public int ExistingQuantity(string productRef, string travellerRef, AncillaryQuoteBound bound, AncillaryQuoteFlight? flight)
             => _existing
-                .Where(existing => existing.ProductRef == productRef && existing.TravellerRef == travellerRef && existing.BoundRef == boundRef)
+                .Where(existing => existing.ProductRef == productRef
+                                   && existing.TravellerRef == travellerRef
+                                   && (flight is null ? existing.BoundRef == bound.Ref : existing.FlightRef == flight.Ref))
                 .Sum(existing => existing.Quantity);
 
         private static bool IsDistinct(IEnumerable<string> values)

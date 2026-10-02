@@ -1,4 +1,4 @@
-# AeroTech.Ancillary — Domain and Boundary Master (R5.3)
+# AeroTech.Ancillary — Domain and Boundary Master (R5.4)
 
 **Date:** 2026-10-02
 **Replaces:** every earlier Ancillary Master, design draft and review document. This is the only domain authority, and it is the master for the whole implementation: every phase is described here and the benchmark baseline used for the design is recorded in §13. A later phase does not restart the domain design from zero; but every external contract and repository fact that the phase relies on is verified again against the current source before it is implemented.
@@ -243,6 +243,8 @@ The copied members come from the `ServiceSubCode`.
 5. The sub code must be `Active` whenever a version is defined, changed or activated. Otherwise `16109`.
 
 Rules 2, 3 and 4 are checked on Define, Change and Activate (`16106`).
+
+**Order of the product checks.** On Define, Change and Activate the combination of §3.4 (`Type`, `SalesScope`, `Document.Type`, `InventoryControl`, `Quantity.Unit`) is checked first (`16105`). Only a product whose combination is a row of §3.4 is then checked against the other rules of §4 (`16106`, `16109`).
 
 No SSR code exists on a product in the phases of this document. Booking-method, SSR and SVC semantics are added only when a real host or provider booking contract is introduced, together with their behaviour; until then nothing in this service stores or sends them.
 
@@ -507,6 +509,8 @@ For every `Active` product, the candidate occurrences are:
 
 A traveller is never offered anything on a flight that is not in his `flightRefs`.
 
+**Identity of an occurrence.** A bound-scoped occurrence is identified by product + traveller + bound; a flight-scoped occurrence by product + traveller + flight. For a flight-scoped occurrence the bound plays no part in its identity: the same flight named with and without its `boundRef` is the same occurrence.
+
 A candidate is **applicable** when all of the following hold:
 
 1. **Airline.** Every covered flight is marketed by the product's `OwnerAirlineId`.
@@ -517,7 +521,7 @@ A candidate is **applicable** when all of the following hold:
 
 **Why Extra Baggage is limited to one covered flight.** An extra bag needs an EMD-A with one coupon per covered flight. For a single fee that spans several coupons, the industry does not put a value on each coupon; it carries the amount in the document's fare calculation and leaves the split to revenue-accounting proration. Ordering's EMD model has neither yet. So, until Ordering models that valuation, a bag is offered only where the traveller flies exactly one flight of the bound: in catalogue mode a wider occurrence is simply absent, and a selection of it is `16305`. The product's scope stays `TravellerBound`; lifting this limitation is a later change to this rule only (§12).
 
-An `existing` entry belongs to the occurrence with the same product, traveller and bound (bound-scoped) or flight (segment-scoped). An entry whose `travellerRef`, `boundRef` or `flightRef` is not in the request is an error (`16304`). An entry naming a product that is not `Active` is ignored.
+An `existing` entry belongs to the occurrence with the same product, traveller and bound (bound-scoped) or flight (segment-scoped). An entry that names no flight cannot belong to a flight-scoped occurrence and has no effect on it. An entry whose `travellerRef`, `boundRef` or `flightRef` is not in the request is an error (`16304`). An entry naming a product that is not `Active` is ignored.
 
 ### 7.3 Choosing the price rule
 
@@ -582,13 +586,15 @@ With `selections`. Exactly the selected occurrences are returned, in selection o
 | 1 | `travellerRef`, and `boundRef` / `flightRef` when given, exist in the request. | `16304` |
 | 2 | Some `Active` product has this `productRef`. | `16302` |
 | 3 | The references fit the product's scope. Bound-scoped: `boundRef` given, `flightRef` absent. Flight-scoped: `flightRef` given; `boundRef` absent or the bound containing that flight. | `16303` |
-| 4 | The same product + traveller + bound/flight was not selected earlier in this request. | `16307` |
+| 4 | No earlier selection in this request names the same occurrence (identity as in §7.2: product + traveller + bound, or product + traveller + flight). | `16307` |
 | 5 | The occurrence is applicable by §7.2 rules 1–4. | `16305` |
 | 6 | The selection is still what the customer saw: `productVersion` is the `Active` version and `priceRuleId` is the rule selected now. | `16309` |
 | 7 | `quantity` is between `Quantity.Min` and `remaining`. | `16306` |
 | 8 | (P4, `Quota`) the remaining stock covers `quantity`. | `16308` |
 
 Check 6 pins a selection to exactly the catalogue item that was shown. A published product version and an Active price rule never change, so equal `productVersion` and `priceRuleId` guarantee the same description, the same codes and the same price. If either has changed, the caller asks for the catalogue again and shows the customer the new item.
+
+A flight-scoped selection naming a flight that the traveller does not fly (not in his `flightRefs`) fails check 5.
 
 For checks 3 and 5 the product is the `Active` product with this `productRef` owned by the marketing airline of the first flight the selection refers to (the `flightRef` flight, or the traveller's first flight in `boundRef`). If the traveller has no flight in `boundRef`, or no `Active` product with this `productRef` belongs to that airline, check 5 fails.
 

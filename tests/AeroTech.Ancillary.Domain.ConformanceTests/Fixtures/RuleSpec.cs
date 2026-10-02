@@ -15,6 +15,10 @@ public sealed record RuleSpec
 
     public static RuleSpec RG => new() { ProductRef = "XBAGG", Lines = [Ancillary(30.00m)] };
 
+    public static RuleSpec RL => new() { ProductRef = "LNGTHR", Lines = [Ancillary(20.00m)] };
+
+    public static RuleSpec RLG => new() { ProductRef = "LNGXLG", Lines = [Ancillary(15.00m)] };
+
     public int OwnerAirlineId { get; init; } = SubCodes.AirlineId;
 
     public string ProductRef { get; init; } = "XBAG1";

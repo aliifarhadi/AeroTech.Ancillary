@@ -56,6 +56,15 @@ namespace AeroTech.Ancillary.Persistence.AncillaryProductAggregate
                 baggage.Property(value => value.WeightUnit).HasColumnName("BaggageWeightUnit");
             });
 
+            builder.OwnsOne(product => product.Lounge, lounge =>
+            {
+                lounge.PrimitiveCollection(value => value.AirportIds)
+                    .HasField("_airportIds")
+                    .UsePropertyAccessMode(PropertyAccessMode.Field)
+                    .HasColumnName("LoungeAirportIds")
+                    .IsRequired();
+            });
+
             builder.Navigation(product => product.Quantity).IsRequired();
             builder.Navigation(product => product.Document).IsRequired();
             builder.Navigation(product => product.Codes).IsRequired();

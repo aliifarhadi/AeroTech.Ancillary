@@ -11,6 +11,22 @@ public sealed record ProductSpec
 
     public static ProductSpec G => new() { ProductRef = "XBAGG", Name = "Extra bag 23kg", Rfisc = "XBG", Max = 2 };
 
+    public static ProductSpec L => new()
+    {
+        ProductRef = "LNGTHR",
+        Type = AncillaryProductType.LoungeAccess,
+        Name = "Lounge access",
+        SalesScope = AncillarySalesScope.TravellerSegment,
+        Unit = AncillaryQuantityUnit.Each,
+        DocumentType = AncillaryDocumentType.EmdStandalone,
+        Rfisc = "0BX",
+        ServiceTypeCode = "F",
+        HasBaggage = false,
+        LoungeAirportIds = [1]
+    };
+
+    public static ProductSpec LG => L with { ProductRef = "LNGXLG", Rfisc = SubCodes.LoungeCode, Max = 2, LoungeAirportIds = [1, 5] };
+
     public int OwnerAirlineId { get; init; } = SubCodes.AirlineId;
 
     public string ProductRef { get; init; } = "XBAG1";
@@ -55,6 +71,8 @@ public sealed record ProductSpec
 
     public AncillaryWeightUnit? WeightUnit { get; init; } = AncillaryWeightUnit.Kg;
 
+    public IReadOnlyList<int>? LoungeAirportIds { get; init; }
+
     public AncillaryProduct Define(long id, ServiceSubCode? subCode, DateTimeOffset createdAt)
         => AncillaryProduct.Define(
             id,
@@ -71,6 +89,7 @@ public sealed record ProductSpec
             Terms(),
             InventoryControl,
             Baggage(),
+            Lounge(),
             subCode,
             createdAt);
 
@@ -86,9 +105,12 @@ public sealed record ProductSpec
             Terms(),
             InventoryControl,
             Baggage(),
+            Lounge(),
             subCode);
 
     private SalesTerms Terms() => new(Refundable, Commissionable, Reusable, FormOfRefundCode, InterlineSettlementAllowed);
 
     private BaggageDetail? Baggage() => HasBaggage ? new BaggageDetail(Pieces, Weight, WeightUnit) : null;
+
+    private LoungeDetail? Lounge() => LoungeAirportIds is null ? null : new LoungeDetail(LoungeAirportIds);
 }

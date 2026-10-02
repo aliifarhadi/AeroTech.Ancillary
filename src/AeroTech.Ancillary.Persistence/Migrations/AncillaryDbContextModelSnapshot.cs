@@ -454,6 +454,24 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                                 .HasForeignKey("AncillaryProductId");
                         });
 
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryProductAggregate.ValueObjects.LoungeDetail", "Lounge", b1 =>
+                        {
+                            b1.Property<long>("AncillaryProductId")
+                                .HasColumnType("bigint");
+
+                            b1.PrimitiveCollection<string>("AirportIds")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("LoungeAirportIds");
+
+                            b1.HasKey("AncillaryProductId");
+
+                            b1.ToTable("AncillaryProducts", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryProductId");
+                        });
+
                     b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryProductAggregate.ValueObjects.QuantityPolicy", "Quantity", b1 =>
                         {
                             b1.Property<long>("AncillaryProductId")
@@ -520,6 +538,8 @@ namespace AeroTech.Ancillary.Persistence.Migrations
 
                     b.Navigation("Document")
                         .IsRequired();
+
+                    b.Navigation("Lounge");
 
                     b.Navigation("Quantity")
                         .IsRequired();

@@ -26,6 +26,7 @@ namespace AeroTech.Ancillary.Query.AncillaryProductAggregate.Dto
 
         [Grid("Inventory")] public EnumValueDto InventoryControl { get; set; } = null!;
         public ProductBaggageDto? Baggage { get; set; }
+        public ProductLoungeDto? Lounge { get; set; }
 
         [Grid("Status")] public EnumValueDto Status { get; set; } = null!;
 

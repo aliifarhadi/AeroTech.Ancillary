@@ -20,6 +20,24 @@ public static class RepositoryFiles
         return (JsonBlockAfter(example, "Request:"), JsonBlockAfter(example, "Response `data`:"));
     }
 
+    public static (string Request, string LoungeItem) LoungeGoldenExample()
+    {
+        var document = File.ReadAllText(Path.Combine(Root, "docs", "phases", "Phase-2-Lounge-Access.md"));
+        var example = document[document.IndexOf(GoldenExampleHeading, StringComparison.Ordinal)..];
+
+        return (JsonBlockAfter(example, "Request"), JsonBlockAfter(example, "The lounge item"));
+    }
+
+    public static string ProofRequestBody(string proofFile, int number)
+    {
+        var proof = File.ReadAllText(Path.Combine(Root, "docs", "proof", proofFile));
+        var request = proof[proof.IndexOf($"### {number}. ", StringComparison.Ordinal)..];
+        var start = request.IndexOf('{', request.IndexOf("Content-Type", StringComparison.Ordinal));
+        var end = request.IndexOf("\n###", start, StringComparison.Ordinal);
+
+        return end < 0 ? request[start..] : request[start..end];
+    }
+
     private static string JsonBlockAfter(string text, string marker)
     {
         var start = text.IndexOf(JsonFence, text.IndexOf(marker, StringComparison.Ordinal), StringComparison.Ordinal) + JsonFence.Length;

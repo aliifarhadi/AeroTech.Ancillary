@@ -1,6 +1,6 @@
 # Phase 4 — Stock for a limited product
 
-**Authority:** `Ancillary-Domain-Master.md` (R5.3) §8.
+**Authority:** `Ancillary-Domain-Master.md` (R5.4) §8.
 **Precondition:** Phase 2 closed. (Phase 3 has no Ancillary work.)
 **Business outcome:** a product can have a limited number of units per flight. The quote shows what is left; Ordering holds, confirms, releases and cancels units.
 

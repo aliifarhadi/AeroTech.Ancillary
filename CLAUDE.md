@@ -4,9 +4,9 @@ AeroTech.Ancillary is the airline's ancillary product catalogue, the authority f
 
 ## 1. What to follow
 
-1. `docs/Ancillary-Domain-Master.md` (R5.3) — the domain and the boundaries: every field, rule, operation, error and what crosses to other services. It covers every phase.
+1. `docs/Ancillary-Domain-Master.md` (R5.4) — the domain and the boundaries: every field, rule, operation, error and what crosses to other services. It covers every phase.
 2. `docs/phases/Phase-N-*.md` — what is built in the phase the Owner names, with payload examples and expected behaviour.
-3. `contracts/ancillary-quotes-v1.openapi.yaml` — the wire shape of the quote.
+3. `Contracts/ancillary-quotes-v1.openapi.yaml` — the wire shape of the quote.
 4. This file — how the code is laid out in this repository.
 
 `docs/Phase-1-End-to-End.md` and `docs/Ordering-P1-Ancillary-Implementation-Spec.md` describe what AirOffer and Ordering do. Nothing in them is built in this repository.
@@ -15,20 +15,14 @@ Nothing else is an authority: not earlier commits or documents of this repositor
 
 ## 2. Where the repository stands
 
-The starting point is commit `843cf7c` ("Bootstrap AeroTech.Ancillary skeleton on the Ordering framework"), the head of `k8s-stg`. It contains:
-
-| Present | Absent |
-|---|---|
-| `Framework/` (Core, Infrastructure, Presentation) — shared, do not modify | any aggregate, value object, enum of this service |
-| `Contracts/AeroTech.Messages` — shared contracts; this service owns only the folder `Ancillary/` (to be created) | any controller except `PingController` |
-| `src/` projects: Domain, Application, Persistence, Providers, Query, Synchronizer, Consumers, ReferenceData, RestApi, ServiceHost, already wired in `Program.cs` | any migration of the command or query context (the ReferenceData module has its own) |
-| `AncillaryDbContext` (schema `Ancillary`, outbox and inbox tables), `AncillaryQueryDbContext` (schema `ReadModel`), `AncillaryUnitOfWork` (saves both contexts) | any test |
-| `Domain/_Shared/Resources/ExceptionFactory.cs` and `ExceptionMessages.cs` with codes 16001–16004 | |
-| `docs/AeroTech-Ancillary-Master-Domain-ADR-PRD-v1.1-FINAL.md` — superseded; **delete it first** | |
+- Skeleton: commit `843cf7c` ("Bootstrap AeroTech.Ancillary skeleton on the Ordering framework").
+- Phase 1 (Extra Baggage) built, proven and covered by tests: commits `11e5941` and `467aa55` on `k8s-stg`.
+- Tests: `tests/AeroTech.Ancillary.Domain.ConformanceTests` (no database) and `tests/AeroTech.Ancillary.Application.AcceptanceTests` (real SQL Server; it also references `src/AeroTech.Ancillary.Query` and `Framework/AeroTech.Framework.Presentation`). Their fixtures, fakes and naming are the pattern for every later phase.
+- The quote contract lives at `Contracts/ancillary-quotes-v1.openapi.yaml`; the Phase-1 contract tests read it and the golden example of `docs/phases/Phase-1-Extra-Baggage.md`.
 
 Local configuration (connection strings `CommandDbContext` / `QueryDbContext`, RabbitMq, Redis, Jwt, AirInfo, AeroCore) is not in the repository. If the service cannot start because a value is missing, report it; do not invent values. `.gitlab-ci.yml` is the Owner's concern; do not edit it.
 
-The same framework and conventions are used by `AeroTech.Ordering.Final`. If the Owner gives its local path, its `DocumentStockAggregate` slice is the reference example of everything in §3. If not, §3 is sufficient.
+The code already in this repository is the reference example of everything in §3.
 
 ## 3. How code is laid out
 
@@ -87,7 +81,7 @@ Every phase is done in two steps. Both are required; a phase is closed only afte
 - Domain tests (`tests/AeroTech.Ancillary.Domain.ConformanceTests`, no database): aggregate invariants, lifecycle transitions, the industry reference, the quote evaluator.
 - Application tests (`tests/AeroTech.Ancillary.Application.AcceptanceTests`): the real use-case services against a real SQL Server database created for the test run and dropped afterwards, with a fixed clock and a deterministic id generator.
 - Persistence tests in the same project, wherever a behaviour depends on a unique index or on concurrency (for example two simultaneous activations, a duplicate sub code, a priority conflict).
-- Contract tests for the quote: the golden example request produces exactly the documented response; field names and value names match `contracts/ancillary-quotes-v1.openapi.yaml`.
+- Contract tests for the quote: the golden example request produces exactly the documented response; field names and value names match `Contracts/ancillary-quotes-v1.openapi.yaml`.
 - The `.http` proof still passes unchanged.
 - A test is never weakened, skipped or deleted to make it pass. A row that seems wrong is a question for the Owner. A defect found by a test is fixed in the code and listed in the report.
 
@@ -108,3 +102,13 @@ Every phase is done in two steps. Both are required; a phase is closed only afte
 7. Migrations; start the service; run `docs/proof/phase-1.http`; report.
 
 That is step A. Stop for the Owner's review (`docs/phases/Phase-1-Extra-Baggage.md` §5). Step B follows when the Owner starts it.
+
+## 6. Phase 2 build order
+
+1. Enums: the four Phase-2 members (Master §9).
+2. Industry reference: the `0BX` entry (Master §4.5).
+3. `AncillaryProduct`: the combination check of §3.4, run first; field `Lounge` and value object `LoungeDetail`; the `LoungeAccess` classification; request, read model, DTO and migration for `lounge`.
+4. Quote: flight-scoped occurrences, lounge applicability, occurrence identity, item order, `lounge` on items — exactly as `Contracts/ancillary-quotes-v1.openapi.yaml` (version `R5.4-phase2`) shows.
+5. The Phase-1 test adjustment of `docs/phases/Phase-2-Lounge-Access.md` §5, and nothing else in Phase-1 tests.
+6. Migrations; run `docs/proof/phase-2.http` and `docs/proof/phase-1.http`.
+7. Phase-2 conformance tests: every row of `Phase-2-Lounge-Access.md` §4, named `P2_<rowId>_…`.

@@ -23,6 +23,7 @@ namespace AeroTech.Ancillary.Query.AncillaryProductAggregate.Queries.GetAncillar
                 ToTerms(product),
                 EnumValueDto.Of(product.InventoryControl),
                 ToBaggage(product),
+                ToLounge(product),
                 EnumValueDto.Of(product.Status),
                 product.CreatedAt,
                 product.ActivatedAt,
@@ -45,6 +46,7 @@ namespace AeroTech.Ancillary.Query.AncillaryProductAggregate.Queries.GetAncillar
                 Terms = ToTerms(product),
                 InventoryControl = EnumValueDto.Of(product.InventoryControl),
                 Baggage = ToBaggage(product),
+                Lounge = ToLounge(product),
                 Status = EnumValueDto.Of(product.Status),
                 CreatedAt = product.CreatedAt,
                 ActivatedAt = product.ActivatedAt,
@@ -80,5 +82,8 @@ namespace AeroTech.Ancillary.Query.AncillaryProductAggregate.Queries.GetAncillar
                     product.BaggagePieces,
                     product.BaggageWeight,
                     EnumValueDto.OfNullable(product.BaggageWeightUnit));
+
+        private static ProductLoungeDto? ToLounge(AncillaryProductReadModel product)
+            => product.LoungeAirportIds is null ? null : new ProductLoungeDto(product.LoungeAirportIds);
     }
 }

@@ -48,6 +48,7 @@ namespace AeroTech.Ancillary.Synchronizer.AncillaryProductAggregate
             product.BaggagePieces = snapshot.BaggagePieces;
             product.BaggageWeight = snapshot.BaggageWeight;
             product.BaggageWeightUnit = snapshot.BaggageWeightUnit;
+            product.LoungeAirportIds = snapshot.LoungeAirportIds?.ToList();
             product.Status = snapshot.Status;
             product.CreatedAt = snapshot.CreatedAt;
             product.ActivatedAt = snapshot.ActivatedAt;

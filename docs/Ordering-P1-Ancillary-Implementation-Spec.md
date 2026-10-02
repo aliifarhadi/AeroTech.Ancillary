@@ -1,8 +1,8 @@
-# Ordering — Phase 1 Ancillary Implementation Spec (companion to Ancillary R5.3)
+# Ordering — Phase 1 Ancillary Implementation Spec (companion to Ancillary R5.4)
 
 **Date:** 2026-10-02
 **For:** the Ordering service. It states exactly what Ordering builds so that an extra bag can be added to an existing ticketed order and its EMD-A issued. It is a companion contract: it becomes binding for Ordering when the Owner adds it to Ordering's own authority set.
-**Checked against:** `AeroTech.Ordering.Final` `cd50a2a` (head of `k8s-stg` on 2026-10-02); Ancillary `Ancillary-Domain-Master.md` R5.3; IATA Airline Guide to EMD Implementation.
+**Checked against:** `AeroTech.Ordering.Final` `cd50a2a` (head of `k8s-stg` on 2026-10-02); Ancillary `Ancillary-Domain-Master.md` R5.4; IATA Airline Guide to EMD Implementation.
 **Names:** the command, entity and field names are the ones Ordering's Master v2.0 already uses (§6.4, §6.7, §6.8, §17, §18, §26).
 
 Every choice below is fixed. Whoever implements it takes no domain decision; if something is missing or contradicts Ordering's source, stop and ask the Owner.

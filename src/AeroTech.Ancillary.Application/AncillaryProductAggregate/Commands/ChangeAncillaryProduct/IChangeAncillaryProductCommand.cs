@@ -24,5 +24,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.Chan
         AncillaryInventoryControl InventoryControl { get; }
 
         ProductBaggage? Baggage { get; }
+
+        ProductLounge? Lounge { get; }
     }
 }

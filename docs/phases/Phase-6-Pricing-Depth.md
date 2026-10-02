@@ -1,6 +1,6 @@
 # Phase 6 — Pricing depth
 
-**Authority:** `Ancillary-Domain-Master.md` (R5.3).
+**Authority:** `Ancillary-Domain-Master.md` (R5.4).
 **Precondition:** Phase 2 closed. It does not depend on Phases 3–5; the Owner may schedule it earlier.
 **Business outcome:** a price can carry fees and can differ by cabin, booking class, aircraft, sales channel, agency and country of sale; a product can be free and need no document.
 

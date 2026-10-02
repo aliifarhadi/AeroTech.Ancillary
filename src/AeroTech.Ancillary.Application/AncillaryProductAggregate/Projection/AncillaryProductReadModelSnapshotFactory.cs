@@ -35,6 +35,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProductAggregate.Projection
                 product.Baggage?.Pieces,
                 product.Baggage?.Weight,
                 product.Baggage?.WeightUnit,
+                product.Lounge?.AirportIds,
                 product.Status,
                 product.CreatedAt,
                 product.ActivatedAt,

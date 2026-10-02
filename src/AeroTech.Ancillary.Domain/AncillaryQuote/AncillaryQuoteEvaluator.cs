@@ -33,21 +33,35 @@ namespace AeroTech.Ancillary.Domain.AncillaryQuote
             IReadOnlyList<AncillaryPriceRule> priceRules)
         {
             var items = new List<AncillaryQuoteItem>();
+            var boundScoped = products.Where(product => product.SalesScope == AncillarySalesScope.TravellerBound).ToList();
+            var flightScoped = products.Where(product => product.SalesScope == AncillarySalesScope.TravellerSegment).ToList();
 
             foreach (var traveller in request.Travellers)
             {
                 foreach (var bound in request.Bounds)
                 {
-                    foreach (var product in products)
-                    {
-                        if (Occurrence(request, context, priceRules, product, traveller, bound) is { } occurrence)
-                            items.Add(Item(occurrence, product.Quantity.Min));
-                    }
+                    items.AddRange(CatalogueItems(request, context, priceRules, boundScoped, traveller, bound, null));
+
+                    foreach (var flight in bound.Flights)
+                        items.AddRange(CatalogueItems(request, context, priceRules, flightScoped, traveller, bound, flight));
                 }
             }
 
             return items;
         }
+
+        private static IEnumerable<AncillaryQuoteItem> CatalogueItems(
+            AncillaryQuoteRequest request,
+            AncillaryQuoteContext context,
+            IReadOnlyList<AncillaryPriceRule> priceRules,
+            IReadOnlyList<AncillaryProduct> products,
+            AncillaryQuoteTraveller traveller,
+            AncillaryQuoteBound bound,
+            AncillaryQuoteFlight? flight)
+            => products
+                .Select(product => Occurrence(request, context, priceRules, product, traveller, bound, flight))
+                .OfType<AncillaryQuoteOccurrence>()
+                .Select(occurrence => Item(occurrence, occurrence.Product.Quantity.Min));
 
         private static List<AncillaryQuoteItem> Selected(
             AncillaryQuoteRequest request,
@@ -72,16 +86,20 @@ namespace AeroTech.Ancillary.Domain.AncillaryQuote
                 var product = referred is null
                     ? null
                     : candidates.FirstOrDefault(candidate => candidate.OwnerAirlineId == referred.MarketingAirlineId);
+                var salesScope = (product ?? candidates[0]).SalesScope;
 
-                if (!FitsScope((product ?? candidates[0]).SalesScope, bound, flight))
+                if (!FitsScope(salesScope, bound, flight))
                     throw ExceptionFactory.AncillaryQuoteSelectionDoesNotFitScope();
 
-                if (!selected.Add((selection.ProductRef, selection.TravellerRef, selection.BoundRef, selection.FlightRef)))
+                var occurrenceFlight = salesScope == AncillarySalesScope.TravellerSegment ? flight : null;
+                var occurrenceBound = occurrenceFlight is null ? bound! : context.BoundOf(occurrenceFlight);
+
+                if (!selected.Add((selection.ProductRef, selection.TravellerRef, occurrenceFlight is null ? occurrenceBound.Ref : null, occurrenceFlight?.Ref)))
                     throw ExceptionFactory.AncillaryQuoteOccurrenceSelectedTwice();
 
-                var occurrence = product is null || bound is null
+                var occurrence = product is null
                     ? null
-                    : Occurrence(request, context, priceRules, product, traveller, bound);
+                    : Occurrence(request, context, priceRules, product, traveller, occurrenceBound, occurrenceFlight);
 
                 if (occurrence is null)
                     throw ExceptionFactory.AncillaryQuoteOccurrenceNotApplicable();
@@ -102,6 +120,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryQuote
             => salesScope switch
             {
                 AncillarySalesScope.TravellerBound => bound is not null && flight is null,
+                AncillarySalesScope.TravellerSegment => flight is not null && (bound is null || bound.Flights.Contains(flight)),
                 _ => false
             };
 
@@ -111,14 +130,16 @@ namespace AeroTech.Ancillary.Domain.AncillaryQuote
             IReadOnlyList<AncillaryPriceRule> priceRules,
             AncillaryProduct product,
             AncillaryQuoteTraveller traveller,
-            AncillaryQuoteBound bound)
+            AncillaryQuoteBound bound,
+            AncillaryQuoteFlight? flight)
         {
-            var covered = context.CoveredFlights(traveller, bound);
+            var covered = context.CoveredFlights(traveller, bound)
+                .Where(candidate => flight is null || candidate.Ref == flight.Ref)
+                .ToList();
 
-            if (covered.Count == 0 || covered.Any(flight => flight.MarketingAirlineId != product.OwnerAirlineId))
-                return null;
-
-            if (product.Type == AncillaryProductType.ExtraBaggage && covered.Count != 1)
+            if (covered.Count == 0
+                || covered.Any(candidate => candidate.MarketingAirlineId != product.OwnerAirlineId)
+                || !IsOfferedOn(product, covered))
                 return null;
 
             var priceRule = PriceRule(request, context, priceRules, product, traveller, covered);
@@ -126,12 +147,20 @@ namespace AeroTech.Ancillary.Domain.AncillaryQuote
             if (priceRule is null)
                 return null;
 
-            var remaining = product.Quantity.Max - context.ExistingQuantity(product.ProductRef, traveller.Ref, bound.Ref);
+            var remaining = product.Quantity.Max - context.ExistingQuantity(product.ProductRef, traveller.Ref, bound, flight);
 
             return remaining < product.Quantity.Min
                 ? null
-                : new AncillaryQuoteOccurrence(product, traveller, bound, covered, priceRule, remaining);
+                : new AncillaryQuoteOccurrence(product, traveller, bound, flight, covered, priceRule, remaining);
         }
+
+        private static bool IsOfferedOn(AncillaryProduct product, IReadOnlyList<AncillaryQuoteFlight> covered)
+            => product.Type switch
+            {
+                AncillaryProductType.ExtraBaggage => covered.Count == 1,
+                AncillaryProductType.LoungeAccess => product.Lounge!.IsOfferedAt(covered[0].OriginAirportId),
+                _ => false
+            };
 
         private static AncillaryPriceRule? PriceRule(
             AncillaryQuoteRequest request,
@@ -175,6 +204,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryQuote
                 occurrence.Product,
                 occurrence.Traveller.Ref,
                 occurrence.Bound.Ref,
+                occurrence.Flight?.Ref,
                 occurrence.CoveredFlights.Select(flight => flight.Ref).ToList(),
                 occurrence.Remaining,
                 quantity,

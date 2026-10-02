@@ -17,6 +17,7 @@ namespace AeroTech.Ancillary.Query.AncillaryProductAggregate.Dto
         ProductTermsDto Terms,
         EnumValueDto InventoryControl,
         ProductBaggageDto? Baggage,
+        ProductLoungeDto? Lounge,
         EnumValueDto Status,
         DateTimeOffset CreatedAt,
         DateTimeOffset? ActivatedAt,
@@ -50,4 +51,7 @@ namespace AeroTech.Ancillary.Query.AncillaryProductAggregate.Dto
         int? Pieces,
         decimal? Weight,
         EnumValueDto? WeightUnit);
+
+    public sealed record ProductLoungeDto(
+        IReadOnlyList<int> AirportIds);
 }

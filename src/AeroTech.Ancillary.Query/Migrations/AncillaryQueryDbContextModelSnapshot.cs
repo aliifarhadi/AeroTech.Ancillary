@@ -160,6 +160,9 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.Property<int>("InventoryControl")
                         .HasColumnType("int");
 
+                    b.PrimitiveCollection<string>("LoungeAirportIds")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)

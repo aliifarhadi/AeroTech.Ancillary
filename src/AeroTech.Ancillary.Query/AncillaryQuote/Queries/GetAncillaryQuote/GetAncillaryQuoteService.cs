@@ -78,7 +78,7 @@ namespace AeroTech.Ancillary.Query.AncillaryQuote.Queries.GetAncillaryQuote
                 product.SalesScope,
                 item.TravellerRef,
                 item.BoundRef,
-                null,
+                item.FlightRef,
                 item.CoveredFlightRefs,
                 product.Quantity.Unit,
                 product.Quantity.Min,
@@ -93,6 +93,9 @@ namespace AeroTech.Ancillary.Query.AncillaryQuote.Queries.GetAncillaryQuote
                 product.Baggage is null
                     ? null
                     : new QuoteBaggageDto(product.Baggage.Pieces, product.Baggage.Weight, product.Baggage.WeightUnit),
+                product.Lounge is null
+                    ? null
+                    : new QuoteLoungeDto(product.Lounge.AirportIds),
                 new QuoteTermsDto(
                     product.Terms.Refundable,
                     product.Terms.Commissionable,

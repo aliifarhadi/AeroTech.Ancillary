@@ -20,14 +20,10 @@ public sealed class Phase1ServiceSubCodeConformanceTests
     }
 
     [Fact]
-    public void P1_S01_IndustryReferenceHoldsOnlyTheFirstExcessBag()
-    {
-        var entry = Assert.Single(IndustrySubCodeReference.Entries);
-
-        Assert.Equal(
+    public void P1_S01_IndustryReferenceHoldsTheFirstExcessBag()
+        => Assert.Contains(
             new IndustrySubCode("0CC", "BG", null, "B1", null, "FIRST EXCESS BAG", "C", AncillaryDocumentType.EmdAssociated, 1),
-            entry);
-    }
+            IndustrySubCodeReference.Entries);
 
     [Theory]
     [InlineData("C", null, null, null, null, null)]

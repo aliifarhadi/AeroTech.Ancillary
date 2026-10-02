@@ -39,7 +39,8 @@ public static class Phase1Commands
             new ProductCodes("C"),
             new ProductTerms(false, null, null, null, null),
             AncillaryInventoryControl.Unlimited,
-            new ProductBaggage(1, 23m, AncillaryWeightUnit.Kg));
+            new ProductBaggage(1, 23m, AncillaryWeightUnit.Kg),
+            null);
 
     public static BackofficeDefineAncillaryProductCommand ProductG(int airlineId)
         => ProductX(airlineId) with
@@ -61,7 +62,8 @@ public static class Phase1Commands
             content.Codes,
             content.Terms,
             content.InventoryControl,
-            content.Baggage);
+            content.Baggage,
+            content.Lounge);
 
     public static PriceRuleLine Ancillary(decimal amount, string? name = null)
         => new(AncillaryPriceLineCategory.Ancillary, null, name, amount);

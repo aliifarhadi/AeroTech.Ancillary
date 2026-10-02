@@ -10,6 +10,7 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public const string AncillaryProductReferenceAlreadyExists = "Product reference already exists for this airline.";
         public const string AncillaryProductIsNotDraft = "Product is not a Draft and cannot be changed.";
         public const string AncillaryProductStatusChangeNotAllowed = "Product status change not allowed.";
+        public const string AncillaryProductCombinationIsNotSold = "Product combination is not sold.";
         public const string AncillaryProductIsInvalid = "Product is invalid: {0}.";
         public const string AncillaryProductDraftAlreadyExists = "A Draft of this product already exists.";
         public const string AncillaryProductVersionCannotBeRevised = "This version cannot be revised.";

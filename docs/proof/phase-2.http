@@ -1,0 +1,427 @@
+### Phase 2 proof (R5.4) — run top to bottom against the local development database.
+### Format: VS Code "REST Client" / Visual Studio / JetBrains HTTP client.
+###
+### Before running:
+###   - @token      : a Backoffice JWT for the development environment.
+###   - @airlineId  : the id of a selling airline that has NO Ancillary data yet
+###                   (not the airline used for phase-1.http).
+###   - @currencyId : the id of the currency to price in.
+### The file registers its own sub codes, products and rules. Amounts are test data.
+
+@host = http://localhost:4046
+@token = PUT-A-BACKOFFICE-TOKEN-HERE
+@airlineId = 1
+@currencyId = 70
+
+### 1. Enable 0CC (code only) — expect 200, "Active", "Industry"
+POST {{host}}/Backoffice/v1/ServiceSubCodes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "ownerAirlineId": {{airlineId}}, "code": "0CC" }
+
+### 2. Enable 0BX (code only) — expect 200, "Active", "Industry"
+# @name loungeCode
+POST {{host}}/Backoffice/v1/ServiceSubCodes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "ownerAirlineId": {{airlineId}}, "code": "0BX" }
+
+### 3. Read 0BX — expect rfic "E", groupCode "LG", subGroupCode null, description1Code null,
+###    description2Code null, commercialName "LOUNGE ACCESS"
+GET {{host}}/Backoffice/v1/ServiceSubCodes/{{loungeCode.response.body.data.id}}
+Authorization: Bearer {{token}}
+
+### 4. Enable 0BX again, with an attribute — expect 422, code 16112 (the attribute rule is checked before the duplicate rule)
+POST {{host}}/Backoffice/v1/ServiceSubCodes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "ownerAirlineId": {{airlineId}}, "code": "0BX", "rfic": "E" }
+
+### 5. Enable the carrier-defined lounge code XLG — expect 200, "CarrierDefined"
+POST {{host}}/Backoffice/v1/ServiceSubCodes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "ownerAirlineId": {{airlineId}}, "code": "XLG", "rfic": "E", "groupCode": "LG", "subGroupCode": null,
+  "description1Code": null, "description2Code": null, "commercialName": "LOUNGE" }
+
+### 6. Define the bag XBAG1 on 0CC — expect 200, "Draft"
+# @name bag
+POST {{host}}/Backoffice/v1/AncillaryProducts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "ownerAirlineId": {{airlineId}},
+  "productRef": "XBAG1",
+  "type": "ExtraBaggage",
+  "name": "First extra bag 23kg",
+  "description": null,
+  "salesScope": "TravellerBound",
+  "quantity": { "unit": "Piece", "min": 1, "max": 1 },
+  "document": { "type": "EmdAssociated", "rfisc": "0CC" },
+  "codes": { "serviceTypeCode": "C" },
+  "terms": { "refundable": false, "commissionable": null, "reusable": null, "formOfRefundCode": null, "interlineSettlementAllowed": null },
+  "inventoryControl": "Unlimited",
+  "baggage": { "pieces": 1, "weight": 23, "weightUnit": "Kg" },
+  "lounge": null
+}
+
+### 7. Define the lounge LNGTHR on 0BX — expect 200, "Draft"
+# @name lounge
+POST {{host}}/Backoffice/v1/AncillaryProducts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "ownerAirlineId": {{airlineId}},
+  "productRef": "LNGTHR",
+  "type": "LoungeAccess",
+  "name": "Lounge access",
+  "description": null,
+  "salesScope": "TravellerSegment",
+  "quantity": { "unit": "Each", "min": 1, "max": 1 },
+  "document": { "type": "EmdStandalone", "rfisc": "0BX" },
+  "codes": { "serviceTypeCode": "F" },
+  "terms": { "refundable": false, "commissionable": null, "reusable": null, "formOfRefundCode": null, "interlineSettlementAllowed": null },
+  "inventoryControl": "Unlimited",
+  "baggage": null,
+  "lounge": { "airportIds": [1] }
+}
+
+### 8. Read the lounge — expect every field as sent, lounge.airportIds [1], baggage null,
+###    document.rfic "E", codes.groupCode "LG"
+GET {{host}}/Backoffice/v1/AncillaryProducts/{{lounge.response.body.data.id}}
+Authorization: Bearer {{token}}
+
+### 9. Lounge with TravellerBound — expect 422, code 16105
+POST {{host}}/Backoffice/v1/AncillaryProducts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "ownerAirlineId": {{airlineId}},
+  "productRef": "LNGBAD1",
+  "type": "LoungeAccess",
+  "name": "Lounge",
+  "description": null,
+  "salesScope": "TravellerBound",
+  "quantity": { "unit": "Each", "min": 1, "max": 1 },
+  "document": { "type": "EmdStandalone", "rfisc": "0BX" },
+  "codes": { "serviceTypeCode": "F" },
+  "terms": { "refundable": false, "commissionable": null, "reusable": null, "formOfRefundCode": null, "interlineSettlementAllowed": null },
+  "inventoryControl": "Unlimited",
+  "baggage": null,
+  "lounge": { "airportIds": [1] }
+}
+
+### 10. Bag with EmdStandalone — expect 422, code 16105
+POST {{host}}/Backoffice/v1/AncillaryProducts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "ownerAirlineId": {{airlineId}},
+  "productRef": "XBAGBAD",
+  "type": "ExtraBaggage",
+  "name": "Bag",
+  "description": null,
+  "salesScope": "TravellerBound",
+  "quantity": { "unit": "Piece", "min": 1, "max": 1 },
+  "document": { "type": "EmdStandalone", "rfisc": "0CC" },
+  "codes": { "serviceTypeCode": "C" },
+  "terms": { "refundable": false, "commissionable": null, "reusable": null, "formOfRefundCode": null, "interlineSettlementAllowed": null },
+  "inventoryControl": "Unlimited",
+  "baggage": { "pieces": 1, "weight": 23, "weightUnit": "Kg" },
+  "lounge": null
+}
+
+### 11. Combination is checked first: lounge with TravellerBound, no lounge detail, unknown sub code — expect 422, code 16105
+POST {{host}}/Backoffice/v1/AncillaryProducts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "ownerAirlineId": {{airlineId}},
+  "productRef": "LNGBAD2",
+  "type": "LoungeAccess",
+  "name": "Lounge",
+  "description": null,
+  "salesScope": "TravellerBound",
+  "quantity": { "unit": "Each", "min": 1, "max": 1 },
+  "document": { "type": "EmdStandalone", "rfisc": "0ZZ" },
+  "codes": { "serviceTypeCode": "F" },
+  "terms": { "refundable": false, "commissionable": null, "reusable": null, "formOfRefundCode": null, "interlineSettlementAllowed": null },
+  "inventoryControl": "Unlimited",
+  "baggage": null,
+  "lounge": null
+}
+
+### 12. Lounge without lounge detail — expect 422, code 16106
+POST {{host}}/Backoffice/v1/AncillaryProducts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "ownerAirlineId": {{airlineId}},
+  "productRef": "LNGBAD3",
+  "type": "LoungeAccess",
+  "name": "Lounge",
+  "description": null,
+  "salesScope": "TravellerSegment",
+  "quantity": { "unit": "Each", "min": 1, "max": 1 },
+  "document": { "type": "EmdStandalone", "rfisc": "0BX" },
+  "codes": { "serviceTypeCode": "F" },
+  "terms": { "refundable": false, "commissionable": null, "reusable": null, "formOfRefundCode": null, "interlineSettlementAllowed": null },
+  "inventoryControl": "Unlimited",
+  "baggage": null,
+  "lounge": null
+}
+
+### 13. Lounge on the bag code 0CC — expect 422, code 16106
+POST {{host}}/Backoffice/v1/AncillaryProducts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "ownerAirlineId": {{airlineId}},
+  "productRef": "LNGBAD4",
+  "type": "LoungeAccess",
+  "name": "Lounge",
+  "description": null,
+  "salesScope": "TravellerSegment",
+  "quantity": { "unit": "Each", "min": 1, "max": 1 },
+  "document": { "type": "EmdStandalone", "rfisc": "0CC" },
+  "codes": { "serviceTypeCode": "F" },
+  "terms": { "refundable": false, "commissionable": null, "reusable": null, "formOfRefundCode": null, "interlineSettlementAllowed": null },
+  "inventoryControl": "Unlimited",
+  "baggage": null,
+  "lounge": { "airportIds": [1] }
+}
+
+### 14. Lounge on 0BX with quantity 1–2 — expect 422, code 16106
+POST {{host}}/Backoffice/v1/AncillaryProducts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "ownerAirlineId": {{airlineId}},
+  "productRef": "LNGBAD5",
+  "type": "LoungeAccess",
+  "name": "Lounge",
+  "description": null,
+  "salesScope": "TravellerSegment",
+  "quantity": { "unit": "Each", "min": 1, "max": 2 },
+  "document": { "type": "EmdStandalone", "rfisc": "0BX" },
+  "codes": { "serviceTypeCode": "F" },
+  "terms": { "refundable": false, "commissionable": null, "reusable": null, "formOfRefundCode": null, "interlineSettlementAllowed": null },
+  "inventoryControl": "Unlimited",
+  "baggage": null,
+  "lounge": { "airportIds": [1] }
+}
+
+### 15. Activate the bag — expect 200, "Active"
+POST {{host}}/Backoffice/v1/AncillaryProducts/{{bag.response.body.data.id}}/Activate
+Authorization: Bearer {{token}}
+
+### 16. Activate the lounge — expect 200, "Active"
+POST {{host}}/Backoffice/v1/AncillaryProducts/{{lounge.response.body.data.id}}/Activate
+Authorization: Bearer {{token}}
+
+### 17. Rule for the bag (35.00) — expect 200, "Draft"
+# @name bagRule
+POST {{host}}/Backoffice/v1/AncillaryPriceRules
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "ownerAirlineId": {{airlineId}},
+  "productRef": "XBAG1",
+  "priority": 1,
+  "currencyId": {{currencyId}},
+  "lines": [ { "category": "Ancillary", "code": null, "name": null, "amount": 35.00 } ],
+  "salesFrom": null, "salesTo": null, "travelFrom": null, "travelTo": null,
+  "conditions": { "passengerTypes": null, "originAirportIds": null, "destinationAirportIds": null }
+}
+
+### 18. Activate it — expect 200, "Active"
+POST {{host}}/Backoffice/v1/AncillaryPriceRules/{{bagRule.response.body.data.id}}/Activate
+Authorization: Bearer {{token}}
+
+### 19. Rule for the lounge (20.00) — expect 200, "Draft"
+# @name loungeRule
+POST {{host}}/Backoffice/v1/AncillaryPriceRules
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "ownerAirlineId": {{airlineId}},
+  "productRef": "LNGTHR",
+  "priority": 1,
+  "currencyId": {{currencyId}},
+  "lines": [ { "category": "Ancillary", "code": null, "name": null, "amount": 20.00 } ],
+  "salesFrom": null, "salesTo": null, "travelFrom": null, "travelTo": null,
+  "conditions": { "passengerTypes": null, "originAirportIds": null, "destinationAirportIds": null }
+}
+
+### 20. Activate it — expect 200, "Active"
+POST {{host}}/Backoffice/v1/AncillaryPriceRules/{{loungeRule.response.body.data.id}}/Activate
+Authorization: Bearer {{token}}
+
+### 21. Catalogue — the golden example of the phase document.
+### Expect 200 and exactly three items in this order:
+###   XBAG1 T1/B1 (flightRef null, coveredFlightRefs ["F1"], lounge null, total 35.00);
+###   LNGTHR T1/B1/F1 (salesScope TravellerSegment, flightRef "F1", coveredFlightRefs ["F1"], unit "Each",
+###     document {type EmdStandalone, rfic E, rfisc 0BX}, codes.groupCode LG, lounge {airportIds [1]},
+###     baggage null, total 20.00);
+###   XBAG1 T1/B2 (coveredFlightRefs ["F2"], total 35.00).
+### No lounge item for F2 (it departs airport 2).
+POST {{host}}/Service/v1/AncillaryQuotes
+Content-Type: application/json
+
+{
+  "currencyId": {{currencyId}},
+  "asOf": "2026-10-01T14:00:00+00:00",
+  "travellers": [ { "ref": "T1", "passengerTypeCode": "ADT", "flightRefs": ["F1", "F2"] } ],
+  "bounds": [
+    { "ref": "B1", "flights": [
+      { "ref": "F1", "flightId": "100", "originAirportId": 1, "destinationAirportId": 2,
+        "departureDateTime": "2026-10-10T08:00:00+03:30", "marketingAirlineId": {{airlineId}}, "operatingAirlineId": {{airlineId}} } ] },
+    { "ref": "B2", "flights": [
+      { "ref": "F2", "flightId": "101", "originAirportId": 2, "destinationAirportId": 1,
+        "departureDateTime": "2026-10-15T08:00:00+03:30", "marketingAirlineId": {{airlineId}}, "operatingAirlineId": {{airlineId}} } ] } ]
+}
+
+### 22. Select the lounge for F1 without boundRef — expect 200, one item, boundRef "B1", total 20.00
+POST {{host}}/Service/v1/AncillaryQuotes
+Content-Type: application/json
+
+{
+  "currencyId": {{currencyId}},
+  "asOf": "2026-10-01T14:00:00+00:00",
+  "travellers": [ { "ref": "T1", "passengerTypeCode": "ADT", "flightRefs": ["F1", "F2"] } ],
+  "bounds": [
+    { "ref": "B1", "flights": [
+      { "ref": "F1", "flightId": "100", "originAirportId": 1, "destinationAirportId": 2,
+        "departureDateTime": "2026-10-10T08:00:00+03:30", "marketingAirlineId": {{airlineId}}, "operatingAirlineId": {{airlineId}} } ] },
+    { "ref": "B2", "flights": [
+      { "ref": "F2", "flightId": "101", "originAirportId": 2, "destinationAirportId": 1,
+        "departureDateTime": "2026-10-15T08:00:00+03:30", "marketingAirlineId": {{airlineId}}, "operatingAirlineId": {{airlineId}} } ] } ],
+  "selections": [ { "productRef": "LNGTHR", "productVersion": 1, "priceRuleId": "{{loungeRule.response.body.data.id}}", "travellerRef": "T1", "boundRef": null, "flightRef": "F1", "quantity": 1 } ]
+}
+
+### 23. Select the lounge for F1 with the wrong bound B2 — expect 422, code 16303
+POST {{host}}/Service/v1/AncillaryQuotes
+Content-Type: application/json
+
+{
+  "currencyId": {{currencyId}},
+  "asOf": "2026-10-01T14:00:00+00:00",
+  "travellers": [ { "ref": "T1", "passengerTypeCode": "ADT", "flightRefs": ["F1", "F2"] } ],
+  "bounds": [
+    { "ref": "B1", "flights": [
+      { "ref": "F1", "flightId": "100", "originAirportId": 1, "destinationAirportId": 2,
+        "departureDateTime": "2026-10-10T08:00:00+03:30", "marketingAirlineId": {{airlineId}}, "operatingAirlineId": {{airlineId}} } ] },
+    { "ref": "B2", "flights": [
+      { "ref": "F2", "flightId": "101", "originAirportId": 2, "destinationAirportId": 1,
+        "departureDateTime": "2026-10-15T08:00:00+03:30", "marketingAirlineId": {{airlineId}}, "operatingAirlineId": {{airlineId}} } ] } ],
+  "selections": [ { "productRef": "LNGTHR", "productVersion": 1, "priceRuleId": "{{loungeRule.response.body.data.id}}", "travellerRef": "T1", "boundRef": "B2", "flightRef": "F1", "quantity": 1 } ]
+}
+
+### 24. Select the lounge for F2 — expect 422, code 16305
+POST {{host}}/Service/v1/AncillaryQuotes
+Content-Type: application/json
+
+{
+  "currencyId": {{currencyId}},
+  "asOf": "2026-10-01T14:00:00+00:00",
+  "travellers": [ { "ref": "T1", "passengerTypeCode": "ADT", "flightRefs": ["F1", "F2"] } ],
+  "bounds": [
+    { "ref": "B1", "flights": [
+      { "ref": "F1", "flightId": "100", "originAirportId": 1, "destinationAirportId": 2,
+        "departureDateTime": "2026-10-10T08:00:00+03:30", "marketingAirlineId": {{airlineId}}, "operatingAirlineId": {{airlineId}} } ] },
+    { "ref": "B2", "flights": [
+      { "ref": "F2", "flightId": "101", "originAirportId": 2, "destinationAirportId": 1,
+        "departureDateTime": "2026-10-15T08:00:00+03:30", "marketingAirlineId": {{airlineId}}, "operatingAirlineId": {{airlineId}} } ] } ],
+  "selections": [ { "productRef": "LNGTHR", "productVersion": 1, "priceRuleId": "{{loungeRule.response.body.data.id}}", "travellerRef": "T1", "boundRef": null, "flightRef": "F2", "quantity": 1 } ]
+}
+
+### 25. The same lounge occurrence twice (with and without boundRef) — expect 422, code 16307
+POST {{host}}/Service/v1/AncillaryQuotes
+Content-Type: application/json
+
+{
+  "currencyId": {{currencyId}},
+  "asOf": "2026-10-01T14:00:00+00:00",
+  "travellers": [ { "ref": "T1", "passengerTypeCode": "ADT", "flightRefs": ["F1", "F2"] } ],
+  "bounds": [
+    { "ref": "B1", "flights": [
+      { "ref": "F1", "flightId": "100", "originAirportId": 1, "destinationAirportId": 2,
+        "departureDateTime": "2026-10-10T08:00:00+03:30", "marketingAirlineId": {{airlineId}}, "operatingAirlineId": {{airlineId}} } ] },
+    { "ref": "B2", "flights": [
+      { "ref": "F2", "flightId": "101", "originAirportId": 2, "destinationAirportId": 1,
+        "departureDateTime": "2026-10-15T08:00:00+03:30", "marketingAirlineId": {{airlineId}}, "operatingAirlineId": {{airlineId}} } ] } ],
+  "selections": [ { "productRef": "LNGTHR", "productVersion": 1, "priceRuleId": "{{loungeRule.response.body.data.id}}", "travellerRef": "T1", "boundRef": null, "flightRef": "F1", "quantity": 1 },
+    { "productRef": "LNGTHR", "productVersion": 1, "priceRuleId": "{{loungeRule.response.body.data.id}}", "travellerRef": "T1", "boundRef": "B1", "flightRef": "F1", "quantity": 1 } ]
+}
+
+### 26. Lounge already bought for F1 — catalogue: expect 200 with only the two XBAG1 items
+POST {{host}}/Service/v1/AncillaryQuotes
+Content-Type: application/json
+
+{
+  "currencyId": {{currencyId}},
+  "asOf": "2026-10-01T14:00:00+00:00",
+  "travellers": [ { "ref": "T1", "passengerTypeCode": "ADT", "flightRefs": ["F1", "F2"] } ],
+  "bounds": [
+    { "ref": "B1", "flights": [
+      { "ref": "F1", "flightId": "100", "originAirportId": 1, "destinationAirportId": 2,
+        "departureDateTime": "2026-10-10T08:00:00+03:30", "marketingAirlineId": {{airlineId}}, "operatingAirlineId": {{airlineId}} } ] },
+    { "ref": "B2", "flights": [
+      { "ref": "F2", "flightId": "101", "originAirportId": 2, "destinationAirportId": 1,
+        "departureDateTime": "2026-10-15T08:00:00+03:30", "marketingAirlineId": {{airlineId}}, "operatingAirlineId": {{airlineId}} } ] } ],
+  "existing": [ { "productRef": "LNGTHR", "travellerRef": "T1", "boundRef": null, "flightRef": "F1", "quantity": 1 } ]
+}
+
+### 27. Same, selecting it again — expect 422, code 16305
+POST {{host}}/Service/v1/AncillaryQuotes
+Content-Type: application/json
+
+{
+  "currencyId": {{currencyId}},
+  "asOf": "2026-10-01T14:00:00+00:00",
+  "travellers": [ { "ref": "T1", "passengerTypeCode": "ADT", "flightRefs": ["F1", "F2"] } ],
+  "bounds": [
+    { "ref": "B1", "flights": [
+      { "ref": "F1", "flightId": "100", "originAirportId": 1, "destinationAirportId": 2,
+        "departureDateTime": "2026-10-10T08:00:00+03:30", "marketingAirlineId": {{airlineId}}, "operatingAirlineId": {{airlineId}} } ] },
+    { "ref": "B2", "flights": [
+      { "ref": "F2", "flightId": "101", "originAirportId": 2, "destinationAirportId": 1,
+        "departureDateTime": "2026-10-15T08:00:00+03:30", "marketingAirlineId": {{airlineId}}, "operatingAirlineId": {{airlineId}} } ] } ],
+  "existing": [ { "productRef": "LNGTHR", "travellerRef": "T1", "boundRef": null, "flightRef": "F1", "quantity": 1 } ],
+  "selections": [ { "productRef": "LNGTHR", "productVersion": 1, "priceRuleId": "{{loungeRule.response.body.data.id}}", "travellerRef": "T1", "boundRef": null, "flightRef": "F1", "quantity": 1 } ]
+}
+
+### 28. A value that still does not exist (Quota) — expect 400
+POST {{host}}/Backoffice/v1/AncillaryProducts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "ownerAirlineId": {{airlineId}},
+  "productRef": "LNGQ",
+  "type": "LoungeAccess",
+  "name": "Lounge quota",
+  "description": null,
+  "salesScope": "TravellerSegment",
+  "quantity": { "unit": "Each", "min": 1, "max": 1 },
+  "document": { "type": "EmdStandalone", "rfisc": "0BX" },
+  "codes": { "serviceTypeCode": "F" },
+  "terms": { "refundable": false, "commissionable": null, "reusable": null, "formOfRefundCode": null, "interlineSettlementAllowed": null },
+  "inventoryControl": "Quota",
+  "baggage": null,
+  "lounge": { "airportIds": [1] }
+}

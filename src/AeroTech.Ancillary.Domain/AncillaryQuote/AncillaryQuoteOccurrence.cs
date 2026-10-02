@@ -7,6 +7,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryQuote
         AncillaryProduct Product,
         AncillaryQuoteTraveller Traveller,
         AncillaryQuoteBound Bound,
+        AncillaryQuoteFlight? Flight,
         IReadOnlyList<AncillaryQuoteFlight> CoveredFlights,
         AncillaryPriceRule PriceRule,
         int Remaining);

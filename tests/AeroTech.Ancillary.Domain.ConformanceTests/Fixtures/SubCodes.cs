@@ -5,6 +5,7 @@ namespace AeroTech.Ancillary.Domain.ConformanceTests.Fixtures;
 public static class SubCodes
 {
     public const int AirlineId = 10;
+    public const string LoungeCode = "XLG";
 
     public static readonly DateTimeOffset RegisteredAt = new(2026, 9, 1, 8, 0, 0, TimeSpan.Zero);
 
@@ -22,6 +23,13 @@ public static class SubCodes
         string commercialName = "EXTRA BAG")
         => ServiceSubCode.Register(2, ownerAirlineId, code, rfic, groupCode, subGroupCode, description1Code, description2Code, commercialName, RegisteredAt);
 
+    public static ServiceSubCode CarrierDefinedLounge(string code = LoungeCode, int ownerAirlineId = AirlineId)
+        => CarrierDefined(code, ownerAirlineId, "E", "LG", commercialName: "LOUNGE");
+
     public static ServiceSubCode For(string code, int ownerAirlineId = AirlineId)
-        => char.IsAsciiDigit(code[0]) ? Industry(code, ownerAirlineId) : CarrierDefined(code, ownerAirlineId);
+        => char.IsAsciiDigit(code[0])
+            ? Industry(code, ownerAirlineId)
+            : code == LoungeCode
+                ? CarrierDefinedLounge(code, ownerAirlineId)
+                : CarrierDefined(code, ownerAirlineId);
 }

@@ -25,6 +25,7 @@ namespace AeroTech.Ancillary.Query.AncillaryQuote.Dto
         int Quantity,
         QuoteCodesDto Codes,
         QuoteBaggageDto? Baggage,
+        QuoteLoungeDto? Lounge,
         QuoteTermsDto Terms,
         QuoteDocumentDto Document,
         QuoteInventoryDto Inventory,
@@ -44,6 +45,9 @@ namespace AeroTech.Ancillary.Query.AncillaryQuote.Dto
         int? Pieces,
         decimal? Weight,
         AncillaryWeightUnit? WeightUnit);
+
+    public sealed record QuoteLoungeDto(
+        IReadOnlyCollection<int> AirportIds);
 
     public sealed record QuoteTermsDto(
         bool Refundable,

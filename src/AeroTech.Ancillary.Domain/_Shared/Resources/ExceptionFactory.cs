@@ -28,6 +28,9 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public static BusinessException AncillaryProductStatusChangeNotAllowed(params object?[] args) =>
             new(16104, ExceptionMessages.AncillaryProductStatusChangeNotAllowed, args) { HttpStatus = 409 };
 
+        public static BusinessException AncillaryProductCombinationIsNotSold(params object?[] args) =>
+            new(16105, ExceptionMessages.AncillaryProductCombinationIsNotSold, args) { HttpStatus = 422 };
+
         public static BusinessException AncillaryProductIsInvalid(params object?[] args) =>
             new(16106, ExceptionMessages.AncillaryProductIsInvalid, args) { HttpStatus = 422 };
 

@@ -1,6 +1,6 @@
 # Phase 5 — Paid seat (pricing only)
 
-**Authority:** `Ancillary-Domain-Master.md` (R5.3) §4.2 (`SeatDetail`), §4.5 (`0B5`), §7.8.
+**Authority:** `Ancillary-Domain-Master.md` (R5.4) §4.2 (`SeatDetail`), §4.5 (`0B5`), §7.8.
 **Precondition:** Phase 4 closed.
 **Business outcome:** the airline charges for chosen seats. FlightFlow keeps the seat map and the seat hold. Ancillary only answers what a given seat costs for a given traveller and which document it needs.
 
