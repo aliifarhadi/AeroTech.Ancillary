@@ -14,7 +14,7 @@ namespace AeroTech.Framework.Core.Domain.Entities
             LastUpdatedBy = userId;
         }
 
-        public bool Equals(Entity<TId>? other) => this == other;
+        public bool Equals(Entity<TId>? other) => other is not null && Id.Equals(other.Id);
 
         public override bool Equals(object? obj) => obj is Entity<TId> other && Id.Equals(other.Id);
 
