@@ -1,3 +1,6 @@
+using AeroTech.Ancillary.Query.AncillaryPriceRuleAggregate.Models;
+using AeroTech.Ancillary.Query.AncillaryProductAggregate.Models;
+using AeroTech.Ancillary.Query.ServiceSubCodeAggregate.Models;
 using AeroTech.Ancillary.ReferenceData.Persistence;
 using AeroTech.Ancillary.ReferenceData.ReadModels;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +16,14 @@ namespace AeroTech.Ancillary.Query._Shared.DbContexts
         public AncillaryQueryDbContext(DbContextOptions<AncillaryQueryDbContext> options) : base(options)
         {
         }
+
+        public DbSet<ServiceSubCodeReadModel> ServiceSubCodes => Set<ServiceSubCodeReadModel>();
+
+        public DbSet<AncillaryProductReadModel> AncillaryProducts => Set<AncillaryProductReadModel>();
+
+        public DbSet<AncillaryPriceRuleReadModel> AncillaryPriceRules => Set<AncillaryPriceRuleReadModel>();
+
+        public DbSet<PriceLineReadModel> PriceLines => Set<PriceLineReadModel>();
 
         public DbSet<CustomerReadModel> Customers => Set<CustomerReadModel>();
 

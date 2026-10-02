@@ -1,6 +1,9 @@
 using AeroTech.Framework.Core.Domain.Repository;
 using AeroTech.Framework.Core.ServiceContracts;
 using AeroTech.Framework.Infrastructure.Persistence;
+using AeroTech.Ancillary.Domain.AncillaryPriceRuleAggregate;
+using AeroTech.Ancillary.Domain.AncillaryProductAggregate;
+using AeroTech.Ancillary.Domain.ServiceSubCodeAggregate;
 using AeroTech.Ancillary.Persistence.Inbox;
 using AeroTech.Ancillary.Persistence.Outbox;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +23,12 @@ namespace AeroTech.Ancillary.Persistence
             : base(options, actorResolver, clock, domainEventDispatcher)
         {
         }
+
+        public DbSet<ServiceSubCode> ServiceSubCodes => Set<ServiceSubCode>();
+
+        public DbSet<AncillaryProduct> AncillaryProducts => Set<AncillaryProduct>();
+
+        public DbSet<AncillaryPriceRule> AncillaryPriceRules => Set<AncillaryPriceRule>();
 
         public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 

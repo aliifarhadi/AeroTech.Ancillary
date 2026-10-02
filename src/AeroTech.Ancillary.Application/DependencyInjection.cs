@@ -1,4 +1,18 @@
 using AeroTech.Framework.Core.ServiceContracts;
+using AeroTech.Ancillary.Application.AncillaryPriceRuleAggregate.Commands.ActivateAncillaryPriceRule;
+using AeroTech.Ancillary.Application.AncillaryPriceRuleAggregate.Commands.ChangeAncillaryPriceRule;
+using AeroTech.Ancillary.Application.AncillaryPriceRuleAggregate.Commands.DefineAncillaryPriceRule;
+using AeroTech.Ancillary.Application.AncillaryPriceRuleAggregate.Commands.RetireAncillaryPriceRule;
+using AeroTech.Ancillary.Application.AncillaryPriceRuleAggregate.Commands.SuspendAncillaryPriceRule;
+using AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.ActivateAncillaryProduct;
+using AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.ChangeAncillaryProduct;
+using AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.DefineAncillaryProduct;
+using AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.RetireAncillaryProduct;
+using AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.ReviseAncillaryProduct;
+using AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.SuspendAncillaryProduct;
+using AeroTech.Ancillary.Application.ServiceSubCodeAggregate.Commands.ReactivateServiceSubCode;
+using AeroTech.Ancillary.Application.ServiceSubCodeAggregate.Commands.RegisterServiceSubCode;
+using AeroTech.Ancillary.Application.ServiceSubCodeAggregate.Commands.RetireServiceSubCode;
 using AeroTech.Ancillary.Application._Shared.Authorization;
 using AeroTech.Ancillary.Application._Shared.Behaviors;
 using AeroTech.Ancillary.Application._Shared.Events;
@@ -24,6 +38,20 @@ namespace AeroTech.Ancillary.Application
             services.AddScoped<IDomainEventDispatcher, MediatRDomainEventDispatcher>();
 
             services.AddScoped<ICallerCustomer, CallerCustomer>();
+            services.AddScoped<IRegisterServiceSubCodeService, RegisterServiceSubCodeService>();
+            services.AddScoped<IRetireServiceSubCodeService, RetireServiceSubCodeService>();
+            services.AddScoped<IReactivateServiceSubCodeService, ReactivateServiceSubCodeService>();
+            services.AddScoped<IDefineAncillaryProductService, DefineAncillaryProductService>();
+            services.AddScoped<IChangeAncillaryProductService, ChangeAncillaryProductService>();
+            services.AddScoped<IActivateAncillaryProductService, ActivateAncillaryProductService>();
+            services.AddScoped<ISuspendAncillaryProductService, SuspendAncillaryProductService>();
+            services.AddScoped<IRetireAncillaryProductService, RetireAncillaryProductService>();
+            services.AddScoped<IReviseAncillaryProductService, ReviseAncillaryProductService>();
+            services.AddScoped<IDefineAncillaryPriceRuleService, DefineAncillaryPriceRuleService>();
+            services.AddScoped<IChangeAncillaryPriceRuleService, ChangeAncillaryPriceRuleService>();
+            services.AddScoped<IActivateAncillaryPriceRuleService, ActivateAncillaryPriceRuleService>();
+            services.AddScoped<ISuspendAncillaryPriceRuleService, SuspendAncillaryPriceRuleService>();
+            services.AddScoped<IRetireAncillaryPriceRuleService, RetireAncillaryPriceRuleService>();
 
             return services;
         }
