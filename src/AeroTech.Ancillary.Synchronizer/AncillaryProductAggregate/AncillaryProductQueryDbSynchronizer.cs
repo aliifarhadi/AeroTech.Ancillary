@@ -1,6 +1,7 @@
 using AeroTech.Ancillary.Domain.AncillaryProductAggregate.Contracts;
 using AeroTech.Ancillary.Query.AncillaryProductAggregate.Models;
 using AeroTech.Ancillary.Query._Shared.DbContexts;
+using AeroTech.Framework.Core.ServiceContracts;
 using Microsoft.EntityFrameworkCore;
 
 namespace AeroTech.Ancillary.Synchronizer.AncillaryProductAggregate
@@ -8,8 +9,13 @@ namespace AeroTech.Ancillary.Synchronizer.AncillaryProductAggregate
     public sealed class AncillaryProductQueryDbSynchronizer : IAncillaryProductQueryDbSynchronizer
     {
         private readonly AncillaryQueryDbContext _dbContext;
+        private readonly IClock _clock;
 
-        public AncillaryProductQueryDbSynchronizer(AncillaryQueryDbContext dbContext) => _dbContext = dbContext;
+        public AncillaryProductQueryDbSynchronizer(AncillaryQueryDbContext dbContext, IClock clock)
+        {
+            _dbContext = dbContext;
+            _clock = clock;
+        }
 
         public async Task ProjectAsync(AncillaryProductReadModelSnapshot snapshot, CancellationToken cancellationToken = default)
         {
@@ -53,6 +59,7 @@ namespace AeroTech.Ancillary.Synchronizer.AncillaryProductAggregate
             product.CreatedAt = snapshot.CreatedAt;
             product.ActivatedAt = snapshot.ActivatedAt;
             product.RetiredAt = snapshot.RetiredAt;
+            product.LastUpdateTime = _clock.GetDateTime();
         }
     }
 }

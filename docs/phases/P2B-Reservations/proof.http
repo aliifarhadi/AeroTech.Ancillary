@@ -1,0 +1,289 @@
+### Phase 2B proof — run top to bottom against the local development database.
+### Format: VS Code "REST Client" / Visual Studio / JetBrains HTTP client.
+###
+### Before running:
+###   - @token      : a Backoffice JWT for the development environment.
+###   - @airlineId  : the id of a selling airline that has NO Ancillary data yet.
+###   - @currencyId : the id of the currency to price in.
+###   - @future     : a moment a few hours from now;  @past : a moment already gone.
+### Amounts are test data.
+
+@host = http://localhost:4046
+@token = PUT-A-BACKOFFICE-TOKEN-HERE
+@airlineId = 12
+@currencyId = 978
+@future = 2027-01-01T00:00:00+00:00
+@past = 2020-01-01T00:00:00+00:00
+
+### 1. Enable 0CC — expect 200
+POST {{host}}/Backoffice/v1/ServiceSubCodes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "ownerAirlineId": {{airlineId}}, "code": "0CC" }
+
+### 2. Define the bag XBAG1 — expect 200, "Draft"
+# @name bag
+POST {{host}}/Backoffice/v1/AncillaryProducts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "ownerAirlineId": {{airlineId}},
+  "productRef": "XBAG1",
+  "type": "ExtraBaggage",
+  "name": "First extra bag 23kg",
+  "description": null,
+  "salesScope": "TravellerBound",
+  "quantity": { "unit": "Piece", "min": 1, "max": 1 },
+  "document": { "type": "EmdAssociated", "rfisc": "0CC" },
+  "codes": { "serviceTypeCode": "C" },
+  "terms": { "refundable": false, "commissionable": null, "reusable": null, "formOfRefundCode": null, "interlineSettlementAllowed": null },
+  "inventoryControl": "Unlimited",
+  "baggage": { "pieces": 1, "weight": 23, "weightUnit": "Kg" },
+  "lounge": null
+}
+
+### 3. Activate it — expect 200, "Active"
+POST {{host}}/Backoffice/v1/AncillaryProducts/{{bag.response.body.data.id}}/Activate
+Authorization: Bearer {{token}}
+
+### 4. Define its rule (35.00 + VAT 3.50) — expect 200, "Draft"
+# @name rule
+POST {{host}}/Backoffice/v1/AncillaryPriceRules
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "ownerAirlineId": {{airlineId}},
+  "productRef": "XBAG1",
+  "priority": 1,
+  "currencyId": {{currencyId}},
+  "lines": [
+    { "category": "Ancillary", "code": null, "name": null, "amount": 35.00 },
+    { "category": "Tax", "code": "VAT", "name": "Value added tax", "amount": 3.50 }
+  ],
+  "salesFrom": null, "salesTo": null, "travelFrom": null, "travelTo": null,
+  "conditions": { "passengerTypes": null, "originAirportIds": null, "destinationAirportIds": null }
+}
+
+### 5. Activate it — expect 200, "Active"
+POST {{host}}/Backoffice/v1/AncillaryPriceRules/{{rule.response.body.data.id}}/Activate
+Authorization: Bearer {{token}}
+
+### 6. Reserve the bag — expect 200: one unit "Held", total 38.50, coveredFlightIds ["100"],
+###    inventoryControl "Unlimited", productVersion 1, priceRuleId = the rule of request 4
+# @name hold
+POST {{host}}/Service/v1/ServiceReservations
+Content-Type: application/json
+
+{
+  "idempotencyKey": "proof-2b-1",
+  "reference": "proof-order-1",
+  "expiresAt": "{{future}}",
+  "context": {
+    "currencyId": {{currencyId}},
+    "asOf": "{{$datetime iso8601}}",
+    "travellers": [ { "ref": "T1", "passengerTypeCode": "ADT", "flightRefs": ["F1"] } ],
+    "bounds": [ { "ref": "B1", "flights": [
+      { "ref": "F1", "flightId": "100", "originAirportId": 1, "destinationAirportId": 2,
+        "departureDateTime": "2027-01-10T08:00:00+03:30", "marketingAirlineId": {{airlineId}}, "operatingAirlineId": {{airlineId}} } ] } ],
+    "existing": []
+  },
+  "units": [
+    { "unitReference": "U1", "productRef": "XBAG1", "productVersion": 1, "priceRuleId": "{{rule.response.body.data.id}}", "travellerRef": "T1", "boundRef": "B1", "flightRef": null, "quantity": 1 }
+  ]
+}
+
+### 7. The same request again — expect 200 with the same reservationId and unitRef
+POST {{host}}/Service/v1/ServiceReservations
+Content-Type: application/json
+
+{
+  "idempotencyKey": "proof-2b-1",
+  "reference": "proof-order-1",
+  "expiresAt": "{{future}}",
+  "context": {
+    "currencyId": {{currencyId}},
+    "asOf": "{{$datetime iso8601}}",
+    "travellers": [ { "ref": "T1", "passengerTypeCode": "ADT", "flightRefs": ["F1"] } ],
+    "bounds": [ { "ref": "B1", "flights": [
+      { "ref": "F1", "flightId": "100", "originAirportId": 1, "destinationAirportId": 2,
+        "departureDateTime": "2027-01-10T08:00:00+03:30", "marketingAirlineId": {{airlineId}}, "operatingAirlineId": {{airlineId}} } ] } ],
+    "existing": []
+  },
+  "units": [
+    { "unitReference": "U1", "productRef": "XBAG1", "productVersion": 1, "priceRuleId": "{{rule.response.body.data.id}}", "travellerRef": "T1", "boundRef": "B1", "flightRef": null, "quantity": 1 }
+  ]
+}
+
+### 8. The same key with another quantity — expect 409, code 16405
+POST {{host}}/Service/v1/ServiceReservations
+Content-Type: application/json
+
+{
+  "idempotencyKey": "proof-2b-1",
+  "reference": "proof-order-1",
+  "expiresAt": "{{future}}",
+  "context": {
+    "currencyId": {{currencyId}},
+    "asOf": "{{$datetime iso8601}}",
+    "travellers": [ { "ref": "T1", "passengerTypeCode": "ADT", "flightRefs": ["F1"] } ],
+    "bounds": [ { "ref": "B1", "flights": [
+      { "ref": "F1", "flightId": "100", "originAirportId": 1, "destinationAirportId": 2,
+        "departureDateTime": "2027-01-10T08:00:00+03:30", "marketingAirlineId": {{airlineId}}, "operatingAirlineId": {{airlineId}} } ] } ],
+    "existing": []
+  },
+  "units": [
+    { "unitReference": "U1", "productRef": "XBAG1", "productVersion": 1, "priceRuleId": "{{rule.response.body.data.id}}", "travellerRef": "T1", "boundRef": "B1", "flightRef": null, "quantity": 2 }
+  ]
+}
+
+### 9. A stale selection (productVersion 2) — expect 409, code 16309; nothing is stored
+POST {{host}}/Service/v1/ServiceReservations
+Content-Type: application/json
+
+{
+  "idempotencyKey": "proof-2b-2",
+  "reference": "proof-order-1",
+  "expiresAt": "{{future}}",
+  "context": {
+    "currencyId": {{currencyId}},
+    "asOf": "{{$datetime iso8601}}",
+    "travellers": [ { "ref": "T1", "passengerTypeCode": "ADT", "flightRefs": ["F1"] } ],
+    "bounds": [ { "ref": "B1", "flights": [
+      { "ref": "F1", "flightId": "100", "originAirportId": 1, "destinationAirportId": 2,
+        "departureDateTime": "2027-01-10T08:00:00+03:30", "marketingAirlineId": {{airlineId}}, "operatingAirlineId": {{airlineId}} } ] } ],
+    "existing": []
+  },
+  "units": [
+    { "unitReference": "U1", "productRef": "XBAG1", "productVersion": 2, "priceRuleId": "{{rule.response.body.data.id}}", "travellerRef": "T1", "boundRef": "B1", "flightRef": null, "quantity": 1 }
+  ]
+}
+
+### 10. Two units of the first-bag product — expect 422, code 16306
+POST {{host}}/Service/v1/ServiceReservations
+Content-Type: application/json
+
+{
+  "idempotencyKey": "proof-2b-3",
+  "reference": "proof-order-1",
+  "expiresAt": "{{future}}",
+  "context": {
+    "currencyId": {{currencyId}},
+    "asOf": "{{$datetime iso8601}}",
+    "travellers": [ { "ref": "T1", "passengerTypeCode": "ADT", "flightRefs": ["F1"] } ],
+    "bounds": [ { "ref": "B1", "flights": [
+      { "ref": "F1", "flightId": "100", "originAirportId": 1, "destinationAirportId": 2,
+        "departureDateTime": "2027-01-10T08:00:00+03:30", "marketingAirlineId": {{airlineId}}, "operatingAirlineId": {{airlineId}} } ] } ],
+    "existing": []
+  },
+  "units": [
+    { "unitReference": "U1", "productRef": "XBAG1", "productVersion": 1, "priceRuleId": "{{rule.response.body.data.id}}", "travellerRef": "T1", "boundRef": "B1", "flightRef": null, "quantity": 2 }
+  ]
+}
+
+### 11. The order already holds the bag — expect 422, code 16305
+POST {{host}}/Service/v1/ServiceReservations
+Content-Type: application/json
+
+{
+  "idempotencyKey": "proof-2b-4",
+  "reference": "proof-order-1",
+  "expiresAt": "{{future}}",
+  "context": {
+    "currencyId": {{currencyId}},
+    "asOf": "{{$datetime iso8601}}",
+    "travellers": [ { "ref": "T1", "passengerTypeCode": "ADT", "flightRefs": ["F1"] } ],
+    "bounds": [ { "ref": "B1", "flights": [
+      { "ref": "F1", "flightId": "100", "originAirportId": 1, "destinationAirportId": 2,
+        "departureDateTime": "2027-01-10T08:00:00+03:30", "marketingAirlineId": {{airlineId}}, "operatingAirlineId": {{airlineId}} } ] } ],
+    "existing": [ { "productRef": "XBAG1", "travellerRef": "T1", "boundRef": "B1", "flightRef": null, "quantity": 1 } ]
+  },
+  "units": [
+    { "unitReference": "U1", "productRef": "XBAG1", "productVersion": 1, "priceRuleId": "{{rule.response.body.data.id}}", "travellerRef": "T1", "boundRef": "B1", "flightRef": null, "quantity": 1 }
+  ]
+}
+
+### 12. expiresAt in the past — expect 422, code 16412
+POST {{host}}/Service/v1/ServiceReservations
+Content-Type: application/json
+
+{
+  "idempotencyKey": "proof-2b-5",
+  "reference": "proof-order-1",
+  "expiresAt": "{{past}}",
+  "context": {
+    "currencyId": {{currencyId}},
+    "asOf": "{{$datetime iso8601}}",
+    "travellers": [ { "ref": "T1", "passengerTypeCode": "ADT", "flightRefs": ["F1"] } ],
+    "bounds": [ { "ref": "B1", "flights": [
+      { "ref": "F1", "flightId": "100", "originAirportId": 1, "destinationAirportId": 2,
+        "departureDateTime": "2027-01-10T08:00:00+03:30", "marketingAirlineId": {{airlineId}}, "operatingAirlineId": {{airlineId}} } ] } ],
+    "existing": []
+  },
+  "units": [
+    { "unitReference": "U1", "productRef": "XBAG1", "productVersion": 1, "priceRuleId": "{{rule.response.body.data.id}}", "travellerRef": "T1", "boundRef": "B1", "flightRef": null, "quantity": 1 }
+  ]
+}
+
+### 13. Read the reservation of request 6 — expect 200, unit "Held"
+GET {{host}}/Service/v1/ServiceReservations/{{hold.response.body.data.reservationId}}
+
+### 14. Confirm it — expect 200, unit "Confirmed"
+POST {{host}}/Service/v1/ServiceReservations/{{hold.response.body.data.reservationId}}/Confirmations
+
+### 15. Confirm again — expect 200, no change
+POST {{host}}/Service/v1/ServiceReservations/{{hold.response.body.data.reservationId}}/Confirmations
+
+### 16. Release the confirmed reservation — expect 409, code 16410
+POST {{host}}/Service/v1/ServiceReservations/{{hold.response.body.data.reservationId}}/Releases
+
+### 17. Cancel the confirmed unit — expect 200, unit "Cancelled"
+POST {{host}}/Service/v1/ServiceReservations/{{hold.response.body.data.reservationId}}/Cancellations
+Content-Type: application/json
+
+{ "unitRefs": [ "{{hold.response.body.data.units[0].unitRef}}" ] }
+
+### 18. Confirm after the cancellation — expect 409, code 16408
+POST {{host}}/Service/v1/ServiceReservations/{{hold.response.body.data.reservationId}}/Confirmations
+
+### 19. A second reservation, then release it — expect 200 "Held", then 200 "Released"
+# @name hold2
+POST {{host}}/Service/v1/ServiceReservations
+Content-Type: application/json
+
+{
+  "idempotencyKey": "proof-2b-6",
+  "reference": "proof-order-1",
+  "expiresAt": "{{future}}",
+  "context": {
+    "currencyId": {{currencyId}},
+    "asOf": "{{$datetime iso8601}}",
+    "travellers": [ { "ref": "T1", "passengerTypeCode": "ADT", "flightRefs": ["F1"] } ],
+    "bounds": [ { "ref": "B1", "flights": [
+      { "ref": "F1", "flightId": "100", "originAirportId": 1, "destinationAirportId": 2,
+        "departureDateTime": "2027-01-10T08:00:00+03:30", "marketingAirlineId": {{airlineId}}, "operatingAirlineId": {{airlineId}} } ] } ],
+    "existing": []
+  },
+  "units": [
+    { "unitReference": "U1", "productRef": "XBAG1", "productVersion": 1, "priceRuleId": "{{rule.response.body.data.id}}", "travellerRef": "T1", "boundRef": "B1", "flightRef": null, "quantity": 1 }
+  ]
+}
+
+###
+POST {{host}}/Service/v1/ServiceReservations/{{hold2.response.body.data.reservationId}}/Releases
+
+### 20. An unknown reservation — expect 404, code 16401
+GET {{host}}/Service/v1/ServiceReservations/1
+
+### 21. Read the product — expect "lastUpdateTime" is NOT required in this response; instead check in SQL:
+###     SELECT MAX(LastUpdateTime), COUNT(*) FROM (SELECT LastUpdateTime FROM ReadModel.AncillaryProducts
+###     UNION ALL SELECT LastUpdateTime FROM ReadModel.AncillaryPriceRules) s;
+###     Note the result, run request 22, and run the query again: the result must differ.
+GET {{host}}/Backoffice/v1/AncillaryProducts/{{bag.response.body.data.id}}
+Authorization: Bearer {{token}}
+
+### 22. Suspend the product — expect 200, "Suspended" (and the stamp of request 21 changes)
+POST {{host}}/Backoffice/v1/AncillaryProducts/{{bag.response.body.data.id}}/Suspend
+Authorization: Bearer {{token}}

@@ -32,5 +32,7 @@ namespace AeroTech.Ancillary.Query.AncillaryPriceRuleAggregate.Models
         public AncillaryPriceRuleStatus Status { get; set; }
 
         public DateTimeOffset CreatedAt { get; set; }
+
+        public DateTimeOffset LastUpdateTime { get; set; }
     }
 }

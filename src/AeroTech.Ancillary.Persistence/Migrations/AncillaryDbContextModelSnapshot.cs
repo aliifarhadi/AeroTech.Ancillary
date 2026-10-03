@@ -195,6 +195,122 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.ToTable("AncillaryProducts", "Ancillary");
                 });
 
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.ServiceReservationAggregate.Entities.ServiceReservationUnit", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("BoundRef")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.PrimitiveCollection<string>("CoveredFlightIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("CurrencyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FlightRef")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("InventoryControl")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("LastUpdatedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("OwnerAirlineId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("PriceRuleId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ProductRef")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("ProductVersion")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<long>("ServiceReservationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("TravellerRef")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("UnitReference")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceReservationId", "UnitReference")
+                        .IsUnique();
+
+                    b.ToTable("ServiceReservationUnits", "Ancillary");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.ServiceReservationAggregate.ServiceReservation", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("LastUpdatedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdempotencyKey")
+                        .IsUnique();
+
+                    b.ToTable("ServiceReservations", "Ancillary");
+                });
+
             modelBuilder.Entity("AeroTech.Ancillary.Domain.ServiceSubCodeAggregate.ServiceSubCode", b =>
                 {
                     b.Property<long>("Id")
@@ -548,9 +664,23 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.ServiceReservationAggregate.Entities.ServiceReservationUnit", b =>
+                {
+                    b.HasOne("AeroTech.Ancillary.Domain.ServiceReservationAggregate.ServiceReservation", null)
+                        .WithMany("Units")
+                        .HasForeignKey("ServiceReservationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryPriceRuleAggregate.AncillaryPriceRule", b =>
                 {
                     b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.ServiceReservationAggregate.ServiceReservation", b =>
+                {
+                    b.Navigation("Units");
                 });
 #pragma warning restore 612, 618
         }

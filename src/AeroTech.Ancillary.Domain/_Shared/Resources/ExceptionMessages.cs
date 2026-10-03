@@ -34,5 +34,14 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public const string AncillaryQuoteQuantityNotAllowed = "Quantity not allowed.";
         public const string AncillaryQuoteOccurrenceSelectedTwice = "Occurrence selected twice.";
         public const string AncillaryQuoteSelectionNoLongerCurrent = "The selection is no longer current (product version or price rule changed).";
+        public const string ServiceReservationNotFound = "Reservation not found.";
+        public const string ServiceReservationIdempotencyKeyReused = "Idempotency key reused with a different request.";
+        public const string ServiceReservationHasExpired = "Reservation has expired.";
+        public const string ServiceReservationWasReleased = "Reservation was released.";
+        public const string ServiceReservationWasCancelled = "Reservation was cancelled.";
+        public const string ServiceReservationIsInMixedState = "Reservation is in a mixed state.";
+        public const string ServiceReservationIsAlreadyConfirmed = "Reservation is already confirmed.";
+        public const string ServiceReservationIsNotConfirmed = "Reservation is not confirmed.";
+        public const string ServiceReservationRequestIsInvalid = "Reservation request is invalid: {0}.";
     }
 }

@@ -4,6 +4,7 @@ using AeroTech.Ancillary.Query.AncillaryPriceRuleAggregate.Queries.GetAncillaryP
 using AeroTech.Ancillary.Query.AncillaryProductAggregate.Queries.GetAncillaryProductById;
 using AeroTech.Ancillary.Query.AncillaryProductAggregate.Queries.GetAncillaryProductsPaginated;
 using AeroTech.Ancillary.Query.AncillaryQuote.Queries.GetAncillaryQuote;
+using AeroTech.Ancillary.Query.ServiceReservationAggregate.Queries.GetServiceReservationById;
 using AeroTech.Ancillary.Query.ServiceSubCodeAggregate.Queries.GetServiceSubCodeById;
 using AeroTech.Ancillary.Query.ServiceSubCodeAggregate.Queries.GetServiceSubCodesPaginated;
 using AeroTech.Ancillary.Query._Shared.DbContexts;
@@ -36,6 +37,7 @@ namespace AeroTech.Ancillary.Query
             services.AddScoped<IGetAncillaryPriceRuleByIdService, GetAncillaryPriceRuleByIdService>();
             services.AddScoped<IGetAncillaryPriceRulesPaginatedService, GetAncillaryPriceRulesPaginatedService>();
             services.AddScoped<IGetAncillaryQuoteService, GetAncillaryQuoteService>();
+            services.AddScoped<IGetServiceReservationByIdService, GetServiceReservationByIdService>();
 
             services.AddHealthChecks().AddDbContextReadinessCheck<AncillaryQueryDbContext>("sql-server-query");
 

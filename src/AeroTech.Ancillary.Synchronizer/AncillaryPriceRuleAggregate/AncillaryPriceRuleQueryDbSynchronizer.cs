@@ -1,6 +1,7 @@
 using AeroTech.Ancillary.Domain.AncillaryPriceRuleAggregate.Contracts;
 using AeroTech.Ancillary.Query.AncillaryPriceRuleAggregate.Models;
 using AeroTech.Ancillary.Query._Shared.DbContexts;
+using AeroTech.Framework.Core.ServiceContracts;
 using Microsoft.EntityFrameworkCore;
 
 namespace AeroTech.Ancillary.Synchronizer.AncillaryPriceRuleAggregate
@@ -8,8 +9,13 @@ namespace AeroTech.Ancillary.Synchronizer.AncillaryPriceRuleAggregate
     public sealed class AncillaryPriceRuleQueryDbSynchronizer : IAncillaryPriceRuleQueryDbSynchronizer
     {
         private readonly AncillaryQueryDbContext _dbContext;
+        private readonly IClock _clock;
 
-        public AncillaryPriceRuleQueryDbSynchronizer(AncillaryQueryDbContext dbContext) => _dbContext = dbContext;
+        public AncillaryPriceRuleQueryDbSynchronizer(AncillaryQueryDbContext dbContext, IClock clock)
+        {
+            _dbContext = dbContext;
+            _clock = clock;
+        }
 
         public async Task ProjectAsync(AncillaryPriceRuleReadModelSnapshot snapshot, CancellationToken cancellationToken = default)
         {
@@ -34,6 +40,7 @@ namespace AeroTech.Ancillary.Synchronizer.AncillaryPriceRuleAggregate
             rule.DestinationAirportIds = snapshot.DestinationAirportIds?.ToList();
             rule.Status = snapshot.Status;
             rule.CreatedAt = snapshot.CreatedAt;
+            rule.LastUpdateTime = _clock.GetDateTime();
 
             await ReconcileLinesAsync(snapshot, cancellationToken);
         }

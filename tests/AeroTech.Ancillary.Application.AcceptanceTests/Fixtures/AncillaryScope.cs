@@ -9,20 +9,27 @@ using AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.DefineAn
 using AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.RetireAncillaryProduct;
 using AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.ReviseAncillaryProduct;
 using AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.SuspendAncillaryProduct;
+using AeroTech.Ancillary.Application.ServiceReservationAggregate.Commands.CancelServiceReservationUnits;
+using AeroTech.Ancillary.Application.ServiceReservationAggregate.Commands.ConfirmServiceReservation;
+using AeroTech.Ancillary.Application.ServiceReservationAggregate.Commands.ReleaseServiceReservation;
+using AeroTech.Ancillary.Application.ServiceReservationAggregate.Commands.ReserveServiceReservation;
 using AeroTech.Ancillary.Application.ServiceSubCodeAggregate.Commands.ReactivateServiceSubCode;
 using AeroTech.Ancillary.Application.ServiceSubCodeAggregate.Commands.RegisterServiceSubCode;
 using AeroTech.Ancillary.Application.ServiceSubCodeAggregate.Commands.RetireServiceSubCode;
 using AeroTech.Ancillary.Domain.AncillaryPriceRuleAggregate.Contracts;
 using AeroTech.Ancillary.Domain.AncillaryProductAggregate.Contracts;
+using AeroTech.Ancillary.Domain.ServiceReservationAggregate.Contracts;
 using AeroTech.Ancillary.Domain.ServiceSubCodeAggregate.Contracts;
 using AeroTech.Ancillary.Persistence;
 using AeroTech.Ancillary.Persistence.AncillaryPriceRuleAggregate;
 using AeroTech.Ancillary.Persistence.AncillaryProductAggregate;
+using AeroTech.Ancillary.Persistence.ServiceReservationAggregate;
 using AeroTech.Ancillary.Persistence.ServiceSubCodeAggregate;
 using AeroTech.Ancillary.Query.AncillaryPriceRuleAggregate.Queries.GetAncillaryPriceRuleById;
 using AeroTech.Ancillary.Query.AncillaryProductAggregate.Queries.GetAncillaryProductById;
 using AeroTech.Ancillary.Query.AncillaryProductAggregate.Queries.GetAncillaryProductsPaginated;
 using AeroTech.Ancillary.Query.AncillaryQuote.Queries.GetAncillaryQuote;
+using AeroTech.Ancillary.Query.ServiceReservationAggregate.Queries.GetServiceReservationById;
 using AeroTech.Ancillary.Query.ServiceSubCodeAggregate.Queries.GetServiceSubCodeById;
 using AeroTech.Ancillary.Query._Shared.DbContexts;
 using AeroTech.Ancillary.Synchronizer.AncillaryPriceRuleAggregate;
@@ -46,10 +53,11 @@ public sealed class AncillaryScope : IAsyncDisposable
         SubCodes = new ServiceSubCodeRepository(Command);
         Products = new AncillaryProductRepository(Command);
         PriceRules = new AncillaryPriceRuleRepository(Command);
-        ProductSynchronizer = new AncillaryProductQueryDbSynchronizer(Query);
+        Reservations = new ServiceReservationRepository(Command);
+        ProductSynchronizer = new AncillaryProductQueryDbSynchronizer(Query, clock);
 
         var subCodeSynchronizer = new ServiceSubCodeQueryDbSynchronizer(Query);
-        var priceRuleSynchronizer = new AncillaryPriceRuleQueryDbSynchronizer(Query);
+        var priceRuleSynchronizer = new AncillaryPriceRuleQueryDbSynchronizer(Query, clock);
 
         RegisterServiceSubCode = new RegisterServiceSubCodeService(SubCodes, subCodeSynchronizer, UnitOfWork, ids, clock);
         RetireServiceSubCode = new RetireServiceSubCodeService(SubCodes, subCodeSynchronizer, UnitOfWork);
@@ -70,6 +78,11 @@ public sealed class AncillaryScope : IAsyncDisposable
         GetProductsPaginated = new GetAncillaryProductsPaginatedService(Query);
         GetPriceRuleById = new GetAncillaryPriceRuleByIdService(Query);
         GetQuote = new GetAncillaryQuoteService(Products, PriceRules);
+        ReserveReservation = new ReserveServiceReservationService(Reservations, Products, PriceRules, UnitOfWork, ids, clock);
+        ConfirmReservation = new ConfirmServiceReservationService(Reservations, UnitOfWork, clock);
+        ReleaseReservation = new ReleaseServiceReservationService(Reservations, UnitOfWork, clock);
+        CancelReservationUnits = new CancelServiceReservationUnitsService(Reservations, UnitOfWork, clock);
+        GetReservationById = new GetServiceReservationByIdService(Reservations, clock);
     }
 
     public AncillaryDbContext Command { get; }
@@ -83,6 +96,8 @@ public sealed class AncillaryScope : IAsyncDisposable
     public IAncillaryProductRepository Products { get; }
 
     public IAncillaryPriceRuleRepository PriceRules { get; }
+
+    public IServiceReservationRepository Reservations { get; }
 
     public IAncillaryProductQueryDbSynchronizer ProductSynchronizer { get; }
 
@@ -123,6 +138,16 @@ public sealed class AncillaryScope : IAsyncDisposable
     public IGetAncillaryPriceRuleByIdService GetPriceRuleById { get; }
 
     public IGetAncillaryQuoteService GetQuote { get; }
+
+    public IReserveServiceReservationService ReserveReservation { get; }
+
+    public IConfirmServiceReservationService ConfirmReservation { get; }
+
+    public IReleaseServiceReservationService ReleaseReservation { get; }
+
+    public ICancelServiceReservationUnitsService CancelReservationUnits { get; }
+
+    public IGetServiceReservationByIdService GetReservationById { get; }
 
     public async ValueTask DisposeAsync()
     {

@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: AeroTech.Ancillary — Quote API
   version: R5.4-phase2
-  description: 'Wire contract of the stateless ancillary quote, as of Phase 2. Meaning of every field: docs/Ancillary-Domain-Master.md
+  description: 'Wire contract of the stateless ancillary quote, as of Phase 2. Meaning of every field: docs/reference/Ancillary-Domain-Master.md
     section 7. Later phases only add optional request members, response members and value names. Enumerated values
     are plain strings carrying the value name; the description lists the names known in this phase, and a receiver
     must accept names it does not know. 64-bit ids are written as strings and accepted as strings or numbers.'

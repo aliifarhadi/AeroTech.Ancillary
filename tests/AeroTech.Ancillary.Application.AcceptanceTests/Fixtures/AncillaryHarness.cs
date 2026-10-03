@@ -13,6 +13,11 @@ using AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.DefineAn
 using AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.RetireAncillaryProduct.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.ReviseAncillaryProduct.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.SuspendAncillaryProduct.Backoffice;
+using AeroTech.Ancillary.Application.ServiceReservationAggregate.Commands.CancelServiceReservationUnits.Service;
+using AeroTech.Ancillary.Application.ServiceReservationAggregate.Commands.ConfirmServiceReservation.Service;
+using AeroTech.Ancillary.Application.ServiceReservationAggregate.Commands.ReleaseServiceReservation.Service;
+using AeroTech.Ancillary.Application.ServiceReservationAggregate.Commands.ReserveServiceReservation;
+using AeroTech.Ancillary.Application.ServiceReservationAggregate.Commands.ReserveServiceReservation.Service;
 using AeroTech.Ancillary.Application.ServiceSubCodeAggregate.Commands.ReactivateServiceSubCode.Backoffice;
 using AeroTech.Ancillary.Application.ServiceSubCodeAggregate.Commands.RegisterServiceSubCode;
 using AeroTech.Ancillary.Application.ServiceSubCodeAggregate.Commands.RegisterServiceSubCode.Backoffice;
@@ -21,6 +26,7 @@ using AeroTech.Ancillary.Query.AncillaryPriceRuleAggregate.Dto;
 using AeroTech.Ancillary.Query.AncillaryProductAggregate.Dto;
 using AeroTech.Ancillary.Query.AncillaryQuote.Dto;
 using AeroTech.Ancillary.Query.AncillaryQuote.Queries.GetAncillaryQuote.Service;
+using AeroTech.Ancillary.Query.ServiceReservationAggregate.Dto;
 using AeroTech.Ancillary.Query.ServiceSubCodeAggregate.Dto;
 
 namespace AeroTech.Ancillary.Application.AcceptanceTests.Fixtures;
@@ -93,6 +99,21 @@ public sealed class AncillaryHarness(TestDatabase database)
 
     public Task<AncillaryQuoteDto> QuoteAsync(ServiceGetAncillaryQuoteQuery query)
         => RunAsync(scope => scope.GetQuote.ExecuteAsync(query));
+
+    public Task<ServiceReservationResult> ReserveAsync(ServiceReserveServiceReservationCommand command)
+        => RunAsync(scope => scope.ReserveReservation.ReserveAsync(command));
+
+    public Task<ServiceReservationResult> ConfirmReservationAsync(long id)
+        => RunAsync(scope => scope.ConfirmReservation.ConfirmAsync(new ServiceConfirmServiceReservationCommand(id)));
+
+    public Task<ServiceReservationResult> ReleaseReservationAsync(long id)
+        => RunAsync(scope => scope.ReleaseReservation.ReleaseAsync(new ServiceReleaseServiceReservationCommand(id)));
+
+    public Task<ServiceReservationResult> CancelReservationUnitsAsync(long id, params long[] unitRefs)
+        => RunAsync(scope => scope.CancelReservationUnits.CancelAsync(new ServiceCancelServiceReservationUnitsCommand(id, unitRefs)));
+
+    public Task<ServiceReservationDto> GetReservationAsync(long id)
+        => RunAsync(scope => scope.GetReservationById.ExecuteAsync(id));
 
     public async Task<AncillaryProductResult> ArrangeProductAsync(BackofficeDefineAncillaryProductCommand command, bool activate = true)
     {

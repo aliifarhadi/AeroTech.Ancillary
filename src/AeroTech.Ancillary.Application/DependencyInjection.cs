@@ -10,6 +10,10 @@ using AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.DefineAn
 using AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.RetireAncillaryProduct;
 using AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.ReviseAncillaryProduct;
 using AeroTech.Ancillary.Application.AncillaryProductAggregate.Commands.SuspendAncillaryProduct;
+using AeroTech.Ancillary.Application.ServiceReservationAggregate.Commands.CancelServiceReservationUnits;
+using AeroTech.Ancillary.Application.ServiceReservationAggregate.Commands.ConfirmServiceReservation;
+using AeroTech.Ancillary.Application.ServiceReservationAggregate.Commands.ReleaseServiceReservation;
+using AeroTech.Ancillary.Application.ServiceReservationAggregate.Commands.ReserveServiceReservation;
 using AeroTech.Ancillary.Application.ServiceSubCodeAggregate.Commands.ReactivateServiceSubCode;
 using AeroTech.Ancillary.Application.ServiceSubCodeAggregate.Commands.RegisterServiceSubCode;
 using AeroTech.Ancillary.Application.ServiceSubCodeAggregate.Commands.RetireServiceSubCode;
@@ -52,6 +56,10 @@ namespace AeroTech.Ancillary.Application
             services.AddScoped<IActivateAncillaryPriceRuleService, ActivateAncillaryPriceRuleService>();
             services.AddScoped<ISuspendAncillaryPriceRuleService, SuspendAncillaryPriceRuleService>();
             services.AddScoped<IRetireAncillaryPriceRuleService, RetireAncillaryPriceRuleService>();
+            services.AddScoped<IReserveServiceReservationService, ReserveServiceReservationService>();
+            services.AddScoped<IConfirmServiceReservationService, ConfirmServiceReservationService>();
+            services.AddScoped<IReleaseServiceReservationService, ReleaseServiceReservationService>();
+            services.AddScoped<ICancelServiceReservationUnitsService, CancelServiceReservationUnitsService>();
 
             return services;
         }

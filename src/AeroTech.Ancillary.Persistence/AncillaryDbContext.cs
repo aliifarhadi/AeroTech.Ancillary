@@ -3,6 +3,7 @@ using AeroTech.Framework.Core.ServiceContracts;
 using AeroTech.Framework.Infrastructure.Persistence;
 using AeroTech.Ancillary.Domain.AncillaryPriceRuleAggregate;
 using AeroTech.Ancillary.Domain.AncillaryProductAggregate;
+using AeroTech.Ancillary.Domain.ServiceReservationAggregate;
 using AeroTech.Ancillary.Domain.ServiceSubCodeAggregate;
 using AeroTech.Ancillary.Persistence.Inbox;
 using AeroTech.Ancillary.Persistence.Outbox;
@@ -29,6 +30,8 @@ namespace AeroTech.Ancillary.Persistence
         public DbSet<AncillaryProduct> AncillaryProducts => Set<AncillaryProduct>();
 
         public DbSet<AncillaryPriceRule> AncillaryPriceRules => Set<AncillaryPriceRule>();
+
+        public DbSet<ServiceReservation> ServiceReservations => Set<ServiceReservation>();
 
         public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 

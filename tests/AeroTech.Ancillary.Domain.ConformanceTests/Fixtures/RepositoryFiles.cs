@@ -20,7 +20,7 @@ public static class RepositoryFiles
 
     public static (string Request, string ResponseData) GoldenExample()
     {
-        var document = File.ReadAllText(Path.Combine(Root, "docs", "phases", "Phase-1-Extra-Baggage.md"));
+        var document = File.ReadAllText(Path.Combine(Root, "docs", "phases", "P1-Extra-Baggage", "phase.md"));
         var example = document[document.IndexOf(GoldenExampleHeading, StringComparison.Ordinal)..];
 
         return (JsonBlockAfter(example, "Request:"), JsonBlockAfter(example, "Response `data`:"));
@@ -28,7 +28,7 @@ public static class RepositoryFiles
 
     public static (string Request, string LoungeItem) LoungeGoldenExample()
     {
-        var document = File.ReadAllText(Path.Combine(Root, "docs", "phases", "Phase-2-Lounge-Access.md"));
+        var document = File.ReadAllText(Path.Combine(Root, "docs", "phases", "P2-Lounge-Access", "phase.md"));
         var example = document[document.IndexOf(GoldenExampleHeading, StringComparison.Ordinal)..];
 
         return (JsonBlockAfter(example, "Request"), JsonBlockAfter(example, "The lounge item"));

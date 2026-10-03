@@ -53,7 +53,7 @@ public sealed class Phase2AncillaryQuoteContractTests(TestDatabase database)
     [Fact]
     public void P2_G02_Phase1ProofRequestThirtyIsStillMalformed()
     {
-        var body = RepositoryFiles.ProofRequestBody("phase-1.http", 30).Replace("{{airlineId}}", "10");
+        var body = RepositoryFiles.ProofRequestBody("P1-Extra-Baggage", 30).Replace("{{airlineId}}", "10");
 
         Assert.Contains("\"inventoryControl\": \"Quota\"", body);
         ApiJson.Malformed<BackofficeDefineAncillaryProductCommand>(body);

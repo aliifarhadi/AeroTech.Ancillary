@@ -36,11 +36,13 @@ public sealed class TestDatabase : IAsyncLifetime
             clock,
             new IgnoringDomainEventDispatcher());
 
-    public AncillaryQueryDbContext NewQueryContext()
-        => new(
-            new DbContextOptionsBuilder<AncillaryQueryDbContext>()
-                .UseSqlServer(_connectionString, sql => sql.MigrationsHistoryTable(AncillaryQueryDbContext.MigrationsHistoryTable, AncillaryQueryDbContext.MigrationsHistorySchema))
-                .Options);
+    public AncillaryQueryDbContext NewQueryContext() => NewQueryContext(_connectionString);
+
+    public AncillaryQueryDbContext NewScratchQueryContext(string name)
+        => NewQueryContext(new SqlConnectionStringBuilder(_connectionString)
+        {
+            InitialCatalog = $"{new SqlConnectionStringBuilder(_connectionString).InitialCatalog}_{name}"
+        }.ConnectionString);
 
     public async Task InitializeAsync()
     {
@@ -57,6 +59,12 @@ public sealed class TestDatabase : IAsyncLifetime
 
         await context.Database.EnsureDeletedAsync();
     }
+
+    private static AncillaryQueryDbContext NewQueryContext(string connectionString)
+        => new(
+            new DbContextOptionsBuilder<AncillaryQueryDbContext>()
+                .UseSqlServer(connectionString, sql => sql.MigrationsHistoryTable(AncillaryQueryDbContext.MigrationsHistoryTable, AncillaryQueryDbContext.MigrationsHistorySchema))
+                .Options);
 
     private static string ServerConnectionString()
         => Environment.GetEnvironmentVariable(EnvironmentVariable) is { Length: > 0 } fromEnvironment

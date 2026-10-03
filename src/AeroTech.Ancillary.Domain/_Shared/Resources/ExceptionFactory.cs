@@ -99,5 +99,32 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
 
         public static BusinessException AncillaryQuoteSelectionNoLongerCurrent(params object?[] args) =>
             new(16309, ExceptionMessages.AncillaryQuoteSelectionNoLongerCurrent, args) { HttpStatus = 409 };
+
+        public static BusinessException ServiceReservationNotFound(params object?[] args) =>
+            new(16401, ExceptionMessages.ServiceReservationNotFound, args) { HttpStatus = 404 };
+
+        public static BusinessException ServiceReservationIdempotencyKeyReused(params object?[] args) =>
+            new(16405, ExceptionMessages.ServiceReservationIdempotencyKeyReused, args) { HttpStatus = 409 };
+
+        public static BusinessException ServiceReservationHasExpired(params object?[] args) =>
+            new(16406, ExceptionMessages.ServiceReservationHasExpired, args) { HttpStatus = 409 };
+
+        public static BusinessException ServiceReservationWasReleased(params object?[] args) =>
+            new(16407, ExceptionMessages.ServiceReservationWasReleased, args) { HttpStatus = 409 };
+
+        public static BusinessException ServiceReservationWasCancelled(params object?[] args) =>
+            new(16408, ExceptionMessages.ServiceReservationWasCancelled, args) { HttpStatus = 409 };
+
+        public static BusinessException ServiceReservationIsInMixedState(params object?[] args) =>
+            new(16409, ExceptionMessages.ServiceReservationIsInMixedState, args) { HttpStatus = 409 };
+
+        public static BusinessException ServiceReservationIsAlreadyConfirmed(params object?[] args) =>
+            new(16410, ExceptionMessages.ServiceReservationIsAlreadyConfirmed, args) { HttpStatus = 409 };
+
+        public static BusinessException ServiceReservationIsNotConfirmed(params object?[] args) =>
+            new(16411, ExceptionMessages.ServiceReservationIsNotConfirmed, args) { HttpStatus = 409 };
+
+        public static BusinessException ServiceReservationRequestIsInvalid(params object?[] args) =>
+            new(16412, ExceptionMessages.ServiceReservationRequestIsInvalid, args) { HttpStatus = 422 };
     }
 }

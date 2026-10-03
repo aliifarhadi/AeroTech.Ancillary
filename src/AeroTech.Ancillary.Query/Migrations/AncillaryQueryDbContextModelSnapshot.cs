@@ -37,6 +37,9 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.PrimitiveCollection<string>("DestinationAirportIds")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
                     b.PrimitiveCollection<string>("OriginAirportIds")
                         .HasColumnType("nvarchar(max)");
 
@@ -159,6 +162,9 @@ namespace AeroTech.Ancillary.Query.Migrations
 
                     b.Property<int>("InventoryControl")
                         .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
 
                     b.PrimitiveCollection<string>("LoungeAirportIds")
                         .HasColumnType("nvarchar(max)");
