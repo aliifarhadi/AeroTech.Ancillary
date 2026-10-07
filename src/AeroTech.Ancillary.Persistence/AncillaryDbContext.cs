@@ -1,6 +1,10 @@
 using AeroTech.Framework.Core.Domain.Repository;
 using AeroTech.Framework.Core.ServiceContracts;
 using AeroTech.Framework.Infrastructure.Persistence;
+using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate;
+using AeroTech.Ancillary.Domain.AncillaryReservationAggregate;
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
+using AeroTech.Ancillary.Domain.SupplierAggregate;
 using AeroTech.Ancillary.Persistence.Inbox;
 using AeroTech.Ancillary.Persistence.Outbox;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +24,14 @@ namespace AeroTech.Ancillary.Persistence
             : base(options, actorResolver, clock, domainEventDispatcher)
         {
         }
+
+        public DbSet<Supplier> Suppliers => Set<Supplier>();
+
+        public DbSet<AncillaryServiceDefinition> AncillaryServiceDefinitions => Set<AncillaryServiceDefinition>();
+
+        public DbSet<AncillaryProvision> AncillaryProvisions => Set<AncillaryProvision>();
+
+        public DbSet<AncillaryReservation> AncillaryReservations => Set<AncillaryReservation>();
 
         public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 

@@ -1,4 +1,8 @@
 using AeroTech.Framework.Infrastructure.HealthChecks;
+using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionById;
+using AeroTech.Ancillary.Query.AncillaryReservationAggregate.Queries.GetAncillaryHoldById;
+using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.GetAncillaryServiceDefinitionById;
+using AeroTech.Ancillary.Query.SupplierAggregate.Queries.GetSupplierById;
 using AeroTech.Ancillary.Query._Shared.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -19,6 +23,11 @@ namespace AeroTech.Ancillary.Query
                 sql => sql.MigrationsHistoryTable(AncillaryQueryDbContext.MigrationsHistoryTable, AncillaryQueryDbContext.MigrationsHistorySchema)));
 
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
+
+            services.AddScoped<IGetSupplierByIdService, GetSupplierByIdService>();
+            services.AddScoped<IGetAncillaryServiceDefinitionByIdService, GetAncillaryServiceDefinitionByIdService>();
+            services.AddScoped<IGetAncillaryProvisionByIdService, GetAncillaryProvisionByIdService>();
+            services.AddScoped<IGetAncillaryHoldByIdService, GetAncillaryHoldByIdService>();
 
             services.AddHealthChecks().AddDbContextReadinessCheck<AncillaryQueryDbContext>("sql-server-query");
 

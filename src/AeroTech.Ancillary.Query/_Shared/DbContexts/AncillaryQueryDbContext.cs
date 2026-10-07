@@ -1,3 +1,6 @@
+using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models;
+using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Models;
+using AeroTech.Ancillary.Query.SupplierAggregate.Models;
 using AeroTech.Ancillary.ReferenceData.Persistence;
 using AeroTech.Ancillary.ReferenceData.ReadModels;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +16,14 @@ namespace AeroTech.Ancillary.Query._Shared.DbContexts
         public AncillaryQueryDbContext(DbContextOptions<AncillaryQueryDbContext> options) : base(options)
         {
         }
+
+        public DbSet<SupplierReadModel> Suppliers => Set<SupplierReadModel>();
+
+        public DbSet<AncillaryServiceDefinitionReadModel> AncillaryServiceDefinitions => Set<AncillaryServiceDefinitionReadModel>();
+
+        public DbSet<AncillaryProvisionReadModel> AncillaryProvisions => Set<AncillaryProvisionReadModel>();
+
+        public DbSet<AncillaryProvisionPriceLineReadModel> AncillaryProvisionPriceLines => Set<AncillaryProvisionPriceLineReadModel>();
 
         public DbSet<CustomerReadModel> Customers => Set<CustomerReadModel>();
 
