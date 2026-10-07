@@ -1,3 +1,4 @@
+using System.Globalization;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Dto;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models;
 using AeroTech.Ancillary.Query._Shared.Enums;
@@ -42,5 +43,29 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                         line.Name,
                         line.UnitAmount))
                     .ToList());
+
+        public static ProvisionPaginatedRowDto ToPaginatedRow(
+            AncillaryProvisionReadModel provision,
+            IReadOnlyList<AncillaryProvisionPriceLineReadModel> priceLines,
+            string? currency)
+            => new()
+            {
+                Id = provision.Id.ToString(CultureInfo.InvariantCulture),
+                ServiceDefinitionId = provision.ServiceDefinitionId.ToString(CultureInfo.InvariantCulture),
+                Sequence = provision.Sequence,
+                CoverageScope = EnumValueDto.Of(provision.CoverageScope),
+                Disposition = EnumValueDto.Of(provision.Disposition),
+                QuantityUnit = EnumValueDto.Of(provision.QuantityUnit),
+                MinQuantity = provision.MinQuantity,
+                MaxQuantity = provision.MaxQuantity,
+                FiledAmount = priceLines.Count == 0
+                    ? null
+                    : priceLines.Sum(line => line.UnitAmount).ToString("n2", CultureInfo.InvariantCulture),
+                Currency = currency,
+                SalesEffectiveFrom = provision.SalesEffectiveFrom,
+                SalesDiscontinueAt = provision.SalesDiscontinueAt,
+                Status = EnumValueDto.Of(provision.Status),
+                CreatedAt = provision.CreatedAt
+            };
     }
 }

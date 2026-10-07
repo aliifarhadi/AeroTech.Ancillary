@@ -1,6 +1,8 @@
 using AeroTech.Ancillary.Application.AcceptanceTests.Fakes;
 using AeroTech.Ancillary.Persistence;
 using AeroTech.Ancillary.Query._Shared.DbContexts;
+using AeroTech.Ancillary.ReferenceData.Persistence;
+using AeroTech.Ancillary.ReferenceData.ReadModels;
 using AeroTech.Framework.Core.Domain.Events;
 using AeroTech.Framework.Core.ServiceContracts;
 using Microsoft.Data.SqlClient;
@@ -42,13 +44,26 @@ public sealed class TestDatabase : IAsyncLifetime
                 .UseSqlServer(_connectionString, sql => sql.MigrationsHistoryTable(AncillaryQueryDbContext.MigrationsHistoryTable, AncillaryQueryDbContext.MigrationsHistorySchema))
                 .Options);
 
+    public ReferenceDbContext NewReferenceContext()
+        => new(
+            new DbContextOptionsBuilder<ReferenceDbContext>()
+                .UseSqlServer(_connectionString, sql => sql.MigrationsHistoryTable(ReferenceDbContext.MigrationsHistoryTable, ReferenceDbContext.MigrationsHistorySchema))
+                .Options);
+
     public async Task InitializeAsync()
     {
         await using var command = NewContext(new FixedClock());
         await using var query = NewQueryContext();
+        await using var reference = NewReferenceContext();
 
         await command.Database.MigrateAsync();
         await query.Database.MigrateAsync();
+        await reference.Database.MigrateAsync();
+
+        reference.Currencies.AddRange(
+            new CurrencyReadModel { Id = 70, Code = "IRR", DecimalPlaces = 0, RoundingFactor = 1 },
+            new CurrencyReadModel { Id = 155, Code = "USD", DecimalPlaces = 2, RoundingFactor = 0.01 });
+        await reference.SaveChangesAsync();
     }
 
     public async Task DisposeAsync()

@@ -15,9 +15,12 @@ using AeroTech.Ancillary.Persistence.AncillaryReservationAggregate;
 using AeroTech.Ancillary.Persistence.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.Persistence.SupplierAggregate;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionById;
+using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionsPaginated;
 using AeroTech.Ancillary.Query.AncillaryReservationAggregate.Queries.GetAncillaryHoldById;
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.GetAncillaryServiceDefinitionById;
+using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.GetAncillaryServiceDefinitionsPaginated;
 using AeroTech.Ancillary.Query.SupplierAggregate.Queries.GetSupplierById;
+using AeroTech.Ancillary.Query.SupplierAggregate.Queries.GetSuppliersPaginated;
 using AeroTech.Ancillary.Query._Shared.DbContexts;
 using AeroTech.Ancillary.Synchronizer.AncillaryProvisionAggregate;
 using AeroTech.Ancillary.Synchronizer.AncillaryServiceDefinitionAggregate;
@@ -54,8 +57,11 @@ public sealed class AncillaryScope : IAsyncDisposable
         HoldAncillaryServices = new HoldAncillaryServicesService(Reservations, Definitions, Provisions, Suppliers, UnitOfWork, ids, clock);
         ConfirmAncillaryHold = new ConfirmAncillaryHoldService(Reservations, UnitOfWork, clock);
         GetSupplierById = new GetSupplierByIdService(Query);
+        GetSuppliersPaginated = new GetSuppliersPaginatedService(Query);
         GetServiceDefinitionById = new GetAncillaryServiceDefinitionByIdService(Query);
+        GetServiceDefinitionsPaginated = new GetAncillaryServiceDefinitionsPaginatedService(Query);
         GetProvisionById = new GetAncillaryProvisionByIdService(Query);
+        GetProvisionsPaginated = new GetAncillaryProvisionsPaginatedService(Query);
         GetHoldById = new GetAncillaryHoldByIdService(Reservations, clock);
     }
 
@@ -89,9 +95,15 @@ public sealed class AncillaryScope : IAsyncDisposable
 
     public IGetSupplierByIdService GetSupplierById { get; }
 
+    public IGetSuppliersPaginatedService GetSuppliersPaginated { get; }
+
     public IGetAncillaryServiceDefinitionByIdService GetServiceDefinitionById { get; }
 
+    public IGetAncillaryServiceDefinitionsPaginatedService GetServiceDefinitionsPaginated { get; }
+
     public IGetAncillaryProvisionByIdService GetProvisionById { get; }
+
+    public IGetAncillaryProvisionsPaginatedService GetProvisionsPaginated { get; }
 
     public IGetAncillaryHoldByIdService GetHoldById { get; }
 

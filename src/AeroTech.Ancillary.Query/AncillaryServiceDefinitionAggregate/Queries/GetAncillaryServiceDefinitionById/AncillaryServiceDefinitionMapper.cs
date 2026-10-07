@@ -1,3 +1,4 @@
+using System.Globalization;
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto;
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Models;
 using AeroTech.Ancillary.Query._Shared.Enums;
@@ -34,5 +35,24 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.G
                 EnumValueDto.Of(definition.Status),
                 definition.CreatedAt,
                 definition.ActivatedAt);
+
+        public static ServiceDefinitionPaginatedRowDto ToPaginatedRow(AncillaryServiceDefinitionReadModel definition)
+            => new()
+            {
+                Id = definition.Id.ToString(CultureInfo.InvariantCulture),
+                OwnerAirlineId = definition.OwnerAirlineId,
+                ServiceDefinitionRef = definition.ServiceDefinitionRef,
+                Version = definition.Version,
+                CommercialName = definition.CommercialName,
+                ServiceSubCode = definition.ServiceSubCode,
+                SubCodeSource = EnumValueDto.Of(definition.SubCodeSource),
+                ServiceTypeCode = definition.ServiceTypeCode,
+                GroupCode = definition.GroupCode,
+                SupplierId = definition.SupplierId.ToString(CultureInfo.InvariantCulture),
+                SupplierName = definition.SupplierName,
+                DocumentType = EnumValueDto.Of(definition.DocumentType),
+                Status = EnumValueDto.Of(definition.Status),
+                CreatedAt = definition.CreatedAt
+            };
     }
 }

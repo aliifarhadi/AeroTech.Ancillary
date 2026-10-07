@@ -1,6 +1,7 @@
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ActivateAncillaryProvision.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.DefineAncillaryProvision.Backoffice;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionById.Backoffice;
+using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionsPaginated.Backoffice;
 using AeroTech.Ancillary.RestApi.V1.AncillaryProvisionAggregate.Requests;
 using AeroTech.Ancillary.RestApi.V1._Shared;
 using Asp.Versioning;
@@ -41,6 +42,12 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryProvisionAggregate.Controllers
         [HttpPost("{provisionId:long}/Activate")]
         public async Task<IActionResult> Activate(long provisionId, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(new BackofficeActivateAncillaryProvisionCommand(provisionId), cancellationToken));
+
+        [HttpGet("Paginated")]
+        public async Task<IActionResult> Paginated(
+            [FromQuery] BackofficeGetAncillaryProvisionsPaginatedQuery query,
+            CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(query, cancellationToken));
 
         [HttpGet("{provisionId:long}")]
         public async Task<IActionResult> GetById(long provisionId, CancellationToken cancellationToken)

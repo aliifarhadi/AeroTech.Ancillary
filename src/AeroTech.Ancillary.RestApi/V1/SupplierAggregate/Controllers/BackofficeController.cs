@@ -1,5 +1,6 @@
 using AeroTech.Ancillary.Application.SupplierAggregate.Commands.RegisterSupplier.Backoffice;
 using AeroTech.Ancillary.Query.SupplierAggregate.Queries.GetSupplierById.Backoffice;
+using AeroTech.Ancillary.Query.SupplierAggregate.Queries.GetSuppliersPaginated.Backoffice;
 using AeroTech.Ancillary.RestApi.V1.SupplierAggregate.Requests;
 using AeroTech.Ancillary.RestApi.V1._Shared;
 using Asp.Versioning;
@@ -28,6 +29,12 @@ namespace AeroTech.Ancillary.RestApi.V1.SupplierAggregate.Controllers
                 request.Name,
                 request.FulfillmentKind,
                 request.FulfillmentProviderKey), cancellationToken));
+
+        [HttpGet("Paginated")]
+        public async Task<IActionResult> Paginated(
+            [FromQuery] BackofficeGetSuppliersPaginatedQuery query,
+            CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(query, cancellationToken));
 
         [HttpGet("{supplierId:long}")]
         public async Task<IActionResult> GetById(long supplierId, CancellationToken cancellationToken)

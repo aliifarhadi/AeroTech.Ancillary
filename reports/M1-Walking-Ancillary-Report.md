@@ -136,3 +136,21 @@ Builds: `dotnet build AeroTech.Ancillary.sln --no-incremental` → 0 errors, 13 
 No material source-vs-pack conflict required `REPORT_GAP_AND_STOP`.
 
 **Exit marker: NOT EMITTED (M1 incomplete by owner's hold on Ordering).**
+
+## 8. Addendum (after commit 2768fc8) — Backoffice Paginated endpoints
+
+Added after the owner noted the lists were missing; shape copied from Ordering `GetOrdersPaginated` (`PaginationQuery` → `GridData<Row>`, `[Grid]` columns, row mapping in the shared `<Agg>Mapper`, fixed ordering, `SortBy` ignored as in Ordering, no query validator as in Ordering).
+
+| Route | Filters (03) | Order |
+|---|---|---|
+| `GET Backoffice/v1/Suppliers/Paginated` | OwnerAirlineId, FulfillmentKind, Status, Search (name) | Name, Id |
+| `GET Backoffice/v1/AncillaryServiceDefinitions/Paginated` | OwnerAirlineId, SupplierId, ServiceDefinitionRef, ServiceSubCode, ServiceTypeCode, GroupCode, Status, Search (ref/name) | Ref, Version desc, Id |
+| `GET Backoffice/v1/AncillaryProvisions/Paginated` | ServiceDefinitionId (required; absent → empty page), SupplierId (join), Status, Sequence, SalesDate | Sequence, CreatedAt desc, Id |
+
+Provision rows show the summed filed amount (`n2`) and the currency code read from `ReferenceData.Currencies`.
+
+Not added: the 03 Provision filters TravelDate, PassengerTypeCode, FlightId, AircraftId, FareFamilyId, PointOfSaleId — they filter on criteria fields that arrive with M3; adding them now would be dead filters.
+
+Tests: acceptance +3 (`M1_A01_suppliers_are_listed…`, `M1_C09_service_definitions_are_listed…`, `M1_D02_provisions_of_a_definition_are_listed…`) → 26/26 (discovered 26); conformance 36/36. The test database now also migrates `ReferenceDbContext` and seeds IRR (70) / USD (155). Clean solution build: 0 errors, 13 pre-existing warnings.
+
+Live (owner token, side-build host): Suppliers 200 (2 rows), ServiceDefinitions 200 (3 active), Provisions 200 per definition (45.00 USD, 15,000,000.00 IRR, 38,500,000.00 IRR).
