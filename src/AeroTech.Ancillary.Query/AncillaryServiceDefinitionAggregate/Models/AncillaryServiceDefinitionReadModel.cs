@@ -56,6 +56,10 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Models
 
         public DateTimeOffset? ActivatedAt { get; set; }
 
+        public DateTimeOffset? SuspendedAt { get; set; }
+
+        public DateTimeOffset? RetiredAt { get; set; }
+
         public DateTimeOffset LastUpdateTime { get; set; }
     }
 }

@@ -14,6 +14,16 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
 
         ServiceCoverageScope CoverageScope { get; }
 
+        ProvisionPassengerCriteriaInput? Passenger { get; }
+
+        ProvisionSalesCriteriaInput? Sales { get; }
+
+        ProvisionTravelCriteriaInput? Travel { get; }
+
+        ProvisionFareCriteriaInput? Fare { get; }
+
+        ProvisionAdvancePurchaseInput? AdvancePurchase { get; }
+
         ProvisionQuantityInput Quantity { get; }
 
         ProvisionApplicationInput Application { get; }

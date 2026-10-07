@@ -19,7 +19,7 @@ public class M1ProvisionConformanceTests
         Assert.Equal(100, provision.Sequence);
         Assert.Equal(ProvisionStatus.Draft, provision.Status);
         Assert.Equal(ServiceCoverageScope.Sector, provision.CoverageScope);
-        Assert.Equal(ProvisionApplicationType.Standard, provision.ApplicationType);
+        Assert.Equal(ProvisionApplicationType.Standard, provision.Application.Type);
         Assert.Equal(CommercialDisposition.Paid, provision.Outcome.Disposition);
         Assert.Equal(Currency, provision.Fee!.CurrencyId);
         Assert.Equal(FeeApplicationUnit.Item, provision.Fee.ApplicationUnit);

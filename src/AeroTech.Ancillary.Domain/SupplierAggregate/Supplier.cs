@@ -65,6 +65,15 @@ namespace AeroTech.Ancillary.Domain.SupplierAggregate
             return new Supplier(id, ownerAirlineId, name, fulfillmentKind, fulfillmentProviderKey, createdAt);
         }
 
+        public void Retire(DateTimeOffset now)
+        {
+            if (Status != SupplierStatus.Active)
+                throw ExceptionFactory.SupplierStatusChangeNotAllowed();
+
+            Status = SupplierStatus.Retired;
+            RetiredAt = now;
+        }
+
         private static bool IsProviderKey(string? value)
             => value is { Length: >= 1 and <= FulfillmentProviderKeyMaxLength } && !value.Any(char.IsWhiteSpace);
 

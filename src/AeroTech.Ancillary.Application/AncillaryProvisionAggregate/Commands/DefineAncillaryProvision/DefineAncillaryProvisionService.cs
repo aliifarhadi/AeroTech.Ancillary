@@ -1,8 +1,7 @@
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Projection;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Services;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate;
-using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Contracts;
-using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.ValueObjects;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Contracts;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Framework.Core.Domain.Repository;
@@ -47,23 +46,20 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
                 command.SalesEffectiveFrom,
                 command.SalesDiscontinueAt,
                 command.CoverageScope,
-                QuantityRule.Create(command.Quantity.Unit, command.Quantity.MinQuantity, command.Quantity.MaxQuantity),
-                command.Application.Type,
-                CommercialOutcome.Create(
-                    command.Outcome.Disposition,
-                    command.Outcome.DocumentRequired,
-                    command.Outcome.BookingRequired),
-                command.Fee is { } fee ? FeeDefinition.Create(fee.CurrencyId, fee.ApplicationUnit) : null,
-                command.Fee?.PriceLines
-                    .Select(line => new ProvisionPriceLineArgs(line.Category, line.Code, line.Name, line.UnitAmount))
-                    .ToList() ?? [],
-                SettlementDefinition.Create(
-                    command.Settlement.ReissueRefund,
-                    command.Settlement.FormOfRefund,
-                    command.Settlement.Commissionable,
-                    command.Settlement.InterlineSettlement),
-                AvailabilityDefinition.Create(command.Availability.MustCheckAvailability),
-                FulfillmentDefinition.Create(command.Fulfillment.FulfillmentProviderKey),
+                command.Passenger.ToCriteria(),
+                command.Sales.ToCriteria(),
+                command.Travel.ToCriteria(),
+                command.Travel.ToRoutePairs(),
+                command.Fare.ToCriteria(),
+                command.AdvancePurchase.ToCriteria(),
+                command.Quantity.ToRule(),
+                command.Application.ToApplication(),
+                command.Outcome.ToOutcome(),
+                command.Fee.ToDefinition(),
+                command.Fee.ToPriceLines(),
+                command.Settlement.ToDefinition(),
+                command.Availability.ToDefinition(),
+                command.Fulfillment.ToDefinition(),
                 _idGenerator,
                 _clock.GetDateTime());
 
@@ -71,13 +67,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
             await _synchronizer.ProjectAsync(provision.ToReadModelSnapshot(), cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return new ProvisionResult(
-                provision.Id,
-                provision.ServiceDefinitionId,
-                provision.Sequence,
-                provision.CoverageScope,
-                provision.Outcome.Disposition,
-                provision.Status);
+            return provision.ToResult();
         }
     }
 }

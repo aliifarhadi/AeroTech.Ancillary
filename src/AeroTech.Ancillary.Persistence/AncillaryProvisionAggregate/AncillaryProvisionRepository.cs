@@ -16,12 +16,16 @@ namespace AeroTech.Ancillary.Persistence.AncillaryProvisionAggregate
 
         public Task<AncillaryProvision?> GetAsync(long id, CancellationToken cancellationToken = default)
             => _dbContext.AncillaryProvisions
+                .Include(provision => provision.RoutePairs)
                 .Include(provision => provision.PriceLines)
+                .AsSplitQuery()
                 .FirstOrDefaultAsync(provision => provision.Id == id, cancellationToken);
 
         public Task<AncillaryProvision?> FindActiveAtSequenceAsync(long serviceDefinitionId, int sequence, CancellationToken cancellationToken = default)
             => _dbContext.AncillaryProvisions
+                .Include(provision => provision.RoutePairs)
                 .Include(provision => provision.PriceLines)
+                .AsSplitQuery()
                 .FirstOrDefaultAsync(
                     provision => provision.ServiceDefinitionId == serviceDefinitionId
                                  && provision.Sequence == sequence

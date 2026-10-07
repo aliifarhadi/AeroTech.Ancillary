@@ -53,6 +53,8 @@ namespace AeroTech.Ancillary.Synchronizer.AncillaryServiceDefinitionAggregate
             definition.Status = snapshot.Status;
             definition.CreatedAt = snapshot.CreatedAt;
             definition.ActivatedAt = snapshot.ActivatedAt;
+            definition.SuspendedAt = snapshot.SuspendedAt;
+            definition.RetiredAt = snapshot.RetiredAt;
             definition.LastUpdateTime = _clock.GetDateTime();
         }
     }

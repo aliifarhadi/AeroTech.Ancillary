@@ -14,6 +14,10 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models
 
         public string? Name { get; set; }
 
+        public int? CountryId { get; set; }
+
+        public int? StationAirportId { get; set; }
+
         public decimal UnitAmount { get; set; }
     }
 }

@@ -8,6 +8,7 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public const string CallerContextTypeIsNotRecognised = "Caller context type {0} is not recognised.";
         public const string SupplierNotFound = "The supplier was not found.";
         public const string SupplierIsInvalid = "Supplier field {0} is invalid.";
+        public const string SupplierStatusChangeNotAllowed = "The supplier status does not allow this change.";
         public const string SupplierFulfillmentProviderNotRegistered = "Supplier fulfillment provider {0} is not registered.";
         public const string ServiceDefinitionNotFound = "The service definition was not found.";
         public const string ServiceDefinitionIsInvalid = "Service definition field {0} is invalid.";
@@ -22,6 +23,7 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public const string ProvisionStatusChangeNotAllowed = "The provision status does not allow this change.";
         public const string ProvisionServiceDefinitionNotFound = "The referenced service definition was not found.";
         public const string ProvisionFeeApplicationUnitNotSupported = "Fee application unit {0} is not supported for activation.";
+        public const string ProvisionSequenceAlreadyActive = "An active provision already exists at sequence {0} of the service definition.";
         public const string AncillaryHoldNotFound = "The ancillary hold was not found.";
         public const string AncillaryHoldRequestIsInvalid = "Ancillary hold field {0} is invalid.";
         public const string AncillaryHoldIdempotencyKeyReused = "The idempotency key was already used with a different request.";

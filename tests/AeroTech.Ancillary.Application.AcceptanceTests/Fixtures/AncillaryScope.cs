@@ -1,10 +1,20 @@
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ActivateAncillaryProvision;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.DefineAncillaryProvision;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ReactivateAncillaryProvision;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RetireAncillaryProvision;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.SuspendAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ConfirmAncillaryHold;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldAncillaryServices;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ActivateAncillaryServiceDefinition;
+using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ChangeAncillaryServiceDefinition;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.DefineAncillaryServiceDefinition;
+using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ReactivateAncillaryServiceDefinition;
+using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.RetireAncillaryServiceDefinition;
+using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ReviseAncillaryServiceDefinition;
+using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.SuspendAncillaryServiceDefinition;
 using AeroTech.Ancillary.Application.SupplierAggregate.Commands.RegisterSupplier;
+using AeroTech.Ancillary.Application.SupplierAggregate.Commands.RetireSupplier;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Contracts;
 using AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Contracts;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Contracts;
@@ -54,6 +64,16 @@ public sealed class AncillaryScope : IAsyncDisposable
         ActivateServiceDefinition = new ActivateAncillaryServiceDefinitionService(Definitions, Suppliers, definitionSynchronizer, UnitOfWork, clock);
         DefineProvision = new DefineAncillaryProvisionService(Provisions, Definitions, provisionSynchronizer, UnitOfWork, ids, clock);
         ActivateProvision = new ActivateAncillaryProvisionService(Provisions, provisionSynchronizer, UnitOfWork, clock);
+        RetireSupplier = new RetireSupplierService(Suppliers, supplierSynchronizer, UnitOfWork, clock);
+        ChangeServiceDefinition = new ChangeAncillaryServiceDefinitionService(Definitions, Suppliers, definitionSynchronizer, UnitOfWork);
+        SuspendServiceDefinition = new SuspendAncillaryServiceDefinitionService(Definitions, Suppliers, definitionSynchronizer, UnitOfWork, clock);
+        ReactivateServiceDefinition = new ReactivateAncillaryServiceDefinitionService(Definitions, Suppliers, definitionSynchronizer, UnitOfWork);
+        RetireServiceDefinition = new RetireAncillaryServiceDefinitionService(Definitions, Suppliers, definitionSynchronizer, UnitOfWork, clock);
+        ReviseServiceDefinition = new ReviseAncillaryServiceDefinitionService(Definitions, Suppliers, definitionSynchronizer, UnitOfWork, ids, clock);
+        ChangeProvision = new ChangeAncillaryProvisionService(Provisions, provisionSynchronizer, UnitOfWork, ids);
+        SuspendProvision = new SuspendAncillaryProvisionService(Provisions, provisionSynchronizer, UnitOfWork, clock);
+        ReactivateProvision = new ReactivateAncillaryProvisionService(Provisions, provisionSynchronizer, UnitOfWork);
+        RetireProvision = new RetireAncillaryProvisionService(Provisions, provisionSynchronizer, UnitOfWork, clock);
         HoldAncillaryServices = new HoldAncillaryServicesService(Reservations, Definitions, Provisions, Suppliers, UnitOfWork, ids, clock);
         ConfirmAncillaryHold = new ConfirmAncillaryHoldService(Reservations, UnitOfWork, clock);
         GetSupplierById = new GetSupplierByIdService(Query);
@@ -88,6 +108,26 @@ public sealed class AncillaryScope : IAsyncDisposable
     public IDefineAncillaryProvisionService DefineProvision { get; }
 
     public IActivateAncillaryProvisionService ActivateProvision { get; }
+
+    public IRetireSupplierService RetireSupplier { get; }
+
+    public IChangeAncillaryServiceDefinitionService ChangeServiceDefinition { get; }
+
+    public ISuspendAncillaryServiceDefinitionService SuspendServiceDefinition { get; }
+
+    public IReactivateAncillaryServiceDefinitionService ReactivateServiceDefinition { get; }
+
+    public IRetireAncillaryServiceDefinitionService RetireServiceDefinition { get; }
+
+    public IReviseAncillaryServiceDefinitionService ReviseServiceDefinition { get; }
+
+    public IChangeAncillaryProvisionService ChangeProvision { get; }
+
+    public ISuspendAncillaryProvisionService SuspendProvision { get; }
+
+    public IReactivateAncillaryProvisionService ReactivateProvision { get; }
+
+    public IRetireAncillaryProvisionService RetireProvision { get; }
 
     public IHoldAncillaryServicesService HoldAncillaryServices { get; }
 

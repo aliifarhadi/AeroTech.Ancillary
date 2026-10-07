@@ -1,4 +1,5 @@
 using AeroTech.Ancillary.Application.SupplierAggregate.Commands.RegisterSupplier.Backoffice;
+using AeroTech.Ancillary.Application.SupplierAggregate.Commands.RetireSupplier.Backoffice;
 using AeroTech.Ancillary.Query.SupplierAggregate.Queries.GetSupplierById.Backoffice;
 using AeroTech.Ancillary.Query.SupplierAggregate.Queries.GetSuppliersPaginated.Backoffice;
 using AeroTech.Ancillary.RestApi.V1.SupplierAggregate.Requests;
@@ -29,6 +30,10 @@ namespace AeroTech.Ancillary.RestApi.V1.SupplierAggregate.Controllers
                 request.Name,
                 request.FulfillmentKind,
                 request.FulfillmentProviderKey), cancellationToken));
+
+        [HttpPost("{supplierId:long}/Retire")]
+        public async Task<IActionResult> Retire(long supplierId, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new BackofficeRetireSupplierCommand(supplierId), cancellationToken));
 
         [HttpGet("Paginated")]
         public async Task<IActionResult> Paginated(

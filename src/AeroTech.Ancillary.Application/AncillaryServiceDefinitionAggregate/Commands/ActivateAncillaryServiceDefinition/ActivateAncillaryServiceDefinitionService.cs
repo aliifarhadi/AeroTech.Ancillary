@@ -48,17 +48,7 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
             await _synchronizer.ProjectAsync(definition.ToReadModelSnapshot(supplier.Name), cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return new ServiceDefinitionResult(
-                definition.Id,
-                definition.OwnerAirlineId,
-                definition.SupplierId,
-                definition.ServiceDefinitionRef,
-                definition.Version,
-                definition.ServiceTypeCode,
-                definition.ServiceSubCode,
-                definition.SubCodeSource,
-                definition.GroupCode,
-                definition.Status);
+            return definition.ToResult();
         }
     }
 }

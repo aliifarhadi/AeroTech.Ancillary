@@ -24,6 +24,7 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                        where provision.ServiceDefinitionId == query.ServiceDefinitionId
                              && (query.SupplierId == null || definition.SupplierId == query.SupplierId)
                              && (query.Status == null || provision.Status == query.Status)
+                             && (query.CoverageScope == null || provision.CoverageScope == query.CoverageScope)
                              && (query.Sequence == null || provision.Sequence == query.Sequence)
                              && (query.SalesDate == null
                                  || ((provision.SalesEffectiveFrom == null || provision.SalesEffectiveFrom <= query.SalesDate)

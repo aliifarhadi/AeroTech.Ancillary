@@ -6,5 +6,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments
         AncillaryPriceLineCategory Category,
         string? Code,
         string? Name,
-        decimal UnitAmount);
+        decimal UnitAmount,
+        int? CountryId = null,
+        int? StationAirportId = null);
 }

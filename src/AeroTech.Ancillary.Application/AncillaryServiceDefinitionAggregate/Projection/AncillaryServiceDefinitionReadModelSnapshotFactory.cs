@@ -34,6 +34,8 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Pro
                 definition.SalesDiscontinueOn,
                 definition.Status,
                 definition.CreatedAt,
-                definition.ActivatedAt);
+                definition.ActivatedAt,
+                definition.SuspendedAt,
+                definition.RetiredAt);
     }
 }

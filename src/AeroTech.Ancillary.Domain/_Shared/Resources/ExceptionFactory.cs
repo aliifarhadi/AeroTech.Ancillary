@@ -22,6 +22,9 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public static BusinessException SupplierIsInvalid(params object?[] args) =>
             new(16102, ExceptionMessages.SupplierIsInvalid, args) { HttpStatus = 422 };
 
+        public static BusinessException SupplierStatusChangeNotAllowed(params object?[] args) =>
+            new(16103, ExceptionMessages.SupplierStatusChangeNotAllowed, args) { HttpStatus = 409 };
+
         public static BusinessException SupplierFulfillmentProviderNotRegistered(params object?[] args) =>
             new(16104, ExceptionMessages.SupplierFulfillmentProviderNotRegistered, args) { HttpStatus = 422 };
 
@@ -63,6 +66,9 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
 
         public static BusinessException ProvisionFeeApplicationUnitNotSupported(params object?[] args) =>
             new(16305, ExceptionMessages.ProvisionFeeApplicationUnitNotSupported, args) { HttpStatus = 422 };
+
+        public static BusinessException ProvisionSequenceAlreadyActive(params object?[] args) =>
+            new(16306, ExceptionMessages.ProvisionSequenceAlreadyActive, args) { HttpStatus = 409 };
 
         public static BusinessException AncillaryHoldNotFound(params object?[] args) =>
             new(16401, ExceptionMessages.AncillaryHoldNotFound, args) { HttpStatus = 404 };

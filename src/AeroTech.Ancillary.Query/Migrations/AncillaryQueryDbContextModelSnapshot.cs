@@ -38,9 +38,15 @@ namespace AeroTech.Ancillary.Query.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
+                    b.Property<int?>("CountryId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("StationAirportId")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("UnitAmount")
                         .HasPrecision(18, 2)
@@ -58,11 +64,61 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.Property<long>("Id")
                         .HasColumnType("bigint");
 
+                    b.Property<DateTimeOffset?>("ActivatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("AdvancePurchasePeriod")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AdvancePurchaseUnit")
+                        .HasColumnType("int");
+
+                    b.PrimitiveCollection<string>("AirFareIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.PrimitiveCollection<string>("AirFareTypes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.PrimitiveCollection<string>("AircraftIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("ApplicationType")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BaggageFirstExcessPiece")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BaggageFreePieces")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BaggageLastExcessPiece")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BaggagePurchaseApplication")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BaggageRuleDeference")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BaggageTravelApplication")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("BaggageWeight")
+                        .HasPrecision(9, 2)
+                        .HasColumnType("decimal(9,2)");
+
+                    b.Property<int?>("BaggageWeightUnit")
                         .HasColumnType("int");
 
                     b.Property<bool>("BookingRequired")
                         .HasColumnType("bit");
+
+                    b.PrimitiveCollection<string>("CabinClassIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("Commissionable")
                         .HasColumnType("bit");
@@ -73,17 +129,49 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.PrimitiveCollection<string>("CustomerIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.PrimitiveCollection<string>("CustomerTypes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.PrimitiveCollection<string>("DaysOfWeek")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.PrimitiveCollection<string>("DestinationAirportIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("Disposition")
                         .HasColumnType("int");
 
                     b.Property<bool>("DocumentRequired")
                         .HasColumnType("bit");
 
+                    b.PrimitiveCollection<string>("FareBasisCodes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.PrimitiveCollection<string>("FareFamilyIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("FeeApplicationUnit")
                         .HasColumnType("int");
 
                     b.Property<int?>("FeeCurrencyId")
                         .HasColumnType("int");
+
+                    b.PrimitiveCollection<string>("FlightIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.PrimitiveCollection<string>("FlightNumbers")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("FormOfRefund")
                         .HasColumnType("int");
@@ -99,6 +187,10 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.Property<DateTimeOffset>("LastUpdateTime")
                         .HasColumnType("datetimeoffset");
 
+                    b.PrimitiveCollection<string>("MarketingAirlineIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("MaxQuantity")
                         .HasColumnType("int");
 
@@ -108,17 +200,48 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.Property<bool>("MustCheckAvailability")
                         .HasColumnType("bit");
 
+                    b.PrimitiveCollection<string>("OperatingAirlineIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.PrimitiveCollection<string>("OriginAirportIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.PrimitiveCollection<string>("PassengerTypeCodes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.PrimitiveCollection<string>("PointOfSaleIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("QuantityUnit")
                         .HasColumnType("int");
 
+                    b.PrimitiveCollection<string>("RbdIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("ReissueRefund")
                         .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("RetiredAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<DateTimeOffset?>("SalesDiscontinueAt")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<DateTimeOffset?>("SalesEffectiveFrom")
                         .HasColumnType("datetimeoffset");
+
+                    b.PrimitiveCollection<string>("SeatCharacteristicCodes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.PrimitiveCollection<string>("SeatNumbers")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Sequence")
                         .HasColumnType("int");
@@ -129,11 +252,54 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<DateTimeOffset?>("SuspendedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<TimeOnly?>("TimeFrom")
+                        .HasColumnType("time");
+
+                    b.Property<TimeOnly?>("TimeTo")
+                        .HasColumnType("time");
+
+                    b.Property<DateOnly?>("TravelFrom")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("TravelTo")
+                        .HasColumnType("date");
+
+                    b.PrimitiveCollection<string>("ViaAirportIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ServiceDefinitionId", "Status");
 
                     b.ToTable("AncillaryProvisions", "ReadModel");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models.AncillaryProvisionRoutePairReadModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("AncillaryProvisionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("DestinationAirportId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Direction")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OriginAirportId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AncillaryProvisionId");
+
+                    b.ToTable("AncillaryProvisionRoutePairs", "ReadModel");
                 });
 
             modelBuilder.Entity("AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Models.AncillaryServiceDefinitionReadModel", b =>
@@ -197,6 +363,9 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.Property<int>("OwnerAirlineId")
                         .HasColumnType("int");
 
+                    b.Property<DateTimeOffset?>("RetiredAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<DateOnly?>("SalesDiscontinueOn")
                         .HasColumnType("date");
 
@@ -235,6 +404,9 @@ namespace AeroTech.Ancillary.Query.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTimeOffset?>("SuspendedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<int>("Version")
                         .HasColumnType("int");

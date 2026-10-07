@@ -61,6 +61,7 @@ public sealed class TestDatabase : IAsyncLifetime
         await reference.Database.MigrateAsync();
 
         reference.Currencies.AddRange(
+            new CurrencyReadModel { Id = 47, Code = "EUR", DecimalPlaces = 2, RoundingFactor = 0.01 },
             new CurrencyReadModel { Id = 70, Code = "IRR", DecimalPlaces = 0, RoundingFactor = 1 },
             new CurrencyReadModel { Id = 155, Code = "USD", DecimalPlaces = 2, RoundingFactor = 0.01 });
         await reference.SaveChangesAsync();

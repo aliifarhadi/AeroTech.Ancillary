@@ -34,7 +34,9 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.G
                 definition.SalesDiscontinueOn,
                 EnumValueDto.Of(definition.Status),
                 definition.CreatedAt,
-                definition.ActivatedAt);
+                definition.ActivatedAt,
+                definition.SuspendedAt,
+                definition.RetiredAt);
 
         public static ServiceDefinitionPaginatedRowDto ToPaginatedRow(AncillaryServiceDefinitionReadModel definition)
             => new()

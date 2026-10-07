@@ -45,13 +45,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Ac
             await _synchronizer.ProjectAsync(provision.ToReadModelSnapshot(), cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return new ProvisionResult(
-                provision.Id,
-                provision.ServiceDefinitionId,
-                provision.Sequence,
-                provision.CoverageScope,
-                provision.Outcome.Disposition,
-                provision.Status);
+            return provision.ToResult();
         }
     }
 }

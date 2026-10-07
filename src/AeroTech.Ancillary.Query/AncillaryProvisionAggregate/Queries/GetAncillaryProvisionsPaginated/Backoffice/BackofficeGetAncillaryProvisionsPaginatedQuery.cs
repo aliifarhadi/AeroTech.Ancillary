@@ -11,6 +11,7 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
         public long ServiceDefinitionId { get; set; }
         public long? SupplierId { get; set; }
         public ProvisionStatus? Status { get; set; }
+        public ServiceCoverageScope? CoverageScope { get; set; }
         public int? Sequence { get; set; }
         public DateTimeOffset? SalesDate { get; set; }
     }

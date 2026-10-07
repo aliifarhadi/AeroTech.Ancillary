@@ -31,9 +31,6 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.Property<DateTimeOffset?>("ActivatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<int>("ApplicationType")
-                        .HasColumnType("int");
-
                     b.Property<int>("CoverageScope")
                         .HasColumnType("int");
 
@@ -101,6 +98,9 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
+                    b.Property<int?>("CountryId")
+                        .HasColumnType("int");
+
                     b.Property<DateTimeOffset>("LastUpdateTime")
                         .HasColumnType("datetimeoffset");
 
@@ -111,6 +111,9 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int?>("StationAirportId")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("UnitAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -120,6 +123,36 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.HasIndex("AncillaryProvisionId");
 
                     b.ToTable("ProvisionPriceLines", "Ancillary");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities.ProvisionRoutePair", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("AncillaryProvisionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("DestinationAirportId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Direction")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("LastUpdatedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("OriginAirportId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AncillaryProvisionId");
+
+                    b.ToTable("ProvisionRoutePairs", "Ancillary");
                 });
 
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryReservationAggregate.AncillaryReservation", b =>
@@ -446,6 +479,27 @@ namespace AeroTech.Ancillary.Persistence.Migrations
 
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.AncillaryProvision", b =>
                 {
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.ValueObjects.AdvancePurchaseCriteria", "AdvancePurchase", b1 =>
+                        {
+                            b1.Property<long>("AncillaryProvisionId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<int>("Period")
+                                .HasColumnType("int")
+                                .HasColumnName("AdvancePurchasePeriod");
+
+                            b1.Property<int>("Unit")
+                                .HasColumnType("int")
+                                .HasColumnName("AdvancePurchaseUnit");
+
+                            b1.HasKey("AncillaryProvisionId");
+
+                            b1.ToTable("AncillaryProvisions", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryProvisionId");
+                        });
+
                     b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.ValueObjects.AvailabilityDefinition", "Availability", b1 =>
                         {
                             b1.Property<long>("AncillaryProvisionId")
@@ -479,6 +533,49 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                             b1.Property<bool>("DocumentRequired")
                                 .HasColumnType("bit")
                                 .HasColumnName("DocumentRequired");
+
+                            b1.HasKey("AncillaryProvisionId");
+
+                            b1.ToTable("AncillaryProvisions", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryProvisionId");
+                        });
+
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.ValueObjects.FareCriteria", "Fare", b1 =>
+                        {
+                            b1.Property<long>("AncillaryProvisionId")
+                                .HasColumnType("bigint");
+
+                            b1.PrimitiveCollection<string>("AirFareIds")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("AirFareIds");
+
+                            b1.PrimitiveCollection<string>("AirFareTypes")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("AirFareTypes");
+
+                            b1.PrimitiveCollection<string>("CabinClassIds")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("CabinClassIds");
+
+                            b1.PrimitiveCollection<string>("FareBasisCodes")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("FareBasisCodes");
+
+                            b1.PrimitiveCollection<string>("FareFamilyIds")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("FareFamilyIds");
+
+                            b1.PrimitiveCollection<string>("RbdIds")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("RbdIds");
 
                             b1.HasKey("AncillaryProvisionId");
 
@@ -528,6 +625,114 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                                 .HasForeignKey("AncillaryProvisionId");
                         });
 
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.ValueObjects.PassengerCriteria", "Passenger", b1 =>
+                        {
+                            b1.Property<long>("AncillaryProvisionId")
+                                .HasColumnType("bigint");
+
+                            b1.PrimitiveCollection<string>("PassengerTypeCodes")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("PassengerTypeCodes");
+
+                            b1.HasKey("AncillaryProvisionId");
+
+                            b1.ToTable("AncillaryProvisions", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryProvisionId");
+                        });
+
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.ValueObjects.ProvisionApplication", "Application", b1 =>
+                        {
+                            b1.Property<long>("AncillaryProvisionId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<int>("Type")
+                                .HasColumnType("int")
+                                .HasColumnName("ApplicationType");
+
+                            b1.HasKey("AncillaryProvisionId");
+
+                            b1.ToTable("AncillaryProvisions", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryProvisionId");
+
+                            b1.OwnsOne("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.ValueObjects.BaggageApplication", "Baggage", b2 =>
+                                {
+                                    b2.Property<long>("ProvisionApplicationAncillaryProvisionId")
+                                        .HasColumnType("bigint");
+
+                                    b2.Property<int?>("FirstExcessPiece")
+                                        .HasColumnType("int")
+                                        .HasColumnName("BaggageFirstExcessPiece");
+
+                                    b2.Property<int?>("FreePieces")
+                                        .HasColumnType("int")
+                                        .HasColumnName("BaggageFreePieces");
+
+                                    b2.Property<int?>("LastExcessPiece")
+                                        .HasColumnType("int")
+                                        .HasColumnName("BaggageLastExcessPiece");
+
+                                    b2.Property<int>("PurchaseApplication")
+                                        .HasColumnType("int")
+                                        .HasColumnName("BaggagePurchaseApplication");
+
+                                    b2.Property<int?>("RuleDeference")
+                                        .HasColumnType("int")
+                                        .HasColumnName("BaggageRuleDeference");
+
+                                    b2.Property<int?>("TravelApplication")
+                                        .HasColumnType("int")
+                                        .HasColumnName("BaggageTravelApplication");
+
+                                    b2.Property<decimal?>("Weight")
+                                        .HasPrecision(9, 2)
+                                        .HasColumnType("decimal(9,2)")
+                                        .HasColumnName("BaggageWeight");
+
+                                    b2.Property<int>("WeightUnit")
+                                        .HasColumnType("int")
+                                        .HasColumnName("BaggageWeightUnit");
+
+                                    b2.HasKey("ProvisionApplicationAncillaryProvisionId");
+
+                                    b2.ToTable("AncillaryProvisions", "Ancillary");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("ProvisionApplicationAncillaryProvisionId");
+                                });
+
+                            b1.OwnsOne("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.ValueObjects.SeatApplication", "Seat", b2 =>
+                                {
+                                    b2.Property<long>("ProvisionApplicationAncillaryProvisionId")
+                                        .HasColumnType("bigint");
+
+                                    b2.PrimitiveCollection<string>("SeatCharacteristicCodes")
+                                        .IsRequired()
+                                        .HasColumnType("nvarchar(max)")
+                                        .HasColumnName("SeatCharacteristicCodes");
+
+                                    b2.PrimitiveCollection<string>("SeatNumbers")
+                                        .IsRequired()
+                                        .HasColumnType("nvarchar(max)")
+                                        .HasColumnName("SeatNumbers");
+
+                                    b2.HasKey("ProvisionApplicationAncillaryProvisionId");
+
+                                    b2.ToTable("AncillaryProvisions", "Ancillary");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("ProvisionApplicationAncillaryProvisionId");
+                                });
+
+                            b1.Navigation("Baggage");
+
+                            b1.Navigation("Seat");
+                        });
+
                     b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.ValueObjects.QuantityRule", "Quantity", b1 =>
                         {
                             b1.Property<long>("AncillaryProvisionId")
@@ -544,6 +749,34 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                             b1.Property<int>("Unit")
                                 .HasColumnType("int")
                                 .HasColumnName("QuantityUnit");
+
+                            b1.HasKey("AncillaryProvisionId");
+
+                            b1.ToTable("AncillaryProvisions", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryProvisionId");
+                        });
+
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.ValueObjects.SalesCriteria", "Sales", b1 =>
+                        {
+                            b1.Property<long>("AncillaryProvisionId")
+                                .HasColumnType("bigint");
+
+                            b1.PrimitiveCollection<string>("CustomerIds")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("CustomerIds");
+
+                            b1.PrimitiveCollection<string>("CustomerTypes")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("CustomerTypes");
+
+                            b1.PrimitiveCollection<string>("PointOfSaleIds")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("PointOfSaleIds");
 
                             b1.HasKey("AncillaryProvisionId");
 
@@ -582,7 +815,89 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                                 .HasForeignKey("AncillaryProvisionId");
                         });
 
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.ValueObjects.TravelCriteria", "Travel", b1 =>
+                        {
+                            b1.Property<long>("AncillaryProvisionId")
+                                .HasColumnType("bigint");
+
+                            b1.PrimitiveCollection<string>("AircraftIds")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("AircraftIds");
+
+                            b1.PrimitiveCollection<string>("DaysOfWeek")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("DaysOfWeek");
+
+                            b1.PrimitiveCollection<string>("DestinationAirportIds")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("DestinationAirportIds");
+
+                            b1.PrimitiveCollection<string>("FlightIds")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("FlightIds");
+
+                            b1.PrimitiveCollection<string>("FlightNumbers")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("FlightNumbers");
+
+                            b1.PrimitiveCollection<string>("MarketingAirlineIds")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("MarketingAirlineIds");
+
+                            b1.PrimitiveCollection<string>("OperatingAirlineIds")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("OperatingAirlineIds");
+
+                            b1.PrimitiveCollection<string>("OriginAirportIds")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("OriginAirportIds");
+
+                            b1.Property<TimeOnly?>("TimeFrom")
+                                .HasColumnType("time")
+                                .HasColumnName("TimeFrom");
+
+                            b1.Property<TimeOnly?>("TimeTo")
+                                .HasColumnType("time")
+                                .HasColumnName("TimeTo");
+
+                            b1.Property<DateOnly?>("TravelFrom")
+                                .HasColumnType("date")
+                                .HasColumnName("TravelFrom");
+
+                            b1.Property<DateOnly?>("TravelTo")
+                                .HasColumnType("date")
+                                .HasColumnName("TravelTo");
+
+                            b1.PrimitiveCollection<string>("ViaAirportIds")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("ViaAirportIds");
+
+                            b1.HasKey("AncillaryProvisionId");
+
+                            b1.ToTable("AncillaryProvisions", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryProvisionId");
+                        });
+
+                    b.Navigation("AdvancePurchase");
+
+                    b.Navigation("Application")
+                        .IsRequired();
+
                     b.Navigation("Availability")
+                        .IsRequired();
+
+                    b.Navigation("Fare")
                         .IsRequired();
 
                     b.Navigation("Fee");
@@ -593,10 +908,19 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.Navigation("Outcome")
                         .IsRequired();
 
+                    b.Navigation("Passenger")
+                        .IsRequired();
+
                     b.Navigation("Quantity")
                         .IsRequired();
 
+                    b.Navigation("Sales")
+                        .IsRequired();
+
                     b.Navigation("Settlement")
+                        .IsRequired();
+
+                    b.Navigation("Travel")
                         .IsRequired();
                 });
 
@@ -604,6 +928,15 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                 {
                     b.HasOne("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.AncillaryProvision", null)
                         .WithMany("PriceLines")
+                        .HasForeignKey("AncillaryProvisionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities.ProvisionRoutePair", b =>
+                {
+                    b.HasOne("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.AncillaryProvision", null)
+                        .WithMany("RoutePairs")
                         .HasForeignKey("AncillaryProvisionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -684,6 +1017,8 @@ namespace AeroTech.Ancillary.Persistence.Migrations
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.AncillaryProvision", b =>
                 {
                     b.Navigation("PriceLines");
+
+                    b.Navigation("RoutePairs");
                 });
 
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryReservationAggregate.AncillaryReservation", b =>

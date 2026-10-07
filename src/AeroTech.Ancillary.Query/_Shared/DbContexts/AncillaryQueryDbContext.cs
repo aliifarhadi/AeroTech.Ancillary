@@ -23,6 +23,8 @@ namespace AeroTech.Ancillary.Query._Shared.DbContexts
 
         public DbSet<AncillaryProvisionReadModel> AncillaryProvisions => Set<AncillaryProvisionReadModel>();
 
+        public DbSet<AncillaryProvisionRoutePairReadModel> AncillaryProvisionRoutePairs => Set<AncillaryProvisionRoutePairReadModel>();
+
         public DbSet<AncillaryProvisionPriceLineReadModel> AncillaryProvisionPriceLines => Set<AncillaryProvisionPriceLineReadModel>();
 
         public DbSet<CustomerReadModel> Customers => Set<CustomerReadModel>();

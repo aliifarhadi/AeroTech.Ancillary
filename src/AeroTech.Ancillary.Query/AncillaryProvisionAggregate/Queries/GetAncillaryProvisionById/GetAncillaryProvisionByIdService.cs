@@ -18,12 +18,17 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                                 .FirstOrDefaultAsync(row => row.Id == provisionId, cancellationToken)
                             ?? throw ExceptionFactory.ProvisionNotFound();
 
+            var routePairs = await _dbContext.AncillaryProvisionRoutePairs
+                .AsNoTracking()
+                .Where(pair => pair.AncillaryProvisionId == provisionId)
+                .ToListAsync(cancellationToken);
+
             var priceLines = await _dbContext.AncillaryProvisionPriceLines
                 .AsNoTracking()
                 .Where(line => line.AncillaryProvisionId == provisionId)
                 .ToListAsync(cancellationToken);
 
-            return AncillaryProvisionMapper.ToBackofficeProvision(provision, priceLines);
+            return AncillaryProvisionMapper.ToBackofficeProvision(provision, routePairs, priceLines);
         }
     }
 }

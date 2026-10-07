@@ -28,5 +28,7 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto
         DateOnly? SalesDiscontinueOn,
         EnumValueDto Status,
         DateTimeOffset CreatedAt,
-        DateTimeOffset? ActivatedAt);
+        DateTimeOffset? ActivatedAt,
+        DateTimeOffset? SuspendedAt,
+        DateTimeOffset? RetiredAt);
 }

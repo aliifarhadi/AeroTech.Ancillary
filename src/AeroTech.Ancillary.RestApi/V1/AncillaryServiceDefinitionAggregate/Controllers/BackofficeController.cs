@@ -1,5 +1,10 @@
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ActivateAncillaryServiceDefinition.Backoffice;
+using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ChangeAncillaryServiceDefinition.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.DefineAncillaryServiceDefinition.Backoffice;
+using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ReactivateAncillaryServiceDefinition.Backoffice;
+using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.RetireAncillaryServiceDefinition.Backoffice;
+using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ReviseAncillaryServiceDefinition.Backoffice;
+using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.SuspendAncillaryServiceDefinition.Backoffice;
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.GetAncillaryServiceDefinitionById.Backoffice;
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.GetAncillaryServiceDefinitionsPaginated.Backoffice;
 using AeroTech.Ancillary.RestApi.V1.AncillaryServiceDefinitionAggregate.Requests;
@@ -43,9 +48,47 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryServiceDefinitionAggregate.Cont
                 request.SalesEffectiveFrom,
                 request.SalesDiscontinueOn), cancellationToken));
 
+        [HttpPut("{serviceDefinitionId:long}")]
+        public async Task<IActionResult> Change(
+            long serviceDefinitionId,
+            [FromBody] ChangeServiceDefinitionRequest request,
+            CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new BackofficeChangeAncillaryServiceDefinitionCommand(
+                serviceDefinitionId,
+                request.SupplierId,
+                request.ServiceSubCode,
+                request.SubCodeSource,
+                request.ServiceTypeCode,
+                request.GroupCode,
+                request.SubGroupCode,
+                request.Description1Code,
+                request.Description2Code,
+                request.CommercialName,
+                request.Description,
+                request.Document,
+                request.Booking,
+                request.SalesEffectiveFrom,
+                request.SalesDiscontinueOn), cancellationToken));
+
         [HttpPost("{serviceDefinitionId:long}/Activate")]
         public async Task<IActionResult> Activate(long serviceDefinitionId, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(new BackofficeActivateAncillaryServiceDefinitionCommand(serviceDefinitionId), cancellationToken));
+
+        [HttpPost("{serviceDefinitionId:long}/Suspend")]
+        public async Task<IActionResult> Suspend(long serviceDefinitionId, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new BackofficeSuspendAncillaryServiceDefinitionCommand(serviceDefinitionId), cancellationToken));
+
+        [HttpPost("{serviceDefinitionId:long}/Reactivate")]
+        public async Task<IActionResult> Reactivate(long serviceDefinitionId, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new BackofficeReactivateAncillaryServiceDefinitionCommand(serviceDefinitionId), cancellationToken));
+
+        [HttpPost("{serviceDefinitionId:long}/Retire")]
+        public async Task<IActionResult> Retire(long serviceDefinitionId, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new BackofficeRetireAncillaryServiceDefinitionCommand(serviceDefinitionId), cancellationToken));
+
+        [HttpPost("{serviceDefinitionId:long}/Revise")]
+        public async Task<IActionResult> Revise(long serviceDefinitionId, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new BackofficeReviseAncillaryServiceDefinitionCommand(serviceDefinitionId), cancellationToken));
 
         [HttpGet("Paginated")]
         public async Task<IActionResult> Paginated(

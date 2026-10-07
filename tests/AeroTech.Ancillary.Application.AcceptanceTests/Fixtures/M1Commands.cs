@@ -47,7 +47,12 @@ public sealed record TestDefineProvisionCommand(
     ProvisionFeeInput? Fee,
     ProvisionSettlementInput Settlement,
     ProvisionAvailabilityInput Availability,
-    ProvisionFulfillmentInput Fulfillment) : IDefineAncillaryProvisionCommand;
+    ProvisionFulfillmentInput Fulfillment,
+    ProvisionPassengerCriteriaInput? Passenger = null,
+    ProvisionSalesCriteriaInput? Sales = null,
+    ProvisionTravelCriteriaInput? Travel = null,
+    ProvisionFareCriteriaInput? Fare = null,
+    ProvisionAdvancePurchaseInput? AdvancePurchase = null) : IDefineAncillaryProvisionCommand;
 
 public sealed record TestActivateProvisionCommand(long ProvisionId) : IActivateAncillaryProvisionCommand;
 

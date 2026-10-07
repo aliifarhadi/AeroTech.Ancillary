@@ -10,6 +10,8 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
 
         ProvisionStatus? Status { get; }
 
+        ServiceCoverageScope? CoverageScope { get; }
+
         int? Sequence { get; }
 
         DateTimeOffset? SalesDate { get; }

@@ -28,5 +28,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Contract
         DateOnly? SalesDiscontinueOn,
         ServiceDefinitionStatus Status,
         DateTimeOffset CreatedAt,
-        DateTimeOffset? ActivatedAt);
+        DateTimeOffset? ActivatedAt,
+        DateTimeOffset? SuspendedAt,
+        DateTimeOffset? RetiredAt);
 }

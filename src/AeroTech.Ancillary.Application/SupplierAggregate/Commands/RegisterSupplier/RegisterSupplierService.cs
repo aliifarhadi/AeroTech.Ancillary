@@ -42,13 +42,7 @@ namespace AeroTech.Ancillary.Application.SupplierAggregate.Commands.RegisterSupp
             await _synchronizer.ProjectAsync(supplier.ToReadModelSnapshot(), cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return new SupplierResult(
-                supplier.Id,
-                supplier.OwnerAirlineId,
-                supplier.Name,
-                supplier.FulfillmentKind,
-                supplier.FulfillmentProviderKey,
-                supplier.Status);
+            return supplier.ToResult();
         }
     }
 }

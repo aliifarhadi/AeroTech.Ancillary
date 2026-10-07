@@ -89,33 +89,55 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
             DateTimeOffset createdAt)
         {
             Require(ownerAirlineId > 0, nameof(OwnerAirlineId));
-            Require(supplierId > 0, nameof(SupplierId));
             Require(IsRef(serviceDefinitionRef), nameof(ServiceDefinitionRef));
             Require(version >= 1, nameof(Version));
-            Require(IsCode(serviceSubCode, 3), nameof(ServiceSubCode));
-            Require(Enum.IsDefined(subCodeSource), nameof(SubCodeSource));
-            Require(commercialName is { Length: >= 1 and <= CommercialNameMaxLength }, nameof(CommercialName));
-            Require(description is null or { Length: >= 1 and <= DescriptionMaxLength }, nameof(Description));
-            Require(
-                salesEffectiveFrom is null || salesDiscontinueOn is null || salesEffectiveFrom <= salesDiscontinueOn,
-                nameof(SalesDiscontinueOn));
 
             var definition = new AncillaryServiceDefinition(id, ownerAirlineId, supplierId, serviceDefinitionRef);
 
             definition.Version = version;
-            definition.ServiceSubCode = serviceSubCode;
-            definition.SubCodeSource = subCodeSource;
-            definition.ApplyClassification(serviceSubCode, subCodeSource, classification, document);
-            definition.CommercialName = commercialName;
-            definition.Description = description;
-            definition.Document = document;
-            definition.Booking = booking;
-            definition.SalesEffectiveFrom = salesEffectiveFrom;
-            definition.SalesDiscontinueOn = salesDiscontinueOn;
             definition.Status = ServiceDefinitionStatus.Draft;
             definition.CreatedAt = createdAt;
+            definition.Apply(
+                supplierId,
+                serviceSubCode,
+                subCodeSource,
+                classification,
+                commercialName,
+                description,
+                document,
+                booking,
+                salesEffectiveFrom,
+                salesDiscontinueOn);
 
             return definition;
+        }
+
+        public void Change(
+            long supplierId,
+            string serviceSubCode,
+            ServiceSubCodeSource subCodeSource,
+            ServiceDefinitionClassificationArgs classification,
+            string commercialName,
+            string? description,
+            DocumentDefinition document,
+            BookingDefinition booking,
+            DateOnly? salesEffectiveFrom,
+            DateOnly? salesDiscontinueOn)
+        {
+            if (Status != ServiceDefinitionStatus.Draft)
+                throw ExceptionFactory.ServiceDefinitionStatusChangeNotAllowed();
+
+            Apply(
+                supplierId,
+                serviceSubCode,
+                subCodeSource,
+                classification,
+                commercialName,
+                description,
+                document,
+                booking,
+                salesEffectiveFrom,
+                salesDiscontinueOn);
         }
 
         public void Activate(Supplier supplier, DateTimeOffset now)
@@ -131,6 +153,101 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
 
             Status = ServiceDefinitionStatus.Active;
             ActivatedAt = now;
+        }
+
+        public void Suspend(DateTimeOffset now)
+        {
+            if (Status != ServiceDefinitionStatus.Active)
+                throw ExceptionFactory.ServiceDefinitionStatusChangeNotAllowed();
+
+            Status = ServiceDefinitionStatus.Suspended;
+            SuspendedAt = now;
+        }
+
+        public void Reactivate(Supplier supplier)
+        {
+            if (Status != ServiceDefinitionStatus.Suspended)
+                throw ExceptionFactory.ServiceDefinitionStatusChangeNotAllowed();
+
+            if (supplier.Id != SupplierId)
+                throw ExceptionFactory.ServiceDefinitionIsInvalid(nameof(SupplierId));
+
+            if (supplier.Status != SupplierStatus.Active)
+                throw ExceptionFactory.ServiceDefinitionSupplierNotActive();
+
+            Status = ServiceDefinitionStatus.Active;
+            SuspendedAt = null;
+        }
+
+        public void Retire(DateTimeOffset now)
+        {
+            if (Status == ServiceDefinitionStatus.Retired)
+                throw ExceptionFactory.ServiceDefinitionStatusChangeNotAllowed();
+
+            Status = ServiceDefinitionStatus.Retired;
+            RetiredAt = now;
+        }
+
+        public AncillaryServiceDefinition Revise(long id, int version, DateTimeOffset createdAt)
+        {
+            if (Status is not (ServiceDefinitionStatus.Active or ServiceDefinitionStatus.Suspended))
+                throw ExceptionFactory.ServiceDefinitionStatusChangeNotAllowed();
+
+            Require(version > Version, nameof(Version));
+
+            return new AncillaryServiceDefinition(id, OwnerAirlineId, SupplierId, ServiceDefinitionRef)
+            {
+                Version = version,
+                ServiceTypeCode = ServiceTypeCode,
+                ServiceSubCode = ServiceSubCode,
+                SubCodeSource = SubCodeSource,
+                GroupCode = GroupCode,
+                SubGroupCode = SubGroupCode,
+                Description1Code = Description1Code,
+                Description2Code = Description2Code,
+                CommercialName = CommercialName,
+                Description = Description,
+                Document = DocumentDefinition.Create(Document.Type, Document.Rfic, Document.Rfisc),
+                Booking = BookingDefinition.Create(Booking.Method, Booking.SsrCode, Booking.SsimCode),
+                SalesEffectiveFrom = SalesEffectiveFrom,
+                SalesDiscontinueOn = SalesDiscontinueOn,
+                Status = ServiceDefinitionStatus.Draft,
+                CreatedAt = createdAt
+            };
+        }
+
+        private void Apply(
+            long supplierId,
+            string serviceSubCode,
+            ServiceSubCodeSource subCodeSource,
+            ServiceDefinitionClassificationArgs classification,
+            string commercialName,
+            string? description,
+            DocumentDefinition document,
+            BookingDefinition booking,
+            DateOnly? salesEffectiveFrom,
+            DateOnly? salesDiscontinueOn)
+        {
+            Require(supplierId > 0, nameof(SupplierId));
+            Require(IsCode(serviceSubCode, 3), nameof(ServiceSubCode));
+            Require(Enum.IsDefined(subCodeSource), nameof(SubCodeSource));
+            Require(commercialName is { Length: >= 1 and <= CommercialNameMaxLength }, nameof(CommercialName));
+            Require(description is null or { Length: >= 1 and <= DescriptionMaxLength }, nameof(Description));
+            Require(
+                salesEffectiveFrom is null || salesDiscontinueOn is null || salesEffectiveFrom <= salesDiscontinueOn,
+                nameof(SalesDiscontinueOn));
+
+            ApplyClassification(serviceSubCode, subCodeSource, classification, document);
+
+            SupplierId = supplierId;
+            ServiceSubCode = serviceSubCode;
+            SubCodeSource = subCodeSource;
+            CommercialName = commercialName;
+            Description = description;
+            Document = document;
+            Booking = booking;
+            SalesEffectiveFrom = salesEffectiveFrom;
+            SalesDiscontinueOn = salesDiscontinueOn;
         }
 
         private void ApplyClassification(

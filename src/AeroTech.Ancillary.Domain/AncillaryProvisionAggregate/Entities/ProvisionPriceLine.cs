@@ -19,6 +19,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
             Require(Enum.IsDefined(args.Category), nameof(Category));
             Require(args.Code is null or { Length: >= 1 and <= CodeMaxLength }, nameof(Code));
             Require(args.Name is null or { Length: >= 1 and <= NameMaxLength }, nameof(Name));
+            Require(args.CountryId is null or > 0, nameof(CountryId));
+            Require(args.StationAirportId is null or > 0, nameof(StationAirportId));
             Require(args.UnitAmount > 0, nameof(UnitAmount));
             Require(args.UnitAmount == decimal.Round(args.UnitAmount, 2), nameof(UnitAmount));
 
@@ -27,6 +29,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
             Category = args.Category;
             Code = args.Code;
             Name = args.Name;
+            CountryId = args.CountryId;
+            StationAirportId = args.StationAirportId;
             UnitAmount = args.UnitAmount;
         }
 
@@ -37,6 +41,10 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
         public string? Code { get; private set; }
 
         public string? Name { get; private set; }
+
+        public int? CountryId { get; private set; }
+
+        public int? StationAirportId { get; private set; }
 
         public decimal UnitAmount { get; private set; }
 
