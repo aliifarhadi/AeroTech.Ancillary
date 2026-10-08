@@ -26,6 +26,8 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
 
         PricingUnit PricingUnit { get; }
 
+        ServiceDateBasis ServiceDateBasis { get; }
+
         string CommercialName { get; }
 
         string? Description { get; }

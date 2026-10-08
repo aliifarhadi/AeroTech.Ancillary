@@ -41,19 +41,17 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                 .Select(provision => new
                 {
                     Provision = provision,
-                    TravelDates = _dbContext.AncillaryProvisionTravelDates.Count(row => row.AncillaryProvisionId == provision.Id),
-                    SeasonalPeriods = _dbContext.AncillaryProvisionSeasonalPeriods.Count(row => row.AncillaryProvisionId == provision.Id),
+                    PermittedPeriods = _dbContext.AncillaryProvisionPermittedTravelPeriods.Count(row => row.AncillaryProvisionId == provision.Id),
                     BlackoutPeriods = _dbContext.AncillaryProvisionBlackoutPeriods.Count(row => row.AncillaryProvisionId == provision.Id),
-                    DayTimeRestrictions = _dbContext.AncillaryProvisionDayTimeRestrictions.Count(row => row.AncillaryProvisionId == provision.Id)
+                    DayTimeWindows = _dbContext.AncillaryProvisionDayTimeWindows.Count(row => row.AncillaryProvisionId == provision.Id)
                 })
                 .ToListAsync(cancellationToken);
 
             var projected = page.Select(row => AncillaryProvisionMapper.ToPaginatedRow(
                 row.Provision,
-                row.TravelDates,
-                row.SeasonalPeriods,
+                row.PermittedPeriods,
                 row.BlackoutPeriods,
-                row.DayTimeRestrictions));
+                row.DayTimeWindows));
 
             return GridData<ProvisionPaginatedRowDto>.Create(
                 PaginatedList<ProvisionPaginatedRowDto>.Create(projected, pageNumber, pageSize, totalCount));

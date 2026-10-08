@@ -62,13 +62,17 @@ namespace AeroTech.Ancillary.Query._Shared.DbContexts
 
         public DbSet<AncillaryProvisionRbdReadModel> AncillaryProvisionRbds => Set<AncillaryProvisionRbdReadModel>();
 
-        public DbSet<AncillaryProvisionTravelDateReadModel> AncillaryProvisionTravelDates => Set<AncillaryProvisionTravelDateReadModel>();
-
-        public DbSet<AncillaryProvisionSeasonalPeriodReadModel> AncillaryProvisionSeasonalPeriods => Set<AncillaryProvisionSeasonalPeriodReadModel>();
-
         public DbSet<AncillaryProvisionBlackoutPeriodReadModel> AncillaryProvisionBlackoutPeriods => Set<AncillaryProvisionBlackoutPeriodReadModel>();
 
-        public DbSet<AncillaryProvisionDayTimeRestrictionReadModel> AncillaryProvisionDayTimeRestrictions => Set<AncillaryProvisionDayTimeRestrictionReadModel>();
+        public DbSet<AncillaryProvisionEligibleAgeBandReadModel> AncillaryProvisionEligibleAgeBands => Set<AncillaryProvisionEligibleAgeBandReadModel>();
+
+        public DbSet<AncillaryProvisionServiceLocationReadModel> AncillaryProvisionServiceLocations => Set<AncillaryProvisionServiceLocationReadModel>();
+
+        public DbSet<AncillaryProvisionCoverageCountryReadModel> AncillaryProvisionCoverageCountries => Set<AncillaryProvisionCoverageCountryReadModel>();
+
+        public DbSet<AncillaryProvisionPermittedTravelPeriodReadModel> AncillaryProvisionPermittedTravelPeriods => Set<AncillaryProvisionPermittedTravelPeriodReadModel>();
+
+        public DbSet<AncillaryProvisionDayTimeWindowReadModel> AncillaryProvisionDayTimeWindows => Set<AncillaryProvisionDayTimeWindowReadModel>();
 
         public DbSet<AncillaryProvisionSeatNumberReadModel> AncillaryProvisionSeatNumbers => Set<AncillaryProvisionSeatNumberReadModel>();
 

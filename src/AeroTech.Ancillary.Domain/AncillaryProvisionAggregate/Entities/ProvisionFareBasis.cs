@@ -11,26 +11,24 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
         {
         }
 
-        internal ProvisionFareBasis(long id, long ancillaryProvisionId, string fareBasisCode)
-        {
-            Id = id;
-            AncillaryProvisionId = ancillaryProvisionId;
-            Change(fareBasisCode);
-        }
-
-        public long AncillaryProvisionId { get; private set; }
-
-        public string FareBasisCode { get; private set; } = default!;
-
-        internal void Change(string fareBasisCode)
+        internal ProvisionFareBasis(long id, long ancillaryProvisionId, long provisionFareApplicationRuleId, string fareBasisCode)
         {
             var normalized = (fareBasisCode ?? string.Empty).Trim().ToUpperInvariant();
 
             if (normalized.Length is < 1 or > MaxLength || normalized.Any(char.IsWhiteSpace))
                 throw ExceptionFactory.ProvisionIsInvalid($"{nameof(ProvisionFareBasis)}.{nameof(FareBasisCode)}");
 
+            Id = id;
+            AncillaryProvisionId = ancillaryProvisionId;
+            ProvisionFareApplicationRuleId = provisionFareApplicationRuleId;
             FareBasisCode = normalized;
         }
+
+        public long AncillaryProvisionId { get; private set; }
+
+        public long ProvisionFareApplicationRuleId { get; private set; }
+
+        public string FareBasisCode { get; private set; } = default!;
 
         internal bool SameAs(ProvisionFareBasis other) => string.Equals(FareBasisCode, other.FareBasisCode, StringComparison.Ordinal);
     }

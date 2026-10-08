@@ -5,22 +5,14 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Dto
     public sealed record BackofficeProvisionDto(
         long Id,
         long ServiceDefinitionId,
+        EnumValueDto? ServiceDateBasis,
         int Sequence,
         EnumValueDto Status,
-        DateTimeOffset? SalesEffectiveFrom,
-        DateTimeOffset? SalesDiscontinueAt,
         EnumValueDto CoverageScope,
-        BackofficeProvisionPassengerCriteriaDto Passenger,
-        BackofficeProvisionSalesCriteriaDto Sales,
-        BackofficeProvisionTravelCriteriaDto Travel,
-        BackofficeProvisionFareCriteriaDto Fare,
-        BackofficeProvisionAdvancePurchaseDto? AdvancePurchase,
         EnumValueDto QuantityUnit,
         int MinQuantity,
         int MaxQuantity,
         EnumValueDto ApplicationType,
-        BackofficeProvisionBaggageApplicationDto? Baggage,
-        BackofficeProvisionSeatApplicationDto? Seat,
         EnumValueDto Disposition,
         bool DocumentRequired,
         bool BookingRequired,
@@ -33,46 +25,79 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Dto
         DateTimeOffset CreatedAt,
         DateTimeOffset? ActivatedAt,
         DateTimeOffset? SuspendedAt,
-        DateTimeOffset? RetiredAt);
+        DateTimeOffset? RetiredAt,
+        BackofficeProvisionPassengerEligibilityDto? PassengerEligibility,
+        BackofficeProvisionSalesRestrictionsDto? SalesRestrictions,
+        BackofficeProvisionGeographyDto? Geography,
+        BackofficeProvisionFlightApplicationDto? FlightApplication,
+        BackofficeProvisionFareApplicationDto? FareApplication,
+        BackofficeProvisionTravelDateDto? TravelDate,
+        BackofficeProvisionDayTimeApplicationDto? DayTimeApplication,
+        BackofficeProvisionAdvancePurchaseDto? AdvancePurchase,
+        BackofficeProvisionBaggageApplicationDto? BaggageApplication,
+        BackofficeProvisionSeatApplicationDto? SeatApplication);
 
-    public sealed record BackofficeProvisionConditionRowDto<TValue>(
+    public sealed record BackofficeProvisionRuleRowDto<TValue>(
         long Id,
         TValue Value);
 
-    public sealed record BackofficeProvisionPassengerCriteriaDto(
-        IReadOnlyList<BackofficeProvisionConditionRowDto<EnumValueDto>> PassengerTypes);
+    public sealed record BackofficeProvisionPassengerEligibilityDto(
+        long Id,
+        IReadOnlyList<BackofficeProvisionRuleRowDto<EnumValueDto>> AllowedPassengerTypes,
+        IReadOnlyList<BackofficeProvisionAgeBandDto> AllowedAgeBands);
 
-    public sealed record BackofficeProvisionSalesCriteriaDto(
-        IReadOnlyList<BackofficeProvisionConditionRowDto<long>> PointsOfSale,
-        IReadOnlyList<BackofficeProvisionConditionRowDto<long>> Customers,
-        IReadOnlyList<BackofficeProvisionConditionRowDto<EnumValueDto>> CustomerTypes);
+    public sealed record BackofficeProvisionSalesRestrictionsDto(
+        long Id,
+        DateTimeOffset? SalesEffectiveFrom,
+        DateTimeOffset? SalesDiscontinueAt,
+        IReadOnlyList<BackofficeProvisionRuleRowDto<long>> AllowedPointsOfSale,
+        IReadOnlyList<BackofficeProvisionRuleRowDto<long>> AllowedCustomers,
+        IReadOnlyList<BackofficeProvisionRuleRowDto<EnumValueDto>> AllowedCustomerTypes);
 
-    public sealed record BackofficeProvisionTravelCriteriaDto(
-        IReadOnlyList<BackofficeProvisionConditionRowDto<int>> OriginAirports,
-        IReadOnlyList<BackofficeProvisionConditionRowDto<int>> DestinationAirports,
-        IReadOnlyList<BackofficeProvisionConditionRowDto<int>> ViaAirports,
-        IReadOnlyList<BackofficeProvisionRoutePairDto> RoutePairs,
-        IReadOnlyList<BackofficeProvisionConditionRowDto<DateOnly>> TravelDates,
-        IReadOnlyList<BackofficeProvisionDatePeriodDto> SeasonalPeriods,
-        IReadOnlyList<BackofficeProvisionDatePeriodDto> BlackoutPeriods,
-        IReadOnlyList<BackofficeProvisionDayTimeRestrictionDto> DayTimeRestrictions,
-        IReadOnlyList<BackofficeProvisionConditionRowDto<int>> MarketingAirlines,
-        IReadOnlyList<BackofficeProvisionConditionRowDto<int>> OperatingAirlines,
-        IReadOnlyList<BackofficeProvisionConditionRowDto<string>> FlightNumbers,
-        IReadOnlyList<BackofficeProvisionConditionRowDto<long>> Flights,
-        IReadOnlyList<BackofficeProvisionConditionRowDto<int>> Aircraft);
+    public sealed record BackofficeProvisionGeographyDto(
+        long Id,
+        IReadOnlyList<BackofficeProvisionRuleRowDto<int>> AllowedOriginAirports,
+        IReadOnlyList<BackofficeProvisionRuleRowDto<int>> AllowedDestinationAirports,
+        IReadOnlyList<BackofficeProvisionRuleRowDto<int>> AllowedViaAirports,
+        IReadOnlyList<BackofficeProvisionRuleRowDto<int>> CoverageCountries,
+        IReadOnlyList<BackofficeProvisionRoutePairDto> AllowedRoutePairs,
+        IReadOnlyList<BackofficeProvisionServiceLocationDto> ServiceLocations);
 
-    public sealed record BackofficeProvisionFareCriteriaDto(
-        IReadOnlyList<BackofficeProvisionConditionRowDto<long>> AirFares,
-        IReadOnlyList<BackofficeProvisionConditionRowDto<EnumValueDto>> AirFareTypes,
-        IReadOnlyList<BackofficeProvisionConditionRowDto<long>> FareFamilies,
-        IReadOnlyList<BackofficeProvisionConditionRowDto<string>> FareBases,
-        IReadOnlyList<BackofficeProvisionConditionRowDto<int>> CabinClasses,
-        IReadOnlyList<BackofficeProvisionConditionRowDto<long>> Rbds);
+    public sealed record BackofficeProvisionFlightApplicationDto(
+        long Id,
+        IReadOnlyList<BackofficeProvisionRuleRowDto<int>> AllowedMarketingAirlines,
+        IReadOnlyList<BackofficeProvisionRuleRowDto<int>> AllowedOperatingAirlines,
+        IReadOnlyList<BackofficeProvisionRuleRowDto<string>> AllowedFlightNumbers,
+        IReadOnlyList<BackofficeProvisionRuleRowDto<long>> AllowedFlights,
+        IReadOnlyList<BackofficeProvisionRuleRowDto<int>> AllowedAircraft);
+
+    public sealed record BackofficeProvisionFareApplicationDto(
+        long Id,
+        IReadOnlyList<BackofficeProvisionRuleRowDto<long>> AllowedAirFares,
+        IReadOnlyList<BackofficeProvisionRuleRowDto<EnumValueDto>> AllowedAirFareTypes,
+        IReadOnlyList<BackofficeProvisionRuleRowDto<long>> AllowedFareFamilies,
+        IReadOnlyList<BackofficeProvisionRuleRowDto<string>> AllowedFareBases,
+        IReadOnlyList<BackofficeProvisionRuleRowDto<int>> AllowedCabinClasses,
+        IReadOnlyList<BackofficeProvisionRuleRowDto<long>> AllowedRbds);
+
+    public sealed record BackofficeProvisionTravelDateDto(
+        long Id,
+        IReadOnlyList<BackofficeProvisionDatePeriodDto> PermittedPeriods,
+        IReadOnlyList<BackofficeProvisionDatePeriodDto> BlackoutPeriods);
+
+    public sealed record BackofficeProvisionDayTimeApplicationDto(
+        long Id,
+        IReadOnlyList<BackofficeProvisionDayTimeWindowDto> Windows);
 
     public sealed record BackofficeProvisionSeatApplicationDto(
-        IReadOnlyList<BackofficeProvisionConditionRowDto<string>> SeatNumbers,
-        IReadOnlyList<BackofficeProvisionConditionRowDto<string>> SeatCharacteristics);
+        long Id,
+        IReadOnlyList<BackofficeProvisionRuleRowDto<string>> SeatNumbers,
+        IReadOnlyList<BackofficeProvisionRuleRowDto<string>> SeatCharacteristics);
+
+    public sealed record BackofficeProvisionAgeBandDto(
+        long Id,
+        int AgeFromInclusive,
+        int? AgeToExclusive);
 
     public sealed record BackofficeProvisionRoutePairDto(
         long Id,
@@ -80,23 +105,32 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Dto
         int DestinationAirportId,
         EnumValueDto Direction);
 
+    public sealed record BackofficeProvisionServiceLocationDto(
+        long Id,
+        EnumValueDto LocationType,
+        int LocationId);
+
     public sealed record BackofficeProvisionDatePeriodDto(
         long Id,
         DateOnly StartDate,
         DateOnly EndDate);
 
-    public sealed record BackofficeProvisionDayTimeRestrictionDto(
+    public sealed record BackofficeProvisionDayTimeWindowDto(
         long Id,
-        EnumValueDto DayOfWeek,
-        TimeOnly? StartTime,
-        TimeOnly? EndTime,
+        byte DaysOfWeekMask,
+        IReadOnlyList<string> DaysOfWeek,
+        TimeOnly? StartLocalTime,
+        TimeOnly? EndLocalTime,
         EnumValueDto Effect);
 
     public sealed record BackofficeProvisionAdvancePurchaseDto(
-        int Period,
-        EnumValueDto Unit);
+        long Id,
+        int MinimumPeriod,
+        EnumValueDto Unit,
+        bool SameTimeAsTicketed);
 
     public sealed record BackofficeProvisionBaggageApplicationDto(
+        long Id,
         int? FreePieces,
         int? FirstExcessPiece,
         int? LastExcessPiece,

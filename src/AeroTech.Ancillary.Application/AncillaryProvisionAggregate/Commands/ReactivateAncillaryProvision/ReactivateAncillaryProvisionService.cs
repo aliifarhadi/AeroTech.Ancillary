@@ -3,6 +3,7 @@ using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Define
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Projection;
 using AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Contracts;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Contracts;
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Contracts;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Framework.Core.Domain.Repository;
 
@@ -11,17 +12,20 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Re
     public sealed class ReactivateAncillaryProvisionService : IReactivateAncillaryProvisionService
     {
         private readonly IAncillaryProvisionRepository _provisions;
+        private readonly IAncillaryServiceDefinitionRepository _definitions;
         private readonly IAncillaryPricingRepository _pricings;
         private readonly IAncillaryProvisionQueryDbSynchronizer _synchronizer;
         private readonly IUnitOfWork _unitOfWork;
 
         public ReactivateAncillaryProvisionService(
             IAncillaryProvisionRepository provisions,
+            IAncillaryServiceDefinitionRepository definitions,
             IAncillaryPricingRepository pricings,
             IAncillaryProvisionQueryDbSynchronizer synchronizer,
             IUnitOfWork unitOfWork)
         {
             _provisions = provisions;
+            _definitions = definitions;
             _pricings = pricings;
             _synchronizer = synchronizer;
             _unitOfWork = unitOfWork;
@@ -31,8 +35,10 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Re
         {
             var provision = await _provisions.GetAsync(command.ProvisionId, cancellationToken)
                             ?? throw ExceptionFactory.ProvisionNotFound();
+            var definition = await _definitions.GetAsync(provision.ServiceDefinitionId, cancellationToken)
+                             ?? throw ExceptionFactory.ProvisionServiceDefinitionNotFound();
 
-            provision.Reactivate();
+            provision.Reactivate(definition);
             provision.EnsureAllowedBy(await _pricings.FindActiveAsync(provision.Id, cancellationToken));
 
             var active = await _provisions.FindActiveAtSequenceAsync(provision.ServiceDefinitionId, provision.Sequence, cancellationToken);

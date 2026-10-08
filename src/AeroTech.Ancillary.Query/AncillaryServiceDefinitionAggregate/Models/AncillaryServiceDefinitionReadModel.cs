@@ -32,6 +32,8 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Models
 
         public PricingUnit? PricingUnit { get; set; }
 
+        public ServiceDateBasis? ServiceDateBasis { get; set; }
+
         public string CommercialName { get; set; } = default!;
 
         public string? Description { get; set; }

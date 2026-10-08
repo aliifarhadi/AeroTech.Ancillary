@@ -206,6 +206,24 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.ToTable("AncillaryProvisionCabinClasses", "ReadModel");
                 });
 
+            modelBuilder.Entity("AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models.AncillaryProvisionCoverageCountryReadModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("AncillaryProvisionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("CountryId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AncillaryProvisionId");
+
+                    b.ToTable("AncillaryProvisionCoverageCountries", "ReadModel");
+                });
+
             modelBuilder.Entity("AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models.AncillaryProvisionCustomerReadModel", b =>
                 {
                     b.Property<long>("Id")
@@ -242,7 +260,7 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.ToTable("AncillaryProvisionCustomerTypes", "ReadModel");
                 });
 
-            modelBuilder.Entity("AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models.AncillaryProvisionDayTimeRestrictionReadModel", b =>
+            modelBuilder.Entity("AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models.AncillaryProvisionDayTimeWindowReadModel", b =>
                 {
                     b.Property<long>("Id")
                         .HasColumnType("bigint");
@@ -250,23 +268,23 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.Property<long>("AncillaryProvisionId")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("DayOfWeek")
-                        .HasColumnType("int");
+                    b.Property<byte>("DaysOfWeekMask")
+                        .HasColumnType("tinyint");
 
                     b.Property<int>("Effect")
                         .HasColumnType("int");
 
-                    b.Property<TimeOnly?>("EndTime")
+                    b.Property<TimeOnly?>("EndLocalTime")
                         .HasColumnType("time");
 
-                    b.Property<TimeOnly?>("StartTime")
+                    b.Property<TimeOnly?>("StartLocalTime")
                         .HasColumnType("time");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AncillaryProvisionId");
 
-                    b.ToTable("AncillaryProvisionDayTimeRestrictions", "ReadModel");
+                    b.ToTable("AncillaryProvisionDayTimeWindows", "ReadModel");
                 });
 
             modelBuilder.Entity("AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models.AncillaryProvisionDestinationAirportReadModel", b =>
@@ -285,6 +303,27 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.HasIndex("AncillaryProvisionId");
 
                     b.ToTable("AncillaryProvisionDestinationAirports", "ReadModel");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models.AncillaryProvisionEligibleAgeBandReadModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("AgeFromInclusive")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AgeToExclusive")
+                        .HasColumnType("int");
+
+                    b.Property<long>("AncillaryProvisionId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AncillaryProvisionId");
+
+                    b.ToTable("AncillaryProvisionEligibleAgeBands", "ReadModel");
                 });
 
             modelBuilder.Entity("AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models.AncillaryProvisionFareBasisReadModel", b =>
@@ -435,6 +474,27 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.ToTable("AncillaryProvisionPassengerTypes", "ReadModel");
                 });
 
+            modelBuilder.Entity("AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models.AncillaryProvisionPermittedTravelPeriodReadModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("AncillaryProvisionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AncillaryProvisionId");
+
+                    b.ToTable("AncillaryProvisionPermittedTravelPeriods", "ReadModel");
+                });
+
             modelBuilder.Entity("AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models.AncillaryProvisionPointOfSaleReadModel", b =>
                 {
                     b.Property<long>("Id")
@@ -482,11 +542,20 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.Property<int?>("AdvancePurchasePeriod")
                         .HasColumnType("int");
 
+                    b.Property<long?>("AdvancePurchaseRuleId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("AdvancePurchaseSameTimeAsTicketed")
+                        .HasColumnType("bit");
+
                     b.Property<int?>("AdvancePurchaseUnit")
                         .HasColumnType("int");
 
                     b.Property<int>("ApplicationType")
                         .HasColumnType("int");
+
+                    b.Property<long?>("BaggageApplicationRuleId")
+                        .HasColumnType("bigint");
 
                     b.Property<int?>("BaggageFirstExcessPiece")
                         .HasColumnType("int");
@@ -525,11 +594,20 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<long?>("DayTimeApplicationRuleId")
+                        .HasColumnType("bigint");
+
                     b.Property<int>("Disposition")
                         .HasColumnType("int");
 
                     b.Property<bool>("DocumentRequired")
                         .HasColumnType("bit");
+
+                    b.Property<long?>("FareApplicationRuleId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("FlightApplicationRuleId")
+                        .HasColumnType("bigint");
 
                     b.Property<int?>("FormOfRefund")
                         .HasColumnType("int");
@@ -538,6 +616,9 @@ namespace AeroTech.Ancillary.Query.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<long?>("GeographyRuleId")
+                        .HasColumnType("bigint");
 
                     b.Property<bool>("InterlineSettlement")
                         .HasColumnType("bit");
@@ -554,6 +635,9 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.Property<bool>("MustCheckAvailability")
                         .HasColumnType("bit");
 
+                    b.Property<long?>("PassengerEligibilityRuleId")
+                        .HasColumnType("bigint");
+
                     b.Property<int>("QuantityUnit")
                         .HasColumnType("int");
 
@@ -569,6 +653,12 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.Property<DateTimeOffset?>("SalesEffectiveFrom")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<long?>("SalesRestrictionsRuleId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("SeatApplicationRuleId")
+                        .HasColumnType("bigint");
+
                     b.Property<int>("Sequence")
                         .HasColumnType("int");
 
@@ -580,6 +670,9 @@ namespace AeroTech.Ancillary.Query.Migrations
 
                     b.Property<DateTimeOffset?>("SuspendedAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("TravelDateRuleId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
@@ -610,27 +703,6 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.HasIndex("AncillaryProvisionId");
 
                     b.ToTable("AncillaryProvisionRoutePairs", "ReadModel");
-                });
-
-            modelBuilder.Entity("AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models.AncillaryProvisionSeasonalPeriodReadModel", b =>
-                {
-                    b.Property<long>("Id")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("AncillaryProvisionId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateOnly>("EndDate")
-                        .HasColumnType("date");
-
-                    b.Property<DateOnly>("StartDate")
-                        .HasColumnType("date");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AncillaryProvisionId");
-
-                    b.ToTable("AncillaryProvisionSeasonalPeriods", "ReadModel");
                 });
 
             modelBuilder.Entity("AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models.AncillaryProvisionSeatCharacteristicReadModel", b =>
@@ -673,7 +745,7 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.ToTable("AncillaryProvisionSeatNumbers", "ReadModel");
                 });
 
-            modelBuilder.Entity("AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models.AncillaryProvisionTravelDateReadModel", b =>
+            modelBuilder.Entity("AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models.AncillaryProvisionServiceLocationReadModel", b =>
                 {
                     b.Property<long>("Id")
                         .HasColumnType("bigint");
@@ -681,14 +753,17 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.Property<long>("AncillaryProvisionId")
                         .HasColumnType("bigint");
 
-                    b.Property<DateOnly>("TravelDate")
-                        .HasColumnType("date");
+                    b.Property<int>("LocationId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LocationType")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AncillaryProvisionId");
 
-                    b.ToTable("AncillaryProvisionTravelDates", "ReadModel");
+                    b.ToTable("AncillaryProvisionServiceLocations", "ReadModel");
                 });
 
             modelBuilder.Entity("AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models.AncillaryProvisionViaAirportReadModel", b =>
@@ -781,6 +856,9 @@ namespace AeroTech.Ancillary.Query.Migrations
 
                     b.Property<DateOnly?>("SalesEffectiveFrom")
                         .HasColumnType("date");
+
+                    b.Property<int?>("ServiceDateBasis")
+                        .HasColumnType("int");
 
                     b.Property<string>("ServiceDefinitionRef")
                         .IsRequired()

@@ -21,13 +21,11 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Dto
 
         [Grid("Max")] public int MaxQuantity { get; set; }
 
-        [Grid("Dates")] public int TravelDateCount { get; set; }
-
-        [Grid("Seasons")] public int SeasonalPeriodCount { get; set; }
+        [Grid("Permitted Periods")] public int PermittedPeriodCount { get; set; }
 
         [Grid("Blackouts")] public int BlackoutPeriodCount { get; set; }
 
-        [Grid("Day/Time")] public int DayTimeRestrictionCount { get; set; }
+        [Grid("Day/Time")] public int DayTimeWindowCount { get; set; }
 
         [Grid("Sales From")] public DateTimeOffset? SalesEffectiveFrom { get; set; }
 

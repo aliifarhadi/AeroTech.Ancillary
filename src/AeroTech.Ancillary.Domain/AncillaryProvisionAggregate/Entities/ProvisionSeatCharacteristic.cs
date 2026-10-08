@@ -11,26 +11,24 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
         {
         }
 
-        internal ProvisionSeatCharacteristic(long id, long ancillaryProvisionId, string characteristicCode)
-        {
-            Id = id;
-            AncillaryProvisionId = ancillaryProvisionId;
-            Change(characteristicCode);
-        }
-
-        public long AncillaryProvisionId { get; private set; }
-
-        public string CharacteristicCode { get; private set; } = default!;
-
-        internal void Change(string characteristicCode)
+        internal ProvisionSeatCharacteristic(long id, long ancillaryProvisionId, long provisionSeatApplicationRuleId, string characteristicCode)
         {
             var normalized = (characteristicCode ?? string.Empty).Trim().ToUpperInvariant();
 
             if (normalized.Length is < 1 or > MaxLength || normalized.Any(char.IsWhiteSpace))
                 throw ExceptionFactory.ProvisionIsInvalid($"{nameof(ProvisionSeatCharacteristic)}.{nameof(CharacteristicCode)}");
 
+            Id = id;
+            AncillaryProvisionId = ancillaryProvisionId;
+            ProvisionSeatApplicationRuleId = provisionSeatApplicationRuleId;
             CharacteristicCode = normalized;
         }
+
+        public long AncillaryProvisionId { get; private set; }
+
+        public long ProvisionSeatApplicationRuleId { get; private set; }
+
+        public string CharacteristicCode { get; private set; } = default!;
 
         internal bool SameAs(ProvisionSeatCharacteristic other) => string.Equals(CharacteristicCode, other.CharacteristicCode, StringComparison.Ordinal);
     }

@@ -31,7 +31,8 @@ public static class P1Fixtures
         long supplierId = 2001,
         string reference = "MEAL_VGML",
         int version = 1,
-        PricingUnit pricingUnit = PricingUnit.PerPassenger)
+        PricingUnit pricingUnit = PricingUnit.PerPassenger,
+        ServiceDateBasis serviceDateBasis = ServiceDateBasis.FlightDeparture)
         => AncillaryServiceDefinition.Define(
             id,
             Airline,
@@ -42,6 +43,7 @@ public static class P1Fixtures
             ServiceSubCodeSource.CarrierDefined,
             new ServiceDefinitionClassificationArgs("F", "ML", "VG", null, null),
             pricingUnit,
+            serviceDateBasis,
             "Vegetarian meal",
             "Pre-ordered vegetarian meal",
             DocumentDefinition.Create(AncillaryDocumentType.EmdAssociated, "G", "MVG"),
@@ -51,48 +53,52 @@ public static class P1Fixtures
             Now);
 
     public static AncillaryProvision Provision(
-        ProvisionConditionsArgs? conditions = null,
+        ProvisionRulesArgs? rules = null,
         ProvisionApplicationType applicationType = ProvisionApplicationType.Standard,
         CommercialDisposition disposition = CommercialDisposition.Paid,
         long id = 5001,
         int sequence = 10,
-        SequentialIdGenerator? ids = null)
+        SequentialIdGenerator? ids = null,
+        AncillaryQuantityUnit quantityUnit = AncillaryQuantityUnit.Each)
         => AncillaryProvision.Define(
             id,
             1001,
             sequence,
-            null,
-            null,
             ServiceCoverageScope.Sector,
-            null,
-            QuantityRule.Create(AncillaryQuantityUnit.Each, 1, 1),
-            ProvisionApplication.Create(applicationType, applicationType == ProvisionApplicationType.Baggage ? Baggage() : null),
+            QuantityRule.Create(quantityUnit, 1, 1),
+            applicationType,
             CommercialOutcome.Create(disposition, disposition == CommercialDisposition.Paid, false),
             SettlementDefinition.Create(ReissueRefundPolicy.NonRefundable, null, false, false),
             AvailabilityDefinition.Create(false),
             FulfillmentDefinition.Create("Ancillary"),
-            conditions ?? ProvisionConditionsArgs.Unrestricted,
+            Rules(rules, applicationType),
             ids ?? new SequentialIdGenerator(),
             Now);
 
-    public static void Replace(AncillaryProvision provision, ProvisionConditionsArgs conditions, SequentialIdGenerator ids)
+    public static void Replace(AncillaryProvision provision, ProvisionRulesArgs rules, SequentialIdGenerator ids)
         => provision.Change(
             provision.Sequence,
-            provision.SalesEffectiveFrom,
-            provision.SalesDiscontinueAt,
             provision.CoverageScope,
-            provision.AdvancePurchase,
             provision.Quantity,
-            provision.Application,
+            provision.ApplicationType,
             provision.Outcome,
             provision.Settlement,
             provision.Availability,
             provision.Fulfillment,
-            conditions,
+            Rules(rules, provision.ApplicationType),
             ids);
 
-    public static BaggageApplication Baggage()
-        => BaggageApplication.Create(
+    public static ProvisionRulesArgs Rules(ProvisionRulesArgs? rules, ProvisionApplicationType applicationType)
+    {
+        var requested = rules ?? ProvisionRulesArgs.Unrestricted;
+
+        return applicationType == ProvisionApplicationType.Baggage && requested.BaggageApplication is null
+            ? requested with { BaggageApplication = Baggage() }
+            : requested;
+    }
+
+    public static ProvisionBaggageApplicationArgs Baggage()
+        => new(
             null,
             1,
             1,
@@ -101,6 +107,19 @@ public static class P1Fixtures
             BaggageTravelApplication.AllSectors,
             BaggagePurchaseApplication.Prepaid,
             null);
+
+    public static ProvisionDatePeriodArgs Period(DateOnly startDate, DateOnly endDate) => new(startDate, endDate);
+
+    public static ProvisionDayTimeWindowArgs Window(
+        byte daysOfWeekMask,
+        int? fromHour = null,
+        int? toHour = null,
+        DayTimeRestrictionEffect effect = DayTimeRestrictionEffect.Allow)
+        => new(
+            daysOfWeekMask,
+            fromHour is null ? null : new TimeOnly(fromHour.Value, 0),
+            toHour is null ? null : new TimeOnly(toHour.Value, 0),
+            effect);
 
     public static ProvisionRoutePairArgs Pair(int origin, int destination, RoutePairDirection direction = RoutePairDirection.Directional)
         => new(origin, destination, direction);

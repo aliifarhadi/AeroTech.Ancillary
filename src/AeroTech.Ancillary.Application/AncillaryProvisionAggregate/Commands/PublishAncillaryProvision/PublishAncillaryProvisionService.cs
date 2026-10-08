@@ -83,7 +83,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Pu
                 await _provisionSynchronizer.ProjectAsync(superseded.ToReadModelSnapshot(), cancellationToken);
             }
 
-            provision.Activate(now);
+            provision.Activate(definition, now);
 
             await _provisionSynchronizer.ProjectAsync(provision.ToReadModelSnapshot(), cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

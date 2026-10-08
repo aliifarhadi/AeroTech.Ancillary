@@ -6,20 +6,8 @@ using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.RetireAn
 using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.ReviseAncillaryPricing;
 using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.SuspendAncillaryPricing;
 using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.SwitchActiveAncillaryPricing;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionBlackoutPeriod;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionDayTimeRestriction;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionSeasonalPeriod;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionTravelDate;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionBlackoutPeriod;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionDayTimeRestriction;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionSeasonalPeriod;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionTravelDate;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.DefineAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.PublishAncillaryProvision;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RemoveProvisionBlackoutPeriod;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RemoveProvisionDayTimeRestriction;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RemoveProvisionSeasonalPeriod;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RemoveProvisionTravelDate;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.AssignAncillaryServiceDefinitionPricingUnit;
 using AeroTech.Messages.AirPrice.Enums;
 using AeroTech.Messages.Ancillary.Enums;
@@ -54,24 +42,6 @@ public sealed record TestPublishProvisionCommand(long ProvisionId, long PricingI
 
 public sealed record TestAssignPricingUnitCommand(long ServiceDefinitionId, PricingUnit PricingUnit)
     : IAssignAncillaryServiceDefinitionPricingUnitCommand;
-
-public sealed record TestTravelDateRowCommand(long ProvisionId, long RowId, DateOnly TravelDate)
-    : IAddProvisionTravelDateCommand, IChangeProvisionTravelDateCommand, IRemoveProvisionTravelDateCommand;
-
-public sealed record TestSeasonalPeriodRowCommand(long ProvisionId, long RowId, DateOnly StartDate, DateOnly EndDate)
-    : IAddProvisionSeasonalPeriodCommand, IChangeProvisionSeasonalPeriodCommand, IRemoveProvisionSeasonalPeriodCommand;
-
-public sealed record TestBlackoutPeriodRowCommand(long ProvisionId, long RowId, DateOnly StartDate, DateOnly EndDate)
-    : IAddProvisionBlackoutPeriodCommand, IChangeProvisionBlackoutPeriodCommand, IRemoveProvisionBlackoutPeriodCommand;
-
-public sealed record TestDayTimeRestrictionRowCommand(
-    long ProvisionId,
-    long RowId,
-    DayOfWeek DayOfWeek,
-    TimeOnly? StartTime,
-    TimeOnly? EndTime,
-    DayTimeRestrictionEffect Effect)
-    : IAddProvisionDayTimeRestrictionCommand, IChangeProvisionDayTimeRestrictionCommand, IRemoveProvisionDayTimeRestrictionCommand;
 
 public static class V12Commands
 {
@@ -109,17 +79,4 @@ public static class V12Commands
         int? ageFromInclusive = null,
         int? ageToExclusive = null)
         => new(passengerTypeCode, ageFromInclusive, ageToExclusive, AncillaryPriceLineCategory.Fee, code, null, null, null, amount);
-
-    public static ProvisionDatePeriodInput Period(DateOnly startDate, DateOnly endDate) => new(startDate, endDate);
-
-    public static ProvisionDayTimeRestrictionInput DayTime(
-        DayOfWeek dayOfWeek,
-        int? fromHour,
-        int? toHour,
-        DayTimeRestrictionEffect effect = DayTimeRestrictionEffect.Allow)
-        => new(
-            dayOfWeek,
-            fromHour is null ? null : new TimeOnly(fromHour.Value, 0),
-            toHour is null ? null : new TimeOnly(toHour.Value, 0),
-            effect);
 }

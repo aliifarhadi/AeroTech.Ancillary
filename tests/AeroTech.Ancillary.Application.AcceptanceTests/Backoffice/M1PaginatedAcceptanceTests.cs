@@ -154,7 +154,7 @@ public class M1PaginatedAcceptanceTests
         Assert.Equal(
             new[]
             {
-                "Sequence", "Coverage", "Disposition", "Unit", "Min", "Max", "Dates", "Seasons", "Blackouts", "Day/Time", "Sales From",
+                "Sequence", "Coverage", "Disposition", "Unit", "Min", "Max", "Permitted Periods", "Blackouts", "Day/Time", "Sales From",
                 "Sales Until", "Status", "Created"
             },
             all.Metadata.Fields.Select(field => field.Title));
@@ -165,7 +165,7 @@ public class M1PaginatedAcceptanceTests
         Assert.Equal("Sector", row.CoverageScope.Name);
         Assert.Equal("Paid", row.Disposition.Name);
         Assert.Equal("Each", row.QuantityUnit.Name);
-        Assert.Equal((0, 0, 0, 0), (row.TravelDateCount, row.SeasonalPeriodCount, row.BlackoutPeriodCount, row.DayTimeRestrictionCount));
+        Assert.Equal((0, 0, 0), (row.PermittedPeriodCount, row.BlackoutPeriodCount, row.DayTimeWindowCount));
         Assert.Equal("Active", row.Status.Name);
 
         var prices = await scope.GetPricingsPaginated.ExecuteAsync(new BackofficeGetAncillaryPricingsPaginatedQuery { AncillaryProvisionId = first.Id });

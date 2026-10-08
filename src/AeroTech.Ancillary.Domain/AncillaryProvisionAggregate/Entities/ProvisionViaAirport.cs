@@ -9,24 +9,22 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
         {
         }
 
-        internal ProvisionViaAirport(long id, long ancillaryProvisionId, int airportId)
+        internal ProvisionViaAirport(long id, long ancillaryProvisionId, long provisionGeographyRuleId, int airportId)
         {
+            if (!(airportId > 0))
+                throw ExceptionFactory.ProvisionIsInvalid($"{nameof(ProvisionViaAirport)}.{nameof(AirportId)}");
+
             Id = id;
             AncillaryProvisionId = ancillaryProvisionId;
-            Change(airportId);
+            ProvisionGeographyRuleId = provisionGeographyRuleId;
+            AirportId = airportId;
         }
 
         public long AncillaryProvisionId { get; private set; }
 
+        public long ProvisionGeographyRuleId { get; private set; }
+
         public int AirportId { get; private set; }
-
-        internal void Change(int airportId)
-        {
-            if (airportId <= 0)
-                throw ExceptionFactory.ProvisionIsInvalid($"{nameof(ProvisionViaAirport)}.{nameof(AirportId)}");
-
-            AirportId = airportId;
-        }
 
         internal bool SameAs(ProvisionViaAirport other) => AirportId == other.AirportId;
     }

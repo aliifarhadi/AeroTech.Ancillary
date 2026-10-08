@@ -34,17 +34,24 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Ch
 
             provision.Change(
                 command.Sequence,
-                command.SalesEffectiveFrom,
-                command.SalesDiscontinueAt,
                 command.CoverageScope,
-                command.AdvancePurchase.ToCriteria(),
                 command.Quantity.ToRule(),
-                command.Application.ToApplication(),
+                command.ApplicationType,
                 command.Outcome.ToOutcome(),
                 command.Settlement.ToDefinition(),
                 command.Availability.ToDefinition(),
                 command.Fulfillment.ToDefinition(),
-                ProvisionInputMapper.ToConditions(command.Passenger, command.Sales, command.Travel, command.Fare, command.Application.Seat),
+                ProvisionInputMapper.ToRules(
+                    command.PassengerEligibility,
+                    command.SalesRestrictions,
+                    command.Geography,
+                    command.FlightApplication,
+                    command.FareApplication,
+                    command.TravelDate,
+                    command.DayTimeApplication,
+                    command.AdvancePurchase,
+                    command.BaggageApplication,
+                    command.SeatApplication),
                 _idGenerator);
 
             await _synchronizer.ProjectAsync(provision.ToReadModelSnapshot(), cancellationToken);

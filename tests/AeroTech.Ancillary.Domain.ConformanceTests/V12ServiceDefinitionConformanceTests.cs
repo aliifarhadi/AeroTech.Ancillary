@@ -22,6 +22,7 @@ public class V12ServiceDefinitionConformanceTests
                 definition.Description1Code,
                 definition.Description2Code),
             pricingUnit,
+            definition.ServiceDateBasis!.Value,
             definition.CommercialName,
             definition.Description,
             DocumentDefinition.Create(definition.Document.Type, definition.Document.Rfic, definition.Document.Rfisc),

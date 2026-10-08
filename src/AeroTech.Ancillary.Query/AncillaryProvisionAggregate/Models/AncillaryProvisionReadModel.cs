@@ -23,6 +23,8 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models
 
         public TimeUnit? AdvancePurchaseUnit { get; set; }
 
+        public bool AdvancePurchaseSameTimeAsTicketed { get; set; }
+
         public AncillaryQuantityUnit QuantityUnit { get; set; }
 
         public int MinQuantity { get; set; }
@@ -64,6 +66,26 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models
         public bool MustCheckAvailability { get; set; }
 
         public string FulfillmentProviderKey { get; set; } = default!;
+
+        public long? PassengerEligibilityRuleId { get; set; }
+
+        public long? SalesRestrictionsRuleId { get; set; }
+
+        public long? GeographyRuleId { get; set; }
+
+        public long? FlightApplicationRuleId { get; set; }
+
+        public long? FareApplicationRuleId { get; set; }
+
+        public long? TravelDateRuleId { get; set; }
+
+        public long? DayTimeApplicationRuleId { get; set; }
+
+        public long? AdvancePurchaseRuleId { get; set; }
+
+        public long? BaggageApplicationRuleId { get; set; }
+
+        public long? SeatApplicationRuleId { get; set; }
 
         public DateTimeOffset CreatedAt { get; set; }
 

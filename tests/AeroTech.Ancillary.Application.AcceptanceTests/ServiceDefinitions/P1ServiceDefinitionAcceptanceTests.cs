@@ -301,6 +301,7 @@ public class P1ServiceDefinitionAcceptanceTests
                 null,
                 null,
                 PricingUnit.PerPassenger,
+                ServiceDateBasis.FlightDeparture,
                 commercialName,
                 null,
                 new ServiceDefinitionDocumentInput(documentType, null, null),
@@ -319,5 +320,7 @@ public class P1ServiceDefinitionAcceptanceTests
         Assert.Contains("Document.Type", Errors(Command(documentType: (AncillaryDocumentType)9)));
         Assert.Contains("Booking.Method", Errors(Command(bookingMethod: (BookingMethod)9)));
         Assert.Contains("Booking.SsrCode", Errors(Command(ssrCode: "VGMLX")));
+        Assert.Contains("ServiceDateBasis", Errors(Command() with { ServiceDateBasis = (ServiceDateBasis)9 }));
+        Assert.Contains("PricingUnit", Errors(Command() with { PricingUnit = (PricingUnit)99 }));
     }
 }

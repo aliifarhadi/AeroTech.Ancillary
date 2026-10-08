@@ -11,14 +11,17 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
         {
         }
 
-        internal ProvisionRoutePair(long id, long ancillaryProvisionId, ProvisionRoutePairArgs args)
+        internal ProvisionRoutePair(long id, long ancillaryProvisionId, long provisionGeographyRuleId, ProvisionRoutePairArgs args)
         {
             Id = id;
             AncillaryProvisionId = ancillaryProvisionId;
+            ProvisionGeographyRuleId = provisionGeographyRuleId;
             Change(args);
         }
 
         public long AncillaryProvisionId { get; private set; }
+
+        public long ProvisionGeographyRuleId { get; private set; }
 
         public int OriginAirportId { get; private set; }
 

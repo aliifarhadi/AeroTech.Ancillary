@@ -9,24 +9,22 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
         {
         }
 
-        internal ProvisionPointOfSale(long id, long ancillaryProvisionId, long pointOfSaleId)
+        internal ProvisionPointOfSale(long id, long ancillaryProvisionId, long provisionSalesRestrictionsRuleId, long pointOfSaleId)
         {
+            if (!(pointOfSaleId > 0))
+                throw ExceptionFactory.ProvisionIsInvalid($"{nameof(ProvisionPointOfSale)}.{nameof(PointOfSaleId)}");
+
             Id = id;
             AncillaryProvisionId = ancillaryProvisionId;
-            Change(pointOfSaleId);
+            ProvisionSalesRestrictionsRuleId = provisionSalesRestrictionsRuleId;
+            PointOfSaleId = pointOfSaleId;
         }
 
         public long AncillaryProvisionId { get; private set; }
 
+        public long ProvisionSalesRestrictionsRuleId { get; private set; }
+
         public long PointOfSaleId { get; private set; }
-
-        internal void Change(long pointOfSaleId)
-        {
-            if (pointOfSaleId <= 0)
-                throw ExceptionFactory.ProvisionIsInvalid($"{nameof(ProvisionPointOfSale)}.{nameof(PointOfSaleId)}");
-
-            PointOfSaleId = pointOfSaleId;
-        }
 
         internal bool SameAs(ProvisionPointOfSale other) => PointOfSaleId == other.PointOfSaleId;
     }

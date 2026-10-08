@@ -8,25 +8,11 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
 
         int Sequence { get; }
 
-        DateTimeOffset? SalesEffectiveFrom { get; }
-
-        DateTimeOffset? SalesDiscontinueAt { get; }
-
         ServiceCoverageScope CoverageScope { get; }
-
-        ProvisionPassengerCriteriaInput? Passenger { get; }
-
-        ProvisionSalesCriteriaInput? Sales { get; }
-
-        ProvisionTravelCriteriaInput? Travel { get; }
-
-        ProvisionFareCriteriaInput? Fare { get; }
-
-        ProvisionAdvancePurchaseInput? AdvancePurchase { get; }
 
         ProvisionQuantityInput Quantity { get; }
 
-        ProvisionApplicationInput Application { get; }
+        ProvisionApplicationType ApplicationType { get; }
 
         ProvisionOutcomeInput Outcome { get; }
 
@@ -35,5 +21,25 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
         ProvisionAvailabilityInput Availability { get; }
 
         ProvisionFulfillmentInput Fulfillment { get; }
+
+        ProvisionPassengerEligibilityInput? PassengerEligibility { get; }
+
+        ProvisionSalesRestrictionsInput? SalesRestrictions { get; }
+
+        ProvisionGeographyInput? Geography { get; }
+
+        ProvisionFlightApplicationInput? FlightApplication { get; }
+
+        ProvisionFareApplicationInput? FareApplication { get; }
+
+        ProvisionTravelDateInput? TravelDate { get; }
+
+        ProvisionDayTimeApplicationInput? DayTimeApplication { get; }
+
+        ProvisionAdvancePurchaseInput? AdvancePurchase { get; }
+
+        ProvisionBaggageApplicationInput? BaggageApplication { get; }
+
+        ProvisionSeatApplicationInput? SeatApplication { get; }
     }
 }

@@ -17,6 +17,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Contract
         string? Description1Code,
         string? Description2Code,
         PricingUnit? PricingUnit,
+        ServiceDateBasis? ServiceDateBasis,
         string CommercialName,
         string? Description,
         AncillaryDocumentType DocumentType,

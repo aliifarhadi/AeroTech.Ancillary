@@ -14,6 +14,8 @@ public class V12BoundaryAcceptanceTests
     private const string FrozenSourceHash = "6974ABA2C62BAFE7CDE159BDCE8A4969F1CAECCF25368012F30D1BE7DDA4E486";
     private const string CommandMigration = "20261008103942_V12Phase1NormalizedProvisionAndPricing.cs";
     private const string QueryMigration = "20261008103947_V12Phase1NormalizedProvisionAndPricingQuery.cs";
+    private const string RuleGroupCommandMigration = "20261008135403_V121Phase1RuleGroups.cs";
+    private const string RuleGroupQueryMigration = "20261008135407_V121Phase1RuleGroupsQuery.cs";
 
     private static readonly string Source = Path.Combine(RepositoryFiles.Root, "src");
     private static readonly string Tests = Path.Combine(RepositoryFiles.Root, "tests");
@@ -205,6 +207,7 @@ public class V12BoundaryAcceptanceTests
         string[] added =
         [
             "POST Backoffice/AncillaryServiceDefinitions/{serviceDefinitionId:long}/AssignPricingUnit",
+            "POST Backoffice/AncillaryServiceDefinitions/{serviceDefinitionId:long}/AssignServiceDateBasis",
             "POST Backoffice/AncillaryProvisions/{provisionId:long}/Publish",
             "POST Backoffice/AncillaryProvisions/{provisionId:long}/SwitchActivePricing",
             "POST Backoffice/AncillaryPricings",
@@ -218,19 +221,26 @@ public class V12BoundaryAcceptanceTests
             "POST Backoffice/AncillaryPricings/{pricingId:long}/Revise"
         ];
 
-        var rows = new[] { "TravelDates", "SeasonalPeriods", "BlackoutPeriods", "DayTimeRestrictions" }
+        var rows = new[] { "TravelDate/PermittedPeriods", "TravelDate/BlackoutPeriods", "DayTimeApplication/Windows" }
             .SelectMany(collection => new[]
             {
                 $"POST Backoffice/AncillaryProvisions/{{provisionId:long}}/{collection}",
                 $"PUT Backoffice/AncillaryProvisions/{{provisionId:long}}/{collection}/{{rowId:long}}",
                 $"DELETE Backoffice/AncillaryProvisions/{{provisionId:long}}/{collection}/{{rowId:long}}"
             });
+        var groups = new[]
+            {
+                "PassengerEligibility", "SalesRestrictions", "Geography", "FlightApplication", "FareApplication", "TravelDate", "DayTimeApplication",
+                "AdvancePurchase", "BaggageApplication", "SeatApplication"
+            }
+            .Select(group => $"PUT Backoffice/AncillaryProvisions/{{provisionId:long}}/{group}");
 
         Assert.Equal(
-            preserved.Concat(added).Concat(rows).OrderBy(route => route, StringComparer.Ordinal),
+            preserved.Concat(added).Concat(rows).Concat(groups).OrderBy(route => route, StringComparer.Ordinal),
             routes.OrderBy(route => route, StringComparer.Ordinal));
-        Assert.Equal(49, routes.Count);
+        Assert.Equal(57, routes.Count);
         Assert.All(preserved, route => Assert.Contains(route, routes));
+        Assert.DoesNotContain(routes, route => new[] { "TravelDates", "SeasonalPeriods", "DayTimeRestrictions" }.Any(term => route.Contains(term, StringComparison.Ordinal)));
     }
 
     [Fact]
@@ -268,6 +278,73 @@ public class V12BoundaryAcceptanceTests
     }
 
     [Fact]
+    public void V121_M05_M12_the_rule_group_migrations_only_add_objects_and_fill_the_columns_they_add()
+    {
+        (string Project, string Migration, string[] Operations, int Tables)[] migrations =
+        [
+            ("AeroTech.Ancillary.Persistence", RuleGroupCommandMigration, ["AddColumn", "AddForeignKey", "AlterColumn", "CreateIndex", "CreateTable", "Sql"], 16),
+            ("AeroTech.Ancillary.Query", RuleGroupQueryMigration, ["AddColumn", "CreateIndex", "CreateTable", "Sql"], 5)
+        ];
+
+        foreach (var (project, migration, operations, tables) in migrations)
+        {
+            var up = UpBody(project, migration);
+            var added = Regex.Matches(up, @"AddColumn<[^>]+>\(\s*name: ""([A-Za-z]+)"",\s*schema: ""[A-Za-z]+"",\s*table: ""([A-Za-z]+)""")
+                .Select(match => (Column: match.Groups[1].Value, Table: match.Groups[2].Value))
+                .ToList();
+            var altered = Regex.Matches(up, @"AlterColumn<[^>]+>\(\s*name: ""([A-Za-z]+)"",\s*schema: ""[A-Za-z]+"",\s*table: ""([A-Za-z]+)""")
+                .Select(match => (Column: match.Groups[1].Value, Table: match.Groups[2].Value))
+                .ToList();
+            var created = Regex.Matches(up, @"CreateTable\(\s*name: ""([A-Za-z]+)""").Select(match => match.Groups[1].Value).ToList();
+            var updates = Regex.Matches(up, @"UPDATE\s+(?:\[[A-Za-z]+\]\.\[([A-Za-z]+)\]|[a-z]+)\s+SET\s+\[([A-Za-z]+)\]").ToList();
+
+            Assert.Equal(
+                operations,
+                Regex.Matches(up, @"migrationBuilder\.([A-Za-z]+)").Select(match => match.Groups[1].Value).Distinct().OrderBy(name => name, StringComparer.Ordinal));
+            Assert.Equal(tables, created.Count);
+            Assert.Equal(
+                new[] { "INSERT INTO", "UPDATE" },
+                Regex.Matches(up, @"\b(INSERT INTO|UPDATE|DELETE|DROP|TRUNCATE|ALTER|MERGE)\b").Select(match => match.Value).Distinct().OrderBy(verb => verb, StringComparer.Ordinal));
+            Assert.All(altered, column => Assert.Contains(column, added));
+            Assert.NotEmpty(updates);
+            Assert.All(updates, update => Assert.Contains(added, column => column.Column == update.Groups[2].Value));
+            Assert.All(
+                Regex.Matches(up, @"AddColumn<[^;]+;").Select(match => match.Value),
+                column => Assert.True(column.Contains("nullable: true", StringComparison.Ordinal) || column.Contains("defaultValue", StringComparison.Ordinal)));
+            Assert.DoesNotContain("Reservation", up, StringComparison.Ordinal);
+            Assert.DoesNotContain("AncillaryPricing", up, StringComparison.Ordinal);
+            Assert.DoesNotContain(created, table => new[] { "TravelDates", "SeasonalPeriods", "DayTimeRestrictions" }.Any(legacy => table.EndsWith(legacy, StringComparison.Ordinal)));
+        }
+
+        var command = UpBody("AeroTech.Ancillary.Persistence", RuleGroupCommandMigration);
+
+        Assert.Contains("ProvisionRuleMigrationAudit", command, StringComparison.Ordinal);
+        Assert.Equal(10, Regex.Matches(command, @"CreateTable\(\s*name: ""Provision[A-Za-z]+Rules""").Count);
+        Assert.Contains("ProvisionPermittedTravelPeriods", command, StringComparison.Ordinal);
+        Assert.Contains("ProvisionDayTimeWindows", command, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void V121_M05_no_single_date_season_or_weekday_restriction_type_is_left_in_the_authored_source()
+    {
+        var authored = Files(Source).Where(path => !InFolder(path, "Migrations")).Concat(Files(AncillaryContracts)).ToList();
+
+        Assert.Empty(Offending(
+            authored,
+            [
+                "ProvisionSeasonalPeriod", "SeasonalPeriods", "ProvisionDayTimeRestriction", "DayTimeRestrictions", "TravelDateCount",
+                "ProvisionConditionsArgs", "ProvisionTravelCriteria", "ProvisionSalesCriteria", "ProvisionFareCriteria", "ProvisionPassengerCriteria"
+            ]));
+        Assert.DoesNotContain(authored, path => Path.GetFileName(path) is "ProvisionTravelDate.cs" or "ProvisionTravelDateConfiguration.cs" or "AncillaryProvisionTravelDateReadModel.cs");
+        Assert.Contains(authored, path => Path.GetFileName(path) == "ProvisionPermittedTravelPeriod.cs");
+        Assert.Contains(authored, path => Path.GetFileName(path) == "ProvisionDayTimeWindow.cs");
+        Assert.Contains(authored, path => Path.GetFileName(path) == "ServiceDateBasis.cs");
+        Assert.Equal(
+            10,
+            authored.Count(path => InFolder(path, "AeroTech.Ancillary.Domain") && Regex.IsMatch(Path.GetFileName(path), @"^Provision[A-Za-z]+Rule\.cs$")));
+    }
+
+    [Fact]
     public void V12_C02_every_command_service_of_the_application_is_registered_once_as_scoped()
     {
         var services = new ServiceCollection().AddApplication(new ConfigurationBuilder().Build());
@@ -279,7 +356,9 @@ public class V12BoundaryAcceptanceTests
                            && type.Name.EndsWith("Service", StringComparison.Ordinal))
             .ToList();
 
-        Assert.Equal(39, contracts.Count);
+        Assert.Equal(47, contracts.Count);
+        Assert.Equal(26, contracts.Count(contract => contract.Namespace!.Contains(".AncillaryProvisionAggregate.", StringComparison.Ordinal)));
+        Assert.Equal(9, contracts.Count(contract => contract.Namespace!.Contains(".AncillaryServiceDefinitionAggregate.", StringComparison.Ordinal)));
         Assert.Equal(8, contracts.Count(contract => contract.Namespace!.Contains(".AncillaryPricingAggregate.", StringComparison.Ordinal)));
         Assert.Equal(2, contracts.Count(contract => contract.Namespace!.Contains($".{FrozenAggregate}.", StringComparison.Ordinal)));
 

@@ -10,24 +10,22 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
         {
         }
 
-        internal ProvisionAirFareType(long id, long ancillaryProvisionId, AirFareType airFareType)
+        internal ProvisionAirFareType(long id, long ancillaryProvisionId, long provisionFareApplicationRuleId, AirFareType airFareType)
         {
+            if (!(Enum.IsDefined(airFareType)))
+                throw ExceptionFactory.ProvisionIsInvalid($"{nameof(ProvisionAirFareType)}.{nameof(AirFareType)}");
+
             Id = id;
             AncillaryProvisionId = ancillaryProvisionId;
-            Change(airFareType);
+            ProvisionFareApplicationRuleId = provisionFareApplicationRuleId;
+            AirFareType = airFareType;
         }
 
         public long AncillaryProvisionId { get; private set; }
 
+        public long ProvisionFareApplicationRuleId { get; private set; }
+
         public AirFareType AirFareType { get; private set; }
-
-        internal void Change(AirFareType airFareType)
-        {
-            if (!Enum.IsDefined(airFareType))
-                throw ExceptionFactory.ProvisionIsInvalid($"{nameof(ProvisionAirFareType)}.{nameof(AirFareType)}");
-
-            AirFareType = airFareType;
-        }
 
         internal bool SameAs(ProvisionAirFareType other) => AirFareType == other.AirFareType;
     }

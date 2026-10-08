@@ -8,71 +8,37 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
 {
     public static class AncillaryProvisionMapper
     {
+        private static readonly DayOfWeek[] MaskOrder =
+        [
+            DayOfWeek.Monday,
+            DayOfWeek.Tuesday,
+            DayOfWeek.Wednesday,
+            DayOfWeek.Thursday,
+            DayOfWeek.Friday,
+            DayOfWeek.Saturday,
+            DayOfWeek.Sunday
+        ];
+
         public static BackofficeProvisionDto ToBackofficeProvision(
             AncillaryProvisionReadModel provision,
-            AncillaryProvisionConditionRows rows)
+            ServiceDateBasis? serviceDateBasis,
+            AncillaryProvisionRuleRows rows)
             => new(
                 provision.Id,
                 provision.ServiceDefinitionId,
+                EnumValueDto.OfNullable(serviceDateBasis),
                 provision.Sequence,
                 EnumValueDto.Of(provision.Status),
-                provision.SalesEffectiveFrom,
-                provision.SalesDiscontinueAt,
                 EnumValueDto.Of(provision.CoverageScope),
-                new BackofficeProvisionPassengerCriteriaDto(
-                    rows.PassengerTypes.Select(row => new BackofficeProvisionConditionRowDto<EnumValueDto>(row.Id, EnumValueDto.Of(row.PassengerTypeCode))).ToList()),
-                new BackofficeProvisionSalesCriteriaDto(
-                    rows.PointsOfSale.Select(row => new BackofficeProvisionConditionRowDto<long>(row.Id, row.PointOfSaleId)).ToList(),
-                    rows.Customers.Select(row => new BackofficeProvisionConditionRowDto<long>(row.Id, row.CustomerId)).ToList(),
-                    rows.CustomerTypes.Select(row => new BackofficeProvisionConditionRowDto<EnumValueDto>(row.Id, EnumValueDto.Of(row.CustomerType))).ToList()),
-                new BackofficeProvisionTravelCriteriaDto(
-                    rows.OriginAirports.Select(row => new BackofficeProvisionConditionRowDto<int>(row.Id, row.AirportId)).ToList(),
-                    rows.DestinationAirports.Select(row => new BackofficeProvisionConditionRowDto<int>(row.Id, row.AirportId)).ToList(),
-                    rows.ViaAirports.Select(row => new BackofficeProvisionConditionRowDto<int>(row.Id, row.AirportId)).ToList(),
-                    rows.RoutePairs
-                    .Select(row => new BackofficeProvisionRoutePairDto(row.Id, row.OriginAirportId, row.DestinationAirportId, EnumValueDto.Of(row.Direction)))
-                    .ToList(),
-                    rows.TravelDates.Select(row => new BackofficeProvisionConditionRowDto<DateOnly>(row.Id, row.TravelDate)).ToList(),
-                    rows.SeasonalPeriods.Select(row => new BackofficeProvisionDatePeriodDto(row.Id, row.StartDate, row.EndDate)).ToList(),
-                    rows.BlackoutPeriods.Select(row => new BackofficeProvisionDatePeriodDto(row.Id, row.StartDate, row.EndDate)).ToList(),
-                    rows.DayTimeRestrictions
-                    .Select(row => new BackofficeProvisionDayTimeRestrictionDto(
-                        row.Id,
-                        EnumValueDto.Of(row.DayOfWeek),
-                        row.StartTime,
-                        row.EndTime,
-                        EnumValueDto.Of(row.Effect)))
-                    .ToList(),
-                    rows.MarketingAirlines.Select(row => new BackofficeProvisionConditionRowDto<int>(row.Id, row.AirlineId)).ToList(),
-                    rows.OperatingAirlines.Select(row => new BackofficeProvisionConditionRowDto<int>(row.Id, row.AirlineId)).ToList(),
-                    rows.FlightNumbers.Select(row => new BackofficeProvisionConditionRowDto<string>(row.Id, row.FlightNumber)).ToList(),
-                    rows.Flights.Select(row => new BackofficeProvisionConditionRowDto<long>(row.Id, row.FlightId)).ToList(),
-                    rows.Aircraft.Select(row => new BackofficeProvisionConditionRowDto<int>(row.Id, row.AircraftId)).ToList()),
-                new BackofficeProvisionFareCriteriaDto(
-                    rows.AirFares.Select(row => new BackofficeProvisionConditionRowDto<long>(row.Id, row.AirFareId)).ToList(),
-                    rows.AirFareTypes.Select(row => new BackofficeProvisionConditionRowDto<EnumValueDto>(row.Id, EnumValueDto.Of(row.AirFareType))).ToList(),
-                    rows.FareFamilies.Select(row => new BackofficeProvisionConditionRowDto<long>(row.Id, row.FareFamilyId)).ToList(),
-                    rows.FareBases.Select(row => new BackofficeProvisionConditionRowDto<string>(row.Id, row.FareBasisCode)).ToList(),
-                    rows.CabinClasses.Select(row => new BackofficeProvisionConditionRowDto<int>(row.Id, row.CabinClassId)).ToList(),
-                    rows.Rbds.Select(row => new BackofficeProvisionConditionRowDto<long>(row.Id, row.RbdId)).ToList()),
-                provision.AdvancePurchasePeriod is { } period && provision.AdvancePurchaseUnit is { } unit
-                    ? new BackofficeProvisionAdvancePurchaseDto(period, EnumValueDto.Of(unit))
-                    : null,
                 EnumValueDto.Of(provision.QuantityUnit),
                 provision.MinQuantity,
                 provision.MaxQuantity,
                 EnumValueDto.Of(provision.ApplicationType),
-                ToBaggage(provision),
-                provision.ApplicationType == ProvisionApplicationType.Seat
-                    ? new BackofficeProvisionSeatApplicationDto(
-                    rows.SeatNumbers.Select(row => new BackofficeProvisionConditionRowDto<string>(row.Id, row.SeatNumber)).ToList(),
-                    rows.SeatCharacteristics.Select(row => new BackofficeProvisionConditionRowDto<string>(row.Id, row.CharacteristicCode)).ToList())
-                    : null,
                 EnumValueDto.Of(provision.Disposition),
                 provision.DocumentRequired,
                 provision.BookingRequired,
                 EnumValueDto.Of(provision.ReissueRefund),
-                provision.FormOfRefund is { } formOfRefund ? EnumValueDto.Of(formOfRefund) : null,
+                EnumValueDto.OfNullable(provision.FormOfRefund),
                 provision.Commissionable,
                 provision.InterlineSettlement,
                 provision.MustCheckAvailability,
@@ -80,14 +46,91 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                 provision.CreatedAt,
                 provision.ActivatedAt,
                 provision.SuspendedAt,
-                provision.RetiredAt);
+                provision.RetiredAt,
+                provision.PassengerEligibilityRuleId is { } passengerEligibilityRuleId
+                    ? new BackofficeProvisionPassengerEligibilityDto(
+                        passengerEligibilityRuleId,
+                        rows.PassengerTypes.Select(row => new BackofficeProvisionRuleRowDto<EnumValueDto>(row.Id, EnumValueDto.Of(row.PassengerTypeCode))).ToList(),
+                        rows.AgeBands.Select(row => new BackofficeProvisionAgeBandDto(row.Id, row.AgeFromInclusive, row.AgeToExclusive)).ToList())
+                    : null,
+                provision.SalesRestrictionsRuleId is { } salesRestrictionsRuleId
+                    ? new BackofficeProvisionSalesRestrictionsDto(
+                        salesRestrictionsRuleId,
+                        provision.SalesEffectiveFrom,
+                        provision.SalesDiscontinueAt,
+                        rows.PointsOfSale.Select(row => new BackofficeProvisionRuleRowDto<long>(row.Id, row.PointOfSaleId)).ToList(),
+                        rows.Customers.Select(row => new BackofficeProvisionRuleRowDto<long>(row.Id, row.CustomerId)).ToList(),
+                        rows.CustomerTypes.Select(row => new BackofficeProvisionRuleRowDto<EnumValueDto>(row.Id, EnumValueDto.Of(row.CustomerType))).ToList())
+                    : null,
+                provision.GeographyRuleId is { } geographyRuleId
+                    ? new BackofficeProvisionGeographyDto(
+                        geographyRuleId,
+                        rows.OriginAirports.Select(row => new BackofficeProvisionRuleRowDto<int>(row.Id, row.AirportId)).ToList(),
+                        rows.DestinationAirports.Select(row => new BackofficeProvisionRuleRowDto<int>(row.Id, row.AirportId)).ToList(),
+                        rows.ViaAirports.Select(row => new BackofficeProvisionRuleRowDto<int>(row.Id, row.AirportId)).ToList(),
+                        rows.CoverageCountries.Select(row => new BackofficeProvisionRuleRowDto<int>(row.Id, row.CountryId)).ToList(),
+                        rows.RoutePairs.Select(row => new BackofficeProvisionRoutePairDto(row.Id, row.OriginAirportId, row.DestinationAirportId, EnumValueDto.Of(row.Direction))).ToList(),
+                        rows.ServiceLocations.Select(row => new BackofficeProvisionServiceLocationDto(row.Id, EnumValueDto.Of(row.LocationType), row.LocationId)).ToList())
+                    : null,
+                provision.FlightApplicationRuleId is { } flightApplicationRuleId
+                    ? new BackofficeProvisionFlightApplicationDto(
+                        flightApplicationRuleId,
+                        rows.MarketingAirlines.Select(row => new BackofficeProvisionRuleRowDto<int>(row.Id, row.AirlineId)).ToList(),
+                        rows.OperatingAirlines.Select(row => new BackofficeProvisionRuleRowDto<int>(row.Id, row.AirlineId)).ToList(),
+                        rows.FlightNumbers.Select(row => new BackofficeProvisionRuleRowDto<string>(row.Id, row.FlightNumber)).ToList(),
+                        rows.Flights.Select(row => new BackofficeProvisionRuleRowDto<long>(row.Id, row.FlightId)).ToList(),
+                        rows.Aircraft.Select(row => new BackofficeProvisionRuleRowDto<int>(row.Id, row.AircraftId)).ToList())
+                    : null,
+                provision.FareApplicationRuleId is { } fareApplicationRuleId
+                    ? new BackofficeProvisionFareApplicationDto(
+                        fareApplicationRuleId,
+                        rows.AirFares.Select(row => new BackofficeProvisionRuleRowDto<long>(row.Id, row.AirFareId)).ToList(),
+                        rows.AirFareTypes.Select(row => new BackofficeProvisionRuleRowDto<EnumValueDto>(row.Id, EnumValueDto.Of(row.AirFareType))).ToList(),
+                        rows.FareFamilies.Select(row => new BackofficeProvisionRuleRowDto<long>(row.Id, row.FareFamilyId)).ToList(),
+                        rows.FareBases.Select(row => new BackofficeProvisionRuleRowDto<string>(row.Id, row.FareBasisCode)).ToList(),
+                        rows.CabinClasses.Select(row => new BackofficeProvisionRuleRowDto<int>(row.Id, row.CabinClassId)).ToList(),
+                        rows.Rbds.Select(row => new BackofficeProvisionRuleRowDto<long>(row.Id, row.RbdId)).ToList())
+                    : null,
+                provision.TravelDateRuleId is { } travelDateRuleId
+                    ? new BackofficeProvisionTravelDateDto(
+                        travelDateRuleId,
+                        rows.PermittedPeriods.Select(row => new BackofficeProvisionDatePeriodDto(row.Id, row.StartDate, row.EndDate)).ToList(),
+                        rows.BlackoutPeriods.Select(row => new BackofficeProvisionDatePeriodDto(row.Id, row.StartDate, row.EndDate)).ToList())
+                    : null,
+                provision.DayTimeApplicationRuleId is { } dayTimeApplicationRuleId
+                    ? new BackofficeProvisionDayTimeApplicationDto(
+                        dayTimeApplicationRuleId,
+                        rows.Windows.Select(row => new BackofficeProvisionDayTimeWindowDto(row.Id, row.DaysOfWeekMask, DaysOfWeek(row.DaysOfWeekMask), row.StartLocalTime, row.EndLocalTime, EnumValueDto.Of(row.Effect))).ToList())
+                    : null,
+                provision.AdvancePurchaseRuleId is { } advancePurchaseRuleId && provision.AdvancePurchasePeriod is { } minimumPeriod && provision.AdvancePurchaseUnit is { } unit
+                    ? new BackofficeProvisionAdvancePurchaseDto(advancePurchaseRuleId, minimumPeriod, EnumValueDto.Of(unit), provision.AdvancePurchaseSameTimeAsTicketed)
+                    : null,
+                provision.BaggageApplicationRuleId is { } baggageApplicationRuleId
+                && provision.BaggageWeightUnit is { } weightUnit
+                && provision.BaggagePurchaseApplication is { } purchaseApplication
+                    ? new BackofficeProvisionBaggageApplicationDto(
+                        baggageApplicationRuleId,
+                        provision.BaggageFreePieces,
+                        provision.BaggageFirstExcessPiece,
+                        provision.BaggageLastExcessPiece,
+                        provision.BaggageWeight,
+                        EnumValueDto.Of(weightUnit),
+                        EnumValueDto.OfNullable(provision.BaggageTravelApplication),
+                        EnumValueDto.Of(purchaseApplication),
+                        EnumValueDto.OfNullable(provision.BaggageRuleDeference))
+                    : null,
+                provision.SeatApplicationRuleId is { } seatApplicationRuleId
+                    ? new BackofficeProvisionSeatApplicationDto(
+                        seatApplicationRuleId,
+                        rows.SeatNumbers.Select(row => new BackofficeProvisionRuleRowDto<string>(row.Id, row.SeatNumber)).ToList(),
+                        rows.SeatCharacteristics.Select(row => new BackofficeProvisionRuleRowDto<string>(row.Id, row.CharacteristicCode)).ToList())
+                    : null);
 
         public static ProvisionPaginatedRowDto ToPaginatedRow(
             AncillaryProvisionReadModel provision,
-            int travelDateCount,
-            int seasonalPeriodCount,
+            int permittedPeriodCount,
             int blackoutPeriodCount,
-            int dayTimeRestrictionCount)
+            int dayTimeWindowCount)
             => new()
             {
                 Id = provision.Id.ToString(CultureInfo.InvariantCulture),
@@ -98,27 +141,16 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                 QuantityUnit = EnumValueDto.Of(provision.QuantityUnit),
                 MinQuantity = provision.MinQuantity,
                 MaxQuantity = provision.MaxQuantity,
-                TravelDateCount = travelDateCount,
-                SeasonalPeriodCount = seasonalPeriodCount,
+                PermittedPeriodCount = permittedPeriodCount,
                 BlackoutPeriodCount = blackoutPeriodCount,
-                DayTimeRestrictionCount = dayTimeRestrictionCount,
+                DayTimeWindowCount = dayTimeWindowCount,
                 SalesEffectiveFrom = provision.SalesEffectiveFrom,
                 SalesDiscontinueAt = provision.SalesDiscontinueAt,
                 Status = EnumValueDto.Of(provision.Status),
                 CreatedAt = provision.CreatedAt
             };
 
-        private static BackofficeProvisionBaggageApplicationDto? ToBaggage(AncillaryProvisionReadModel provision)
-            => provision.BaggageWeightUnit is { } weightUnit && provision.BaggagePurchaseApplication is { } purchaseApplication
-                ? new BackofficeProvisionBaggageApplicationDto(
-                    provision.BaggageFreePieces,
-                    provision.BaggageFirstExcessPiece,
-                    provision.BaggageLastExcessPiece,
-                    provision.BaggageWeight,
-                    EnumValueDto.Of(weightUnit),
-                    EnumValueDto.OfNullable(provision.BaggageTravelApplication),
-                    EnumValueDto.Of(purchaseApplication),
-                    EnumValueDto.OfNullable(provision.BaggageRuleDeference))
-                : null;
+        private static IReadOnlyList<string> DaysOfWeek(byte mask)
+            => MaskOrder.Where((_, index) => (mask & (1 << index)) != 0).Select(day => day.ToString()).ToList();
     }
 }

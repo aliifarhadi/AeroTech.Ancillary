@@ -1,4 +1,4 @@
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionTravelDate;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionPermittedTravelPeriod;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Projection;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Contracts;
@@ -23,17 +23,16 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Ch
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<ProvisionConditionRowResult> ChangeAsync(IChangeProvisionBlackoutPeriodCommand command, CancellationToken cancellationToken = default)
+        public async Task<ProvisionRuleRowResult> ChangeAsync(IChangeProvisionBlackoutPeriodCommand command, CancellationToken cancellationToken = default)
         {
             var provision = await _provisions.GetAsync(command.ProvisionId, cancellationToken)
                             ?? throw ExceptionFactory.ProvisionNotFound();
-
-            provision.ChangeBlackoutPeriod(command.RowId, new ProvisionDatePeriodArgs(command.StartDate, command.EndDate));
+            var row = provision.ChangeBlackoutPeriod(command.RowId, new ProvisionDatePeriodArgs(command.StartDate, command.EndDate));
 
             await _synchronizer.ProjectAsync(provision.ToReadModelSnapshot(), cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return new ProvisionConditionRowResult(provision.Id, command.RowId);
+            return new ProvisionRuleRowResult(provision.Id, row.Id);
         }
     }
 }

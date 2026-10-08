@@ -13,5 +13,6 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
         ServiceSubCodeSource SubCodeSource,
         string GroupCode,
         PricingUnit? PricingUnit,
+        ServiceDateBasis? ServiceDateBasis,
         ServiceDefinitionStatus Status);
 }
