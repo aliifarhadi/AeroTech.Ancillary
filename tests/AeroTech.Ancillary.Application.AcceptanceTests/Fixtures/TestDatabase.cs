@@ -27,12 +27,15 @@ public sealed class TestDatabase : IAsyncLifetime
 
     public SequentialIdGenerator Ids { get; } = new();
 
+    public SqlCommandCounter Sql { get; } = new();
+
     public int NextAirlineId() => Interlocked.Increment(ref _lastAirlineId);
 
     public AncillaryDbContext NewContext(IClock clock)
         => new(
             new DbContextOptionsBuilder<AncillaryDbContext>()
                 .UseSqlServer(_connectionString, sql => sql.MigrationsHistoryTable(AncillaryDbContext.MigrationsHistoryTable, AncillaryDbContext.MigrationsHistorySchema))
+                .AddInterceptors(Sql)
                 .Options,
             new AnonymousActorResolver(),
             clock,
@@ -42,6 +45,7 @@ public sealed class TestDatabase : IAsyncLifetime
         => new(
             new DbContextOptionsBuilder<AncillaryQueryDbContext>()
                 .UseSqlServer(_connectionString, sql => sql.MigrationsHistoryTable(AncillaryQueryDbContext.MigrationsHistoryTable, AncillaryQueryDbContext.MigrationsHistorySchema))
+                .AddInterceptors(Sql)
                 .Options);
 
     public ReferenceDbContext NewReferenceContext()

@@ -25,6 +25,8 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto
 
         [Grid("Pricing Unit")] public EnumValueDto? PricingUnit { get; set; }
 
+        [Grid("Service Date Basis")] public EnumValueDto? ServiceDateBasis { get; set; }
+
         public string SupplierId { get; set; } = null!;
 
         [Grid("Supplier")] public string SupplierName { get; set; } = null!;

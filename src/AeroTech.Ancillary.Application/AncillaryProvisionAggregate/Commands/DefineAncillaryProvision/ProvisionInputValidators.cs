@@ -2,31 +2,29 @@ using FluentValidation;
 
 namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.DefineAncillaryProvision
 {
-    public sealed class ProvisionPassengerCriteriaInputValidator : AbstractValidator<ProvisionPassengerCriteriaInput>
+    public sealed class ProvisionPassengerEligibilityInputValidator : AbstractValidator<ProvisionPassengerEligibilityInput>
     {
-        public ProvisionPassengerCriteriaInputValidator()
+        public ProvisionPassengerEligibilityInputValidator()
         {
-            RuleForEach(passenger => passenger.PassengerTypeCodes).IsInEnum();
+            RuleForEach(passengerEligibility => passengerEligibility.AllowedPassengerTypes).IsInEnum();
+            RuleForEach(passengerEligibility => passengerEligibility.AllowedAgeBands).NotNull();
         }
     }
 
-    public sealed class ProvisionSalesCriteriaInputValidator : AbstractValidator<ProvisionSalesCriteriaInput>
+    public sealed class ProvisionSalesRestrictionsInputValidator : AbstractValidator<ProvisionSalesRestrictionsInput>
     {
-        public ProvisionSalesCriteriaInputValidator()
+        public ProvisionSalesRestrictionsInputValidator()
         {
-            RuleForEach(sales => sales.CustomerTypes).IsInEnum();
+            RuleForEach(salesRestrictions => salesRestrictions.AllowedCustomerTypes).IsInEnum();
         }
     }
 
-    public sealed class ProvisionTravelCriteriaInputValidator : AbstractValidator<ProvisionTravelCriteriaInput>
+    public sealed class ProvisionGeographyInputValidator : AbstractValidator<ProvisionGeographyInput>
     {
-        public ProvisionTravelCriteriaInputValidator()
+        public ProvisionGeographyInputValidator()
         {
-            RuleForEach(travel => travel.RoutePairs).NotNull().SetValidator(new ProvisionRoutePairInputValidator());
-            RuleForEach(travel => travel.SeasonalPeriods).NotNull();
-            RuleForEach(travel => travel.BlackoutPeriods).NotNull();
-            RuleForEach(travel => travel.DayTimeRestrictions).NotNull().SetValidator(new ProvisionDayTimeRestrictionInputValidator());
-            RuleForEach(travel => travel.FlightNumbers).NotEmpty().MaximumLength(16);
+            RuleForEach(geography => geography.AllowedRoutePairs).NotNull().SetValidator(new ProvisionRoutePairInputValidator());
+            RuleForEach(geography => geography.ServiceLocations).NotNull().SetValidator(new ProvisionServiceLocationInputValidator());
         }
     }
 
@@ -38,21 +36,54 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
         }
     }
 
-    public sealed class ProvisionDayTimeRestrictionInputValidator : AbstractValidator<ProvisionDayTimeRestrictionInput>
+    public sealed class ProvisionServiceLocationInputValidator : AbstractValidator<ProvisionServiceLocationInput>
     {
-        public ProvisionDayTimeRestrictionInputValidator()
+        public ProvisionServiceLocationInputValidator()
         {
-            RuleFor(restriction => restriction.DayOfWeek).IsInEnum();
-            RuleFor(restriction => restriction.Effect).IsInEnum();
+            RuleFor(location => location.LocationType).IsInEnum();
         }
     }
 
-    public sealed class ProvisionFareCriteriaInputValidator : AbstractValidator<ProvisionFareCriteriaInput>
+    public sealed class ProvisionFlightApplicationInputValidator : AbstractValidator<ProvisionFlightApplicationInput>
     {
-        public ProvisionFareCriteriaInputValidator()
+        public ProvisionFlightApplicationInputValidator()
         {
-            RuleForEach(fare => fare.AirFareTypes).IsInEnum();
-            RuleForEach(fare => fare.FareBasisCodes).NotEmpty().MaximumLength(64);
+            RuleForEach(flightApplication => flightApplication.AllowedFlightNumbers).NotEmpty().MaximumLength(16);
+        }
+    }
+
+    public sealed class ProvisionFareApplicationInputValidator : AbstractValidator<ProvisionFareApplicationInput>
+    {
+        public ProvisionFareApplicationInputValidator()
+        {
+            RuleForEach(fareApplication => fareApplication.AllowedAirFareTypes).IsInEnum();
+            RuleForEach(fareApplication => fareApplication.AllowedFareBasisCodes).NotEmpty().MaximumLength(64);
+        }
+    }
+
+    public sealed class ProvisionTravelDateInputValidator : AbstractValidator<ProvisionTravelDateInput>
+    {
+        public ProvisionTravelDateInputValidator()
+        {
+            RuleForEach(travelDate => travelDate.PermittedPeriods).NotNull();
+            RuleForEach(travelDate => travelDate.BlackoutPeriods).NotNull();
+        }
+    }
+
+    public sealed class ProvisionDayTimeApplicationInputValidator : AbstractValidator<ProvisionDayTimeApplicationInput>
+    {
+        public ProvisionDayTimeApplicationInputValidator()
+        {
+            RuleForEach(dayTimeApplication => dayTimeApplication.Windows).NotNull().SetValidator(new ProvisionDayTimeWindowInputValidator());
+        }
+    }
+
+    public sealed class ProvisionDayTimeWindowInputValidator : AbstractValidator<ProvisionDayTimeWindowInput>
+    {
+        public ProvisionDayTimeWindowInputValidator()
+        {
+            RuleFor(window => window.DaysOfWeekMask).InclusiveBetween((byte)1, (byte)127);
+            RuleFor(window => window.Effect).IsInEnum();
         }
     }
 
@@ -60,29 +91,8 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
     {
         public ProvisionAdvancePurchaseInputValidator()
         {
+            RuleFor(advancePurchase => advancePurchase.MinimumPeriod).GreaterThanOrEqualTo(0);
             RuleFor(advancePurchase => advancePurchase.Unit).IsInEnum();
-        }
-    }
-
-    public sealed class ProvisionQuantityInputValidator : AbstractValidator<ProvisionQuantityInput>
-    {
-        public ProvisionQuantityInputValidator()
-        {
-            RuleFor(quantity => quantity.Unit).IsInEnum();
-        }
-    }
-
-    public sealed class ProvisionApplicationInputValidator : AbstractValidator<ProvisionApplicationInput>
-    {
-        public ProvisionApplicationInputValidator()
-        {
-            RuleFor(application => application.Type).IsInEnum();
-            RuleFor(application => application.Baggage)
-                .SetValidator(new ProvisionBaggageApplicationInputValidator()!)
-                .When(application => application.Baggage is not null);
-            RuleFor(application => application.Seat)
-                .SetValidator(new ProvisionSeatApplicationInputValidator()!)
-                .When(application => application.Seat is not null);
         }
     }
 
@@ -101,8 +111,16 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
     {
         public ProvisionSeatApplicationInputValidator()
         {
-            RuleForEach(seat => seat.SeatNumbers).NotEmpty().MaximumLength(16);
-            RuleForEach(seat => seat.SeatCharacteristicCodes).NotEmpty().MaximumLength(25);
+            RuleForEach(seatApplication => seatApplication.SeatNumbers).NotEmpty().MaximumLength(16);
+            RuleForEach(seatApplication => seatApplication.SeatCharacteristicCodes).NotEmpty().MaximumLength(25);
+        }
+    }
+
+    public sealed class ProvisionQuantityInputValidator : AbstractValidator<ProvisionQuantityInput>
+    {
+        public ProvisionQuantityInputValidator()
+        {
+            RuleFor(quantity => quantity.Unit).IsInEnum();
         }
     }
 

@@ -33,7 +33,8 @@ public sealed record TestChangeServiceDefinitionCommand(
     ServiceDefinitionBookingInput Booking,
     DateOnly? SalesEffectiveFrom,
     DateOnly? SalesDiscontinueOn,
-    PricingUnit PricingUnit = PricingUnit.PerPassenger) : IChangeAncillaryServiceDefinitionCommand;
+    PricingUnit PricingUnit = PricingUnit.PerPassenger,
+    ServiceDateBasis ServiceDateBasis = ServiceDateBasis.FlightDeparture) : IChangeAncillaryServiceDefinitionCommand;
 
 public sealed record TestServiceDefinitionLifecycleCommand(long ServiceDefinitionId)
     : ISuspendAncillaryServiceDefinitionCommand,
@@ -44,20 +45,23 @@ public sealed record TestServiceDefinitionLifecycleCommand(long ServiceDefinitio
 public sealed record TestChangeProvisionCommand(
     long ProvisionId,
     int Sequence,
-    DateTimeOffset? SalesEffectiveFrom,
-    DateTimeOffset? SalesDiscontinueAt,
     ServiceCoverageScope CoverageScope,
-    ProvisionPassengerCriteriaInput? Passenger,
-    ProvisionSalesCriteriaInput? Sales,
-    ProvisionTravelCriteriaInput? Travel,
-    ProvisionFareCriteriaInput? Fare,
-    ProvisionAdvancePurchaseInput? AdvancePurchase,
     ProvisionQuantityInput Quantity,
-    ProvisionApplicationInput Application,
+    ProvisionApplicationType ApplicationType,
     ProvisionOutcomeInput Outcome,
     ProvisionSettlementInput Settlement,
     ProvisionAvailabilityInput Availability,
-    ProvisionFulfillmentInput Fulfillment) : IChangeAncillaryProvisionCommand;
+    ProvisionFulfillmentInput Fulfillment,
+    ProvisionPassengerEligibilityInput? PassengerEligibility = null,
+    ProvisionSalesRestrictionsInput? SalesRestrictions = null,
+    ProvisionGeographyInput? Geography = null,
+    ProvisionFlightApplicationInput? FlightApplication = null,
+    ProvisionFareApplicationInput? FareApplication = null,
+    ProvisionTravelDateInput? TravelDate = null,
+    ProvisionDayTimeApplicationInput? DayTimeApplication = null,
+    ProvisionAdvancePurchaseInput? AdvancePurchase = null,
+    ProvisionBaggageApplicationInput? BaggageApplication = null,
+    ProvisionSeatApplicationInput? SeatApplication = null) : IChangeAncillaryProvisionCommand;
 
 public sealed record TestProvisionLifecycleCommand(long ProvisionId)
     : ISuspendAncillaryProvisionCommand, IReactivateAncillaryProvisionCommand, IRetireAncillaryProvisionCommand;
@@ -85,7 +89,8 @@ public static class P1Commands
         string? description = null,
         DateOnly? salesEffectiveFrom = null,
         DateOnly? salesDiscontinueOn = null,
-        PricingUnit pricingUnit = PricingUnit.PerPassenger)
+        PricingUnit pricingUnit = PricingUnit.PerPassenger,
+        ServiceDateBasis serviceDateBasis = ServiceDateBasis.FlightDeparture)
         => new(
             airlineId,
             supplierId,
@@ -103,7 +108,8 @@ public static class P1Commands
             booking ?? new ServiceDefinitionBookingInput(BookingMethod.NoBookingProcessRequired, null, null),
             salesEffectiveFrom,
             salesDiscontinueOn,
-            pricingUnit);
+            pricingUnit,
+            serviceDateBasis);
 
     public static TestDefineServiceDefinitionCommand FirstExcessBagDefinition(int airlineId, long supplierId, string reference = "XBAG_FIRST")
         => new(
@@ -144,7 +150,8 @@ public static class P1Commands
             source.Booking,
             source.SalesEffectiveFrom,
             source.SalesDiscontinueOn,
-            source.PricingUnit);
+            source.PricingUnit,
+            source.ServiceDateBasis);
 
     public static TestDefineProvisionCommand Provision(
         long serviceDefinitionId,
@@ -154,53 +161,42 @@ public static class P1Commands
         AncillaryQuantityUnit quantityUnit = AncillaryQuantityUnit.Each,
         int minQuantity = 1,
         int maxQuantity = 1,
-        DateTimeOffset? salesEffectiveFrom = null,
-        DateTimeOffset? salesDiscontinueAt = null,
-        ProvisionPassengerCriteriaInput? passenger = null,
-        ProvisionSalesCriteriaInput? sales = null,
-        ProvisionTravelCriteriaInput? travel = null,
-        ProvisionFareCriteriaInput? fare = null,
-        ProvisionAdvancePurchaseInput? advancePurchase = null,
-        ProvisionApplicationInput? application = null,
+        ProvisionApplicationType applicationType = ProvisionApplicationType.Standard,
         bool bookingRequired = false)
         => new(
             serviceDefinitionId,
             sequence,
-            salesEffectiveFrom,
-            salesDiscontinueAt,
             coverageScope,
             new ProvisionQuantityInput(quantityUnit, minQuantity, maxQuantity),
-            application ?? new ProvisionApplicationInput(ProvisionApplicationType.Standard),
+            applicationType,
             new ProvisionOutcomeInput(disposition, disposition == CommercialDisposition.Paid, bookingRequired),
             new ProvisionSettlementInput(ReissueRefundPolicy.NonRefundable, null, false, false),
             new ProvisionAvailabilityInput(false),
-            new ProvisionFulfillmentInput("Ancillary"),
-            passenger,
-            sales,
-            travel,
-            fare,
-            advancePurchase);
+            new ProvisionFulfillmentInput("Ancillary"));
 
     public static TestChangeProvisionCommand Change(long provisionId, TestDefineProvisionCommand source)
         => new(
             provisionId,
             source.Sequence,
-            source.SalesEffectiveFrom,
-            source.SalesDiscontinueAt,
             source.CoverageScope,
-            source.Passenger,
-            source.Sales,
-            source.Travel,
-            source.Fare,
-            source.AdvancePurchase,
             source.Quantity,
-            source.Application,
+            source.ApplicationType,
             source.Outcome,
             source.Settlement,
             source.Availability,
-            source.Fulfillment);
+            source.Fulfillment,
+            source.PassengerEligibility,
+            source.SalesRestrictions,
+            source.Geography,
+            source.FlightApplication,
+            source.FareApplication,
+            source.TravelDate,
+            source.DayTimeApplication,
+            source.AdvancePurchase,
+            source.BaggageApplication,
+            source.SeatApplication);
 
-    public static ProvisionPassengerCriteriaInput Passengers(params PassengerTypeCode[] passengerTypeCodes) => new(passengerTypeCodes);
+    public static ProvisionPassengerEligibilityInput Passengers(params PassengerTypeCode[] passengerTypeCodes) => new(passengerTypeCodes);
 
     public static ProvisionRoutePairInput Pair(
         int originAirportId,
@@ -208,7 +204,7 @@ public static class P1Commands
         RoutePairDirection direction = RoutePairDirection.Directional)
         => new(originAirportId, destinationAirportId, direction);
 
-    public static ProvisionApplicationInput Baggage(
+    public static ProvisionBaggageApplicationInput Baggage(
         decimal? weight,
         int? firstExcessPiece = null,
         int? lastExcessPiece = null,
@@ -218,17 +214,14 @@ public static class P1Commands
         int? freePieces = null,
         WeightUnit weightUnit = WeightUnit.Kg)
         => new(
-            ProvisionApplicationType.Baggage,
-            new ProvisionBaggageApplicationInput(
-                freePieces,
-                firstExcessPiece,
-                lastExcessPiece,
-                weight,
-                weightUnit,
-                travelApplication,
-                purchaseApplication,
-                ruleDeference));
+            freePieces,
+            firstExcessPiece,
+            lastExcessPiece,
+            weight,
+            weightUnit,
+            travelApplication,
+            purchaseApplication,
+            ruleDeference);
 
-    public static ProvisionApplicationInput Seat(string[]? seatNumbers, string[]? seatCharacteristicCodes)
-        => new(ProvisionApplicationType.Seat, Seat: new ProvisionSeatApplicationInput(seatNumbers, seatCharacteristicCodes));
+    public static ProvisionSeatApplicationInput Seat(string[]? seatNumbers, string[]? seatCharacteristicCodes) => new(seatNumbers, seatCharacteristicCodes);
 }

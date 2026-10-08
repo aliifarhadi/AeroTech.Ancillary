@@ -64,6 +64,15 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public static BusinessException ServiceDefinitionPricingUnitAlreadyAssigned(params object?[] args) =>
             new(16211, ExceptionMessages.ServiceDefinitionPricingUnitAlreadyAssigned, args) { HttpStatus = 409 };
 
+        public static BusinessException ServiceDefinitionServiceDateBasisConflict(params object?[] args) =>
+            new(16212, ExceptionMessages.ServiceDefinitionServiceDateBasisConflict, args) { HttpStatus = 409 };
+
+        public static BusinessException ServiceDefinitionServiceDateBasisNotAssigned(params object?[] args) =>
+            new(16213, ExceptionMessages.ServiceDefinitionServiceDateBasisNotAssigned, args) { HttpStatus = 409 };
+
+        public static BusinessException ServiceDefinitionServiceDateBasisAlreadyAssigned(params object?[] args) =>
+            new(16214, ExceptionMessages.ServiceDefinitionServiceDateBasisAlreadyAssigned, args) { HttpStatus = 409 };
+
         public static BusinessException ProvisionNotFound(params object?[] args) =>
             new(16301, ExceptionMessages.ProvisionNotFound, args) { HttpStatus = 404 };
 
@@ -96,6 +105,18 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
 
         public static BusinessException ProvisionActivePricingNotAllowed(params object?[] args) =>
             new(16311, ExceptionMessages.ProvisionActivePricingNotAllowed, args) { HttpStatus = 409 };
+
+        public static BusinessException ProvisionQuantityUnitIncompatible(params object?[] args) =>
+            new(16312, ExceptionMessages.ProvisionQuantityUnitIncompatible, args) { HttpStatus = 409 };
+
+        public static BusinessException ProvisionRuleContextNotSupported(params object?[] args) =>
+            new(16313, ExceptionMessages.ProvisionRuleContextNotSupported, args) { HttpStatus = 409 };
+
+        public static BusinessException ProvisionAdvancePurchaseUnitNotSupported(params object?[] args) =>
+            new(16314, ExceptionMessages.ProvisionAdvancePurchaseUnitNotSupported, args) { HttpStatus = 422 };
+
+        public static BusinessException ProvisionRuleUnreachable(params object?[] args) =>
+            new(16315, ExceptionMessages.ProvisionRuleUnreachable, args) { HttpStatus = 409 };
 
         public static BusinessException AncillaryHoldNotFound(params object?[] args) =>
             new(16401, ExceptionMessages.AncillaryHoldNotFound, args) { HttpStatus = 404 };

@@ -9,24 +9,22 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
         {
         }
 
-        internal ProvisionCabinClass(long id, long ancillaryProvisionId, int cabinClassId)
+        internal ProvisionCabinClass(long id, long ancillaryProvisionId, long provisionFareApplicationRuleId, int cabinClassId)
         {
+            if (!(cabinClassId > 0))
+                throw ExceptionFactory.ProvisionIsInvalid($"{nameof(ProvisionCabinClass)}.{nameof(CabinClassId)}");
+
             Id = id;
             AncillaryProvisionId = ancillaryProvisionId;
-            Change(cabinClassId);
+            ProvisionFareApplicationRuleId = provisionFareApplicationRuleId;
+            CabinClassId = cabinClassId;
         }
 
         public long AncillaryProvisionId { get; private set; }
 
+        public long ProvisionFareApplicationRuleId { get; private set; }
+
         public int CabinClassId { get; private set; }
-
-        internal void Change(int cabinClassId)
-        {
-            if (cabinClassId <= 0)
-                throw ExceptionFactory.ProvisionIsInvalid($"{nameof(ProvisionCabinClass)}.{nameof(CabinClassId)}");
-
-            CabinClassId = cabinClassId;
-        }
 
         internal bool SameAs(ProvisionCabinClass other) => CabinClassId == other.CabinClassId;
     }

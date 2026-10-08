@@ -33,27 +33,31 @@ public sealed record TestDefineServiceDefinitionCommand(
     ServiceDefinitionBookingInput Booking,
     DateOnly? SalesEffectiveFrom,
     DateOnly? SalesDiscontinueOn,
-    PricingUnit PricingUnit = PricingUnit.PerPassenger) : IDefineAncillaryServiceDefinitionCommand;
+    PricingUnit PricingUnit = PricingUnit.PerPassenger,
+    ServiceDateBasis ServiceDateBasis = ServiceDateBasis.FlightDeparture) : IDefineAncillaryServiceDefinitionCommand;
 
 public sealed record TestActivateServiceDefinitionCommand(long ServiceDefinitionId) : IActivateAncillaryServiceDefinitionCommand;
 
 public sealed record TestDefineProvisionCommand(
     long ServiceDefinitionId,
     int Sequence,
-    DateTimeOffset? SalesEffectiveFrom,
-    DateTimeOffset? SalesDiscontinueAt,
     ServiceCoverageScope CoverageScope,
     ProvisionQuantityInput Quantity,
-    ProvisionApplicationInput Application,
+    ProvisionApplicationType ApplicationType,
     ProvisionOutcomeInput Outcome,
     ProvisionSettlementInput Settlement,
     ProvisionAvailabilityInput Availability,
     ProvisionFulfillmentInput Fulfillment,
-    ProvisionPassengerCriteriaInput? Passenger = null,
-    ProvisionSalesCriteriaInput? Sales = null,
-    ProvisionTravelCriteriaInput? Travel = null,
-    ProvisionFareCriteriaInput? Fare = null,
-    ProvisionAdvancePurchaseInput? AdvancePurchase = null) : IDefineAncillaryProvisionCommand;
+    ProvisionPassengerEligibilityInput? PassengerEligibility = null,
+    ProvisionSalesRestrictionsInput? SalesRestrictions = null,
+    ProvisionGeographyInput? Geography = null,
+    ProvisionFlightApplicationInput? FlightApplication = null,
+    ProvisionFareApplicationInput? FareApplication = null,
+    ProvisionTravelDateInput? TravelDate = null,
+    ProvisionDayTimeApplicationInput? DayTimeApplication = null,
+    ProvisionAdvancePurchaseInput? AdvancePurchase = null,
+    ProvisionBaggageApplicationInput? BaggageApplication = null,
+    ProvisionSeatApplicationInput? SeatApplication = null) : IDefineAncillaryProvisionCommand;
 
 public sealed record TestActivateProvisionCommand(long ProvisionId) : IActivateAncillaryProvisionCommand;
 
@@ -93,7 +97,9 @@ public static class M1Commands
             new ServiceDefinitionDocumentInput(AncillaryDocumentType.EmdStandalone, "E", "0BX"),
             new ServiceDefinitionBookingInput(BookingMethod.NoBookingProcessRequired, null, null),
             null,
-            null);
+            null,
+            PricingUnit.PerPassenger,
+            ServiceDateBasis.ServiceStart);
 
     public static TestDefineProvisionCommand LoungeProvision(
         long serviceDefinitionId,
@@ -104,11 +110,9 @@ public static class M1Commands
         => new(
             serviceDefinitionId,
             sequence,
-            null,
-            null,
             ServiceCoverageScope.Sector,
             new ProvisionQuantityInput(AncillaryQuantityUnit.Each, minQuantity, maxQuantity),
-            new ProvisionApplicationInput(ProvisionApplicationType.Standard),
+            ProvisionApplicationType.Standard,
             new ProvisionOutcomeInput(disposition, disposition == CommercialDisposition.Paid, false),
             new ProvisionSettlementInput(ReissueRefundPolicy.NonRefundable, null, false, false),
             new ProvisionAvailabilityInput(false),

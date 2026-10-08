@@ -48,6 +48,11 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
                 command.ServiceDefinitionRef,
                 command.PricingUnit,
                 cancellationToken);
+            await _definitions.EnsureServiceDateBasisAllowedAsync(
+                command.OwnerAirlineId,
+                command.ServiceDefinitionRef,
+                command.ServiceDateBasis,
+                cancellationToken);
 
             var version = await _definitions.MaxVersionAsync(command.OwnerAirlineId, command.ServiceDefinitionRef, cancellationToken) + 1;
 
@@ -66,6 +71,7 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
                     command.Description1Code,
                     command.Description2Code),
                 command.PricingUnit,
+                command.ServiceDateBasis,
                 command.CommercialName,
                 command.Description,
                 DocumentDefinition.Create(command.Document.Type, command.Document.Rfic, command.Document.Rfisc),

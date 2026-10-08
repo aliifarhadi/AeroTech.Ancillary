@@ -17,7 +17,12 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                                 .AsNoTracking()
                                 .FirstOrDefaultAsync(row => row.Id == provisionId, cancellationToken)
                             ?? throw ExceptionFactory.ProvisionNotFound();
-            var rows = new AncillaryProvisionConditionRows(
+            var serviceDateBasis = await _dbContext.AncillaryServiceDefinitions
+                .AsNoTracking()
+                .Where(definition => definition.Id == provision.ServiceDefinitionId)
+                .Select(definition => definition.ServiceDateBasis)
+                .FirstOrDefaultAsync(cancellationToken);
+            var rows = new AncillaryProvisionRuleRows(
                 await _dbContext.AncillaryProvisionPassengerTypes
                     .AsNoTracking()
                     .Where(row => row.AncillaryProvisionId == provisionId)
@@ -53,7 +58,7 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                     .Where(row => row.AncillaryProvisionId == provisionId)
                     .OrderBy(row => row.Id)
                     .ToListAsync(cancellationToken),
-                await _dbContext.AncillaryProvisionRoutePairs
+                await _dbContext.AncillaryProvisionCoverageCountries
                     .AsNoTracking()
                     .Where(row => row.AncillaryProvisionId == provisionId)
                     .OrderBy(row => row.Id)
@@ -113,26 +118,6 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                     .Where(row => row.AncillaryProvisionId == provisionId)
                     .OrderBy(row => row.Id)
                     .ToListAsync(cancellationToken),
-                await _dbContext.AncillaryProvisionTravelDates
-                    .AsNoTracking()
-                    .Where(row => row.AncillaryProvisionId == provisionId)
-                    .OrderBy(row => row.Id)
-                    .ToListAsync(cancellationToken),
-                await _dbContext.AncillaryProvisionSeasonalPeriods
-                    .AsNoTracking()
-                    .Where(row => row.AncillaryProvisionId == provisionId)
-                    .OrderBy(row => row.Id)
-                    .ToListAsync(cancellationToken),
-                await _dbContext.AncillaryProvisionBlackoutPeriods
-                    .AsNoTracking()
-                    .Where(row => row.AncillaryProvisionId == provisionId)
-                    .OrderBy(row => row.Id)
-                    .ToListAsync(cancellationToken),
-                await _dbContext.AncillaryProvisionDayTimeRestrictions
-                    .AsNoTracking()
-                    .Where(row => row.AncillaryProvisionId == provisionId)
-                    .OrderBy(row => row.Id)
-                    .ToListAsync(cancellationToken),
                 await _dbContext.AncillaryProvisionSeatNumbers
                     .AsNoTracking()
                     .Where(row => row.AncillaryProvisionId == provisionId)
@@ -142,9 +127,39 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                     .AsNoTracking()
                     .Where(row => row.AncillaryProvisionId == provisionId)
                     .OrderBy(row => row.Id)
+                    .ToListAsync(cancellationToken),
+                await _dbContext.AncillaryProvisionEligibleAgeBands
+                    .AsNoTracking()
+                    .Where(row => row.AncillaryProvisionId == provisionId)
+                    .OrderBy(row => row.Id)
+                    .ToListAsync(cancellationToken),
+                await _dbContext.AncillaryProvisionRoutePairs
+                    .AsNoTracking()
+                    .Where(row => row.AncillaryProvisionId == provisionId)
+                    .OrderBy(row => row.Id)
+                    .ToListAsync(cancellationToken),
+                await _dbContext.AncillaryProvisionServiceLocations
+                    .AsNoTracking()
+                    .Where(row => row.AncillaryProvisionId == provisionId)
+                    .OrderBy(row => row.Id)
+                    .ToListAsync(cancellationToken),
+                await _dbContext.AncillaryProvisionPermittedTravelPeriods
+                    .AsNoTracking()
+                    .Where(row => row.AncillaryProvisionId == provisionId)
+                    .OrderBy(row => row.Id)
+                    .ToListAsync(cancellationToken),
+                await _dbContext.AncillaryProvisionBlackoutPeriods
+                    .AsNoTracking()
+                    .Where(row => row.AncillaryProvisionId == provisionId)
+                    .OrderBy(row => row.Id)
+                    .ToListAsync(cancellationToken),
+                await _dbContext.AncillaryProvisionDayTimeWindows
+                    .AsNoTracking()
+                    .Where(row => row.AncillaryProvisionId == provisionId)
+                    .OrderBy(row => row.Id)
                     .ToListAsync(cancellationToken));
 
-            return AncillaryProvisionMapper.ToBackofficeProvision(provision, rows);
+            return AncillaryProvisionMapper.ToBackofficeProvision(provision, serviceDateBasis, rows);
         }
     }
 }

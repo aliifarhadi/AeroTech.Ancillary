@@ -54,8 +54,12 @@ public class V12PricingAcceptanceTests
         return (airlineId, supplierId, definition.Id);
     }
 
-    private async Task<long> DraftProvisionAsync(long definitionId, CommercialDisposition disposition = CommercialDisposition.Paid, int sequence = 10)
-        => (await RequestAsync(scope => scope.DefineProvision.DefineAsync(Provision(definitionId, sequence, disposition)))).Id;
+    private async Task<long> DraftProvisionAsync(
+        long definitionId,
+        CommercialDisposition disposition = CommercialDisposition.Paid,
+        int sequence = 10,
+        AncillaryQuantityUnit quantityUnit = AncillaryQuantityUnit.Each)
+        => (await RequestAsync(scope => scope.DefineProvision.DefineAsync(Provision(definitionId, sequence, disposition, quantityUnit: quantityUnit)))).Id;
 
     private Task<PricingResult> DefinePricingAsync(long provisionId, int currencyId, params PricingLineInput[] priceLines)
         => RequestAsync(scope => scope.DefinePricing.DefineAsync(Pricing(provisionId, currencyId, priceLines)));
@@ -366,7 +370,14 @@ public class V12PricingAcceptanceTests
     public async Task V12_P05_a_non_passenger_unit_files_one_rate_in_one_currency_and_refuses_passenger_selectors(PricingUnit pricingUnit, string reference)
     {
         var (_, _, definitionId) = await DefinitionAsync(pricingUnit, reference);
-        var provisionId = await DraftProvisionAsync(definitionId);
+        var provisionId = await DraftProvisionAsync(
+            definitionId,
+            quantityUnit: pricingUnit switch
+            {
+                PricingUnit.PerPiece => AncillaryQuantityUnit.Piece,
+                PricingUnit.PerKilogram => AncillaryQuantityUnit.Kilogram,
+                _ => AncillaryQuantityUnit.Each
+            });
 
         await RefusedAsync(16508, 409, scope => scope.DefinePricing.DefineAsync(Pricing(provisionId, Eur, Base(45m, PassengerTypeCode.ADT))));
         await RefusedAsync(16508, 409, scope => scope.DefinePricing.DefineAsync(Pricing(provisionId, Eur, Base(45m, null, 0, 65), Base(50m, null, 65))));

@@ -41,6 +41,7 @@ namespace AeroTech.Ancillary.Synchronizer.AncillaryServiceDefinitionAggregate
             definition.Description1Code = snapshot.Description1Code;
             definition.Description2Code = snapshot.Description2Code;
             definition.PricingUnit = snapshot.PricingUnit;
+            definition.ServiceDateBasis = snapshot.ServiceDateBasis;
             definition.CommercialName = snapshot.CommercialName;
             definition.Description = snapshot.Description;
             definition.DocumentType = snapshot.DocumentType;

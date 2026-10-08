@@ -10,24 +10,22 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
         {
         }
 
-        internal ProvisionPassengerType(long id, long ancillaryProvisionId, PassengerTypeCode passengerTypeCode)
+        internal ProvisionPassengerType(long id, long ancillaryProvisionId, long provisionPassengerEligibilityRuleId, PassengerTypeCode passengerTypeCode)
         {
+            if (!(Enum.IsDefined(passengerTypeCode)))
+                throw ExceptionFactory.ProvisionIsInvalid($"{nameof(ProvisionPassengerType)}.{nameof(PassengerTypeCode)}");
+
             Id = id;
             AncillaryProvisionId = ancillaryProvisionId;
-            Change(passengerTypeCode);
+            ProvisionPassengerEligibilityRuleId = provisionPassengerEligibilityRuleId;
+            PassengerTypeCode = passengerTypeCode;
         }
 
         public long AncillaryProvisionId { get; private set; }
 
+        public long ProvisionPassengerEligibilityRuleId { get; private set; }
+
         public PassengerTypeCode PassengerTypeCode { get; private set; }
-
-        internal void Change(PassengerTypeCode passengerTypeCode)
-        {
-            if (!Enum.IsDefined(passengerTypeCode))
-                throw ExceptionFactory.ProvisionIsInvalid($"{nameof(ProvisionPassengerType)}.{nameof(PassengerTypeCode)}");
-
-            PassengerTypeCode = passengerTypeCode;
-        }
 
         internal bool SameAs(ProvisionPassengerType other) => PassengerTypeCode == other.PassengerTypeCode;
     }

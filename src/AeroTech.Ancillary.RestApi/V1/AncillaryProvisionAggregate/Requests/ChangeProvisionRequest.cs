@@ -5,18 +5,21 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryProvisionAggregate.Requests
 {
     public sealed record ChangeProvisionRequest(
         int Sequence,
-        DateTimeOffset? SalesEffectiveFrom,
-        DateTimeOffset? SalesDiscontinueAt,
         ServiceCoverageScope CoverageScope,
-        ProvisionPassengerCriteriaInput? Passenger,
-        ProvisionSalesCriteriaInput? Sales,
-        ProvisionTravelCriteriaInput? Travel,
-        ProvisionFareCriteriaInput? Fare,
-        ProvisionAdvancePurchaseInput? AdvancePurchase,
         ProvisionQuantityInput Quantity,
-        ProvisionApplicationInput Application,
+        ProvisionApplicationType ApplicationType,
         ProvisionOutcomeInput Outcome,
         ProvisionSettlementInput Settlement,
         ProvisionAvailabilityInput Availability,
-        ProvisionFulfillmentInput Fulfillment);
+        ProvisionFulfillmentInput Fulfillment,
+        ProvisionPassengerEligibilityInput? PassengerEligibility,
+        ProvisionSalesRestrictionsInput? SalesRestrictions,
+        ProvisionGeographyInput? Geography,
+        ProvisionFlightApplicationInput? FlightApplication,
+        ProvisionFareApplicationInput? FareApplication,
+        ProvisionTravelDateInput? TravelDate,
+        ProvisionDayTimeApplicationInput? DayTimeApplication,
+        ProvisionAdvancePurchaseInput? AdvancePurchase,
+        ProvisionBaggageApplicationInput? BaggageApplication,
+        ProvisionSeatApplicationInput? SeatApplication);
 }

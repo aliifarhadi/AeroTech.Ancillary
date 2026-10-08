@@ -8,27 +8,35 @@ using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.SuspendA
 using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.SwitchActiveAncillaryPricing;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ActivateAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionBlackoutPeriod;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionDayTimeRestriction;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionSeasonalPeriod;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionTravelDate;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionDayTimeWindow;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionPermittedTravelPeriod;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeAncillaryProvision;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionAdvancePurchase;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionBaggageApplication;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionBlackoutPeriod;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionDayTimeRestriction;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionSeasonalPeriod;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionDayTimeApplication;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionDayTimeWindow;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionFareApplication;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionFlightApplication;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionGeography;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionPassengerEligibility;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionPermittedTravelPeriod;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionSalesRestrictions;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionSeatApplication;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionTravelDate;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.DefineAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.PublishAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ReactivateAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RemoveProvisionBlackoutPeriod;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RemoveProvisionDayTimeRestriction;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RemoveProvisionSeasonalPeriod;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RemoveProvisionTravelDate;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RemoveProvisionDayTimeWindow;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RemoveProvisionPermittedTravelPeriod;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RetireAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.SuspendAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ConfirmAncillaryHold;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldAncillaryServices;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ActivateAncillaryServiceDefinition;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.AssignAncillaryServiceDefinitionPricingUnit;
+using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.AssignAncillaryServiceDefinitionServiceDateBasis;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ChangeAncillaryServiceDefinition;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.DefineAncillaryServiceDefinition;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ReactivateAncillaryServiceDefinition;
@@ -105,6 +113,7 @@ public sealed class AncillaryScope : IAsyncDisposable
             definitionSynchronizer,
             pricingSynchronizer,
             UnitOfWork);
+        AssignServiceDateBasis = new AssignAncillaryServiceDefinitionServiceDateBasisService(Definitions, Suppliers, definitionSynchronizer, UnitOfWork);
 
         DefineProvision = new DefineAncillaryProvisionService(Provisions, Definitions, provisionSynchronizer, UnitOfWork, ids, clock);
         ChangeProvision = new ChangeAncillaryProvisionService(Provisions, provisionSynchronizer, UnitOfWork, ids);
@@ -118,21 +127,28 @@ public sealed class AncillaryScope : IAsyncDisposable
             UnitOfWork,
             clock);
         SuspendProvision = new SuspendAncillaryProvisionService(Provisions, provisionSynchronizer, UnitOfWork, clock);
-        ReactivateProvision = new ReactivateAncillaryProvisionService(Provisions, Pricings, provisionSynchronizer, UnitOfWork);
+        ReactivateProvision = new ReactivateAncillaryProvisionService(Provisions, Definitions, Pricings, provisionSynchronizer, UnitOfWork);
         RetireProvision = new RetireAncillaryProvisionService(Provisions, provisionSynchronizer, UnitOfWork, clock);
 
-        AddTravelDate = new AddProvisionTravelDateService(Provisions, provisionSynchronizer, UnitOfWork, ids);
-        ChangeTravelDate = new ChangeProvisionTravelDateService(Provisions, provisionSynchronizer, UnitOfWork);
-        RemoveTravelDate = new RemoveProvisionTravelDateService(Provisions, provisionSynchronizer, UnitOfWork);
-        AddSeasonalPeriod = new AddProvisionSeasonalPeriodService(Provisions, provisionSynchronizer, UnitOfWork, ids);
-        ChangeSeasonalPeriod = new ChangeProvisionSeasonalPeriodService(Provisions, provisionSynchronizer, UnitOfWork);
-        RemoveSeasonalPeriod = new RemoveProvisionSeasonalPeriodService(Provisions, provisionSynchronizer, UnitOfWork);
+        ChangePassengerEligibility = new ChangeProvisionPassengerEligibilityService(Provisions, provisionSynchronizer, UnitOfWork, ids);
+        ChangeSalesRestrictions = new ChangeProvisionSalesRestrictionsService(Provisions, provisionSynchronizer, UnitOfWork, ids);
+        ChangeGeography = new ChangeProvisionGeographyService(Provisions, provisionSynchronizer, UnitOfWork, ids);
+        ChangeFlightApplication = new ChangeProvisionFlightApplicationService(Provisions, provisionSynchronizer, UnitOfWork, ids);
+        ChangeFareApplication = new ChangeProvisionFareApplicationService(Provisions, provisionSynchronizer, UnitOfWork, ids);
+        ChangeTravelDate = new ChangeProvisionTravelDateService(Provisions, provisionSynchronizer, UnitOfWork, ids);
+        ChangeDayTimeApplication = new ChangeProvisionDayTimeApplicationService(Provisions, provisionSynchronizer, UnitOfWork, ids);
+        ChangeAdvancePurchase = new ChangeProvisionAdvancePurchaseService(Provisions, provisionSynchronizer, UnitOfWork, ids);
+        ChangeBaggageApplication = new ChangeProvisionBaggageApplicationService(Provisions, provisionSynchronizer, UnitOfWork, ids);
+        ChangeSeatApplication = new ChangeProvisionSeatApplicationService(Provisions, provisionSynchronizer, UnitOfWork, ids);
+        AddPermittedTravelPeriod = new AddProvisionPermittedTravelPeriodService(Provisions, provisionSynchronizer, UnitOfWork, ids);
+        ChangePermittedTravelPeriod = new ChangeProvisionPermittedTravelPeriodService(Provisions, provisionSynchronizer, UnitOfWork);
+        RemovePermittedTravelPeriod = new RemoveProvisionPermittedTravelPeriodService(Provisions, provisionSynchronizer, UnitOfWork);
         AddBlackoutPeriod = new AddProvisionBlackoutPeriodService(Provisions, provisionSynchronizer, UnitOfWork, ids);
         ChangeBlackoutPeriod = new ChangeProvisionBlackoutPeriodService(Provisions, provisionSynchronizer, UnitOfWork);
         RemoveBlackoutPeriod = new RemoveProvisionBlackoutPeriodService(Provisions, provisionSynchronizer, UnitOfWork);
-        AddDayTimeRestriction = new AddProvisionDayTimeRestrictionService(Provisions, provisionSynchronizer, UnitOfWork, ids);
-        ChangeDayTimeRestriction = new ChangeProvisionDayTimeRestrictionService(Provisions, provisionSynchronizer, UnitOfWork);
-        RemoveDayTimeRestriction = new RemoveProvisionDayTimeRestrictionService(Provisions, provisionSynchronizer, UnitOfWork);
+        AddDayTimeWindow = new AddProvisionDayTimeWindowService(Provisions, provisionSynchronizer, UnitOfWork, ids);
+        ChangeDayTimeWindow = new ChangeProvisionDayTimeWindowService(Provisions, provisionSynchronizer, UnitOfWork);
+        RemoveDayTimeWindow = new RemoveProvisionDayTimeWindowService(Provisions, provisionSynchronizer, UnitOfWork);
 
         DefinePricing = new DefineAncillaryPricingService(Pricings, Provisions, Definitions, pricingSynchronizer, UnitOfWork, ids, clock);
         ChangePricing = new ChangeAncillaryPricingService(Pricings, pricingSynchronizer, UnitOfWork, ids);
@@ -193,6 +209,8 @@ public sealed class AncillaryScope : IAsyncDisposable
 
     public IAssignAncillaryServiceDefinitionPricingUnitService AssignPricingUnit { get; }
 
+    public IAssignAncillaryServiceDefinitionServiceDateBasisService AssignServiceDateBasis { get; }
+
     public IDefineAncillaryProvisionService DefineProvision { get; }
 
     public IChangeAncillaryProvisionService ChangeProvision { get; }
@@ -207,17 +225,31 @@ public sealed class AncillaryScope : IAsyncDisposable
 
     public IRetireAncillaryProvisionService RetireProvision { get; }
 
-    public IAddProvisionTravelDateService AddTravelDate { get; }
+    public IChangeProvisionPassengerEligibilityService ChangePassengerEligibility { get; }
+
+    public IChangeProvisionSalesRestrictionsService ChangeSalesRestrictions { get; }
+
+    public IChangeProvisionGeographyService ChangeGeography { get; }
+
+    public IChangeProvisionFlightApplicationService ChangeFlightApplication { get; }
+
+    public IChangeProvisionFareApplicationService ChangeFareApplication { get; }
 
     public IChangeProvisionTravelDateService ChangeTravelDate { get; }
 
-    public IRemoveProvisionTravelDateService RemoveTravelDate { get; }
+    public IChangeProvisionDayTimeApplicationService ChangeDayTimeApplication { get; }
 
-    public IAddProvisionSeasonalPeriodService AddSeasonalPeriod { get; }
+    public IChangeProvisionAdvancePurchaseService ChangeAdvancePurchase { get; }
 
-    public IChangeProvisionSeasonalPeriodService ChangeSeasonalPeriod { get; }
+    public IChangeProvisionBaggageApplicationService ChangeBaggageApplication { get; }
 
-    public IRemoveProvisionSeasonalPeriodService RemoveSeasonalPeriod { get; }
+    public IChangeProvisionSeatApplicationService ChangeSeatApplication { get; }
+
+    public IAddProvisionPermittedTravelPeriodService AddPermittedTravelPeriod { get; }
+
+    public IChangeProvisionPermittedTravelPeriodService ChangePermittedTravelPeriod { get; }
+
+    public IRemoveProvisionPermittedTravelPeriodService RemovePermittedTravelPeriod { get; }
 
     public IAddProvisionBlackoutPeriodService AddBlackoutPeriod { get; }
 
@@ -225,11 +257,11 @@ public sealed class AncillaryScope : IAsyncDisposable
 
     public IRemoveProvisionBlackoutPeriodService RemoveBlackoutPeriod { get; }
 
-    public IAddProvisionDayTimeRestrictionService AddDayTimeRestriction { get; }
+    public IAddProvisionDayTimeWindowService AddDayTimeWindow { get; }
 
-    public IChangeProvisionDayTimeRestrictionService ChangeDayTimeRestriction { get; }
+    public IChangeProvisionDayTimeWindowService ChangeDayTimeWindow { get; }
 
-    public IRemoveProvisionDayTimeRestrictionService RemoveDayTimeRestriction { get; }
+    public IRemoveProvisionDayTimeWindowService RemoveDayTimeWindow { get; }
 
     public IDefineAncillaryPricingService DefinePricing { get; }
 

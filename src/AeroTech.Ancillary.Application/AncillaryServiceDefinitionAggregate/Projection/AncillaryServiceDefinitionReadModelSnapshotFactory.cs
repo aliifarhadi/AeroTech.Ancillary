@@ -23,6 +23,7 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Pro
                 definition.Description1Code,
                 definition.Description2Code,
                 definition.PricingUnit,
+                definition.ServiceDateBasis,
                 definition.CommercialName,
                 definition.Description,
                 definition.Document.Type,

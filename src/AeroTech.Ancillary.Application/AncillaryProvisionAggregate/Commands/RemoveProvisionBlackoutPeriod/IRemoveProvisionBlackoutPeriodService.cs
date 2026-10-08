@@ -1,9 +1,9 @@
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionTravelDate;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionPermittedTravelPeriod;
 
 namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RemoveProvisionBlackoutPeriod
 {
     public interface IRemoveProvisionBlackoutPeriodService
     {
-        Task<ProvisionConditionRowResult> RemoveAsync(IRemoveProvisionBlackoutPeriodCommand command, CancellationToken cancellationToken = default);
+        Task<ProvisionRuleRowResult> RemoveAsync(IRemoveProvisionBlackoutPeriodCommand command, CancellationToken cancellationToken = default);
     }
 }

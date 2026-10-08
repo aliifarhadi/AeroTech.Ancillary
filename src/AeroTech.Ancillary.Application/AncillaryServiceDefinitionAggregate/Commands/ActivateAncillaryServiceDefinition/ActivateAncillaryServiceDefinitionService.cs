@@ -51,6 +51,13 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
                     pricingUnit,
                     cancellationToken);
 
+            if (definition.ServiceDateBasis is { } serviceDateBasis)
+                await _definitions.EnsureServiceDateBasisAllowedAsync(
+                    definition.OwnerAirlineId,
+                    definition.ServiceDefinitionRef,
+                    serviceDateBasis,
+                    cancellationToken);
+
             definition.Activate(supplier, _clock.GetDateTime());
 
             await _synchronizer.ProjectAsync(definition.ToReadModelSnapshot(supplier.Name), cancellationToken);

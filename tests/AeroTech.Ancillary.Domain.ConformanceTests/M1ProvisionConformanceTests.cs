@@ -23,7 +23,7 @@ public class M1ProvisionConformanceTests
         Assert.Equal(100, provision.Sequence);
         Assert.Equal(ProvisionStatus.Draft, provision.Status);
         Assert.Equal(ServiceCoverageScope.Sector, provision.CoverageScope);
-        Assert.Equal(ProvisionApplicationType.Standard, provision.Application.Type);
+        Assert.Equal(ProvisionApplicationType.Standard, provision.ApplicationType);
         Assert.Equal(CommercialDisposition.Paid, provision.Outcome.Disposition);
         Assert.Equal("Ancillary", provision.Fulfillment.FulfillmentProviderKey);
         Assert.Equal((501L, Currency, FeeApplicationUnit.Item, PricingStatus.Draft), (pricing.AncillaryProvisionId, pricing.CurrencyId, pricing.FeeApplicationUnit!.Value, pricing.Status));
@@ -75,11 +75,11 @@ public class M1ProvisionConformanceTests
     {
         var provision = LoungeProvision();
 
-        provision.Activate(Now.AddMinutes(1));
+        provision.Activate(LoungeDefinition(), Now.AddMinutes(1));
 
         Assert.Equal(ProvisionStatus.Active, provision.Status);
         Assert.Equal(Now.AddMinutes(1), provision.ActivatedAt);
-        BusinessAssert.Throws(16303, 409, () => provision.Activate(Now.AddMinutes(2)));
+        BusinessAssert.Throws(16303, 409, () => provision.Activate(LoungeDefinition(), Now.AddMinutes(2)));
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public class M1ProvisionConformanceTests
 
         BusinessAssert.Throws(16303, 409, () => provision.Supersede(Now));
 
-        provision.Activate(Now.AddMinutes(1));
+        provision.Activate(LoungeDefinition(), Now.AddMinutes(1));
         provision.Supersede(Now.AddMinutes(2));
 
         Assert.Equal(ProvisionStatus.Retired, provision.Status);

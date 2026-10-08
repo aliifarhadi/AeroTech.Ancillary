@@ -117,6 +117,7 @@ public sealed class FamilyProof
             var createdDefinition = await author.DefineServiceDefinition.DefineAsync(definition);
 
             Assert.Equal((ServiceDefinitionStatus.Draft, definition.PricingUnit), (createdDefinition.Status, createdDefinition.PricingUnit!.Value));
+            Assert.Equal(definition.ServiceDateBasis, createdDefinition.ServiceDateBasis!.Value);
 
             definitionId = createdDefinition.Id;
             draftCommand = provision(definitionId);
@@ -146,6 +147,9 @@ public sealed class FamilyProof
                 ("Draft", definition.ServiceDefinitionRef, definition.CommercialName, definition.PricingUnit.ToString()),
                 (definitionDetail.Status.Name, definitionDetail.ServiceDefinitionRef, definitionDetail.CommercialName, definitionDetail.PricingUnit!.Name));
             Assert.Equal(("Draft", definitionId), (provisionDetail.Status.Name, provisionDetail.ServiceDefinitionId));
+            Assert.Equal(
+                (definition.ServiceDateBasis.ToString(), definition.ServiceDateBasis.ToString()),
+                (definitionDetail.ServiceDateBasis!.Name, provisionDetail.ServiceDateBasis!.Name));
             assertDefinition(definitionDetail);
             assertDraft(provisionDetail);
 

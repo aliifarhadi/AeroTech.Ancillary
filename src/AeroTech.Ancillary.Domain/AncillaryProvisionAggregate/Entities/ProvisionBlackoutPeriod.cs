@@ -10,14 +10,17 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
         {
         }
 
-        internal ProvisionBlackoutPeriod(long id, long ancillaryProvisionId, ProvisionDatePeriodArgs args)
+        internal ProvisionBlackoutPeriod(long id, long ancillaryProvisionId, long provisionTravelDateRuleId, ProvisionDatePeriodArgs args)
         {
             Id = id;
             AncillaryProvisionId = ancillaryProvisionId;
+            ProvisionTravelDateRuleId = provisionTravelDateRuleId;
             Change(args);
         }
 
         public long AncillaryProvisionId { get; private set; }
+
+        public long ProvisionTravelDateRuleId { get; private set; }
 
         public DateOnly StartDate { get; private set; }
 
@@ -32,7 +35,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
             EndDate = args.EndDate;
         }
 
-        internal bool SameAs(ProvisionBlackoutPeriod other) => StartDate == other.StartDate && EndDate == other.EndDate;
+        internal bool SameAs(ProvisionDatePeriodArgs args) => StartDate == args.StartDate && EndDate == args.EndDate;
 
         private static void Require(bool condition, string field)
         {

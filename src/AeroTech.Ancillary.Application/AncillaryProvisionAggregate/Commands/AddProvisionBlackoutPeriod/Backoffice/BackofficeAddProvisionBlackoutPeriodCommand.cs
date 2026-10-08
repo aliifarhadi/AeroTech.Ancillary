@@ -1,4 +1,4 @@
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionTravelDate;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionPermittedTravelPeriod;
 using MediatR;
 
 namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionBlackoutPeriod.Backoffice
@@ -6,5 +6,5 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Ad
     public sealed record BackofficeAddProvisionBlackoutPeriodCommand(
         long ProvisionId,
         DateOnly StartDate,
-        DateOnly EndDate) : IRequest<ProvisionConditionRowResult>, IAddProvisionBlackoutPeriodCommand;
+        DateOnly EndDate) : IRequest<ProvisionRuleRowResult>, IAddProvisionBlackoutPeriodCommand;
 }

@@ -22,6 +22,9 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public const string ServiceDefinitionPricingUnitConflict = "Pricing unit {0} differs from the pricing unit already published for this service identity.";
         public const string ServiceDefinitionPricingUnitNotAssigned = "The pricing unit of this service identity is not assigned yet.";
         public const string ServiceDefinitionPricingUnitAlreadyAssigned = "The pricing unit of this service identity is already assigned.";
+        public const string ServiceDefinitionServiceDateBasisConflict = "Service date basis {0} differs from the service date basis already published for this service identity.";
+        public const string ServiceDefinitionServiceDateBasisNotAssigned = "The service date basis of this service identity is not assigned yet.";
+        public const string ServiceDefinitionServiceDateBasisAlreadyAssigned = "The service date basis of this service identity is already assigned.";
         public const string ProvisionNotFound = "The provision was not found.";
         public const string ProvisionIsInvalid = "Provision field {0} is invalid.";
         public const string ProvisionStatusChangeNotAllowed = "The provision status does not allow this change.";
@@ -33,6 +36,10 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public const string ProvisionConditionAlreadyExists = "The provision already has this condition row.";
         public const string ProvisionActivePricingRequired = "A paid provision needs exactly one active pricing.";
         public const string ProvisionActivePricingNotAllowed = "A free or not available provision cannot have an active pricing.";
+        public const string ProvisionQuantityUnitIncompatible = "Pricing unit {0} cannot be sold with quantity unit {1}.";
+        public const string ProvisionRuleContextNotSupported = "A flight, fare, route, baggage, seat or ticket rule needs a service dated by its flight departure; this service is dated by {0}.";
+        public const string ProvisionAdvancePurchaseUnitNotSupported = "Advance purchase unit {0} is not supported.";
+        public const string ProvisionRuleUnreachable = "The {0} rule can never be satisfied.";
         public const string AncillaryHoldNotFound = "The ancillary hold was not found.";
         public const string AncillaryHoldRequestIsInvalid = "Ancillary hold field {0} is invalid.";
         public const string AncillaryHoldIdempotencyKeyReused = "The idempotency key was already used with a different request.";

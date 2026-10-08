@@ -3,6 +3,7 @@ using AeroTech.Framework.Core.ServiceContracts;
 using AeroTech.Framework.Infrastructure.Persistence;
 using AeroTech.Ancillary.Domain.AncillaryPricingAggregate;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate;
+using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities;
 using AeroTech.Ancillary.Domain.AncillaryReservationAggregate;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.Domain.SupplierAggregate;
@@ -16,6 +17,8 @@ namespace AeroTech.Ancillary.Persistence
     {
         public const string MigrationsHistorySchema = "dbo";
         public const string MigrationsHistoryTable = "__CommandsMigrationHistory";
+
+        private static readonly string ProvisionRuleNamespace = typeof(ProvisionTravelDateRule).Namespace!;
 
         public AncillaryDbContext(
             DbContextOptions<AncillaryDbContext> options,
@@ -40,6 +43,20 @@ namespace AeroTech.Ancillary.Persistence
 
         public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
 
+        public override int SaveChanges(bool acceptAllChangesOnSuccess)
+        {
+            VersionProvisionsOfChangedRules();
+
+            return base.SaveChanges(acceptAllChangesOnSuccess);
+        }
+
+        public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+        {
+            VersionProvisionsOfChangedRules();
+
+            return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.HasDefaultSchema("Ancillary");
@@ -51,6 +68,24 @@ namespace AeroTech.Ancillary.Persistence
         {
             configurationBuilder.Properties<decimal>().HavePrecision(18, 2);
             configurationBuilder.Properties<string>().HaveMaxLength(256);
+        }
+
+        private void VersionProvisionsOfChangedRules()
+        {
+            var provisionIds = ChangeTracker.Entries()
+                .Where(entry => entry.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
+                .Where(entry => entry.Metadata.ClrType.Namespace == ProvisionRuleNamespace)
+                .Select(entry => (long)entry.Property(nameof(ProvisionTravelDateRule.AncillaryProvisionId)).CurrentValue!)
+                .ToHashSet();
+
+            if (provisionIds.Count == 0)
+                return;
+
+            foreach (var provision in ChangeTracker.Entries<AncillaryProvision>())
+            {
+                if (provision.State == EntityState.Unchanged && provisionIds.Contains(provision.Entity.Id))
+                    provision.State = EntityState.Modified;
+            }
         }
     }
 }
