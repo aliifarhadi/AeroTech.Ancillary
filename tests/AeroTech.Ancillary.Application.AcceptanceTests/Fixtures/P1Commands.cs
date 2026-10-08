@@ -32,7 +32,8 @@ public sealed record TestChangeServiceDefinitionCommand(
     ServiceDefinitionDocumentInput Document,
     ServiceDefinitionBookingInput Booking,
     DateOnly? SalesEffectiveFrom,
-    DateOnly? SalesDiscontinueOn) : IChangeAncillaryServiceDefinitionCommand;
+    DateOnly? SalesDiscontinueOn,
+    PricingUnit PricingUnit = PricingUnit.PerPassenger) : IChangeAncillaryServiceDefinitionCommand;
 
 public sealed record TestServiceDefinitionLifecycleCommand(long ServiceDefinitionId)
     : ISuspendAncillaryServiceDefinitionCommand,
@@ -54,7 +55,6 @@ public sealed record TestChangeProvisionCommand(
     ProvisionQuantityInput Quantity,
     ProvisionApplicationInput Application,
     ProvisionOutcomeInput Outcome,
-    ProvisionFeeInput? Fee,
     ProvisionSettlementInput Settlement,
     ProvisionAvailabilityInput Availability,
     ProvisionFulfillmentInput Fulfillment) : IChangeAncillaryProvisionCommand;
@@ -84,7 +84,8 @@ public static class P1Commands
         string? subGroupCode = null,
         string? description = null,
         DateOnly? salesEffectiveFrom = null,
-        DateOnly? salesDiscontinueOn = null)
+        DateOnly? salesDiscontinueOn = null,
+        PricingUnit pricingUnit = PricingUnit.PerPassenger)
         => new(
             airlineId,
             supplierId,
@@ -101,7 +102,8 @@ public static class P1Commands
             document ?? new ServiceDefinitionDocumentInput(AncillaryDocumentType.None, null, null),
             booking ?? new ServiceDefinitionBookingInput(BookingMethod.NoBookingProcessRequired, null, null),
             salesEffectiveFrom,
-            salesDiscontinueOn);
+            salesDiscontinueOn,
+            pricingUnit);
 
     public static TestDefineServiceDefinitionCommand FirstExcessBagDefinition(int airlineId, long supplierId, string reference = "XBAG_FIRST")
         => new(
@@ -120,7 +122,8 @@ public static class P1Commands
             new ServiceDefinitionDocumentInput(AncillaryDocumentType.EmdAssociated, "C", "0CC"),
             new ServiceDefinitionBookingInput(BookingMethod.Ssr, "XBAG", null),
             null,
-            null);
+            null,
+            PricingUnit.PerPiece);
 
     public static ServiceDefinitionBookingInput Ssr(string code) => new(BookingMethod.Ssr, code, null);
 
@@ -140,13 +143,12 @@ public static class P1Commands
             source.Document,
             source.Booking,
             source.SalesEffectiveFrom,
-            source.SalesDiscontinueOn);
+            source.SalesDiscontinueOn,
+            source.PricingUnit);
 
     public static TestDefineProvisionCommand Provision(
         long serviceDefinitionId,
         int sequence,
-        decimal amount = 25m,
-        int currencyId = Eur,
         CommercialDisposition disposition = CommercialDisposition.Paid,
         ServiceCoverageScope coverageScope = ServiceCoverageScope.Sector,
         AncillaryQuantityUnit quantityUnit = AncillaryQuantityUnit.Each,
@@ -160,11 +162,8 @@ public static class P1Commands
         ProvisionFareCriteriaInput? fare = null,
         ProvisionAdvancePurchaseInput? advancePurchase = null,
         ProvisionApplicationInput? application = null,
-        IReadOnlyList<ProvisionPriceLineInput>? priceLines = null)
-    {
-        var paid = disposition == CommercialDisposition.Paid;
-
-        return new TestDefineProvisionCommand(
+        bool bookingRequired = false)
+        => new(
             serviceDefinitionId,
             sequence,
             salesEffectiveFrom,
@@ -172,13 +171,7 @@ public static class P1Commands
             coverageScope,
             new ProvisionQuantityInput(quantityUnit, minQuantity, maxQuantity),
             application ?? new ProvisionApplicationInput(ProvisionApplicationType.Standard),
-            new ProvisionOutcomeInput(disposition, paid, false),
-            paid
-                ? new ProvisionFeeInput(
-                    FeeApplicationUnit.Item,
-                    currencyId,
-                    priceLines ?? [new ProvisionPriceLineInput(AncillaryPriceLineCategory.Ancillary, null, "Service", amount)])
-                : null,
+            new ProvisionOutcomeInput(disposition, disposition == CommercialDisposition.Paid, bookingRequired),
             new ProvisionSettlementInput(ReissueRefundPolicy.NonRefundable, null, false, false),
             new ProvisionAvailabilityInput(false),
             new ProvisionFulfillmentInput("Ancillary"),
@@ -187,7 +180,6 @@ public static class P1Commands
             travel,
             fare,
             advancePurchase);
-    }
 
     public static TestChangeProvisionCommand Change(long provisionId, TestDefineProvisionCommand source)
         => new(
@@ -204,7 +196,6 @@ public static class P1Commands
             source.Quantity,
             source.Application,
             source.Outcome,
-            source.Fee,
             source.Settlement,
             source.Availability,
             source.Fulfillment);
@@ -240,7 +231,4 @@ public static class P1Commands
 
     public static ProvisionApplicationInput Seat(string[]? seatNumbers, string[]? seatCharacteristicCodes)
         => new(ProvisionApplicationType.Seat, Seat: new ProvisionSeatApplicationInput(seatNumbers, seatCharacteristicCodes));
-
-    public static IReadOnlyList<ProvisionPriceLineInput> Price(decimal amount, string name = "Service")
-        => [new ProvisionPriceLineInput(AncillaryPriceLineCategory.Ancillary, null, name, amount)];
 }

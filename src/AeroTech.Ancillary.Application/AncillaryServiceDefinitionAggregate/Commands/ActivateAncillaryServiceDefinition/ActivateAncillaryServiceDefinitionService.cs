@@ -1,5 +1,6 @@
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.DefineAncillaryServiceDefinition;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Projection;
+using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Services;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Contracts;
 using AeroTech.Ancillary.Domain.SupplierAggregate.Contracts;
 using AeroTech.Ancillary.Domain._Shared.Resources;
@@ -42,6 +43,13 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
 
             if (await _definitions.HasActiveAsync(definition.OwnerAirlineId, definition.ServiceDefinitionRef, cancellationToken))
                 throw ExceptionFactory.ServiceDefinitionRefAlreadyActive(definition.ServiceDefinitionRef);
+
+            if (definition.PricingUnit is { } pricingUnit)
+                await _definitions.EnsurePricingUnitAllowedAsync(
+                    definition.OwnerAirlineId,
+                    definition.ServiceDefinitionRef,
+                    pricingUnit,
+                    cancellationToken);
 
             definition.Activate(supplier, _clock.GetDateTime());
 

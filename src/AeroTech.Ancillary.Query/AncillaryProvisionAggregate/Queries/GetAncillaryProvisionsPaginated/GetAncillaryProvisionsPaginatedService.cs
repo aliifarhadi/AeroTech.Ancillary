@@ -1,7 +1,7 @@
-using AeroTech.Framework.Core.Domain.Queries;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Dto;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionById;
 using AeroTech.Ancillary.Query._Shared.DbContexts;
+using AeroTech.Framework.Core.Domain.Queries;
 using Microsoft.EntityFrameworkCore;
 
 namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionsPaginated
@@ -32,36 +32,28 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                        select provision;
 
             var totalCount = await rows.LongCountAsync(cancellationToken);
-
             var page = await rows
                 .OrderBy(provision => provision.Sequence)
                 .ThenByDescending(provision => provision.CreatedAt)
                 .ThenBy(provision => provision.Id)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
+                .Select(provision => new
+                {
+                    Provision = provision,
+                    TravelDates = _dbContext.AncillaryProvisionTravelDates.Count(row => row.AncillaryProvisionId == provision.Id),
+                    SeasonalPeriods = _dbContext.AncillaryProvisionSeasonalPeriods.Count(row => row.AncillaryProvisionId == provision.Id),
+                    BlackoutPeriods = _dbContext.AncillaryProvisionBlackoutPeriods.Count(row => row.AncillaryProvisionId == provision.Id),
+                    DayTimeRestrictions = _dbContext.AncillaryProvisionDayTimeRestrictions.Count(row => row.AncillaryProvisionId == provision.Id)
+                })
                 .ToListAsync(cancellationToken);
 
-            var provisionIds = page.Select(provision => provision.Id).ToList();
-
-            var linesByProvision = (await _dbContext.AncillaryProvisionPriceLines.AsNoTracking()
-                    .Where(line => provisionIds.Contains(line.AncillaryProvisionId))
-                    .ToListAsync(cancellationToken))
-                .ToLookup(line => line.AncillaryProvisionId);
-
-            var currencyIds = page
-                .Where(provision => provision.FeeCurrencyId.HasValue)
-                .Select(provision => provision.FeeCurrencyId!.Value)
-                .Distinct()
-                .ToList();
-
-            var currencies = await _dbContext.Currencies.AsNoTracking()
-                .Where(currency => currencyIds.Contains(currency.Id))
-                .ToDictionaryAsync(currency => currency.Id, currency => currency.Code, cancellationToken);
-
-            var projected = page.Select(provision => AncillaryProvisionMapper.ToPaginatedRow(
-                provision,
-                linesByProvision[provision.Id].ToList(),
-                provision.FeeCurrencyId is { } currencyId ? currencies.GetValueOrDefault(currencyId) : null));
+            var projected = page.Select(row => AncillaryProvisionMapper.ToPaginatedRow(
+                row.Provision,
+                row.TravelDates,
+                row.SeasonalPeriods,
+                row.BlackoutPeriods,
+                row.DayTimeRestrictions));
 
             return GridData<ProvisionPaginatedRowDto>.Create(
                 PaginatedList<ProvisionPaginatedRowDto>.Create(projected, pageNumber, pageSize, totalCount));

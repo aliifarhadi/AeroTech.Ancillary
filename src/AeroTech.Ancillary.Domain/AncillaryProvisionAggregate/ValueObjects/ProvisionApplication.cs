@@ -10,33 +10,28 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.ValueObjects
         {
         }
 
-        private ProvisionApplication(ProvisionApplicationType type, BaggageApplication? baggage, SeatApplication? seat)
+        private ProvisionApplication(ProvisionApplicationType type, BaggageApplication? baggage)
         {
             Type = type;
             Baggage = baggage;
-            Seat = seat;
         }
 
         public ProvisionApplicationType Type { get; private set; }
 
         public BaggageApplication? Baggage { get; private set; }
 
-        public SeatApplication? Seat { get; private set; }
-
-        public static ProvisionApplication Create(ProvisionApplicationType type, BaggageApplication? baggage, SeatApplication? seat)
+        public static ProvisionApplication Create(ProvisionApplicationType type, BaggageApplication? baggage)
         {
             Require(Enum.IsDefined(type), nameof(Type));
             Require(type == ProvisionApplicationType.Baggage ? baggage is not null : baggage is null, nameof(Baggage));
-            Require(type == ProvisionApplicationType.Seat ? seat is not null : seat is null, nameof(Seat));
 
-            return new ProvisionApplication(type, baggage, seat);
+            return new ProvisionApplication(type, baggage);
         }
 
         protected override IEnumerable<object?> GetEqualityComponents()
         {
             yield return Type;
             yield return Baggage;
-            yield return Seat;
         }
 
         private static void Require(bool condition, string field)

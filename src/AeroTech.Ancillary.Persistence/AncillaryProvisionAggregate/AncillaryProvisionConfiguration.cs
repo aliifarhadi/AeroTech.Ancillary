@@ -13,123 +13,6 @@ namespace AeroTech.Ancillary.Persistence.AncillaryProvisionAggregate
             builder.HasKey(provision => provision.Id);
             builder.Property(provision => provision.Id).ValueGeneratedNever();
 
-            builder.OwnsOne(provision => provision.Passenger, passenger =>
-            {
-                passenger.PrimitiveCollection(value => value.PassengerTypeCodes)
-                    .HasField("_passengerTypeCodes")
-                    .UsePropertyAccessMode(PropertyAccessMode.Field)
-                    .HasColumnName("PassengerTypeCodes")
-                    .IsRequired();
-            });
-
-            builder.OwnsOne(provision => provision.Sales, sales =>
-            {
-                sales.PrimitiveCollection(value => value.PointOfSaleIds)
-                    .HasField("_pointOfSaleIds")
-                    .UsePropertyAccessMode(PropertyAccessMode.Field)
-                    .HasColumnName("PointOfSaleIds")
-                    .IsRequired();
-                sales.PrimitiveCollection(value => value.CustomerIds)
-                    .HasField("_customerIds")
-                    .UsePropertyAccessMode(PropertyAccessMode.Field)
-                    .HasColumnName("CustomerIds")
-                    .IsRequired();
-                sales.PrimitiveCollection(value => value.CustomerTypes)
-                    .HasField("_customerTypes")
-                    .UsePropertyAccessMode(PropertyAccessMode.Field)
-                    .HasColumnName("CustomerTypes")
-                    .IsRequired();
-            });
-
-            builder.OwnsOne(provision => provision.Travel, travel =>
-            {
-                travel.PrimitiveCollection(value => value.OriginAirportIds)
-                    .HasField("_originAirportIds")
-                    .UsePropertyAccessMode(PropertyAccessMode.Field)
-                    .HasColumnName("OriginAirportIds")
-                    .IsRequired();
-                travel.PrimitiveCollection(value => value.DestinationAirportIds)
-                    .HasField("_destinationAirportIds")
-                    .UsePropertyAccessMode(PropertyAccessMode.Field)
-                    .HasColumnName("DestinationAirportIds")
-                    .IsRequired();
-                travel.PrimitiveCollection(value => value.ViaAirportIds)
-                    .HasField("_viaAirportIds")
-                    .UsePropertyAccessMode(PropertyAccessMode.Field)
-                    .HasColumnName("ViaAirportIds")
-                    .IsRequired();
-                travel.Property(value => value.TravelFrom).HasColumnName("TravelFrom");
-                travel.Property(value => value.TravelTo).HasColumnName("TravelTo");
-                travel.PrimitiveCollection(value => value.DaysOfWeek)
-                    .HasField("_daysOfWeek")
-                    .UsePropertyAccessMode(PropertyAccessMode.Field)
-                    .HasColumnName("DaysOfWeek")
-                    .IsRequired();
-                travel.Property(value => value.TimeFrom).HasColumnName("TimeFrom");
-                travel.Property(value => value.TimeTo).HasColumnName("TimeTo");
-                travel.PrimitiveCollection(value => value.MarketingAirlineIds)
-                    .HasField("_marketingAirlineIds")
-                    .UsePropertyAccessMode(PropertyAccessMode.Field)
-                    .HasColumnName("MarketingAirlineIds")
-                    .IsRequired();
-                travel.PrimitiveCollection(value => value.OperatingAirlineIds)
-                    .HasField("_operatingAirlineIds")
-                    .UsePropertyAccessMode(PropertyAccessMode.Field)
-                    .HasColumnName("OperatingAirlineIds")
-                    .IsRequired();
-                travel.PrimitiveCollection(value => value.FlightNumbers)
-                    .HasField("_flightNumbers")
-                    .UsePropertyAccessMode(PropertyAccessMode.Field)
-                    .HasColumnName("FlightNumbers")
-                    .HasColumnType("nvarchar(max)")
-                    .IsRequired();
-                travel.PrimitiveCollection(value => value.FlightIds)
-                    .HasField("_flightIds")
-                    .UsePropertyAccessMode(PropertyAccessMode.Field)
-                    .HasColumnName("FlightIds")
-                    .IsRequired();
-                travel.PrimitiveCollection(value => value.AircraftIds)
-                    .HasField("_aircraftIds")
-                    .UsePropertyAccessMode(PropertyAccessMode.Field)
-                    .HasColumnName("AircraftIds")
-                    .IsRequired();
-            });
-
-            builder.OwnsOne(provision => provision.Fare, fare =>
-            {
-                fare.PrimitiveCollection(value => value.AirFareIds)
-                    .HasField("_airFareIds")
-                    .UsePropertyAccessMode(PropertyAccessMode.Field)
-                    .HasColumnName("AirFareIds")
-                    .IsRequired();
-                fare.PrimitiveCollection(value => value.AirFareTypes)
-                    .HasField("_airFareTypes")
-                    .UsePropertyAccessMode(PropertyAccessMode.Field)
-                    .HasColumnName("AirFareTypes")
-                    .IsRequired();
-                fare.PrimitiveCollection(value => value.FareFamilyIds)
-                    .HasField("_fareFamilyIds")
-                    .UsePropertyAccessMode(PropertyAccessMode.Field)
-                    .HasColumnName("FareFamilyIds")
-                    .IsRequired();
-                fare.PrimitiveCollection(value => value.FareBasisCodes)
-                    .HasField("_fareBasisCodes")
-                    .UsePropertyAccessMode(PropertyAccessMode.Field)
-                    .HasColumnName("FareBasisCodes")
-                    .HasColumnType("nvarchar(max)")
-                    .IsRequired();
-                fare.PrimitiveCollection(value => value.CabinClassIds)
-                    .HasField("_cabinClassIds")
-                    .UsePropertyAccessMode(PropertyAccessMode.Field)
-                    .HasColumnName("CabinClassIds")
-                    .IsRequired();
-                fare.PrimitiveCollection(value => value.RbdIds)
-                    .HasField("_rbdIds")
-                    .UsePropertyAccessMode(PropertyAccessMode.Field)
-                    .HasColumnName("RbdIds")
-                    .IsRequired();
-            });
-
             builder.OwnsOne(provision => provision.AdvancePurchase, advancePurchase =>
             {
                 advancePurchase.Property(value => value.Period).HasColumnName("AdvancePurchasePeriod");
@@ -146,7 +29,6 @@ namespace AeroTech.Ancillary.Persistence.AncillaryProvisionAggregate
             builder.OwnsOne(provision => provision.Application, application =>
             {
                 application.Property(value => value.Type).HasColumnName("ApplicationType");
-
                 application.OwnsOne(value => value.Baggage, baggage =>
                 {
                     baggage.Property(value => value.FreePieces).HasColumnName("BaggageFreePieces");
@@ -158,22 +40,6 @@ namespace AeroTech.Ancillary.Persistence.AncillaryProvisionAggregate
                     baggage.Property(value => value.PurchaseApplication).HasColumnName("BaggagePurchaseApplication");
                     baggage.Property(value => value.RuleDeference).HasColumnName("BaggageRuleDeference");
                 });
-
-                application.OwnsOne(value => value.Seat, seat =>
-                {
-                    seat.PrimitiveCollection(value => value.SeatNumbers)
-                        .HasField("_seatNumbers")
-                        .UsePropertyAccessMode(PropertyAccessMode.Field)
-                        .HasColumnName("SeatNumbers")
-                        .HasColumnType("nvarchar(max)")
-                        .IsRequired();
-                    seat.PrimitiveCollection(value => value.SeatCharacteristicCodes)
-                        .HasField("_seatCharacteristicCodes")
-                        .UsePropertyAccessMode(PropertyAccessMode.Field)
-                        .HasColumnName("SeatCharacteristicCodes")
-                        .HasColumnType("nvarchar(max)")
-                        .IsRequired();
-                });
             });
 
             builder.OwnsOne(provision => provision.Outcome, outcome =>
@@ -181,12 +47,6 @@ namespace AeroTech.Ancillary.Persistence.AncillaryProvisionAggregate
                 outcome.Property(value => value.Disposition).HasColumnName("Disposition");
                 outcome.Property(value => value.DocumentRequired).HasColumnName("DocumentRequired");
                 outcome.Property(value => value.BookingRequired).HasColumnName("BookingRequired");
-            });
-
-            builder.OwnsOne(provision => provision.Fee, fee =>
-            {
-                fee.Property(value => value.CurrencyId).HasColumnName("FeeCurrencyId");
-                fee.Property(value => value.ApplicationUnit).HasColumnName("FeeApplicationUnit");
             });
 
             builder.OwnsOne(provision => provision.Settlement, settlement =>
@@ -207,10 +67,6 @@ namespace AeroTech.Ancillary.Persistence.AncillaryProvisionAggregate
                 fulfillment.Property(value => value.FulfillmentProviderKey).HasColumnName("FulfillmentProviderKey").HasMaxLength(50).IsRequired();
             });
 
-            builder.Navigation(provision => provision.Passenger).IsRequired();
-            builder.Navigation(provision => provision.Sales).IsRequired();
-            builder.Navigation(provision => provision.Travel).IsRequired();
-            builder.Navigation(provision => provision.Fare).IsRequired();
             builder.Navigation(provision => provision.Quantity).IsRequired();
             builder.Navigation(provision => provision.Application).IsRequired();
             builder.Navigation(provision => provision.Outcome).IsRequired();
@@ -218,19 +74,155 @@ namespace AeroTech.Ancillary.Persistence.AncillaryProvisionAggregate
             builder.Navigation(provision => provision.Availability).IsRequired();
             builder.Navigation(provision => provision.Fulfillment).IsRequired();
 
+            builder.HasMany(provision => provision.PassengerTypes)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.PassengerTypes).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(provision => provision.PointsOfSale)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.PointsOfSale).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(provision => provision.Customers)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.Customers).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(provision => provision.CustomerTypes)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.CustomerTypes).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(provision => provision.OriginAirports)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.OriginAirports).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(provision => provision.DestinationAirports)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.DestinationAirports).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(provision => provision.ViaAirports)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.ViaAirports).UsePropertyAccessMode(PropertyAccessMode.Field);
+
             builder.HasMany(provision => provision.RoutePairs)
                 .WithOne()
-                .HasForeignKey(pair => pair.AncillaryProvisionId)
+                .HasForeignKey(row => row.AncillaryProvisionId)
                 .OnDelete(DeleteBehavior.Cascade);
-
             builder.Navigation(provision => provision.RoutePairs).UsePropertyAccessMode(PropertyAccessMode.Field);
 
-            builder.HasMany(provision => provision.PriceLines)
+            builder.HasMany(provision => provision.MarketingAirlines)
                 .WithOne()
-                .HasForeignKey(line => line.AncillaryProvisionId)
+                .HasForeignKey(row => row.AncillaryProvisionId)
                 .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.MarketingAirlines).UsePropertyAccessMode(PropertyAccessMode.Field);
 
-            builder.Navigation(provision => provision.PriceLines).UsePropertyAccessMode(PropertyAccessMode.Field);
+            builder.HasMany(provision => provision.OperatingAirlines)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.OperatingAirlines).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(provision => provision.FlightNumbers)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.FlightNumbers).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(provision => provision.Flights)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.Flights).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(provision => provision.Aircraft)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.Aircraft).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(provision => provision.AirFares)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.AirFares).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(provision => provision.AirFareTypes)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.AirFareTypes).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(provision => provision.FareFamilies)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.FareFamilies).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(provision => provision.FareBases)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.FareBases).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(provision => provision.CabinClasses)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.CabinClasses).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(provision => provision.Rbds)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.Rbds).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(provision => provision.TravelDates)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.TravelDates).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(provision => provision.SeasonalPeriods)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.SeasonalPeriods).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(provision => provision.BlackoutPeriods)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.BlackoutPeriods).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(provision => provision.DayTimeRestrictions)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.DayTimeRestrictions).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(provision => provision.SeatNumbers)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.SeatNumbers).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(provision => provision.SeatCharacteristics)
+                .WithOne()
+                .HasForeignKey(row => row.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.SeatCharacteristics).UsePropertyAccessMode(PropertyAccessMode.Field);
 
             builder.HasIndex(
                     provision => new { provision.ServiceDefinitionId, provision.Sequence },

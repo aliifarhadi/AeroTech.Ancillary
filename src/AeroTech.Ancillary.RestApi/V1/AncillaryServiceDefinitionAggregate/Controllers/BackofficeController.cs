@@ -1,4 +1,5 @@
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ActivateAncillaryServiceDefinition.Backoffice;
+using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.AssignAncillaryServiceDefinitionPricingUnit.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ChangeAncillaryServiceDefinition.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.DefineAncillaryServiceDefinition.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ReactivateAncillaryServiceDefinition.Backoffice;
@@ -41,6 +42,7 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryServiceDefinitionAggregate.Cont
                 request.SubGroupCode,
                 request.Description1Code,
                 request.Description2Code,
+                request.PricingUnit,
                 request.CommercialName,
                 request.Description,
                 request.Document,
@@ -63,6 +65,7 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryServiceDefinitionAggregate.Cont
                 request.SubGroupCode,
                 request.Description1Code,
                 request.Description2Code,
+                request.PricingUnit,
                 request.CommercialName,
                 request.Description,
                 request.Document,
@@ -89,6 +92,15 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryServiceDefinitionAggregate.Cont
         [HttpPost("{serviceDefinitionId:long}/Revise")]
         public async Task<IActionResult> Revise(long serviceDefinitionId, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(new BackofficeReviseAncillaryServiceDefinitionCommand(serviceDefinitionId), cancellationToken));
+
+        [HttpPost("{serviceDefinitionId:long}/AssignPricingUnit")]
+        public async Task<IActionResult> AssignPricingUnit(
+            long serviceDefinitionId,
+            [FromBody] AssignPricingUnitRequest request,
+            CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(
+                new BackofficeAssignAncillaryServiceDefinitionPricingUnitCommand(serviceDefinitionId, request.PricingUnit),
+                cancellationToken));
 
         [HttpGet("Paginated")]
         public async Task<IActionResult> Paginated(

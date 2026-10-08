@@ -1,6 +1,5 @@
 using AeroTech.Messages.AirPrice.Enums;
 using AeroTech.Messages.Ancillary.Enums;
-using AeroTech.Messages.Core.Enums;
 
 namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models
 {
@@ -19,52 +18,6 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models
         public DateTimeOffset? SalesDiscontinueAt { get; set; }
 
         public ServiceCoverageScope CoverageScope { get; set; }
-
-        public List<PassengerTypeCode> PassengerTypeCodes { get; set; } = new();
-
-        public List<long> PointOfSaleIds { get; set; } = new();
-
-        public List<long> CustomerIds { get; set; } = new();
-
-        public List<CustomerType> CustomerTypes { get; set; } = new();
-
-        public List<int> OriginAirportIds { get; set; } = new();
-
-        public List<int> DestinationAirportIds { get; set; } = new();
-
-        public List<int> ViaAirportIds { get; set; } = new();
-
-        public DateOnly? TravelFrom { get; set; }
-
-        public DateOnly? TravelTo { get; set; }
-
-        public List<DayOfWeek> DaysOfWeek { get; set; } = new();
-
-        public TimeOnly? TimeFrom { get; set; }
-
-        public TimeOnly? TimeTo { get; set; }
-
-        public List<int> MarketingAirlineIds { get; set; } = new();
-
-        public List<int> OperatingAirlineIds { get; set; } = new();
-
-        public List<string> FlightNumbers { get; set; } = new();
-
-        public List<long> FlightIds { get; set; } = new();
-
-        public List<int> AircraftIds { get; set; } = new();
-
-        public List<long> AirFareIds { get; set; } = new();
-
-        public List<AirFareType> AirFareTypes { get; set; } = new();
-
-        public List<long> FareFamilyIds { get; set; } = new();
-
-        public List<string> FareBasisCodes { get; set; } = new();
-
-        public List<int> CabinClassIds { get; set; } = new();
-
-        public List<long> RbdIds { get; set; } = new();
 
         public int? AdvancePurchasePeriod { get; set; }
 
@@ -94,19 +47,11 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models
 
         public BaggageRuleDeference? BaggageRuleDeference { get; set; }
 
-        public List<string> SeatNumbers { get; set; } = new();
-
-        public List<string> SeatCharacteristicCodes { get; set; } = new();
-
         public CommercialDisposition Disposition { get; set; }
 
         public bool DocumentRequired { get; set; }
 
         public bool BookingRequired { get; set; }
-
-        public int? FeeCurrencyId { get; set; }
-
-        public FeeApplicationUnit? FeeApplicationUnit { get; set; }
 
         public ReissueRefundPolicy ReissueRefund { get; set; }
 

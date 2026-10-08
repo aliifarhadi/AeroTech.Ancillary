@@ -24,6 +24,8 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
 
         string? Description2Code { get; }
 
+        PricingUnit PricingUnit { get; }
+
         string CommercialName { get; }
 
         string? Description { get; }

@@ -1,3 +1,5 @@
+using AeroTech.Ancillary.Domain.AncillaryPricingAggregate;
+using AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Arguments;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.ValueObjects;
@@ -34,6 +36,7 @@ public static class M1Fixtures
             "0BX",
             ServiceSubCodeSource.Industry,
             new ServiceDefinitionClassificationArgs(null, null, null, null, null),
+            PricingUnit.PerPassenger,
             "Lounge access",
             null,
             DocumentDefinition.Create(AncillaryDocumentType.EmdStandalone, "E", "0BX"),
@@ -47,11 +50,9 @@ public static class M1Fixtures
         long serviceDefinitionId = 1001,
         int sequence = 100,
         CommercialDisposition disposition = CommercialDisposition.Paid,
-        FeeApplicationUnit feeApplicationUnit = FeeApplicationUnit.Item,
         int minQuantity = 1,
         int maxQuantity = 1,
-        ServiceCoverageScope coverageScope = ServiceCoverageScope.Sector,
-        IReadOnlyList<ProvisionPriceLineArgs>? priceLines = null)
+        ServiceCoverageScope coverageScope = ServiceCoverageScope.Sector)
         => AncillaryProvision.Define(
             id,
             serviceDefinitionId,
@@ -59,22 +60,30 @@ public static class M1Fixtures
             null,
             null,
             coverageScope,
-            PassengerCriteria.Create(null),
-            SalesCriteria.Create(null, null, null),
-            TravelCriteria.Create(null, null, null, null, null, null, null, null, null, null, null, null, null),
-            [],
-            FareCriteria.Create(null, null, null, null, null, null),
             null,
             QuantityRule.Create(AncillaryQuantityUnit.Each, minQuantity, maxQuantity),
-            ProvisionApplication.Create(ProvisionApplicationType.Standard, null, null),
+            ProvisionApplication.Create(ProvisionApplicationType.Standard, null),
             CommercialOutcome.Create(disposition, disposition == CommercialDisposition.Paid, false),
-            disposition == CommercialDisposition.Paid ? FeeDefinition.Create(Currency, feeApplicationUnit) : null,
-            disposition == CommercialDisposition.Paid
-                ? priceLines ?? [new ProvisionPriceLineArgs(AncillaryPriceLineCategory.Ancillary, null, "Lounge access", 2500000m)]
-                : [],
             SettlementDefinition.Create(ReissueRefundPolicy.NonRefundable, null, false, false),
             AvailabilityDefinition.Create(false),
             FulfillmentDefinition.Create("Ancillary"),
+            ProvisionConditionsArgs.Unrestricted,
+            new SequentialIdGenerator(),
+            Now);
+
+    public static AncillaryPricing LoungePricing(
+        long id = 701,
+        long provisionId = 501,
+        FeeApplicationUnit feeApplicationUnit = FeeApplicationUnit.Item,
+        IReadOnlyList<AncillaryPricingLineArgs>? priceLines = null)
+        => AncillaryPricing.Define(
+            id,
+            provisionId,
+            PricingUnit.PerPassenger,
+            1,
+            Currency,
+            feeApplicationUnit,
+            priceLines ?? [new AncillaryPricingLineArgs(null, null, null, AncillaryPriceLineCategory.Ancillary, null, "Lounge access", null, null, 2500000m)],
             new SequentialIdGenerator(),
             Now);
 

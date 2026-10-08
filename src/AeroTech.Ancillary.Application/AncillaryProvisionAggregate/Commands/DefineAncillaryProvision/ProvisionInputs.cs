@@ -16,11 +16,10 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
         IReadOnlyList<int>? DestinationAirportIds = null,
         IReadOnlyList<int>? ViaAirportIds = null,
         IReadOnlyList<ProvisionRoutePairInput>? RoutePairs = null,
-        DateOnly? TravelFrom = null,
-        DateOnly? TravelTo = null,
-        IReadOnlyList<DayOfWeek>? DaysOfWeek = null,
-        TimeOnly? TimeFrom = null,
-        TimeOnly? TimeTo = null,
+        IReadOnlyList<DateOnly>? TravelDates = null,
+        IReadOnlyList<ProvisionDatePeriodInput>? SeasonalPeriods = null,
+        IReadOnlyList<ProvisionDatePeriodInput>? BlackoutPeriods = null,
+        IReadOnlyList<ProvisionDayTimeRestrictionInput>? DayTimeRestrictions = null,
         IReadOnlyList<int>? MarketingAirlineIds = null,
         IReadOnlyList<int>? OperatingAirlineIds = null,
         IReadOnlyList<string>? FlightNumbers = null,
@@ -31,6 +30,16 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
         int OriginAirportId,
         int DestinationAirportId,
         RoutePairDirection Direction);
+
+    public sealed record ProvisionDatePeriodInput(
+        DateOnly StartDate,
+        DateOnly EndDate);
+
+    public sealed record ProvisionDayTimeRestrictionInput(
+        DayOfWeek DayOfWeek,
+        TimeOnly? StartTime,
+        TimeOnly? EndTime,
+        DayTimeRestrictionEffect Effect);
 
     public sealed record ProvisionFareCriteriaInput(
         IReadOnlyList<long>? AirFareIds = null,
@@ -72,19 +81,6 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
         CommercialDisposition Disposition,
         bool DocumentRequired,
         bool BookingRequired);
-
-    public sealed record ProvisionFeeInput(
-        FeeApplicationUnit ApplicationUnit,
-        int CurrencyId,
-        IReadOnlyList<ProvisionPriceLineInput> PriceLines);
-
-    public sealed record ProvisionPriceLineInput(
-        AncillaryPriceLineCategory Category,
-        string? Code,
-        string? Name,
-        decimal UnitAmount,
-        int? CountryId = null,
-        int? StationAirportId = null);
 
     public sealed record ProvisionSettlementInput(
         ReissueRefundPolicy ReissueRefund,

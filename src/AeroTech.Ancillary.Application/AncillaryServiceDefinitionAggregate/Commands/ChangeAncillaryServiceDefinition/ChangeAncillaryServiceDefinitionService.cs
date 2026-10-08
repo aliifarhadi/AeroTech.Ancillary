@@ -1,5 +1,6 @@
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.DefineAncillaryServiceDefinition;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Projection;
+using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Services;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Arguments;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Contracts;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.ValueObjects;
@@ -38,6 +39,12 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
             var supplier = await _suppliers.GetAsync(command.SupplierId, cancellationToken)
                            ?? throw ExceptionFactory.ServiceDefinitionSupplierNotFound();
 
+            await _definitions.EnsurePricingUnitAllowedAsync(
+                definition.OwnerAirlineId,
+                definition.ServiceDefinitionRef,
+                command.PricingUnit,
+                cancellationToken);
+
             definition.Change(
                 supplier.Id,
                 command.ServiceSubCode,
@@ -48,6 +55,7 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
                     command.SubGroupCode,
                     command.Description1Code,
                     command.Description2Code),
+                command.PricingUnit,
                 command.CommercialName,
                 command.Description,
                 DocumentDefinition.Create(command.Document.Type, command.Document.Rfic, command.Document.Rfisc),

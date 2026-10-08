@@ -9,10 +9,9 @@ namespace AeroTech.Ancillary.Persistence.AncillaryProvisionAggregate
         public void Configure(EntityTypeBuilder<ProvisionRoutePair> builder)
         {
             builder.ToTable("ProvisionRoutePairs");
-            builder.HasKey(pair => pair.Id);
-            builder.Property(pair => pair.Id).ValueGeneratedNever();
-
-            builder.HasIndex(pair => pair.AncillaryProvisionId);
+            builder.HasKey(row => row.Id);
+            builder.Property(row => row.Id).ValueGeneratedNever();
+            builder.HasIndex(row => new { row.AncillaryProvisionId, row.OriginAirportId, row.DestinationAirportId }).IsUnique();
         }
     }
 }

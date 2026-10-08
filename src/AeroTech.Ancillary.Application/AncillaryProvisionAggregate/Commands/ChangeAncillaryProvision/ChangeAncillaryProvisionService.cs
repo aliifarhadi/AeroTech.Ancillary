@@ -37,20 +37,14 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Ch
                 command.SalesEffectiveFrom,
                 command.SalesDiscontinueAt,
                 command.CoverageScope,
-                command.Passenger.ToCriteria(),
-                command.Sales.ToCriteria(),
-                command.Travel.ToCriteria(),
-                command.Travel.ToRoutePairs(),
-                command.Fare.ToCriteria(),
                 command.AdvancePurchase.ToCriteria(),
                 command.Quantity.ToRule(),
                 command.Application.ToApplication(),
                 command.Outcome.ToOutcome(),
-                command.Fee.ToDefinition(),
-                command.Fee.ToPriceLines(),
                 command.Settlement.ToDefinition(),
                 command.Availability.ToDefinition(),
                 command.Fulfillment.ToDefinition(),
+                ProvisionInputMapper.ToConditions(command.Passenger, command.Sales, command.Travel, command.Fare, command.Application.Seat),
                 _idGenerator);
 
             await _synchronizer.ProjectAsync(provision.ToReadModelSnapshot(), cancellationToken);

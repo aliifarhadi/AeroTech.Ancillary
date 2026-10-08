@@ -9,5 +9,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Contract
         Task<bool> HasActiveAsync(int ownerAirlineId, string serviceDefinitionRef, CancellationToken cancellationToken = default);
 
         Task<int> MaxVersionAsync(int ownerAirlineId, string serviceDefinitionRef, CancellationToken cancellationToken = default);
+
+        Task<IReadOnlyList<AncillaryServiceDefinition>> ListVersionsAsync(int ownerAirlineId, string serviceDefinitionRef, CancellationToken cancellationToken = default);
     }
 }

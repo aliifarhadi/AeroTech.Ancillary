@@ -49,6 +49,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
 
         public string? Description2Code { get; private set; }
 
+        public PricingUnit? PricingUnit { get; private set; }
+
         public string CommercialName { get; private set; } = default!;
 
         public string? Description { get; private set; }
@@ -80,6 +82,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
             string serviceSubCode,
             ServiceSubCodeSource subCodeSource,
             ServiceDefinitionClassificationArgs classification,
+            PricingUnit pricingUnit,
             string commercialName,
             string? description,
             DocumentDefinition document,
@@ -102,6 +105,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
                 serviceSubCode,
                 subCodeSource,
                 classification,
+                pricingUnit,
                 commercialName,
                 description,
                 document,
@@ -117,6 +121,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
             string serviceSubCode,
             ServiceSubCodeSource subCodeSource,
             ServiceDefinitionClassificationArgs classification,
+            PricingUnit pricingUnit,
             string commercialName,
             string? description,
             DocumentDefinition document,
@@ -132,6 +137,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
                 serviceSubCode,
                 subCodeSource,
                 classification,
+                pricingUnit,
                 commercialName,
                 description,
                 document,
@@ -150,6 +156,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
 
             if (supplier.Status != SupplierStatus.Active)
                 throw ExceptionFactory.ServiceDefinitionSupplierNotActive();
+
+            EnsurePricingUnitAssigned();
 
             Status = ServiceDefinitionStatus.Active;
             ActivatedAt = now;
@@ -175,6 +183,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
             if (supplier.Status != SupplierStatus.Active)
                 throw ExceptionFactory.ServiceDefinitionSupplierNotActive();
 
+            EnsurePricingUnitAssigned();
+
             Status = ServiceDefinitionStatus.Active;
             SuspendedAt = null;
         }
@@ -193,6 +203,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
             if (Status is not (ServiceDefinitionStatus.Active or ServiceDefinitionStatus.Suspended))
                 throw ExceptionFactory.ServiceDefinitionStatusChangeNotAllowed();
 
+            EnsurePricingUnitAssigned();
             Require(version > Version, nameof(Version));
 
             return new AncillaryServiceDefinition(id, OwnerAirlineId, SupplierId, ServiceDefinitionRef)
@@ -205,6 +216,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
                 SubGroupCode = SubGroupCode,
                 Description1Code = Description1Code,
                 Description2Code = Description2Code,
+                PricingUnit = PricingUnit,
                 CommercialName = CommercialName,
                 Description = Description,
                 Document = DocumentDefinition.Create(Document.Type, Document.Rfic, Document.Rfisc),
@@ -216,11 +228,22 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
             };
         }
 
+        public void AssignPricingUnit(PricingUnit pricingUnit)
+        {
+            if (PricingUnit is not null)
+                throw ExceptionFactory.ServiceDefinitionPricingUnitAlreadyAssigned();
+
+            Require(Enum.IsDefined(pricingUnit), nameof(PricingUnit));
+
+            PricingUnit = pricingUnit;
+        }
+
         private void Apply(
             long supplierId,
             string serviceSubCode,
             ServiceSubCodeSource subCodeSource,
             ServiceDefinitionClassificationArgs classification,
+            PricingUnit pricingUnit,
             string commercialName,
             string? description,
             DocumentDefinition document,
@@ -231,6 +254,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
             Require(supplierId > 0, nameof(SupplierId));
             Require(IsCode(serviceSubCode, 3), nameof(ServiceSubCode));
             Require(Enum.IsDefined(subCodeSource), nameof(SubCodeSource));
+            Require(Enum.IsDefined(pricingUnit), nameof(PricingUnit));
             Require(commercialName is { Length: >= 1 and <= CommercialNameMaxLength }, nameof(CommercialName));
             Require(description is null or { Length: >= 1 and <= DescriptionMaxLength }, nameof(Description));
             Require(
@@ -242,6 +266,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
             SupplierId = supplierId;
             ServiceSubCode = serviceSubCode;
             SubCodeSource = subCodeSource;
+            PricingUnit = pricingUnit;
             CommercialName = commercialName;
             Description = description;
             Document = document;
@@ -304,6 +329,12 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
         {
             if (supplied is not null && supplied != reference)
                 throw ExceptionFactory.IndustryServiceSubCodeSemanticsConflict(field, serviceSubCode);
+        }
+
+        private void EnsurePricingUnitAssigned()
+        {
+            if (PricingUnit is null)
+                throw ExceptionFactory.ServiceDefinitionPricingUnitNotAssigned();
         }
 
         private static bool IsRef(string? value)

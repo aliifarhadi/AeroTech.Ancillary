@@ -300,6 +300,7 @@ public class P1ServiceDefinitionAcceptanceTests
                 null,
                 null,
                 null,
+                PricingUnit.PerPassenger,
                 commercialName,
                 null,
                 new ServiceDefinitionDocumentInput(documentType, null, null),

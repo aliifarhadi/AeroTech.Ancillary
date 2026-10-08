@@ -28,7 +28,6 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Ch
             RuleFor(command => command.Quantity).NotNull().SetValidator(new ProvisionQuantityInputValidator());
             RuleFor(command => command.Application).NotNull().SetValidator(new ProvisionApplicationInputValidator());
             RuleFor(command => command.Outcome).NotNull().SetValidator(new ProvisionOutcomeInputValidator());
-            RuleFor(command => command.Fee).SetValidator(new ProvisionFeeInputValidator()!).When(command => command.Fee is not null);
             RuleFor(command => command.Settlement).NotNull().SetValidator(new ProvisionSettlementInputValidator());
             RuleFor(command => command.Availability).NotNull();
             RuleFor(command => command.Fulfillment).NotNull().SetValidator(new ProvisionFulfillmentInputValidator());

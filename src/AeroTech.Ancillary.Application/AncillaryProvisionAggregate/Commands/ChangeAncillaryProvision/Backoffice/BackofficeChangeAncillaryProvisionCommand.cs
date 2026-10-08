@@ -18,7 +18,6 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Ch
         ProvisionQuantityInput Quantity,
         ProvisionApplicationInput Application,
         ProvisionOutcomeInput Outcome,
-        ProvisionFeeInput? Fee,
         ProvisionSettlementInput Settlement,
         ProvisionAvailabilityInput Availability,
         ProvisionFulfillmentInput Fulfillment) : IRequest<ProvisionResult>, IChangeAncillaryProvisionCommand;

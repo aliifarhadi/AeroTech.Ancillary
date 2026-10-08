@@ -1,0 +1,31 @@
+using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models;
+
+namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionById
+{
+    public sealed record AncillaryProvisionConditionRows(
+        IReadOnlyList<AncillaryProvisionPassengerTypeReadModel> PassengerTypes,
+        IReadOnlyList<AncillaryProvisionPointOfSaleReadModel> PointsOfSale,
+        IReadOnlyList<AncillaryProvisionCustomerReadModel> Customers,
+        IReadOnlyList<AncillaryProvisionCustomerTypeReadModel> CustomerTypes,
+        IReadOnlyList<AncillaryProvisionOriginAirportReadModel> OriginAirports,
+        IReadOnlyList<AncillaryProvisionDestinationAirportReadModel> DestinationAirports,
+        IReadOnlyList<AncillaryProvisionViaAirportReadModel> ViaAirports,
+        IReadOnlyList<AncillaryProvisionRoutePairReadModel> RoutePairs,
+        IReadOnlyList<AncillaryProvisionMarketingAirlineReadModel> MarketingAirlines,
+        IReadOnlyList<AncillaryProvisionOperatingAirlineReadModel> OperatingAirlines,
+        IReadOnlyList<AncillaryProvisionFlightNumberReadModel> FlightNumbers,
+        IReadOnlyList<AncillaryProvisionFlightReadModel> Flights,
+        IReadOnlyList<AncillaryProvisionAircraftReadModel> Aircraft,
+        IReadOnlyList<AncillaryProvisionAirFareReadModel> AirFares,
+        IReadOnlyList<AncillaryProvisionAirFareTypeReadModel> AirFareTypes,
+        IReadOnlyList<AncillaryProvisionFareFamilyReadModel> FareFamilies,
+        IReadOnlyList<AncillaryProvisionFareBasisReadModel> FareBases,
+        IReadOnlyList<AncillaryProvisionCabinClassReadModel> CabinClasses,
+        IReadOnlyList<AncillaryProvisionRbdReadModel> Rbds,
+        IReadOnlyList<AncillaryProvisionTravelDateReadModel> TravelDates,
+        IReadOnlyList<AncillaryProvisionSeasonalPeriodReadModel> SeasonalPeriods,
+        IReadOnlyList<AncillaryProvisionBlackoutPeriodReadModel> BlackoutPeriods,
+        IReadOnlyList<AncillaryProvisionDayTimeRestrictionReadModel> DayTimeRestrictions,
+        IReadOnlyList<AncillaryProvisionSeatNumberReadModel> SeatNumbers,
+        IReadOnlyList<AncillaryProvisionSeatCharacteristicReadModel> SeatCharacteristics);
+}

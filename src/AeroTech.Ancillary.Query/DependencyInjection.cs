@@ -1,4 +1,6 @@
 using AeroTech.Framework.Infrastructure.HealthChecks;
+using AeroTech.Ancillary.Query.AncillaryPricingAggregate.Queries.GetAncillaryPricingById;
+using AeroTech.Ancillary.Query.AncillaryPricingAggregate.Queries.GetAncillaryPricingsPaginated;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionById;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionsPaginated;
 using AeroTech.Ancillary.Query.AncillaryReservationAggregate.Queries.GetAncillaryHoldById;
@@ -33,6 +35,8 @@ namespace AeroTech.Ancillary.Query
             services.AddScoped<IGetAncillaryServiceDefinitionsPaginatedService, GetAncillaryServiceDefinitionsPaginatedService>();
             services.AddScoped<IGetAncillaryProvisionByIdService, GetAncillaryProvisionByIdService>();
             services.AddScoped<IGetAncillaryProvisionsPaginatedService, GetAncillaryProvisionsPaginatedService>();
+            services.AddScoped<IGetAncillaryPricingByIdService, GetAncillaryPricingByIdService>();
+            services.AddScoped<IGetAncillaryPricingsPaginatedService, GetAncillaryPricingsPaginatedService>();
             services.AddScoped<IGetAncillaryHoldByIdService, GetAncillaryHoldByIdService>();
 
             services.AddHealthChecks().AddDbContextReadinessCheck<AncillaryQueryDbContext>("sql-server-query");

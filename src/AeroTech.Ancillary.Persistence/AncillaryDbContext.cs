@@ -1,6 +1,7 @@
 using AeroTech.Framework.Core.Domain.Repository;
 using AeroTech.Framework.Core.ServiceContracts;
 using AeroTech.Framework.Infrastructure.Persistence;
+using AeroTech.Ancillary.Domain.AncillaryPricingAggregate;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate;
 using AeroTech.Ancillary.Domain.AncillaryReservationAggregate;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
@@ -30,6 +31,8 @@ namespace AeroTech.Ancillary.Persistence
         public DbSet<AncillaryServiceDefinition> AncillaryServiceDefinitions => Set<AncillaryServiceDefinition>();
 
         public DbSet<AncillaryProvision> AncillaryProvisions => Set<AncillaryProvision>();
+
+        public DbSet<AncillaryPricing> AncillaryPricings => Set<AncillaryPricing>();
 
         public DbSet<AncillaryReservation> AncillaryReservations => Set<AncillaryReservation>();
 

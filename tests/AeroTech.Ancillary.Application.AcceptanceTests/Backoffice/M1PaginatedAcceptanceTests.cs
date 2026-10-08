@@ -1,5 +1,6 @@
 using AeroTech.Ancillary.Application.AcceptanceTests.Fakes;
 using AeroTech.Ancillary.Application.AcceptanceTests.Fixtures;
+using AeroTech.Ancillary.Query.AncillaryPricingAggregate.Queries.GetAncillaryPricingsPaginated.Backoffice;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionsPaginated.Backoffice;
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.GetAncillaryServiceDefinitionsPaginated.Backoffice;
 using AeroTech.Ancillary.Query.SupplierAggregate.Queries.GetSuppliersPaginated.Backoffice;
@@ -128,7 +129,7 @@ public class M1PaginatedAcceptanceTests
     }
 
     [Fact]
-    public async Task M1_D02_provisions_of_a_definition_are_listed_by_sequence_with_amount_and_currency_code()
+    public async Task M1_D02_provisions_of_a_definition_are_listed_by_sequence_and_their_prices_by_version_with_currency_code()
     {
         var airlineId = _database.NextAirlineId();
         await using var scope = new AncillaryScope(_database, _clock);
@@ -136,9 +137,13 @@ public class M1PaginatedAcceptanceTests
         var definition = await scope.DefineServiceDefinition.DefineAsync(M1Commands.LoungeDefinition(airlineId, dotAir.Id));
         await scope.ActivateServiceDefinition.ActivateAsync(new TestActivateServiceDefinitionCommand(definition.Id));
         var otherDefinition = await scope.DefineServiceDefinition.DefineAsync(M1Commands.LoungeDefinition(airlineId, dotAir.Id, "LNG_OTHER"));
-        var first = await scope.DefineProvision.DefineAsync(M1Commands.LoungeProvision(definition.Id, sequence: 100, amount: 15000000m));
-        await scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(first.Id));
-        var later = await scope.DefineProvision.DefineAsync(M1Commands.LoungeProvision(definition.Id, sequence: 200, amount: 18000000m));
+        var first = await scope.DefineProvision.DefineAsync(
+            M1Commands.LoungeProvision(definition.Id, sequence: 100, disposition: CommercialDisposition.Paid));
+        var firstPrice = await scope.DefinePricing.DefineAsync(M1Commands.LoungePricing(first.Id, 15000000m));
+        await scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(first.Id, firstPrice.Id));
+        var later = await scope.DefineProvision.DefineAsync(
+            M1Commands.LoungeProvision(definition.Id, sequence: 200, disposition: CommercialDisposition.Paid));
+        var laterPrice = await scope.DefinePricing.DefineAsync(M1Commands.LoungePricing(later.Id, 18000000m));
         await scope.DefineProvision.DefineAsync(M1Commands.LoungeProvision(otherDefinition.Id));
 
         var all = await scope.GetProvisionsPaginated.ExecuteAsync(
@@ -147,7 +152,11 @@ public class M1PaginatedAcceptanceTests
         Assert.Equal(2, all.TotalCount);
         Assert.Equal(new[] { first.Id.ToString(), later.Id.ToString() }, all.Results.Select(row => row.Id));
         Assert.Equal(
-            new[] { "Sequence", "Coverage", "Disposition", "Unit", "Min", "Max", "Amount", "Currency", "Sales From", "Sales Until", "Status", "Created" },
+            new[]
+            {
+                "Sequence", "Coverage", "Disposition", "Unit", "Min", "Max", "Dates", "Seasons", "Blackouts", "Day/Time", "Sales From",
+                "Sales Until", "Status", "Created"
+            },
             all.Metadata.Fields.Select(field => field.Title));
 
         var row = all.Results.First();
@@ -156,9 +165,22 @@ public class M1PaginatedAcceptanceTests
         Assert.Equal("Sector", row.CoverageScope.Name);
         Assert.Equal("Paid", row.Disposition.Name);
         Assert.Equal("Each", row.QuantityUnit.Name);
-        Assert.Equal("15,000,000.00", row.FiledAmount);
-        Assert.Equal("IRR", row.Currency);
+        Assert.Equal((0, 0, 0, 0), (row.TravelDateCount, row.SeasonalPeriodCount, row.BlackoutPeriodCount, row.DayTimeRestrictionCount));
         Assert.Equal("Active", row.Status.Name);
+
+        var prices = await scope.GetPricingsPaginated.ExecuteAsync(new BackofficeGetAncillaryPricingsPaginatedQuery { AncillaryProvisionId = first.Id });
+
+        Assert.Equal(
+            new[] { "Version", "Pricing Unit", "Currency", "Applies Per", "Rates", "Status", "Created", "Activated" },
+            prices.Metadata.Fields.Select(field => field.Title));
+        Assert.Equal(
+            (firstPrice.Id.ToString(), first.Id.ToString(), 1, "PerPassenger", "IRR", "Item", 1, "Active"),
+            prices.Results.Select(price => (price.Id, price.AncillaryProvisionId, price.Version, price.PricingUnit!.Name, price.Currency!, price.FeeApplicationUnit!.Name, price.RateCount, price.Status.Name)).Single());
+        Assert.Equal(15000000m, Assert.Single((await scope.GetPricingById.ExecuteAsync(firstPrice.Id)).PriceLines).Amount);
+
+        var draftPrices = await scope.GetPricingsPaginated.ExecuteAsync(new BackofficeGetAncillaryPricingsPaginatedQuery { Status = PricingStatus.Draft, AncillaryProvisionId = later.Id });
+
+        Assert.Equal(laterPrice.Id.ToString(), Assert.Single(draftPrices.Results).Id);
 
         var drafts = await scope.GetProvisionsPaginated.ExecuteAsync(
             new BackofficeGetAncillaryProvisionsPaginatedQuery { ServiceDefinitionId = definition.Id, Status = ProvisionStatus.Draft });

@@ -1,3 +1,4 @@
+using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.DefineAncillaryPricing;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ActivateAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.DefineAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ConfirmAncillaryHold;
@@ -31,7 +32,8 @@ public sealed record TestDefineServiceDefinitionCommand(
     ServiceDefinitionDocumentInput Document,
     ServiceDefinitionBookingInput Booking,
     DateOnly? SalesEffectiveFrom,
-    DateOnly? SalesDiscontinueOn) : IDefineAncillaryServiceDefinitionCommand;
+    DateOnly? SalesDiscontinueOn,
+    PricingUnit PricingUnit = PricingUnit.PerPassenger) : IDefineAncillaryServiceDefinitionCommand;
 
 public sealed record TestActivateServiceDefinitionCommand(long ServiceDefinitionId) : IActivateAncillaryServiceDefinitionCommand;
 
@@ -44,7 +46,6 @@ public sealed record TestDefineProvisionCommand(
     ProvisionQuantityInput Quantity,
     ProvisionApplicationInput Application,
     ProvisionOutcomeInput Outcome,
-    ProvisionFeeInput? Fee,
     ProvisionSettlementInput Settlement,
     ProvisionAvailabilityInput Availability,
     ProvisionFulfillmentInput Fulfillment,
@@ -97,10 +98,9 @@ public static class M1Commands
     public static TestDefineProvisionCommand LoungeProvision(
         long serviceDefinitionId,
         int sequence = 100,
-        decimal amount = 2500000m,
         int minQuantity = 1,
         int maxQuantity = 1,
-        FeeApplicationUnit feeApplicationUnit = FeeApplicationUnit.Item)
+        CommercialDisposition disposition = CommercialDisposition.Free)
         => new(
             serviceDefinitionId,
             sequence,
@@ -109,14 +109,20 @@ public static class M1Commands
             ServiceCoverageScope.Sector,
             new ProvisionQuantityInput(AncillaryQuantityUnit.Each, minQuantity, maxQuantity),
             new ProvisionApplicationInput(ProvisionApplicationType.Standard),
-            new ProvisionOutcomeInput(CommercialDisposition.Paid, true, false),
-            new ProvisionFeeInput(
-                feeApplicationUnit,
-                Currency,
-                [new ProvisionPriceLineInput(AncillaryPriceLineCategory.Ancillary, null, "Lounge access", amount)]),
+            new ProvisionOutcomeInput(disposition, disposition == CommercialDisposition.Paid, false),
             new ProvisionSettlementInput(ReissueRefundPolicy.NonRefundable, null, false, false),
             new ProvisionAvailabilityInput(false),
             new ProvisionFulfillmentInput("Ancillary"));
+
+    public static TestDefinePricingCommand LoungePricing(
+        long provisionId,
+        decimal amount = 2500000m,
+        FeeApplicationUnit feeApplicationUnit = FeeApplicationUnit.Item)
+        => new(
+            provisionId,
+            Currency,
+            feeApplicationUnit,
+            [new PricingLineInput(null, null, null, AncillaryPriceLineCategory.Ancillary, null, "Lounge access", null, null, amount)]);
 
     public static TestHoldAncillaryServicesCommand Hold(
         string idempotencyKey,

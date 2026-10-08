@@ -1,3 +1,5 @@
+using AeroTech.Ancillary.Domain.AncillaryPricingAggregate;
+using AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Arguments;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.ValueObjects;
@@ -8,7 +10,6 @@ using AeroTech.Ancillary.Domain.ConformanceTests.Fakes;
 using AeroTech.Ancillary.Domain.SupplierAggregate;
 using AeroTech.Messages.AirPrice.Enums;
 using AeroTech.Messages.Ancillary.Enums;
-using AeroTech.Messages.Core.Enums;
 
 namespace AeroTech.Ancillary.Domain.ConformanceTests.Fixtures;
 
@@ -29,7 +30,8 @@ public static class P1Fixtures
         long id = 1001,
         long supplierId = 2001,
         string reference = "MEAL_VGML",
-        int version = 1)
+        int version = 1,
+        PricingUnit pricingUnit = PricingUnit.PerPassenger)
         => AncillaryServiceDefinition.Define(
             id,
             Airline,
@@ -39,6 +41,7 @@ public static class P1Fixtures
             "MVG",
             ServiceSubCodeSource.CarrierDefined,
             new ServiceDefinitionClassificationArgs("F", "ML", "VG", null, null),
+            pricingUnit,
             "Vegetarian meal",
             "Pre-ordered vegetarian meal",
             DocumentDefinition.Create(AncillaryDocumentType.EmdAssociated, "G", "MVG"),
@@ -48,123 +51,86 @@ public static class P1Fixtures
             Now);
 
     public static AncillaryProvision Provision(
-        long id = 501,
-        int sequence = 10,
-        decimal amount = 25m,
+        ProvisionConditionsArgs? conditions = null,
+        ProvisionApplicationType applicationType = ProvisionApplicationType.Standard,
         CommercialDisposition disposition = CommercialDisposition.Paid,
-        ServiceCoverageScope coverageScope = ServiceCoverageScope.Sector,
-        PassengerCriteria? passenger = null,
-        SalesCriteria? sales = null,
-        TravelCriteria? travel = null,
-        IReadOnlyList<ProvisionRoutePairArgs>? routePairs = null,
-        FareCriteria? fare = null,
-        AdvancePurchaseCriteria? advancePurchase = null,
-        ProvisionApplication? application = null,
-        FeeApplicationUnit feeApplicationUnit = FeeApplicationUnit.Item,
-        IReadOnlyList<ProvisionPriceLineArgs>? priceLines = null)
-    {
-        var paid = disposition == CommercialDisposition.Paid;
-
-        return AncillaryProvision.Define(
+        long id = 5001,
+        int sequence = 10,
+        SequentialIdGenerator? ids = null)
+        => AncillaryProvision.Define(
             id,
             1001,
             sequence,
             null,
             null,
-            coverageScope,
-            passenger ?? Passengers(),
-            sales ?? Sales(),
-            travel ?? Travel(),
-            routePairs ?? [],
-            fare ?? Fare(),
-            advancePurchase,
-            QuantityRule.Create(AncillaryQuantityUnit.Each, 1, 9),
-            application ?? Standard(),
-            CommercialOutcome.Create(disposition, paid, false),
-            paid ? FeeDefinition.Create(Eur, feeApplicationUnit) : null,
-            paid ? priceLines ?? [new ProvisionPriceLineArgs(AncillaryPriceLineCategory.Ancillary, null, "Service", amount)] : [],
+            ServiceCoverageScope.Sector,
+            null,
+            QuantityRule.Create(AncillaryQuantityUnit.Each, 1, 1),
+            ProvisionApplication.Create(applicationType, applicationType == ProvisionApplicationType.Baggage ? Baggage() : null),
+            CommercialOutcome.Create(disposition, disposition == CommercialDisposition.Paid, false),
             SettlementDefinition.Create(ReissueRefundPolicy.NonRefundable, null, false, false),
             AvailabilityDefinition.Create(false),
             FulfillmentDefinition.Create("Ancillary"),
-            new SequentialIdGenerator(),
+            conditions ?? ProvisionConditionsArgs.Unrestricted,
+            ids ?? new SequentialIdGenerator(),
             Now);
-    }
 
-    public static PassengerCriteria Passengers(params PassengerTypeCode[] passengerTypeCodes)
-        => PassengerCriteria.Create(passengerTypeCodes);
+    public static void Replace(AncillaryProvision provision, ProvisionConditionsArgs conditions, SequentialIdGenerator ids)
+        => provision.Change(
+            provision.Sequence,
+            provision.SalesEffectiveFrom,
+            provision.SalesDiscontinueAt,
+            provision.CoverageScope,
+            provision.AdvancePurchase,
+            provision.Quantity,
+            provision.Application,
+            provision.Outcome,
+            provision.Settlement,
+            provision.Availability,
+            provision.Fulfillment,
+            conditions,
+            ids);
 
-    public static SalesCriteria Sales(
-        long[]? pointOfSaleIds = null,
-        long[]? customerIds = null,
-        CustomerType[]? customerTypes = null)
-        => SalesCriteria.Create(pointOfSaleIds, customerIds, customerTypes);
-
-    public static TravelCriteria Travel(
-        int[]? originAirportIds = null,
-        int[]? destinationAirportIds = null,
-        int[]? viaAirportIds = null,
-        DateOnly? travelFrom = null,
-        DateOnly? travelTo = null,
-        DayOfWeek[]? daysOfWeek = null,
-        TimeOnly? timeFrom = null,
-        TimeOnly? timeTo = null,
-        int[]? marketingAirlineIds = null,
-        int[]? operatingAirlineIds = null,
-        string[]? flightNumbers = null,
-        long[]? flightIds = null,
-        int[]? aircraftIds = null)
-        => TravelCriteria.Create(
-            originAirportIds,
-            destinationAirportIds,
-            viaAirportIds,
-            travelFrom,
-            travelTo,
-            daysOfWeek,
-            timeFrom,
-            timeTo,
-            marketingAirlineIds,
-            operatingAirlineIds,
-            flightNumbers,
-            flightIds,
-            aircraftIds);
-
-    public static FareCriteria Fare(
-        long[]? airFareIds = null,
-        AirFareType[]? airFareTypes = null,
-        long[]? fareFamilyIds = null,
-        string[]? fareBasisCodes = null,
-        int[]? cabinClassIds = null,
-        long[]? rbdIds = null)
-        => FareCriteria.Create(airFareIds, airFareTypes, fareFamilyIds, fareBasisCodes, cabinClassIds, rbdIds);
-
-    public static ProvisionRoutePairArgs Pair(
-        int originAirportId,
-        int destinationAirportId,
-        RoutePairDirection direction = RoutePairDirection.Directional)
-        => new(originAirportId, destinationAirportId, direction);
-
-    public static ProvisionApplication Standard()
-        => ProvisionApplication.Create(ProvisionApplicationType.Standard, null, null);
-
-    public static ProvisionApplication Baggage()
-        => ProvisionApplication.Create(
-            ProvisionApplicationType.Baggage,
-            BaggageApplication.Create(
-                null,
-                1,
-                1,
-                23m,
-                WeightUnit.Kg,
-                BaggageTravelApplication.AllSectors,
-                BaggagePurchaseApplication.Prepaid,
-                null),
+    public static BaggageApplication Baggage()
+        => BaggageApplication.Create(
+            null,
+            1,
+            1,
+            23m,
+            WeightUnit.Kg,
+            BaggageTravelApplication.AllSectors,
+            BaggagePurchaseApplication.Prepaid,
             null);
 
-    public static ProvisionApplication Seat(string[]? seatNumbers, string[]? seatCharacteristicCodes)
-        => ProvisionApplication.Create(
-            ProvisionApplicationType.Seat,
-            null,
-            SeatApplication.Create(seatNumbers, seatCharacteristicCodes));
+    public static ProvisionRoutePairArgs Pair(int origin, int destination, RoutePairDirection direction = RoutePairDirection.Directional)
+        => new(origin, destination, direction);
+
+    public static AncillaryPricing Pricing(
+        PricingUnit pricingUnit,
+        IReadOnlyList<AncillaryPricingLineArgs> priceLines,
+        FeeApplicationUnit? feeApplicationUnit = FeeApplicationUnit.Item,
+        long id = 7001,
+        int version = 1,
+        SequentialIdGenerator? ids = null)
+        => AncillaryPricing.Define(id, 5001, pricingUnit, version, Eur, feeApplicationUnit, priceLines, ids ?? new SequentialIdGenerator(), Now);
+
+    public static AncillaryPricingLineArgs Base(
+        decimal amount,
+        PassengerTypeCode? passengerTypeCode = null,
+        int? ageFromInclusive = null,
+        int? ageToExclusive = null)
+        => new(passengerTypeCode, ageFromInclusive, ageToExclusive, AncillaryPriceLineCategory.Ancillary, null, "Service", null, null, amount);
+
+    public static AncillaryPricingLineArgs Component(
+        AncillaryPriceLineCategory category,
+        string? code,
+        decimal amount,
+        PassengerTypeCode? passengerTypeCode = null,
+        int? ageFromInclusive = null,
+        int? ageToExclusive = null,
+        int? countryId = null,
+        int? stationAirportId = null)
+        => new(passengerTypeCode, ageFromInclusive, ageToExclusive, category, code, null, countryId, stationAirportId, amount);
 
     public static string[] PropertiesOf<T>()
         => typeof(T).GetProperties()

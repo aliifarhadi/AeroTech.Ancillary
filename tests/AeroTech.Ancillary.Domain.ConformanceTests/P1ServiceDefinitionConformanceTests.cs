@@ -30,6 +30,7 @@ public class P1ServiceDefinitionConformanceTests
                 definition.SubGroupCode,
                 definition.Description1Code,
                 definition.Description2Code),
+            definition.PricingUnit!.Value,
             commercialName,
             definition.Description,
             DocumentDefinition.Create(definition.Document.Type, definition.Document.Rfic, definition.Document.Rfisc),
@@ -44,7 +45,7 @@ public class P1ServiceDefinitionConformanceTests
             new[]
             {
                 "ActivatedAt", "Booking", "CommercialName", "CreatedAt", "Description", "Description1Code", "Description2Code",
-                "Document", "GroupCode", "OwnerAirlineId", "RetiredAt", "SalesDiscontinueOn", "SalesEffectiveFrom",
+                "Document", "GroupCode", "OwnerAirlineId", "PricingUnit", "RetiredAt", "SalesDiscontinueOn", "SalesEffectiveFrom",
                 "ServiceDefinitionRef", "ServiceSubCode", "ServiceTypeCode", "Status", "SubCodeSource", "SubGroupCode",
                 "SupplierId", "SuspendedAt", "Version"
             },
@@ -67,6 +68,7 @@ public class P1ServiceDefinitionConformanceTests
             "0ZZ",
             ServiceSubCodeSource.Industry,
             new ServiceDefinitionClassificationArgs(null, null, null, null, null),
+            PricingUnit.PerPassenger,
             "Wheelchair",
             null,
             DocumentDefinition.Create(AncillaryDocumentType.None, null, null),
@@ -116,6 +118,7 @@ public class P1ServiceDefinitionConformanceTests
             "MCH",
             ServiceSubCodeSource.CarrierDefined,
             new ServiceDefinitionClassificationArgs("F", "ML", "CH", "KD", null),
+            PricingUnit.PerPassenger,
             "Child meal",
             null,
             DocumentDefinition.Create(AncillaryDocumentType.None, null, null),
@@ -142,6 +145,7 @@ public class P1ServiceDefinitionConformanceTests
             "0ZZ",
             ServiceSubCodeSource.Industry,
             new ServiceDefinitionClassificationArgs(null, null, null, null, null),
+            PricingUnit.PerPassenger,
             "Renamed",
             null,
             DocumentDefinition.Create(AncillaryDocumentType.None, null, null),
@@ -289,6 +293,7 @@ public class P1ServiceDefinitionConformanceTests
             "PTC",
             ServiceSubCodeSource.CarrierDefined,
             new ServiceDefinitionClassificationArgs("F", "PT", null, null, null),
+            PricingUnit.PerPassenger,
             "Pet in cabin",
             null,
             DocumentDefinition.Create(AncillaryDocumentType.EmdAssociated, "G", "PTC"),

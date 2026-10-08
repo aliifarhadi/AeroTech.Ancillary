@@ -1,3 +1,4 @@
+using AeroTech.Ancillary.Query.AncillaryPricingAggregate.Models;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models;
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Models;
 using AeroTech.Ancillary.Query.SupplierAggregate.Models;
@@ -23,9 +24,59 @@ namespace AeroTech.Ancillary.Query._Shared.DbContexts
 
         public DbSet<AncillaryProvisionReadModel> AncillaryProvisions => Set<AncillaryProvisionReadModel>();
 
+        public DbSet<AncillaryProvisionPassengerTypeReadModel> AncillaryProvisionPassengerTypes => Set<AncillaryProvisionPassengerTypeReadModel>();
+
+        public DbSet<AncillaryProvisionPointOfSaleReadModel> AncillaryProvisionPointsOfSale => Set<AncillaryProvisionPointOfSaleReadModel>();
+
+        public DbSet<AncillaryProvisionCustomerReadModel> AncillaryProvisionCustomers => Set<AncillaryProvisionCustomerReadModel>();
+
+        public DbSet<AncillaryProvisionCustomerTypeReadModel> AncillaryProvisionCustomerTypes => Set<AncillaryProvisionCustomerTypeReadModel>();
+
+        public DbSet<AncillaryProvisionOriginAirportReadModel> AncillaryProvisionOriginAirports => Set<AncillaryProvisionOriginAirportReadModel>();
+
+        public DbSet<AncillaryProvisionDestinationAirportReadModel> AncillaryProvisionDestinationAirports => Set<AncillaryProvisionDestinationAirportReadModel>();
+
+        public DbSet<AncillaryProvisionViaAirportReadModel> AncillaryProvisionViaAirports => Set<AncillaryProvisionViaAirportReadModel>();
+
         public DbSet<AncillaryProvisionRoutePairReadModel> AncillaryProvisionRoutePairs => Set<AncillaryProvisionRoutePairReadModel>();
 
-        public DbSet<AncillaryProvisionPriceLineReadModel> AncillaryProvisionPriceLines => Set<AncillaryProvisionPriceLineReadModel>();
+        public DbSet<AncillaryProvisionMarketingAirlineReadModel> AncillaryProvisionMarketingAirlines => Set<AncillaryProvisionMarketingAirlineReadModel>();
+
+        public DbSet<AncillaryProvisionOperatingAirlineReadModel> AncillaryProvisionOperatingAirlines => Set<AncillaryProvisionOperatingAirlineReadModel>();
+
+        public DbSet<AncillaryProvisionFlightNumberReadModel> AncillaryProvisionFlightNumbers => Set<AncillaryProvisionFlightNumberReadModel>();
+
+        public DbSet<AncillaryProvisionFlightReadModel> AncillaryProvisionFlights => Set<AncillaryProvisionFlightReadModel>();
+
+        public DbSet<AncillaryProvisionAircraftReadModel> AncillaryProvisionAircraft => Set<AncillaryProvisionAircraftReadModel>();
+
+        public DbSet<AncillaryProvisionAirFareReadModel> AncillaryProvisionAirFares => Set<AncillaryProvisionAirFareReadModel>();
+
+        public DbSet<AncillaryProvisionAirFareTypeReadModel> AncillaryProvisionAirFareTypes => Set<AncillaryProvisionAirFareTypeReadModel>();
+
+        public DbSet<AncillaryProvisionFareFamilyReadModel> AncillaryProvisionFareFamilies => Set<AncillaryProvisionFareFamilyReadModel>();
+
+        public DbSet<AncillaryProvisionFareBasisReadModel> AncillaryProvisionFareBases => Set<AncillaryProvisionFareBasisReadModel>();
+
+        public DbSet<AncillaryProvisionCabinClassReadModel> AncillaryProvisionCabinClasses => Set<AncillaryProvisionCabinClassReadModel>();
+
+        public DbSet<AncillaryProvisionRbdReadModel> AncillaryProvisionRbds => Set<AncillaryProvisionRbdReadModel>();
+
+        public DbSet<AncillaryProvisionTravelDateReadModel> AncillaryProvisionTravelDates => Set<AncillaryProvisionTravelDateReadModel>();
+
+        public DbSet<AncillaryProvisionSeasonalPeriodReadModel> AncillaryProvisionSeasonalPeriods => Set<AncillaryProvisionSeasonalPeriodReadModel>();
+
+        public DbSet<AncillaryProvisionBlackoutPeriodReadModel> AncillaryProvisionBlackoutPeriods => Set<AncillaryProvisionBlackoutPeriodReadModel>();
+
+        public DbSet<AncillaryProvisionDayTimeRestrictionReadModel> AncillaryProvisionDayTimeRestrictions => Set<AncillaryProvisionDayTimeRestrictionReadModel>();
+
+        public DbSet<AncillaryProvisionSeatNumberReadModel> AncillaryProvisionSeatNumbers => Set<AncillaryProvisionSeatNumberReadModel>();
+
+        public DbSet<AncillaryProvisionSeatCharacteristicReadModel> AncillaryProvisionSeatCharacteristics => Set<AncillaryProvisionSeatCharacteristicReadModel>();
+
+        public DbSet<AncillaryPricingReadModel> AncillaryPricings => Set<AncillaryPricingReadModel>();
+
+        public DbSet<AncillaryPricingLineReadModel> AncillaryPricingLines => Set<AncillaryPricingLineReadModel>();
 
         public DbSet<CustomerReadModel> Customers => Set<CustomerReadModel>();
 

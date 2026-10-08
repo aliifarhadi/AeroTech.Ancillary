@@ -16,7 +16,6 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryProvisionAggregate.Requests
         ProvisionQuantityInput Quantity,
         ProvisionApplicationInput Application,
         ProvisionOutcomeInput Outcome,
-        ProvisionFeeInput? Fee,
         ProvisionSettlementInput Settlement,
         ProvisionAvailabilityInput Availability,
         ProvisionFulfillmentInput Fulfillment);

@@ -15,6 +15,7 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
                 definition.ServiceSubCode,
                 definition.SubCodeSource,
                 definition.GroupCode,
+                definition.PricingUnit,
                 definition.Status);
     }
 }

@@ -20,10 +20,14 @@ public class M1ProvisionAcceptanceTests
         var scope = new AncillaryScope(_database, _clock);
         var supplier = await scope.RegisterSupplier.RegisterAsync(M1Commands.LocalSupplier(airlineId));
         var definition = await scope.DefineServiceDefinition.DefineAsync(M1Commands.LoungeDefinition(airlineId, supplier.Id));
+
         await scope.ActivateServiceDefinition.ActivateAsync(new TestActivateServiceDefinitionCommand(definition.Id));
 
         return (definition.Id, scope);
     }
+
+    private static TestDefineProvisionCommand PaidLounge(long definitionId)
+        => M1Commands.LoungeProvision(definitionId, disposition: CommercialDisposition.Paid);
 
     [Fact]
     public async Task M1_D01_a_provision_is_defined_as_draft_with_its_price_lines()
@@ -31,24 +35,29 @@ public class M1ProvisionAcceptanceTests
         var (definitionId, scope) = await ActiveDefinitionAsync();
         await using var _ = scope;
 
-        var draft = await scope.DefineProvision.DefineAsync(M1Commands.LoungeProvision(definitionId));
+        var draft = await scope.DefineProvision.DefineAsync(PaidLounge(definitionId));
+        var pricing = await scope.DefinePricing.DefineAsync(M1Commands.LoungePricing(draft.Id));
 
         Assert.Equal(ProvisionStatus.Draft, draft.Status);
         Assert.Equal(ServiceCoverageScope.Sector, draft.CoverageScope);
         Assert.Equal(CommercialDisposition.Paid, draft.Disposition);
+        Assert.Equal((PricingStatus.Draft, 1, draft.Id), (pricing.Status, pricing.Version, pricing.AncillaryProvisionId));
 
         await using var reader = new AncillaryScope(_database, _clock);
         var detail = await reader.GetProvisionById.ExecuteAsync(draft.Id);
+        var price = await reader.GetPricingById.ExecuteAsync(pricing.Id);
 
         Assert.Equal(definitionId, detail.ServiceDefinitionId);
         Assert.Equal(100, detail.Sequence);
         Assert.Equal("Sector", detail.CoverageScope.Name);
         Assert.Equal("Each", detail.QuantityUnit.Name);
-        Assert.Equal(M1Commands.Currency, detail.FeeCurrencyId);
-        Assert.Equal("Item", detail.FeeApplicationUnit!.Name);
         Assert.Equal("Ancillary", detail.FulfillmentProviderKey);
-        var line = Assert.Single(detail.PriceLines);
-        Assert.Equal(2500000m, line.UnitAmount);
+        Assert.Equal(M1Commands.Currency, price.CurrencyId);
+        Assert.Equal("Item", price.FeeApplicationUnit!.Name);
+
+        var line = Assert.Single(price.PriceLines);
+
+        Assert.Equal(2500000m, line.Amount);
         Assert.Equal("Lounge access", line.Name);
     }
 
@@ -67,14 +76,17 @@ public class M1ProvisionAcceptanceTests
         var (definitionId, scope) = await ActiveDefinitionAsync();
         await using var _ = scope;
 
-        var first = await scope.DefineProvision.DefineAsync(M1Commands.LoungeProvision(definitionId, amount: 2500000m));
-        await scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(first.Id));
+        var first = await scope.DefineProvision.DefineAsync(PaidLounge(definitionId));
+        var firstPrice = await scope.DefinePricing.DefineAsync(M1Commands.LoungePricing(first.Id, 2500000m));
 
-        var revision = await scope.DefineProvision.DefineAsync(M1Commands.LoungeProvision(definitionId, amount: 2800000m));
+        await scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(first.Id, firstPrice.Id));
+
+        var revision = await scope.DefineProvision.DefineAsync(PaidLounge(definitionId));
+        var revisionPrice = await scope.DefinePricing.DefineAsync(M1Commands.LoungePricing(revision.Id, 2800000m));
 
         Assert.NotEqual(first.Id, revision.Id);
 
-        var activated = await scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(revision.Id));
+        var activated = await scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(revision.Id, revisionPrice.Id));
 
         Assert.Equal(ProvisionStatus.Active, activated.Status);
 
@@ -84,8 +96,8 @@ public class M1ProvisionAcceptanceTests
 
         Assert.Equal("Retired", superseded.Status.Name);
         Assert.Equal("Active", current.Status.Name);
-        Assert.Equal(2500000m, Assert.Single(superseded.PriceLines).UnitAmount);
-        Assert.Equal(2800000m, Assert.Single(current.PriceLines).UnitAmount);
+        Assert.Equal(2500000m, Assert.Single((await reader.GetPricingById.ExecuteAsync(firstPrice.Id)).PriceLines).Amount);
+        Assert.Equal(2800000m, Assert.Single((await reader.GetPricingById.ExecuteAsync(revisionPrice.Id)).PriceLines).Amount);
     }
 
     [Fact]
@@ -94,11 +106,13 @@ public class M1ProvisionAcceptanceTests
         var (definitionId, scope) = await ActiveDefinitionAsync();
         await using var _ = scope;
 
-        var draft = await scope.DefineProvision.DefineAsync(
-            M1Commands.LoungeProvision(definitionId, feeApplicationUnit: FeeApplicationUnit.PerFiveKilogramsOver));
+        var draft = await scope.DefineProvision.DefineAsync(PaidLounge(definitionId));
+        var pricing = await scope.DefinePricing.DefineAsync(
+            M1Commands.LoungePricing(draft.Id, feeApplicationUnit: FeeApplicationUnit.PerFiveKilogramsOver));
 
-        await BusinessAssert.ThrowsAsync(16305, 422, () => scope.ActivateProvision.ActivateAsync(
-            new TestActivateProvisionCommand(draft.Id)));
+        await BusinessAssert.ThrowsAsync(16305, 422, () => scope.ActivatePricing.ActivateAsync(new TestPricingLifecycleCommand(pricing.Id)));
+        await BusinessAssert.ThrowsAsync(16305, 422, () => scope.PublishProvision.PublishAsync(
+            new TestPublishProvisionCommand(draft.Id, pricing.Id)));
     }
 
     [Fact]

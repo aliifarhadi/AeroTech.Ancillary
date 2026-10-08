@@ -12,16 +12,23 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Contracts
         DateTimeOffset? SalesEffectiveFrom,
         DateTimeOffset? SalesDiscontinueAt,
         ServiceCoverageScope CoverageScope,
-        ProvisionCriteriaReadModelSnapshot Criteria,
+        int? AdvancePurchasePeriod,
+        TimeUnit? AdvancePurchaseUnit,
         AncillaryQuantityUnit QuantityUnit,
         int MinQuantity,
         int MaxQuantity,
-        ProvisionApplicationReadModelSnapshot Application,
+        ProvisionApplicationType ApplicationType,
+        int? BaggageFreePieces,
+        int? BaggageFirstExcessPiece,
+        int? BaggageLastExcessPiece,
+        decimal? BaggageWeight,
+        WeightUnit? BaggageWeightUnit,
+        BaggageTravelApplication? BaggageTravelApplication,
+        BaggagePurchaseApplication? BaggagePurchaseApplication,
+        BaggageRuleDeference? BaggageRuleDeference,
         CommercialDisposition Disposition,
         bool DocumentRequired,
         bool BookingRequired,
-        int? FeeCurrencyId,
-        FeeApplicationUnit? FeeApplicationUnit,
         ReissueRefundPolicy ReissueRefund,
         FormOfRefund? FormOfRefund,
         bool Commissionable,
@@ -32,61 +39,54 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Contracts
         DateTimeOffset? ActivatedAt,
         DateTimeOffset? SuspendedAt,
         DateTimeOffset? RetiredAt,
+        ProvisionConditionsReadModelSnapshot Conditions);
+
+    public sealed record ProvisionConditionsReadModelSnapshot(
+        IReadOnlyList<ProvisionConditionRowReadModelSnapshot<PassengerTypeCode>> PassengerTypes,
+        IReadOnlyList<ProvisionConditionRowReadModelSnapshot<long>> PointsOfSale,
+        IReadOnlyList<ProvisionConditionRowReadModelSnapshot<long>> Customers,
+        IReadOnlyList<ProvisionConditionRowReadModelSnapshot<CustomerType>> CustomerTypes,
+        IReadOnlyList<ProvisionConditionRowReadModelSnapshot<int>> OriginAirports,
+        IReadOnlyList<ProvisionConditionRowReadModelSnapshot<int>> DestinationAirports,
+        IReadOnlyList<ProvisionConditionRowReadModelSnapshot<int>> ViaAirports,
         IReadOnlyList<ProvisionRoutePairReadModelSnapshot> RoutePairs,
-        IReadOnlyList<ProvisionPriceLineReadModelSnapshot> PriceLines);
+        IReadOnlyList<ProvisionConditionRowReadModelSnapshot<int>> MarketingAirlines,
+        IReadOnlyList<ProvisionConditionRowReadModelSnapshot<int>> OperatingAirlines,
+        IReadOnlyList<ProvisionConditionRowReadModelSnapshot<string>> FlightNumbers,
+        IReadOnlyList<ProvisionConditionRowReadModelSnapshot<long>> Flights,
+        IReadOnlyList<ProvisionConditionRowReadModelSnapshot<int>> Aircraft,
+        IReadOnlyList<ProvisionConditionRowReadModelSnapshot<long>> AirFares,
+        IReadOnlyList<ProvisionConditionRowReadModelSnapshot<AirFareType>> AirFareTypes,
+        IReadOnlyList<ProvisionConditionRowReadModelSnapshot<long>> FareFamilies,
+        IReadOnlyList<ProvisionConditionRowReadModelSnapshot<string>> FareBases,
+        IReadOnlyList<ProvisionConditionRowReadModelSnapshot<int>> CabinClasses,
+        IReadOnlyList<ProvisionConditionRowReadModelSnapshot<long>> Rbds,
+        IReadOnlyList<ProvisionConditionRowReadModelSnapshot<DateOnly>> TravelDates,
+        IReadOnlyList<ProvisionDatePeriodReadModelSnapshot> SeasonalPeriods,
+        IReadOnlyList<ProvisionDatePeriodReadModelSnapshot> BlackoutPeriods,
+        IReadOnlyList<ProvisionDayTimeRestrictionReadModelSnapshot> DayTimeRestrictions,
+        IReadOnlyList<ProvisionConditionRowReadModelSnapshot<string>> SeatNumbers,
+        IReadOnlyList<ProvisionConditionRowReadModelSnapshot<string>> SeatCharacteristics);
 
-    public sealed record ProvisionCriteriaReadModelSnapshot(
-        IReadOnlyList<PassengerTypeCode> PassengerTypeCodes,
-        IReadOnlyList<long> PointOfSaleIds,
-        IReadOnlyList<long> CustomerIds,
-        IReadOnlyList<CustomerType> CustomerTypes,
-        IReadOnlyList<int> OriginAirportIds,
-        IReadOnlyList<int> DestinationAirportIds,
-        IReadOnlyList<int> ViaAirportIds,
-        DateOnly? TravelFrom,
-        DateOnly? TravelTo,
-        IReadOnlyList<DayOfWeek> DaysOfWeek,
-        TimeOnly? TimeFrom,
-        TimeOnly? TimeTo,
-        IReadOnlyList<int> MarketingAirlineIds,
-        IReadOnlyList<int> OperatingAirlineIds,
-        IReadOnlyList<string> FlightNumbers,
-        IReadOnlyList<long> FlightIds,
-        IReadOnlyList<int> AircraftIds,
-        IReadOnlyList<long> AirFareIds,
-        IReadOnlyList<AirFareType> AirFareTypes,
-        IReadOnlyList<long> FareFamilyIds,
-        IReadOnlyList<string> FareBasisCodes,
-        IReadOnlyList<int> CabinClassIds,
-        IReadOnlyList<long> RbdIds,
-        int? AdvancePurchasePeriod,
-        TimeUnit? AdvancePurchaseUnit);
-
-    public sealed record ProvisionApplicationReadModelSnapshot(
-        ProvisionApplicationType Type,
-        int? BaggageFreePieces,
-        int? BaggageFirstExcessPiece,
-        int? BaggageLastExcessPiece,
-        decimal? BaggageWeight,
-        WeightUnit? BaggageWeightUnit,
-        BaggageTravelApplication? BaggageTravelApplication,
-        BaggagePurchaseApplication? BaggagePurchaseApplication,
-        BaggageRuleDeference? BaggageRuleDeference,
-        IReadOnlyList<string> SeatNumbers,
-        IReadOnlyList<string> SeatCharacteristicCodes);
+    public sealed record ProvisionConditionRowReadModelSnapshot<TValue>(
+        long RowId,
+        TValue Value);
 
     public sealed record ProvisionRoutePairReadModelSnapshot(
-        long RoutePairId,
+        long RowId,
         int OriginAirportId,
         int DestinationAirportId,
         RoutePairDirection Direction);
 
-    public sealed record ProvisionPriceLineReadModelSnapshot(
-        long PriceLineId,
-        AncillaryPriceLineCategory Category,
-        string? Code,
-        string? Name,
-        int? CountryId,
-        int? StationAirportId,
-        decimal UnitAmount);
+    public sealed record ProvisionDatePeriodReadModelSnapshot(
+        long RowId,
+        DateOnly StartDate,
+        DateOnly EndDate);
+
+    public sealed record ProvisionDayTimeRestrictionReadModelSnapshot(
+        long RowId,
+        DayOfWeek DayOfWeek,
+        TimeOnly? StartTime,
+        TimeOnly? EndTime,
+        DayTimeRestrictionEffect Effect);
 }

@@ -13,16 +13,9 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
 
         internal ProvisionRoutePair(long id, long ancillaryProvisionId, ProvisionRoutePairArgs args)
         {
-            Require(args.OriginAirportId > 0, nameof(OriginAirportId));
-            Require(args.DestinationAirportId > 0, nameof(DestinationAirportId));
-            Require(args.OriginAirportId != args.DestinationAirportId, nameof(DestinationAirportId));
-            Require(Enum.IsDefined(args.Direction), nameof(Direction));
-
             Id = id;
             AncillaryProvisionId = ancillaryProvisionId;
-            OriginAirportId = args.OriginAirportId;
-            DestinationAirportId = args.DestinationAirportId;
-            Direction = args.Direction;
+            Change(args);
         }
 
         public long AncillaryProvisionId { get; private set; }
@@ -32,6 +25,29 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
         public int DestinationAirportId { get; private set; }
 
         public RoutePairDirection Direction { get; private set; }
+
+        internal void Change(ProvisionRoutePairArgs args)
+        {
+            Require(args.OriginAirportId > 0, nameof(OriginAirportId));
+            Require(args.DestinationAirportId > 0, nameof(DestinationAirportId));
+            Require(args.OriginAirportId != args.DestinationAirportId, nameof(DestinationAirportId));
+            Require(Enum.IsDefined(args.Direction), nameof(Direction));
+
+            OriginAirportId = args.OriginAirportId;
+            DestinationAirportId = args.DestinationAirportId;
+            Direction = args.Direction;
+        }
+
+        internal bool SameAs(ProvisionRoutePair other)
+            => OriginAirportId == other.OriginAirportId
+               && DestinationAirportId == other.DestinationAirportId
+               && Direction == other.Direction;
+
+        internal bool Overlaps(ProvisionRoutePair other)
+            => (OriginAirportId == other.OriginAirportId && DestinationAirportId == other.DestinationAirportId)
+               || ((Direction == RoutePairDirection.BothDirections || other.Direction == RoutePairDirection.BothDirections)
+                   && OriginAirportId == other.DestinationAirportId
+                   && DestinationAirportId == other.OriginAirportId);
 
         private static void Require(bool condition, string field)
         {

@@ -14,6 +14,7 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryServiceDefinitionAggregate.Requ
         string? SubGroupCode,
         string? Description1Code,
         string? Description2Code,
+        PricingUnit PricingUnit,
         string CommercialName,
         string? Description,
         ServiceDefinitionDocumentInput Document,

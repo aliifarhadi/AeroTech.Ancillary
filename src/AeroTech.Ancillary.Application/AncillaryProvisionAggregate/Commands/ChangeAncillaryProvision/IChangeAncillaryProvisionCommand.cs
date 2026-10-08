@@ -31,8 +31,6 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Ch
 
         ProvisionOutcomeInput Outcome { get; }
 
-        ProvisionFeeInput? Fee { get; }
-
         ProvisionSettlementInput Settlement { get; }
 
         ProvisionAvailabilityInput Availability { get; }

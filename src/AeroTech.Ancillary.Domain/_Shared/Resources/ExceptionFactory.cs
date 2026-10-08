@@ -16,6 +16,9 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public static BusinessException CallerContextTypeIsNotRecognised(params object?[] args) =>
             new(16004, ExceptionMessages.CallerContextTypeIsNotRecognised, args) { HttpStatus = 403 };
 
+        public static BusinessException ConcurrentChangeDetected(params object?[] args) =>
+            new(16005, ExceptionMessages.ConcurrentChangeDetected, args) { HttpStatus = 409 };
+
         public static BusinessException SupplierNotFound(params object?[] args) =>
             new(16101, ExceptionMessages.SupplierNotFound, args) { HttpStatus = 404 };
 
@@ -52,6 +55,15 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public static BusinessException IndustryServiceSubCodeSemanticsConflict(params object?[] args) =>
             new(16208, ExceptionMessages.IndustryServiceSubCodeSemanticsConflict, args) { HttpStatus = 422 };
 
+        public static BusinessException ServiceDefinitionPricingUnitConflict(params object?[] args) =>
+            new(16209, ExceptionMessages.ServiceDefinitionPricingUnitConflict, args) { HttpStatus = 409 };
+
+        public static BusinessException ServiceDefinitionPricingUnitNotAssigned(params object?[] args) =>
+            new(16210, ExceptionMessages.ServiceDefinitionPricingUnitNotAssigned, args) { HttpStatus = 409 };
+
+        public static BusinessException ServiceDefinitionPricingUnitAlreadyAssigned(params object?[] args) =>
+            new(16211, ExceptionMessages.ServiceDefinitionPricingUnitAlreadyAssigned, args) { HttpStatus = 409 };
+
         public static BusinessException ProvisionNotFound(params object?[] args) =>
             new(16301, ExceptionMessages.ProvisionNotFound, args) { HttpStatus = 404 };
 
@@ -64,11 +76,26 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public static BusinessException ProvisionServiceDefinitionNotFound(params object?[] args) =>
             new(16304, ExceptionMessages.ProvisionServiceDefinitionNotFound, args) { HttpStatus = 422 };
 
-        public static BusinessException ProvisionFeeApplicationUnitNotSupported(params object?[] args) =>
-            new(16305, ExceptionMessages.ProvisionFeeApplicationUnitNotSupported, args) { HttpStatus = 422 };
+        public static BusinessException FeeApplicationUnitNotSupported(params object?[] args) =>
+            new(16305, ExceptionMessages.FeeApplicationUnitNotSupported, args) { HttpStatus = 422 };
 
         public static BusinessException ProvisionSequenceAlreadyActive(params object?[] args) =>
             new(16306, ExceptionMessages.ProvisionSequenceAlreadyActive, args) { HttpStatus = 409 };
+
+        public static BusinessException ProvisionServiceDefinitionNotActive(params object?[] args) =>
+            new(16307, ExceptionMessages.ProvisionServiceDefinitionNotActive, args) { HttpStatus = 409 };
+
+        public static BusinessException ProvisionConditionNotFound(params object?[] args) =>
+            new(16308, ExceptionMessages.ProvisionConditionNotFound, args) { HttpStatus = 404 };
+
+        public static BusinessException ProvisionConditionAlreadyExists(params object?[] args) =>
+            new(16309, ExceptionMessages.ProvisionConditionAlreadyExists, args) { HttpStatus = 409 };
+
+        public static BusinessException ProvisionActivePricingRequired(params object?[] args) =>
+            new(16310, ExceptionMessages.ProvisionActivePricingRequired, args) { HttpStatus = 409 };
+
+        public static BusinessException ProvisionActivePricingNotAllowed(params object?[] args) =>
+            new(16311, ExceptionMessages.ProvisionActivePricingNotAllowed, args) { HttpStatus = 409 };
 
         public static BusinessException AncillaryHoldNotFound(params object?[] args) =>
             new(16401, ExceptionMessages.AncillaryHoldNotFound, args) { HttpStatus = 404 };
@@ -99,5 +126,35 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
 
         public static BusinessException AncillaryHoldCoverageMismatch(params object?[] args) =>
             new(16410, ExceptionMessages.AncillaryHoldCoverageMismatch, args) { HttpStatus = 422 };
+
+        public static BusinessException PricingNotFound(params object?[] args) =>
+            new(16501, ExceptionMessages.PricingNotFound, args) { HttpStatus = 404 };
+
+        public static BusinessException PricingIsInvalid(params object?[] args) =>
+            new(16502, ExceptionMessages.PricingIsInvalid, args) { HttpStatus = 422 };
+
+        public static BusinessException PricingStatusChangeNotAllowed(params object?[] args) =>
+            new(16503, ExceptionMessages.PricingStatusChangeNotAllowed, args) { HttpStatus = 409 };
+
+        public static BusinessException PricingProvisionNotFound(params object?[] args) =>
+            new(16504, ExceptionMessages.PricingProvisionNotFound, args) { HttpStatus = 422 };
+
+        public static BusinessException PricingProvisionNotPriceable(params object?[] args) =>
+            new(16505, ExceptionMessages.PricingProvisionNotPriceable, args) { HttpStatus = 409 };
+
+        public static BusinessException PricingUnitMismatch(params object?[] args) =>
+            new(16506, ExceptionMessages.PricingUnitMismatch, args) { HttpStatus = 409 };
+
+        public static BusinessException PricingAlreadyActive(params object?[] args) =>
+            new(16507, ExceptionMessages.PricingAlreadyActive, args) { HttpStatus = 409 };
+
+        public static BusinessException PricingSelectorConflict(params object?[] args) =>
+            new(16508, ExceptionMessages.PricingSelectorConflict, args) { HttpStatus = 409 };
+
+        public static BusinessException PricingRequiredByActiveProvision(params object?[] args) =>
+            new(16509, ExceptionMessages.PricingRequiredByActiveProvision, args) { HttpStatus = 409 };
+
+        public static BusinessException PricingSwitchExpectationFailed(params object?[] args) =>
+            new(16510, ExceptionMessages.PricingSwitchExpectationFailed, args) { HttpStatus = 409 };
     }
 }

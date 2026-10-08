@@ -1,10 +1,12 @@
 using AeroTech.Framework.Core.Domain.Repository;
 using AeroTech.Framework.Core.ServiceContracts;
 using AeroTech.Framework.Infrastructure.HealthChecks;
+using AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Contracts;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Contracts;
 using AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Contracts;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Contracts;
 using AeroTech.Ancillary.Domain.SupplierAggregate.Contracts;
+using AeroTech.Ancillary.Persistence.AncillaryPricingAggregate;
 using AeroTech.Ancillary.Persistence.AncillaryProvisionAggregate;
 using AeroTech.Ancillary.Persistence.AncillaryReservationAggregate;
 using AeroTech.Ancillary.Persistence.AncillaryServiceDefinitionAggregate;
@@ -31,6 +33,7 @@ namespace AeroTech.Ancillary.Persistence
             services.AddScoped<ISupplierRepository, SupplierRepository>();
             services.AddScoped<IAncillaryServiceDefinitionRepository, AncillaryServiceDefinitionRepository>();
             services.AddScoped<IAncillaryProvisionRepository, AncillaryProvisionRepository>();
+            services.AddScoped<IAncillaryPricingRepository, AncillaryPricingRepository>();
             services.AddScoped<IAncillaryReservationRepository, AncillaryReservationRepository>();
             services.Configure<IntegrationEventOptions>(configuration.GetSection("IntegrationEvents"));
             services.AddScoped<IOutboxWriter, OutboxWriter>();

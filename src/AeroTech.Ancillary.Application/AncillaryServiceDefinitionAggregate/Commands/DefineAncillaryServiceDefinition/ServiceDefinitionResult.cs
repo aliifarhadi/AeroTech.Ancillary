@@ -12,5 +12,6 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
         string ServiceSubCode,
         ServiceSubCodeSource SubCodeSource,
         string GroupCode,
+        PricingUnit? PricingUnit,
         ServiceDefinitionStatus Status);
 }

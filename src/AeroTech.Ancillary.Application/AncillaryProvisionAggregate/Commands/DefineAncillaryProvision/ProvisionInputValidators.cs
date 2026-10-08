@@ -23,7 +23,9 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
         public ProvisionTravelCriteriaInputValidator()
         {
             RuleForEach(travel => travel.RoutePairs).NotNull().SetValidator(new ProvisionRoutePairInputValidator());
-            RuleForEach(travel => travel.DaysOfWeek).IsInEnum();
+            RuleForEach(travel => travel.SeasonalPeriods).NotNull();
+            RuleForEach(travel => travel.BlackoutPeriods).NotNull();
+            RuleForEach(travel => travel.DayTimeRestrictions).NotNull().SetValidator(new ProvisionDayTimeRestrictionInputValidator());
             RuleForEach(travel => travel.FlightNumbers).NotEmpty().MaximumLength(16);
         }
     }
@@ -33,6 +35,15 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
         public ProvisionRoutePairInputValidator()
         {
             RuleFor(pair => pair.Direction).IsInEnum();
+        }
+    }
+
+    public sealed class ProvisionDayTimeRestrictionInputValidator : AbstractValidator<ProvisionDayTimeRestrictionInput>
+    {
+        public ProvisionDayTimeRestrictionInputValidator()
+        {
+            RuleFor(restriction => restriction.DayOfWeek).IsInEnum();
+            RuleFor(restriction => restriction.Effect).IsInEnum();
         }
     }
 
@@ -100,26 +111,6 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
         public ProvisionOutcomeInputValidator()
         {
             RuleFor(outcome => outcome.Disposition).IsInEnum();
-        }
-    }
-
-    public sealed class ProvisionFeeInputValidator : AbstractValidator<ProvisionFeeInput>
-    {
-        public ProvisionFeeInputValidator()
-        {
-            RuleFor(fee => fee.ApplicationUnit).IsInEnum();
-            RuleFor(fee => fee.PriceLines).NotNull();
-            RuleForEach(fee => fee.PriceLines).NotNull().SetValidator(new ProvisionPriceLineInputValidator());
-        }
-    }
-
-    public sealed class ProvisionPriceLineInputValidator : AbstractValidator<ProvisionPriceLineInput>
-    {
-        public ProvisionPriceLineInputValidator()
-        {
-            RuleFor(line => line.Category).IsInEnum();
-            RuleFor(line => line.Code).MaximumLength(10);
-            RuleFor(line => line.Name).MaximumLength(100);
         }
     }
 

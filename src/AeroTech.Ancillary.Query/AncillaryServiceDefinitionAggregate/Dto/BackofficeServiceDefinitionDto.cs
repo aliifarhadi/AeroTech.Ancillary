@@ -16,6 +16,7 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto
         string? SubGroupCode,
         string? Description1Code,
         string? Description2Code,
+        EnumValueDto? PricingUnit,
         string CommercialName,
         string? Description,
         EnumValueDto DocumentType,

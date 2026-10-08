@@ -22,8 +22,10 @@ public class M1PublishedCatalogAcceptanceTests
         var supplier = await scope.RegisterSupplier.RegisterAsync(M1Commands.LocalSupplier(airlineId));
         var definition = await scope.DefineServiceDefinition.DefineAsync(M1Commands.LoungeDefinition(airlineId, supplier.Id));
         await scope.ActivateServiceDefinition.ActivateAsync(new TestActivateServiceDefinitionCommand(definition.Id));
-        var provision = await scope.DefineProvision.DefineAsync(M1Commands.LoungeProvision(definition.Id));
-        await scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(provision.Id));
+        var provision = await scope.DefineProvision.DefineAsync(
+            M1Commands.LoungeProvision(definition.Id, disposition: CommercialDisposition.Paid));
+        var pricing = await scope.DefinePricing.DefineAsync(M1Commands.LoungePricing(provision.Id));
+        await scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(provision.Id, pricing.Id));
 
         await using var reader = new AncillaryScope(_database, _clock);
 
@@ -50,16 +52,23 @@ public class M1PublishedCatalogAcceptanceTests
         Assert.Equal(ProvisionStatus.Active, provisionRow.Status);
         Assert.Equal(ServiceCoverageScope.Sector, provisionRow.CoverageScope);
         Assert.Equal(CommercialDisposition.Paid, provisionRow.Disposition);
-        Assert.Equal(M1Commands.Currency, provisionRow.FeeCurrencyId);
-        Assert.Equal(FeeApplicationUnit.Item, provisionRow.FeeApplicationUnit);
         Assert.Equal("Ancillary", provisionRow.FulfillmentProviderKey);
         Assert.Equal(_clock.Now, provisionRow.LastUpdateTime);
 
-        var lineRow = await reader.Query.AncillaryProvisionPriceLines.AsNoTracking()
-            .SingleAsync(row => row.AncillaryProvisionId == provision.Id);
+        var pricingRow = await reader.Query.AncillaryPricings.AsNoTracking()
+            .SingleAsync(row => row.AncillaryProvisionId == provision.Id && row.Status == PricingStatus.Active);
+
+        Assert.Equal((pricing.Id, 1, PricingUnit.PerPassenger), (pricingRow.Id, pricingRow.Version, pricingRow.PricingUnit!.Value));
+        Assert.Equal(M1Commands.Currency, pricingRow.CurrencyId);
+        Assert.Equal(FeeApplicationUnit.Item, pricingRow.FeeApplicationUnit);
+        Assert.Equal(_clock.Now, pricingRow.LastUpdateTime);
+
+        var lineRow = await reader.Query.AncillaryPricingLines.AsNoTracking()
+            .SingleAsync(row => row.AncillaryPricingId == pricingRow.Id);
 
         Assert.Equal(AncillaryPriceLineCategory.Ancillary, lineRow.Category);
-        Assert.Equal(2500000m, lineRow.UnitAmount);
+        Assert.Equal(2500000m, lineRow.Amount);
+        Assert.Equal(((int?)null, (int?)null, (int?)null), ((int?)lineRow.PassengerTypeCode, lineRow.AgeFromInclusive, lineRow.AgeToExclusive));
     }
 
     [Fact]
