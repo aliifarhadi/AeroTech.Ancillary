@@ -483,9 +483,9 @@ public class V121ProvisionRuleAcceptanceTests
 
         Assert.Equal(10, command.Count(table => table.EndsWith("Rules", StringComparison.Ordinal)));
         Assert.Equal(27, command.Count(table => !table.EndsWith("Rules", StringComparison.Ordinal) && !legacy.Contains(table) && table != "ProvisionRuleMigrationAudit"));
-        Assert.Equal(41, command.Count);
-        Assert.Equal(30, read.Count);
-        Assert.All(legacy, table => Assert.Contains(table, command));
+        Assert.Equal(38, command.Count);
+        Assert.Equal(27, read.Count);
+        Assert.All(legacy, table => Assert.DoesNotContain(table, command));
 
         var withoutRuleKey = await RowsAsync($"""
             SELECT t.name AS Value FROM sys.tables t JOIN sys.schemas s ON s.schema_id = t.schema_id

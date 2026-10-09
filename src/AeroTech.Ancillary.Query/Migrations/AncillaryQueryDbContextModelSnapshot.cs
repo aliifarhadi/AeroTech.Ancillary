@@ -23,6 +23,211 @@ namespace AeroTech.Ancillary.Query.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("AeroTech.Ancillary.Query.AirportSlotInventoryAggregate.Models.AirportSlotAdjustmentReadModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ActorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("AirportSlotInventoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CorrelationId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<long>("ExpectedVersion")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("NewTotal")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("PreviousTotal")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReasonCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<long>("ResultingVersion")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AirportSlotInventoryId");
+
+                    b.ToTable("AirportSlotAdjustments", "ReadModel");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Query.AirportSlotInventoryAggregate.Models.AirportSlotInventoryReadModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("AdjustmentCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AirportId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CapacityPersons")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("ClosedForSale")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("EndUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("FacilityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("OwnerAirlineId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("StartUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("Version")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerAirlineId", "FacilityId", "StartUtc");
+
+                    b.ToTable("AirportSlotInventories", "ReadModel");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Models.InventoryPassengerUsageLimitReadModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CountingFamilyCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<long>("InventoryPolicyId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("LimitScope")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxUnits")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InventoryPolicyId");
+
+                    b.ToTable("AncillaryInventoryPassengerUsageLimits", "ReadModel");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Models.InventoryPolicyReadModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("ActivatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Authority")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CountPerAcceptedUnit")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("CountResourceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("CountUnit")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("LocalPattern")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OwnerAirlineId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProviderKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTimeOffset?>("RetiredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("ServiceDefinitionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ServiceDefinitionRef")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<long?>("SlotFacilityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("SlotOccupancyMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SlotPeoplePerAcceptedUnit")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("SuspendedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("Version")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("WeightConsumptionMode")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("WeightFixedKgPerUnit")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<long?>("WeightResourceId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerAirlineId", "ServiceDefinitionRef", "Status");
+
+                    b.ToTable("AncillaryInventoryPolicies", "ReadModel");
+                });
+
             modelBuilder.Entity("AeroTech.Ancillary.Query.AncillaryPricingAggregate.Models.AncillaryPricingLineReadModel", b =>
                 {
                     b.Property<long>("Id")
@@ -906,6 +1111,188 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.HasIndex("OwnerAirlineId", "Status");
 
                     b.ToTable("AncillaryServiceDefinitions", "ReadModel");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Query.FlightCountInventoryAggregate.Models.FlightCountAdjustmentReadModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ActorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CorrelationId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<long>("ExpectedVersion")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("FlightCountInventoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("NewTotal")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("PreviousTotal")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReasonCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<long>("ResultingVersion")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FlightCountInventoryId");
+
+                    b.ToTable("FlightCountAdjustments", "ReadModel");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Query.FlightCountInventoryAggregate.Models.FlightCountInventoryReadModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("AdjustmentCount")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("ClosedForSale")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("CountUnit")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("FlightId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("OwnerAirlineId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("ResourceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalCapacity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("Version")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerAirlineId", "FlightId", "ResourceId");
+
+                    b.ToTable("FlightCountInventories", "ReadModel");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Query.FlightWeightInventoryAggregate.Models.FlightWeightAdjustmentReadModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ActorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CorrelationId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<long>("ExpectedVersion")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("FlightWeightInventoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("NewKg")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<decimal>("PreviousKg")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<string>("ReasonCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<long>("ResultingVersion")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FlightWeightInventoryId");
+
+                    b.ToTable("FlightWeightAdjustments", "ReadModel");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Query.FlightWeightInventoryAggregate.Models.FlightWeightInventoryReadModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("AdjustmentCount")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("CapacityKg")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<bool>("ClosedForSale")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("FlightId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("OwnerAirlineId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("Version")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("WeightResourceId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerAirlineId", "FlightId", "WeightResourceId");
+
+                    b.ToTable("FlightWeightInventories", "ReadModel");
                 });
 
             modelBuilder.Entity("AeroTech.Ancillary.Query.SupplierAggregate.Models.SupplierReadModel", b =>

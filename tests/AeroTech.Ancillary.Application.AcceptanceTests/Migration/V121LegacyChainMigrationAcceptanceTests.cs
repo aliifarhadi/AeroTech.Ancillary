@@ -97,7 +97,7 @@ public class V121LegacyChainMigrationAcceptanceTests : IAsyncLifetime
 
         _legacyBefore = await LegacyRowsAsync();
 
-        await _database.InitializeAsync();
+        await _database.InitializeAsync(LegacySeeds.StockCapacityCommand, LegacySeeds.StockCapacityQuery);
     }
 
     private async Task<string[]> LegacyRowsAsync()

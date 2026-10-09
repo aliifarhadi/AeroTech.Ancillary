@@ -60,5 +60,24 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public const string PricingSelectorConflict = "The price lines are ambiguous for {0}.";
         public const string PricingRequiredByActiveProvision = "The active pricing of an active paid provision can only be replaced, not removed.";
         public const string PricingSwitchExpectationFailed = "The active pricing of the provision is not the expected one.";
+        public const string InventoryPolicyNotFound = "The inventory policy was not found.";
+        public const string InventoryPolicyIsInvalid = "Inventory policy field {0} is invalid.";
+        public const string InventoryPolicyStatusChangeNotAllowed = "The inventory policy status does not allow this change.";
+        public const string InventoryPolicyAlreadyExists = "Service {0} already has a current inventory policy.";
+        public const string InventoryVersionConflict = "The inventory record was changed by another request; reload it and send its current version.";
+        public const string InventoryPolicyActivationRefused = "The inventory policy cannot be activated: {0}.";
+        public const string InventoryPatternNotSupported = "Local inventory pattern {0} has no verified source model and cannot be activated.";
+        public const string InventoryReferenceSourceUnavailable = "{0} cannot be verified because its source of truth is not connected; activation waits for that source.";
+        public const string InventoryReferenceNotFound = "{0} was not found in its source of truth.";
+        public const string InventoryOwnerNotAuthorized = "The caller is not authorized to manage inventory of this airline.";
+        public const string InventorySourceNotFound = "The inventory source was not found.";
+        public const string InventorySourceIsInvalid = "Inventory source field {0} is invalid.";
+        public const string InventorySourceStatusChangeNotAllowed = "The inventory source status does not allow this change.";
+        public const string InventorySourceAlreadyExists = "A current inventory source already exists for this physical key.";
+        public const string InventorySlotOverlap = "The interval overlaps another current slot of the same facility.";
+        public const string InventoryCorrelationConflict = "Correlation {0} was already used for a different adjustment.";
+        public const string InventoryPolicyServiceDefinitionMismatch = "The service definition does not belong to the policy identity.";
+        public const string InventoryUnitMismatch = "The inventory unit does not match: {0}.";
+        public const string InventoryFacilityBusy = "Another slot of this facility is being written; try again.";
     }
 }

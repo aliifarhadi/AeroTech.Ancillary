@@ -7,6 +7,8 @@ using AeroTech.Framework.Core.Domain.Events;
 using AeroTech.Framework.Core.ServiceContracts;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Xunit;
 
@@ -54,14 +56,16 @@ public sealed class TestDatabase : IAsyncLifetime
                 .UseSqlServer(_connectionString, sql => sql.MigrationsHistoryTable(ReferenceDbContext.MigrationsHistoryTable, ReferenceDbContext.MigrationsHistorySchema))
                 .Options);
 
-    public async Task InitializeAsync()
+    public Task InitializeAsync() => InitializeAsync(null, null);
+
+    public async Task InitializeAsync(string? commandMigration, string? queryMigration)
     {
         await using var command = NewContext(new FixedClock());
         await using var query = NewQueryContext();
         await using var reference = NewReferenceContext();
 
-        await command.Database.MigrateAsync();
-        await query.Database.MigrateAsync();
+        await command.GetService<IMigrator>().MigrateAsync(commandMigration);
+        await query.GetService<IMigrator>().MigrateAsync(queryMigration);
         await reference.Database.MigrateAsync();
 
         reference.Currencies.AddRange(

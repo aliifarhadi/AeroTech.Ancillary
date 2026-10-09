@@ -177,5 +177,61 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
 
         public static BusinessException PricingSwitchExpectationFailed(params object?[] args) =>
             new(16510, ExceptionMessages.PricingSwitchExpectationFailed, args) { HttpStatus = 409 };
+        public static BusinessException InventoryPolicyNotFound(params object?[] args) =>
+            new(16601, ExceptionMessages.InventoryPolicyNotFound, args) { HttpStatus = 404 };
+
+        public static BusinessException InventoryPolicyIsInvalid(params object?[] args) =>
+            new(16602, ExceptionMessages.InventoryPolicyIsInvalid, args) { HttpStatus = 422 };
+
+        public static BusinessException InventoryPolicyStatusChangeNotAllowed(params object?[] args) =>
+            new(16603, ExceptionMessages.InventoryPolicyStatusChangeNotAllowed, args) { HttpStatus = 409 };
+
+        public static BusinessException InventoryPolicyAlreadyExists(params object?[] args) =>
+            new(16604, ExceptionMessages.InventoryPolicyAlreadyExists, args) { HttpStatus = 409 };
+
+        public static BusinessException InventoryVersionConflict(params object?[] args) =>
+            new(16605, ExceptionMessages.InventoryVersionConflict, args) { HttpStatus = 409 };
+
+        public static BusinessException InventoryPolicyActivationRefused(params object?[] args) =>
+            new(16606, ExceptionMessages.InventoryPolicyActivationRefused, args) { HttpStatus = 409 };
+
+        public static BusinessException InventoryPatternNotSupported(params object?[] args) =>
+            new(16607, ExceptionMessages.InventoryPatternNotSupported, args) { HttpStatus = 409 };
+
+        public static BusinessException InventoryReferenceSourceUnavailable(params object?[] args) =>
+            new(16608, ExceptionMessages.InventoryReferenceSourceUnavailable, args) { HttpStatus = 409 };
+
+        public static BusinessException InventoryReferenceNotFound(params object?[] args) =>
+            new(16609, ExceptionMessages.InventoryReferenceNotFound, args) { HttpStatus = 422 };
+
+        public static BusinessException InventoryOwnerNotAuthorized(params object?[] args) =>
+            new(16610, ExceptionMessages.InventoryOwnerNotAuthorized, args) { HttpStatus = 403 };
+
+        public static BusinessException InventorySourceNotFound(params object?[] args) =>
+            new(16611, ExceptionMessages.InventorySourceNotFound, args) { HttpStatus = 404 };
+
+        public static BusinessException InventorySourceIsInvalid(params object?[] args) =>
+            new(16612, ExceptionMessages.InventorySourceIsInvalid, args) { HttpStatus = 422 };
+
+        public static BusinessException InventorySourceStatusChangeNotAllowed(params object?[] args) =>
+            new(16613, ExceptionMessages.InventorySourceStatusChangeNotAllowed, args) { HttpStatus = 409 };
+
+        public static BusinessException InventorySourceAlreadyExists(params object?[] args) =>
+            new(16614, ExceptionMessages.InventorySourceAlreadyExists, args) { HttpStatus = 409 };
+
+        public static BusinessException InventorySlotOverlap(params object?[] args) =>
+            new(16615, ExceptionMessages.InventorySlotOverlap, args) { HttpStatus = 409 };
+
+        public static BusinessException InventoryCorrelationConflict(params object?[] args) =>
+            new(16616, ExceptionMessages.InventoryCorrelationConflict, args) { HttpStatus = 409 };
+
+        public static BusinessException InventoryPolicyServiceDefinitionMismatch(params object?[] args) =>
+            new(16617, ExceptionMessages.InventoryPolicyServiceDefinitionMismatch, args) { HttpStatus = 422 };
+
+        public static BusinessException InventoryUnitMismatch(params object?[] args) =>
+            new(16618, ExceptionMessages.InventoryUnitMismatch, args) { HttpStatus = 409 };
+
+        public static BusinessException InventoryFacilityBusy(params object?[] args) =>
+            new(16619, ExceptionMessages.InventoryFacilityBusy, args) { HttpStatus = 409 };
     }
 }

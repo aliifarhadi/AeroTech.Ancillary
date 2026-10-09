@@ -23,6 +23,226 @@ namespace AeroTech.Ancillary.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AirportSlotInventoryAggregate.AirportSlotInventory", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("AirportId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CapacityPersons")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("ClosedForSale")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("EndUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("FacilityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("LastUpdatedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("OwnerAirlineId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<DateTimeOffset>("StartUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("OwnerAirlineId", "FacilityId", "EndUtc");
+
+                    b.HasIndex(new[] { "OwnerAirlineId", "FacilityId", "StartUtc", "EndUtc" }, "IX_AirportSlotInventories_PhysicalKey_Current")
+                        .IsUnique()
+                        .HasFilter("[Status] <> 4");
+
+                    b.ToTable("AirportSlotInventories", "Ancillary");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AirportSlotInventoryAggregate.Entities.AirportSlotAdjustment", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ActorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("AirportSlotInventoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CorrelationId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<long>("ExpectedVersion")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("LastUpdatedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("NewTotal")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("PreviousTotal")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReasonCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<long>("ResultingVersion")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AirportSlotInventoryId", "CorrelationId")
+                        .IsUnique();
+
+                    b.ToTable("AirportSlotAdjustments", "Ancillary");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.AncillaryInventoryPolicy", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("ActivatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Authority")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("LastUpdatedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("LocalPattern")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OwnerAirlineId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProviderKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTimeOffset?>("RetiredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<long>("ServiceDefinitionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ServiceDefinitionRef")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("SuspendedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceDefinitionId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex(new[] { "OwnerAirlineId", "ServiceDefinitionRef" }, "IX_AncillaryInventoryPolicies_Identity_Current")
+                        .IsUnique()
+                        .HasFilter("[Status] <> 4");
+
+                    b.ToTable("AncillaryInventoryPolicies", "Ancillary");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.Entities.PassengerUsageLimit", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CountingFamilyCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<long>("InventoryPolicyId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("LastUpdatedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("LimitScope")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxUnits")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InventoryPolicyId", "LimitScope")
+                        .IsUnique();
+
+                    b.ToTable("InventoryPassengerUsageLimits", "Ancillary");
+                });
+
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryPricingAggregate.AncillaryPricing", b =>
                 {
                     b.Property<long>("Id")
@@ -1523,6 +1743,226 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.ToTable("AncillaryServiceDefinitions", "Ancillary");
                 });
 
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.FlightCountInventoryAggregate.Entities.FlightCountAdjustment", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ActorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CorrelationId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<long>("ExpectedVersion")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("FlightCountInventoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("LastUpdatedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("NewTotal")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("PreviousTotal")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReasonCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<long>("ResultingVersion")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FlightCountInventoryId", "CorrelationId")
+                        .IsUnique();
+
+                    b.ToTable("FlightCountAdjustments", "Ancillary");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.FlightCountInventoryAggregate.FlightCountInventory", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("ClosedForSale")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("CountUnit")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("FlightId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("LastUpdatedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("OwnerAirlineId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("ResourceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalCapacity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("OwnerAirlineId", "ResourceId");
+
+                    b.HasIndex(new[] { "OwnerAirlineId", "FlightId", "ResourceId" }, "IX_FlightCountInventories_PhysicalKey_Current")
+                        .IsUnique()
+                        .HasFilter("[Status] <> 4");
+
+                    b.ToTable("FlightCountInventories", "Ancillary");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.FlightWeightInventoryAggregate.Entities.FlightWeightAdjustment", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ActorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CorrelationId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<long>("ExpectedVersion")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("FlightWeightInventoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("LastUpdatedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("NewKg")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<decimal>("PreviousKg")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<string>("ReasonCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<long>("ResultingVersion")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FlightWeightInventoryId", "CorrelationId")
+                        .IsUnique();
+
+                    b.ToTable("FlightWeightAdjustments", "Ancillary");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.FlightWeightInventoryAggregate.FlightWeightInventory", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("CapacityKg")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<bool>("ClosedForSale")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("FlightId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("LastUpdatedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("OwnerAirlineId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("WeightResourceId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex(new[] { "OwnerAirlineId", "FlightId", "WeightResourceId" }, "IX_FlightWeightInventories_PhysicalKey_Current")
+                        .IsUnique()
+                        .HasFilter("[Status] <> 4");
+
+                    b.ToTable("FlightWeightInventories", "Ancillary");
+                });
+
             modelBuilder.Entity("AeroTech.Ancillary.Domain.SupplierAggregate.Supplier", b =>
                 {
                     b.Property<long>("Id")
@@ -1622,6 +2062,115 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.HasIndex("ProcessedOn");
 
                     b.ToTable("OutboxMessages", "dbo");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AirportSlotInventoryAggregate.Entities.AirportSlotAdjustment", b =>
+                {
+                    b.HasOne("AeroTech.Ancillary.Domain.AirportSlotInventoryAggregate.AirportSlotInventory", null)
+                        .WithMany("Adjustments")
+                        .HasForeignKey("AirportSlotInventoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.AncillaryInventoryPolicy", b =>
+                {
+                    b.HasOne("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.AncillaryServiceDefinition", null)
+                        .WithMany()
+                        .HasForeignKey("ServiceDefinitionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.ValueObjects.AirportSlotConsumption", "SlotConsumption", b1 =>
+                        {
+                            b1.Property<long>("AncillaryInventoryPolicyId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<long>("FacilityId")
+                                .HasColumnType("bigint")
+                                .HasColumnName("SlotFacilityId");
+
+                            b1.Property<int>("OccupancyMinutes")
+                                .HasColumnType("int")
+                                .HasColumnName("SlotOccupancyMinutes");
+
+                            b1.Property<int>("PeoplePerAcceptedUnit")
+                                .HasColumnType("int")
+                                .HasColumnName("SlotPeoplePerAcceptedUnit");
+
+                            b1.HasKey("AncillaryInventoryPolicyId");
+
+                            b1.ToTable("AncillaryInventoryPolicies", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryInventoryPolicyId");
+                        });
+
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.ValueObjects.FlightCountConsumption", "CountConsumption", b1 =>
+                        {
+                            b1.Property<long>("AncillaryInventoryPolicyId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<int>("CountPerAcceptedUnit")
+                                .HasColumnType("int")
+                                .HasColumnName("CountPerAcceptedUnit");
+
+                            b1.Property<int>("CountUnit")
+                                .HasColumnType("int")
+                                .HasColumnName("CountUnit");
+
+                            b1.Property<long>("ResourceId")
+                                .HasColumnType("bigint")
+                                .HasColumnName("CountResourceId");
+
+                            b1.HasKey("AncillaryInventoryPolicyId");
+
+                            b1.ToTable("AncillaryInventoryPolicies", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryInventoryPolicyId");
+                        });
+
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.ValueObjects.FlightWeightConsumption", "WeightConsumption", b1 =>
+                        {
+                            b1.Property<long>("AncillaryInventoryPolicyId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<int>("ConsumptionMode")
+                                .HasColumnType("int")
+                                .HasColumnName("WeightConsumptionMode");
+
+                            b1.Property<decimal?>("FixedKgPerUnit")
+                                .HasPrecision(18, 3)
+                                .HasColumnType("decimal(18,3)")
+                                .HasColumnName("WeightFixedKgPerUnit");
+
+                            b1.Property<long>("WeightResourceId")
+                                .HasColumnType("bigint")
+                                .HasColumnName("WeightResourceId");
+
+                            b1.HasKey("AncillaryInventoryPolicyId");
+
+                            b1.ToTable("AncillaryInventoryPolicies", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryInventoryPolicyId");
+                        });
+
+                    b.Navigation("CountConsumption");
+
+                    b.Navigation("SlotConsumption");
+
+                    b.Navigation("WeightConsumption");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.Entities.PassengerUsageLimit", b =>
+                {
+                    b.HasOne("AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.AncillaryInventoryPolicy", null)
+                        .WithMany("PassengerUsageLimits")
+                        .HasForeignKey("InventoryPolicyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryPricingAggregate.AncillaryPricing", b =>
@@ -2342,6 +2891,34 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.FlightCountInventoryAggregate.Entities.FlightCountAdjustment", b =>
+                {
+                    b.HasOne("AeroTech.Ancillary.Domain.FlightCountInventoryAggregate.FlightCountInventory", null)
+                        .WithMany("Adjustments")
+                        .HasForeignKey("FlightCountInventoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.FlightWeightInventoryAggregate.Entities.FlightWeightAdjustment", b =>
+                {
+                    b.HasOne("AeroTech.Ancillary.Domain.FlightWeightInventoryAggregate.FlightWeightInventory", null)
+                        .WithMany("Adjustments")
+                        .HasForeignKey("FlightWeightInventoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AirportSlotInventoryAggregate.AirportSlotInventory", b =>
+                {
+                    b.Navigation("Adjustments");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.AncillaryInventoryPolicy", b =>
+                {
+                    b.Navigation("PassengerUsageLimits");
+                });
+
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryPricingAggregate.AncillaryPricing", b =>
                 {
                     b.Navigation("PriceLines");
@@ -2451,6 +3028,16 @@ namespace AeroTech.Ancillary.Persistence.Migrations
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryReservationAggregate.AncillaryReservation", b =>
                 {
                     b.Navigation("Units");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.FlightCountInventoryAggregate.FlightCountInventory", b =>
+                {
+                    b.Navigation("Adjustments");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.FlightWeightInventoryAggregate.FlightWeightInventory", b =>
+                {
+                    b.Navigation("Adjustments");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,0 +1,10 @@
+# CONTINUATION PROMPT — AeroTech Ancillary Phase2 Stock
+
+> **Project authority:** AeroTech Ancillary **v12.1 — Phase 2: Stock & Capacity**. Continuation of the approved Phase 1 v12.1; not a separately versioned specification. Phase 3 remains closed.
+
+
+I am the Owner of AeroTech Ancillary, and every answer must be in Persian. The assistant architects/audits/specifies; a separate Coding Agent writes code. Use the merged repo `aliifarhadi/AeroTech.Ancillary` at `k8s-stg@933b7b7a793b426dbcb6362bbf8519886edf9080` as Phase2 base. Phase1 v12.1 is merged in PR #1 but is NOT unconditionally production-closed: 31 ServiceDateBasis unresolved, six XBAG weight mismatches, ReferenceData and AirAvail consumer gaps. Owner approved twelve Phase2 Stock decisions and authorized coding within scope of the same v12.1 program: `AeroTech-Ancillary-v12.1-Phase2-Stock-Capacity.zip`, especially `13-PHASE2-CODING-AGENT-PROMPT.md`.
+
+Primary architecture: InventoryPolicy authority Unlimited/Local/Supplier/FlightFlow; typed local independent FlightCount, FlightWeight, AirportSlot capacity roots; optional DailyService and RoomNight after concrete ownership proof, AssignedAsset postponed. PassengerUsageLimit belongs under Policy, not physical capacity. Multiple SKUs share ResourceId. CountPlusWeight is explicit fixed two-resource combination, not generic DSL. No fake supplier counters, no FlightFlow seat inventory duplication, no assumption that per-passenger eligibility equals capacity. Phase2 makes only configuration, typed inventory authoring, corrections, audit, read models; NO Hold/Reserve/Confirm/Release/Expire/Stock Debits, Orders or other repo edits. Phase3 will implement allocation and true oversell prevention.
+
+All 62 scenario IDs in document 06 must map to freshly executed tests or explicit deferrals. Real SQL Server concurrency tests, migrations, no changes to old frozen reservation code, and report are mandatory. Agent ends with owner audit, not Phase3. If user later asks audit, verify current GitHub branch commit, read report and source and compare contract/tests, return precise verdict and downloadable correction prompt.

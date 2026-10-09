@@ -1,6 +1,10 @@
+using AeroTech.Ancillary.Query.AirportSlotInventoryAggregate.Models;
+using AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Models;
 using AeroTech.Ancillary.Query.AncillaryPricingAggregate.Models;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models;
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Models;
+using AeroTech.Ancillary.Query.FlightCountInventoryAggregate.Models;
+using AeroTech.Ancillary.Query.FlightWeightInventoryAggregate.Models;
 using AeroTech.Ancillary.Query.SupplierAggregate.Models;
 using AeroTech.Ancillary.ReferenceData.Persistence;
 using AeroTech.Ancillary.ReferenceData.ReadModels;
@@ -81,6 +85,22 @@ namespace AeroTech.Ancillary.Query._Shared.DbContexts
         public DbSet<AncillaryPricingReadModel> AncillaryPricings => Set<AncillaryPricingReadModel>();
 
         public DbSet<AncillaryPricingLineReadModel> AncillaryPricingLines => Set<AncillaryPricingLineReadModel>();
+
+        public DbSet<InventoryPolicyReadModel> AncillaryInventoryPolicies => Set<InventoryPolicyReadModel>();
+
+        public DbSet<InventoryPassengerUsageLimitReadModel> AncillaryInventoryPassengerUsageLimits => Set<InventoryPassengerUsageLimitReadModel>();
+
+        public DbSet<FlightCountInventoryReadModel> FlightCountInventories => Set<FlightCountInventoryReadModel>();
+
+        public DbSet<FlightCountAdjustmentReadModel> FlightCountAdjustments => Set<FlightCountAdjustmentReadModel>();
+
+        public DbSet<FlightWeightInventoryReadModel> FlightWeightInventories => Set<FlightWeightInventoryReadModel>();
+
+        public DbSet<FlightWeightAdjustmentReadModel> FlightWeightAdjustments => Set<FlightWeightAdjustmentReadModel>();
+
+        public DbSet<AirportSlotInventoryReadModel> AirportSlotInventories => Set<AirportSlotInventoryReadModel>();
+
+        public DbSet<AirportSlotAdjustmentReadModel> AirportSlotAdjustments => Set<AirportSlotAdjustmentReadModel>();
 
         public DbSet<CustomerReadModel> Customers => Set<CustomerReadModel>();
 

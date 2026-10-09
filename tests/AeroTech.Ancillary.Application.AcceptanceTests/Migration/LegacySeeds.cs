@@ -8,6 +8,10 @@ public static class LegacySeeds
     public const string V12Query = "20261008103947_V12Phase1NormalizedProvisionAndPricingQuery";
     public const string V121Command = "20261008135403_V121Phase1RuleGroups";
     public const string V121Query = "20261008135407_V121Phase1RuleGroupsQuery";
+    public const string StockCapacityCommand = "20261008212718_V121Phase2StockCapacity";
+    public const string StockCapacityQuery = "20261008212728_V121Phase2StockCapacityQuery";
+    public const string LegacyCleanupCommand = "20261009092108_V121LegacySchemaCleanup";
+    public const string LegacyCleanupQuery = "20261009092117_V121LegacySchemaCleanupQuery";
 
     public const long AirlineOffice = 9200000000000001;
     public const long AgencyOffice = 1551571720488353792;

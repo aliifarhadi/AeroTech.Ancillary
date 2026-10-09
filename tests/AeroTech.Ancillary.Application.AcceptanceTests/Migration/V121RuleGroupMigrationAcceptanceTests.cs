@@ -120,7 +120,7 @@ public class V121RuleGroupMigrationAcceptanceTests : IAsyncLifetime
         _supersededBefore = await SupersededRowsAsync();
         _seasonOfFullRule = long.Parse((await RowsAsync("SELECT CAST([Id] AS varchar(30)) AS Value FROM [Ancillary].[ProvisionSeasonalPeriods] WHERE [AncillaryProvisionId] = 9201")).Single());
 
-        await _database.InitializeAsync();
+        await _database.InitializeAsync(LegacySeeds.StockCapacityCommand, LegacySeeds.StockCapacityQuery);
     }
 
     private async Task<string[]> SupersededRowsAsync() => (await RowsAsync(Superseded)).OrderBy(row => row, StringComparer.Ordinal).ToArray();
@@ -315,7 +315,7 @@ public class V121RuleGroupMigrationAcceptanceTests : IAsyncLifetime
         Assert.DoesNotContain(V121Command, await RowsAsync("SELECT [MigrationId] AS Value FROM [dbo].[__CommandsMigrationHistory]"));
         Assert.DoesNotContain(V121Query, await RowsAsync("SELECT [MigrationId] AS Value FROM [dbo].[__QueriesMigrationHistory]"));
 
-        await MigrateAsync(null, null);
+        await MigrateAsync(LegacySeeds.StockCapacityCommand, LegacySeeds.StockCapacityQuery);
 
         Assert.Equal(periods, await RowsAsync(Periods));
         Assert.Equal(

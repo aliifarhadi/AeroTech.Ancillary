@@ -32,7 +32,11 @@ public class P1BoundaryConformanceTests
             .ToArray();
 
         Assert.Equal(
-            new[] { "AncillaryPricing", "AncillaryProvision", "AncillaryReservation", "AncillaryServiceDefinition", "Supplier" },
+            new[]
+            {
+                "AirportSlotInventory", "AncillaryInventoryPolicy", "AncillaryPricing", "AncillaryProvision", "AncillaryReservation", "AncillaryServiceDefinition",
+                "FlightCountInventory", "FlightWeightInventory", "Supplier"
+            },
             aggregates);
 
         string[] forbidden =

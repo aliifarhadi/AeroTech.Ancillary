@@ -36,6 +36,8 @@ builder.Services
 builder.Services.AddScoped<ICallerContext, ClaimsCallerContext>();
 builder.Services.AddScoped<ICountryCodeResolver, ReferenceDataCountryCodeResolver>();
 builder.Services.AddScoped<IAirlineOfficeTimeZoneResolver, ReferenceDataAirlineOfficeTimeZoneResolver>();
+builder.Services.AddScoped<IOperatorAirlineResolver, ReferenceDataOperatorAirlineResolver>();
+builder.Services.AddScoped<IAirportReference, ReferenceDataAirportReference>();
 builder.Services.Replace(ServiceDescriptor.Scoped<IActorResolver, CallerContextActorResolver>());
 
 var app = builder.Build();

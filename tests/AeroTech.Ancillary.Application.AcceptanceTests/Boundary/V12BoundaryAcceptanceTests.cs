@@ -89,10 +89,14 @@ public class V12BoundaryAcceptanceTests
             .Concat(Files(AncillaryContracts))
             .ToList();
 
-        Assert.Empty(Offending(files, ["StockPool", "Quota", "Adapter", "ExchangeRate", "CurrencyConversion", "IssueEmd", "EmdIssu", "Inventory"]));
+        Assert.Empty(Offending(files, ["StockPool", "Quota", "Adapter", "ExchangeRate", "CurrencyConversion", "IssueEmd", "EmdIssu"]));
         Assert.Equal(
-            new[] { "DependencyInjection.cs" },
-            Files(Path.Combine(Source, "AeroTech.Ancillary.Providers")).Select(Path.GetFileName));
+            new[]
+            {
+                "DependencyInjection.cs", "NotConnectedAirportFacilityReference.cs", "NotConnectedCountingFamilyReference.cs", "NotConnectedFlightFlowDelegationReference.cs",
+                "NotConnectedFlightOccurrenceReference.cs", "NotConnectedInventoryResourceReference.cs"
+            },
+            Files(Path.Combine(Source, "AeroTech.Ancillary.Providers")).Select(Path.GetFileName).OrderBy(name => name, StringComparer.Ordinal));
     }
 
     [Fact]
@@ -151,9 +155,17 @@ public class V12BoundaryAcceptanceTests
         Assert.Equal(
             new[] { "AeroTech.Messages.AirPrice", "AeroTech.Messages.Ancillary", "AeroTech.Messages.Core", "AeroTech.Messages.Shared" },
             namespaces);
-        Assert.Empty(Offending(
-            Files(Source).Where(path => !InFolder(path, "AeroTech.Ancillary.ReferenceData")),
-            ["HttpClient", "AirAvail", "FlightFlow", "JetPay"]));
+        var external = Files(Source).Where(path => !InFolder(path, "AeroTech.Ancillary.ReferenceData")).ToList();
+
+        Assert.Empty(Offending(external, ["HttpClient", "AirAvail", "JetPay", "AeroTech.FlightFlow", "Messages.FlightFlow", "AeroTech.Ordering", "Messages.Ordering"]));
+        Assert.All(
+            Offending(external.Where(path => !InFolder(path, "Migrations")), ["FlightFlow"]),
+            offending => Assert.True(
+                offending.Contains("Inventory", StringComparison.Ordinal)
+                || offending.Contains("_Shared/Contracts/IFlightFlowDelegationReference.cs", StringComparison.Ordinal)
+                || offending.Contains("_Shared/Resources/ExceptionMessages.cs", StringComparison.Ordinal)
+                || offending.Contains("DependencyInjection.cs", StringComparison.Ordinal),
+                offending));
     }
 
     [Fact]
@@ -235,10 +247,55 @@ public class V12BoundaryAcceptanceTests
             }
             .Select(group => $"PUT Backoffice/AncillaryProvisions/{{provisionId:long}}/{group}");
 
+        string[] inventory =
+        [
+            "POST Backoffice/AncillaryInventoryPolicies",
+            "PUT Backoffice/AncillaryInventoryPolicies/{policyId:long}",
+            "POST Backoffice/AncillaryInventoryPolicies/{policyId:long}/Activate",
+            "POST Backoffice/AncillaryInventoryPolicies/{policyId:long}/Suspend",
+            "POST Backoffice/AncillaryInventoryPolicies/{policyId:long}/Retire",
+            "GET Backoffice/AncillaryInventoryPolicies/Paginated",
+            "GET Backoffice/AncillaryInventoryPolicies/ByServiceIdentity",
+            "GET Backoffice/AncillaryInventoryPolicies/{policyId:long}",
+            "GET Backoffice/AncillaryInventoryConfigurationSnapshots",
+            "POST Backoffice/FlightCountInventories",
+            "GET Backoffice/FlightCountInventories/Paginated",
+            "GET Backoffice/FlightCountInventories/{inventoryId:long}",
+            "POST Backoffice/FlightCountInventories/{inventoryId:long}/Activate",
+            "POST Backoffice/FlightCountInventories/{inventoryId:long}/Adjust",
+            "POST Backoffice/FlightCountInventories/{inventoryId:long}/CloseForSale",
+            "POST Backoffice/FlightCountInventories/{inventoryId:long}/OpenForSale",
+            "POST Backoffice/FlightCountInventories/{inventoryId:long}/Suspend",
+            "POST Backoffice/FlightCountInventories/{inventoryId:long}/Retire",
+            "POST Backoffice/FlightWeightInventories",
+            "GET Backoffice/FlightWeightInventories/Paginated",
+            "GET Backoffice/FlightWeightInventories/{inventoryId:long}",
+            "POST Backoffice/FlightWeightInventories/{inventoryId:long}/Activate",
+            "POST Backoffice/FlightWeightInventories/{inventoryId:long}/Adjust",
+            "POST Backoffice/FlightWeightInventories/{inventoryId:long}/CloseForSale",
+            "POST Backoffice/FlightWeightInventories/{inventoryId:long}/OpenForSale",
+            "POST Backoffice/FlightWeightInventories/{inventoryId:long}/Suspend",
+            "POST Backoffice/FlightWeightInventories/{inventoryId:long}/Retire",
+            "POST Backoffice/AirportSlotInventories",
+            "GET Backoffice/AirportSlotInventories/Paginated",
+            "GET Backoffice/AirportSlotInventories/{inventoryId:long}",
+            "POST Backoffice/AirportSlotInventories/{inventoryId:long}/Activate",
+            "POST Backoffice/AirportSlotInventories/{inventoryId:long}/Adjust",
+            "POST Backoffice/AirportSlotInventories/{inventoryId:long}/CloseForSale",
+            "POST Backoffice/AirportSlotInventories/{inventoryId:long}/OpenForSale",
+            "POST Backoffice/AirportSlotInventories/{inventoryId:long}/Suspend",
+            "POST Backoffice/AirportSlotInventories/{inventoryId:long}/Retire"
+        ];
+
         Assert.Equal(
-            preserved.Concat(added).Concat(rows).Concat(groups).OrderBy(route => route, StringComparer.Ordinal),
+            preserved.Concat(added).Concat(rows).Concat(groups).Concat(inventory).OrderBy(route => route, StringComparer.Ordinal),
             routes.OrderBy(route => route, StringComparer.Ordinal));
-        Assert.Equal(57, routes.Count);
+        Assert.Equal(93, routes.Count);
+        Assert.Equal(36, inventory.Length);
+        Assert.DoesNotContain(routes, route => new[] { "Sell", "Reserve", "Release", "Expire" }.Any(term => route.Contains(term, StringComparison.Ordinal)));
+        Assert.Equal(
+            new[] { "POST Service/Ancillaries/Service-Holds", "POST Service/Ancillaries/Service-Holds/{holdId:long}/Confirmations" },
+            routes.Where(route => route.Contains("Hold", StringComparison.Ordinal) && route.StartsWith("POST", StringComparison.Ordinal)).OrderBy(route => route, StringComparer.Ordinal));
         Assert.All(preserved, route => Assert.Contains(route, routes));
         Assert.DoesNotContain(routes, route => new[] { "TravelDates", "SeasonalPeriods", "DayTimeRestrictions" }.Any(term => route.Contains(term, StringComparison.Ordinal)));
     }
@@ -356,7 +413,11 @@ public class V12BoundaryAcceptanceTests
                            && type.Name.EndsWith("Service", StringComparison.Ordinal))
             .ToList();
 
-        Assert.Equal(47, contracts.Count);
+        Assert.Equal(73, contracts.Count);
+        Assert.Equal(5, contracts.Count(contract => contract.Namespace!.Contains(".AncillaryInventoryPolicyAggregate.", StringComparison.Ordinal)));
+        Assert.Equal(7, contracts.Count(contract => contract.Namespace!.Contains(".FlightCountInventoryAggregate.", StringComparison.Ordinal)));
+        Assert.Equal(7, contracts.Count(contract => contract.Namespace!.Contains(".FlightWeightInventoryAggregate.", StringComparison.Ordinal)));
+        Assert.Equal(7, contracts.Count(contract => contract.Namespace!.Contains(".AirportSlotInventoryAggregate.", StringComparison.Ordinal)));
         Assert.Equal(26, contracts.Count(contract => contract.Namespace!.Contains(".AncillaryProvisionAggregate.", StringComparison.Ordinal)));
         Assert.Equal(9, contracts.Count(contract => contract.Namespace!.Contains(".AncillaryServiceDefinitionAggregate.", StringComparison.Ordinal)));
         Assert.Equal(8, contracts.Count(contract => contract.Namespace!.Contains(".AncillaryPricingAggregate.", StringComparison.Ordinal)));

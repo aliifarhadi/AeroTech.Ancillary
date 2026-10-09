@@ -377,7 +377,7 @@ public class V121ProvisionLifecycleAcceptanceTests
     }
 
     [Fact]
-    public async Task V121_M05_weights_and_amounts_keep_their_precision_and_the_superseded_columns_and_tables_stay_beside_the_new_ones()
+    public async Task V121_M05_weights_and_amounts_keep_their_precision_and_the_superseded_columns_and_tables_are_gone_after_the_approved_cleanup()
     {
         var columns = await RequestAsync(scope => scope.Command.Database
             .SqlQueryRaw<string>(
@@ -391,11 +391,8 @@ public class V121ProvisionLifecycleAcceptanceTests
             new[]
             {
                 "Ancillary.AncillaryPricingLines.Amount decimal(18,2)",
-                "Ancillary.AncillaryProvisions.BaggageWeight decimal(9,2)",
                 "Ancillary.ProvisionBaggageApplicationRules.Weight decimal(9,2)",
-                "Ancillary.ProvisionPriceLines.UnitAmount decimal(18,2)",
                 "ReadModel.AncillaryPricingLines.Amount decimal(18,2)",
-                "ReadModel.AncillaryProvisionPriceLines.UnitAmount decimal(18,2)",
                 "ReadModel.AncillaryProvisions.BaggageWeight decimal(9,2)"
             },
             columns.OrderBy(column => column, StringComparer.Ordinal));
@@ -410,7 +407,7 @@ public class V121ProvisionLifecycleAcceptanceTests
                 "OR (TABLE_NAME LIKE '%ProvisionDayTimeRestrictions' AND COLUMN_NAME = 'DayOfWeek')")
             .ToListAsync());
 
-        Assert.Equal(12 + 5 + 6, superseded.Count);
+        Assert.Empty(superseded);
 
         var mapped = await RequestAsync(scope => Task.FromResult(scope.Command.Model.GetEntityTypes()
             .Select(type => type.GetTableName())

@@ -1,11 +1,15 @@
 using AeroTech.Framework.Core.Domain.Repository;
 using AeroTech.Framework.Core.ServiceContracts;
 using AeroTech.Framework.Infrastructure.Persistence;
+using AeroTech.Ancillary.Domain.AirportSlotInventoryAggregate;
+using AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate;
 using AeroTech.Ancillary.Domain.AncillaryPricingAggregate;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities;
 using AeroTech.Ancillary.Domain.AncillaryReservationAggregate;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
+using AeroTech.Ancillary.Domain.FlightCountInventoryAggregate;
+using AeroTech.Ancillary.Domain.FlightWeightInventoryAggregate;
 using AeroTech.Ancillary.Domain.SupplierAggregate;
 using AeroTech.Ancillary.Persistence.Inbox;
 using AeroTech.Ancillary.Persistence.Outbox;
@@ -38,6 +42,14 @@ namespace AeroTech.Ancillary.Persistence
         public DbSet<AncillaryPricing> AncillaryPricings => Set<AncillaryPricing>();
 
         public DbSet<AncillaryReservation> AncillaryReservations => Set<AncillaryReservation>();
+
+        public DbSet<AncillaryInventoryPolicy> AncillaryInventoryPolicies => Set<AncillaryInventoryPolicy>();
+
+        public DbSet<FlightCountInventory> FlightCountInventories => Set<FlightCountInventory>();
+
+        public DbSet<FlightWeightInventory> FlightWeightInventories => Set<FlightWeightInventory>();
+
+        public DbSet<AirportSlotInventory> AirportSlotInventories => Set<AirportSlotInventory>();
 
         public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
