@@ -7,6 +7,7 @@ namespace AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Dto
         int OwnerAirlineId,
         string ServiceDefinitionRef,
         long ServiceDefinitionId,
+        long? CurrentServiceDefinitionId,
         EnumValueDto Authority,
         EnumValueDto? LocalPattern,
         string? ProviderKey,

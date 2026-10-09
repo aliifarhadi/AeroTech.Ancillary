@@ -214,6 +214,34 @@ public class V121LegacyChainMigrationAcceptanceTests : IAsyncLifetime
             await RowsAsync("SELECT CONCAT([Outcome], ' ', COUNT(*)) AS Value FROM [Ancillary].[ProvisionRuleMigrationAudit] GROUP BY [Outcome] ORDER BY 1"));
     }
 
+    [Fact]
+    public async Task F05_the_down_of_the_final_migrations_restores_the_schema_only_and_never_brings_the_prices_back()
+    {
+        const string Prices =
+            "SELECT CONCAT((SELECT COUNT(*) FROM [Ancillary].[AncillaryPricings]), ' ', (SELECT COUNT(*) FROM [Ancillary].[AncillaryPricingRates]), ' ', " +
+            "(SELECT COUNT(*) FROM [Ancillary].[AncillaryPriceComponents]), ' ', (SELECT COUNT(*) FROM [ReadModel].[AncillaryPricingRates]), ' ', " +
+            "(SELECT COUNT(*) FROM [ReadModel].[AncillaryPriceComponents])) AS Value";
+
+        Assert.Equal("6 6 3 6 3", (await RowsAsync(Prices)).Single());
+
+        await MigrateAsync(LegacySeeds.LegacyCleanupCommand, LegacySeeds.LegacyCleanupQuery);
+
+        Assert.Equal(
+            "6 0 0 0 0  ",
+            (await RowsAsync(
+                "SELECT CONCAT((SELECT COUNT(*) FROM [Ancillary].[AncillaryPricings]), ' ', (SELECT COUNT(*) FROM [Ancillary].[AncillaryPricingLines]), ' ', " +
+                "(SELECT COUNT(*) FROM [ReadModel].[AncillaryPricingLines]), ' ', (SELECT COUNT(*) FROM [Ancillary].[AncillaryPricings] WHERE [CurrencyId] <> 0), ' ', " +
+                "(SELECT COUNT(*) FROM [Ancillary].[AncillaryPricings] WHERE [FeeApplicationUnit] IS NOT NULL), ' ', OBJECT_ID(N'Ancillary.AncillaryPricingRates'), ' ', " +
+                "COL_LENGTH(N'Ancillary.AncillaryProvisions', N'PurchaseStage')) AS Value")).Single());
+
+        await MigrateAsync(null, null);
+
+        Assert.Equal("6 0 0 0 0", (await RowsAsync(Prices)).Single());
+        Assert.Equal(
+            new[] { "4 7" },
+            await RowsAsync("SELECT CONCAT([PurchaseStage], ' ', COUNT(*)) AS Value FROM [Ancillary].[AncillaryProvisions] GROUP BY [PurchaseStage]"));
+    }
+
     [Theory]
     [InlineData("Ancillary")]
     [InlineData("ReadModel")]

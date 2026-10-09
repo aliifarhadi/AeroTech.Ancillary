@@ -2,6 +2,16 @@
 
 Date: 2026-10-09. Authority: `docs/AeroTech-Ancillary-v12.1/` files 00–10 (FINAL IMPLEMENTATION AUTHORITY). Companion: `reports/V121-P1P2-FINAL-GAP-REPORT.md`.
 
+## Amendment — post-push audit (2026-10-09)
+
+This report was written before the work was committed. The statements below replace what the body said at that time; the body is otherwise unchanged. Details and evidence: `reports/V121-POSTPUSH-CONFORMANCE-AUDIT.md`.
+
+- **Commit state.** The Owner committed and pushed the work, including this report, as `889d5146a37751029baeced931545d7c0f2736fe` ("Fix") on `feat/ancillary-v12.1-phase2-stock`. Every "uncommitted" / "working tree" statement below describes the moment of writing. The test counts of section 3 were re-run on a clean checkout of that commit: build 0 errors / 13 warnings, domain 232/232, acceptance 246/246.
+- **Migrations are not reversible for data.** `Down` of `V121FinalPricingRates` (both contexts) drops the rate and component tables and recreates an empty `AncillaryPricingLines` and a root `CurrencyId` of 0: prices are lost, not restored. `Down` of `V121FinalProvisionDescriptors` drops the five descriptor columns. Test `F05_the_down_of_the_final_migrations_restores_the_schema_only_and_never_brings_the_prices_back` pins this.
+- **Deleted development data, exact figures.** Before: `Ancillary` 53 tables / 759 rows, `ReadModel` 40 tables / 538 rows, among them 4 suppliers, 31 definitions, 99 provisions, 69 pricings, 97 pricing lines in each schema; `ReferenceData` 12 tables / 415 rows. After delete and migration: `Ancillary` 54 tables / 0 rows, `ReadModel` 41 tables / 0 rows, `ReferenceData` 415 rows untouched. Backup: `C:\Program Files\Microsoft SQL Server\MSSQL15.SQLEXPRESS\MSSQL\Backup\DotAirAncillary_before_final_wipe.bak`, copy-only, finished 2026-10-09 18:03:40, 18.3 MB, first LSN 42000000019100001, taken at migration level `V121LegacySchemaCleanup`. It was restored into a scratch database during the audit and showed exactly these counts. The rows were sample data created through the Backoffice API on 2026-10-08; the deletion was ordered by the Owner in this conversation on 2026-10-09.
+- **HTTP evidence now exists.** Section 8 said no HTTP run was made. An authenticated run against a real host is recorded in the audit report (63 of 63 requests as expected). Identifiers of type `long` are serialized as JSON strings; the numeric id in the section 8 sample is not what the API returns.
+- **Decisions 8 and 9 of section 11 are superseded.** `RequiresAvailabilityCheck` is now taken from the Active provisions of the current definition version only, and the policy detail and the snapshot return `CurrentServiceDefinitionId` beside the stored `ServiceDefinitionId`.
+
 ## 1. Verdicts
 
 | Subject | Verdict |
@@ -12,11 +22,11 @@ Date: 2026-10-09. Authority: `docs/AeroTech-Ancillary-v12.1/` files 00–10 (FIN
 
 `ANCILLARY_V12_1_PHASE1_PHASE2_DOMAIN_READY_FOR_OWNER_AUDIT`
 
-Nothing is committed, pushed or merged. Phase 3 was not started. No other repository was read for this work or written to.
+Nothing is committed, pushed or merged. Phase 3 was not started. No other repository was read for this work or written to. *(Superseded: see the amendment at the top — pushed as `889d514`.)*
 
 ## 2. Baseline and scope
 
-- Branch `feat/ancillary-v12.1-phase2-stock`, HEAD `1abf7a53e0efb9eb892097977327718c61486158` (verified with `git rev-parse HEAD`); base `k8s-stg@933b7b7`. All work is in the working tree: 110 modified, 7 deleted and 56 untracked paths (`git status --short`); 38 of the untracked paths are under `src/`, `tests/` and `Contracts/`, the other 18 are the Owner's pack files in `docs/` and the two reports of this work.
+- Branch `feat/ancillary-v12.1-phase2-stock`, HEAD `1abf7a53e0efb9eb892097977327718c61486158` (verified with `git rev-parse HEAD`); base `k8s-stg@933b7b7`. All work is in the working tree: 110 modified, 7 deleted and 56 untracked paths (`git status --short`); 38 of the untracked paths are under `src/`, `tests/` and `Contracts/`, the other 18 are the Owner's pack files in `docs/` and the two reports of this work. *(At the time of writing; the work is now commit `889d514` on the same branch.)*
 - Frozen: `**/AncillaryReservationAggregate/**` and the two M1 reservation test files — 36 files, combined hash `6974ABA2C62BAFE7CDE159BDCE8A4969F1CAECCF25368012F30D1BE7DDA4E486`, unchanged (`git status` shows no entry under those paths; tests `V12_C04_…byte_stable` and `X20_…byte_stable` recompute the hash).
 - Not touched: `Framework/`, the ReferenceData module, contract folders other than `Contracts/AeroTech.Messages/Ancillary/`, documents in `docs/`.
 
@@ -185,7 +195,7 @@ Not run because they are not Phase 2: allocation, hold / confirm stress, availab
 
 ## 8. API samples
 
-These are the shapes of the Backoffice records as compiled; **no HTTP run was made in this iteration** (see section 12).
+These are the shapes of the Backoffice records as compiled; **no HTTP run was made in this iteration** (see section 12). *(Superseded: real HTTP examples are in the post-push audit report; `long` ids are JSON strings.)*
 
 Define a pricing — `POST Backoffice/v1/AncillaryPricings`:
 
@@ -255,8 +265,8 @@ Inventory configuration snapshot — new member:
 5. `ChargeKind` is nullable in storage (doc 02 lists it without `?`) so that migrated baggage rules keep loading; it is mandatory at publication.
 6. 16316 and 16317 are raised by `Activate` (a new publication) only. `Reactivate` of a suspended migrated row is still allowed. There is no command that states a stage on an Active or Suspended migrated row; a Draft is corrected through the normal full edit.
 7. Overweight, Oversize and SpecialEquipment accept either concept or none.
-8. Current definition for a policy = Active version, otherwise highest non-retired version. The pointer changes only when the policy is activated; between a product revision and the next policy activation the read model still shows the previous version id.
-9. `RequiresAvailabilityCheck` is computed at read time from the Active provisions of every version of the service identity; it is not stored on the policy.
+8. Current definition for a policy = Active version, otherwise highest non-retired version. The pointer changes only when the policy is activated; between a product revision and the next policy activation the read model still shows the previous version id. *(Superseded for reads: the current version id is now returned at read time.)*
+9. `RequiresAvailabilityCheck` is computed at read time from the Active provisions of every version of the service identity; it is not stored on the policy. *(Superseded: current version only.)*
 10. Three existing shape pins were extended (`BookingDefinition` properties, `AncillaryProvision` properties, snapshot DTO properties) and two Phase 2 tests that pinned the removed D10 rule were rewritten to the new rule.
 
 ## 12. Deviations from the pack and open findings
@@ -266,7 +276,7 @@ Deviations:
 - Data preservation, lineage tables, guarded migration and the clone reconciliation of doc 08 were dropped on the Owner's instruction; the dev data was deleted.
 - Red-first was honoured only for the domain pricing tests; see gap report section 5.
 - Example A uses KWD for the second market because TRY is not in the test reference fixture.
-- No authenticated HTTP smoke was run for the changed Backoffice contracts (it needs a fresh Backoffice token). The acceptance tests call the application and query services directly, so model binding of the new request members is not exercised. The Phase 2 smoke of the same day found a defect of exactly that layer, so this gap matters.
+- No authenticated HTTP smoke was run for the changed Backoffice contracts (it needs a fresh Backoffice token). The acceptance tests call the application and query services directly, so model binding of the new request members is not exercised. The Phase 2 smoke of the same day found a defect of exactly that layer, so this gap matters. *(Closed by the post-push audit.)*
 
 Findings to raise:
 
@@ -277,7 +287,7 @@ Findings to raise:
 
 ## 13. Needs the Owner
 
-1. Code audit of this working tree; commit / push decision (nothing was committed).
-2. A fresh Backoffice token if an HTTP smoke of the new contracts is wanted before the audit closes.
+1. Code audit of commit `889d514` plus the post-push corrections (uncommitted); merge decision.
+2. ~~A fresh Backoffice token~~ — received and used for the post-push HTTP run.
 3. Whether `Reactivate` of a migrated row should also demand a purchase stage (decision 6).
 4. A trustworthy source for currency decimal places.

@@ -7,12 +7,16 @@ namespace AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Queries.Get
 {
     public static class InventoryPolicyMapper
     {
-        public static BackofficeInventoryPolicyDto ToBackofficePolicy(InventoryPolicyReadModel policy, IEnumerable<InventoryPassengerUsageLimitReadModel> limits)
+        public static BackofficeInventoryPolicyDto ToBackofficePolicy(
+            InventoryPolicyReadModel policy,
+            IEnumerable<InventoryPassengerUsageLimitReadModel> limits,
+            long? currentServiceDefinitionId)
             => new(
                 policy.Id,
                 policy.OwnerAirlineId,
                 policy.ServiceDefinitionRef,
                 policy.ServiceDefinitionId,
+                currentServiceDefinitionId,
                 EnumValueDto.Of(policy.Authority),
                 policy.LocalPattern is { } pattern ? EnumValueDto.Of(pattern) : null,
                 policy.ProviderKey,

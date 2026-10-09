@@ -105,10 +105,10 @@ public sealed class InventoryScope : IAsyncDisposable
         OpenAirportSlotInventoryForSale = new OpenAirportSlotInventoryForSaleService(AirportSlotInventories, airportSlotSynchronizer, UnitOfWork, caller, clock);
         SuspendAirportSlotInventory = new SuspendAirportSlotInventoryService(AirportSlotInventories, airportSlotSynchronizer, UnitOfWork, caller, clock);
         RetireAirportSlotInventory = new RetireAirportSlotInventoryService(AirportSlotInventories, airportSlotSynchronizer, UnitOfWork, caller, clock);
-        GetInventoryPolicyById = new GetInventoryPolicyByIdService(Query, caller);
-        GetInventoryPolicyByServiceIdentity = new GetInventoryPolicyByServiceIdentityService(Query, caller);
+        GetInventoryPolicyById = new GetInventoryPolicyByIdService(Query, caller, facts);
+        GetInventoryPolicyByServiceIdentity = new GetInventoryPolicyByServiceIdentityService(Query, caller, facts);
         GetInventoryPoliciesPaginated = new GetInventoryPoliciesPaginatedService(Query, caller);
-        GetInventoryConfigurationSnapshot = new GetInventoryConfigurationSnapshotService(Query, caller, clock);
+        GetInventoryConfigurationSnapshot = new GetInventoryConfigurationSnapshotService(Query, caller, facts, clock);
         GetFlightCountInventoryById = new GetFlightCountInventoryByIdService(Query, caller);
         GetFlightCountInventoriesPaginated = new GetFlightCountInventoriesPaginatedService(Query, caller);
         GetFlightWeightInventoryById = new GetFlightWeightInventoryByIdService(Query, caller);

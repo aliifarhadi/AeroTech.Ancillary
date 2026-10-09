@@ -486,7 +486,7 @@ public class P2InventoryPolicyAcceptanceTests
         Assert.Equal(
             new[]
             {
-                "Authority", "ClosedForSale", "ConfiguredCount", "ConfiguredKg", "IsGuaranteed", "ObservedAt", "OwnerAirlineId", "Pattern", "PolicyId", "ReasonCode",
+                "Authority", "ClosedForSale", "ConfiguredCount", "ConfiguredKg", "CurrentServiceDefinitionId", "IsGuaranteed", "ObservedAt", "OwnerAirlineId", "Pattern", "PolicyId", "ReasonCode",
                 "RequiresAvailabilityCheck", "Resource", "ResourceKind", "ServiceDefinitionRef", "StaleAfter", "State"
             },
             properties.OrderBy(name => name, StringComparer.Ordinal));
