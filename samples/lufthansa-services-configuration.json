@@ -1,0 +1,2541 @@
+{
+  "categoryDictionary": {
+    "BAGGAGE": {
+      "id": "BAGGAGE",
+      "enabled": true,
+      "displayOrder": 1,
+      "association": "BOUND",
+      "hidePrice": false,
+      "maximumAmountAllowed": 0,
+      "errorImagePath": "img/dialog/service-error/octagon-cross-message-error.svg",
+      "richContent": {
+        "analyticsFriendlyName": "Baggage",
+        "titleKey": "global.ancillary-title.category-BAGGAGE",
+        "additionalTitleKey": "global.ancillary-subtitle.category-BAGGAGE",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "global.ancillary-short-description.category-BAGGAGE",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": [
+          {
+            "id": "media-0",
+            "accessibilityTextKey": "global.ancillary-ax-text.category-BAGGAGE-0",
+            "mediaScales": [
+              {
+                "id": "media-scale-0",
+                "scaleType": "small",
+                "url": "img/rich-content/bag.png"
+              }
+            ],
+            "locations": [
+              "categoryTeaser"
+            ]
+          }
+        ]
+      },
+      "teaserComponentConfigKey": "baggageTeaserComponentKey",
+      "isExpanded": true,
+      "displaySecondaryContent": true,
+      "isBespoke": false,
+      "secondaryContent": {
+        "titleKey": "global.ancillary-secondary-title.category-BAGGAGE",
+        "subTitleKey": "global.ancillary-secondary-subTitle.category-BAGGAGE",
+        "icon": "img/secondary-teaser-icons/baggage.svg",
+        "redirectUrl": "",
+        "enabledInstantBehaviour": false
+      }
+    },
+    "SEAT": {
+      "id": "SEAT",
+      "enabled": true,
+      "displayOrder": 2,
+      "association": "SEGMENT",
+      "hidePrice": false,
+      "maximumAmountAllowed": 0,
+      "errorImagePath": "img/dialog/service-error/octagon-cross-message-error.svg",
+      "richContent": {
+        "analyticsFriendlyName": "Seats",
+        "titleKey": "global.ancillary-title.category-SEAT",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "global.ancillary-short-description.category-SEAT",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": [
+          {
+            "id": "media-0",
+            "accessibilityTextKey": "global.ancillary-ax-text.category-SEAT-0",
+            "mediaScales": [
+              {
+                "id": "media-scale-0",
+                "scaleType": "small",
+                "url": "img/rich-content/seat.png"
+              }
+            ],
+            "locations": []
+          }
+        ]
+      },
+      "teaserComponentConfigKey": "seatCustomTeaserComponentKey",
+      "isExpanded": true,
+      "displaySecondaryContent": true,
+      "isBespoke": true,
+      "secondaryContent": {
+        "titleKey": "global.ancillary-secondary-title.category-SEAT",
+        "subTitleKey": "global.ancillary-secondary-subTitle.category-SEAT",
+        "icon": "img/secondary-teaser-icons/seat.svg",
+        "redirectUrl": "seatmap",
+        "enabledInstantBehaviour": false
+      }
+    },
+    "PAXINFO": {
+      "id": "PAXINFO",
+      "enabled": true,
+      "displayOrder": 3,
+      "association": "ITINERARY",
+      "hidePrice": false,
+      "maximumAmountAllowed": 0,
+      "errorImagePath": "img/dialog/service-error/octagon-cross-message-error.svg",
+      "richContent": {
+        "analyticsFriendlyName": "",
+        "titleKey": "",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "teaserComponentConfigKey": "",
+      "isExpanded": true,
+      "displaySecondaryContent": false,
+      "isBespoke": false,
+      "secondaryContent": {
+        "titleKey": "",
+        "subTitleKey": "",
+        "icon": "",
+        "redirectUrl": "",
+        "enabledInstantBehaviour": false
+      }
+    },
+    "INSURANCE": {
+      "id": "INSURANCE",
+      "enabled": true,
+      "displayOrder": 3,
+      "association": "SVC",
+      "hidePrice": false,
+      "maximumAmountAllowed": 1,
+      "errorImagePath": "",
+      "richContent": {
+        "analyticsFriendlyName": "Insurance",
+        "titleKey": "global.ancillary-title.category-INSURANCE",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "global.ancillary-short-description.category-INSURANCE",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": [
+          {
+            "id": "media-0",
+            "accessibilityTextKey": "global.ancillary-ax-text.category-INSURANCE-0",
+            "mediaScales": [
+              {
+                "id": "media-scale-0",
+                "scaleType": "small",
+                "url": "img/rich-content/insurance.png"
+              }
+            ],
+            "locations": []
+          }
+        ]
+      },
+      "teaserComponentConfigKey": "insuranceCustomTeaserComponentKey",
+      "isExpanded": true,
+      "displaySecondaryContent": true,
+      "isBespoke": true,
+      "secondaryContent": {
+        "titleKey": "global.ancillary-secondary-title.category-INSURANCE",
+        "subTitleKey": "global.ancillary-secondary-subTitle.category-INSURANCE",
+        "icon": "img/secondary-teaser-icons/insurance.svg",
+        "redirectUrl": "",
+        "enabledInstantBehaviour": true
+      }
+    },
+    "MEDICAL": {
+      "id": "MEDICAL",
+      "enabled": true,
+      "displayOrder": 4,
+      "association": "ITINERARY",
+      "hidePrice": false,
+      "maximumAmountAllowed": 0,
+      "errorImagePath": "img/dialog/service-error/octagon-cross-message-error.svg",
+      "richContent": {
+        "analyticsFriendlyName": "",
+        "titleKey": "",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "teaserComponentConfigKey": "",
+      "isExpanded": true,
+      "displaySecondaryContent": false,
+      "isBespoke": false,
+      "secondaryContent": {
+        "titleKey": "",
+        "subTitleKey": "",
+        "icon": "",
+        "redirectUrl": "",
+        "enabledInstantBehaviour": false
+      }
+    },
+    "ACKI": {
+      "id": "ACKI",
+      "enabled": true,
+      "displayOrder": 4,
+      "association": "SEGMENT",
+      "hidePrice": false,
+      "maximumAmountAllowed": 0,
+      "errorImagePath": "img/dialog/service-error/octagon-cross-message-error.svg",
+      "richContent": {
+        "analyticsFriendlyName": "Automated checkin",
+        "titleKey": "global.ancillary-title.category-ACKI",
+        "additionalTitleKey": "global.ancillary-subtitle.category-ACKI",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "global.ancillary-short-description.category-ACKI",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": [
+          {
+            "id": "media-0",
+            "accessibilityTextKey": "global.ancillary-ax-text.category-ACKI-0",
+            "mediaScales": [
+              {
+                "id": "media-scale-0",
+                "scaleType": "small",
+                "url": "img/rich-content/acki.png"
+              }
+            ],
+            "locations": []
+          }
+        ]
+      },
+      "teaserComponentConfigKey": "",
+      "isExpanded": true,
+      "displaySecondaryContent": false,
+      "isBespoke": false,
+      "secondaryContent": {
+        "titleKey": "",
+        "subTitleKey": "",
+        "icon": "",
+        "redirectUrl": "",
+        "enabledInstantBehaviour": false
+      }
+    },
+    "RAILANDFLY": {
+      "id": "RAILANDFLY",
+      "enabled": true,
+      "displayOrder": 4,
+      "association": "SEGMENT",
+      "hidePrice": false,
+      "maximumAmountAllowed": 0,
+      "errorImagePath": "",
+      "richContent": {
+        "analyticsFriendlyName": "Rail&Fly",
+        "titleKey": "global.ancillary-title.category-RAILANDFLY",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "global.ancillary-short-description.category-RAILANDFLY",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": [
+          {
+            "id": "media-0",
+            "accessibilityTextKey": "global.ancillary-ax-text.category-RAILANDFLY-0",
+            "mediaScales": [
+              {
+                "id": "media-scale-0",
+                "scaleType": "medium",
+                "url": "img/rich-content/rail_and_fly.png"
+              }
+            ],
+            "locations": []
+          }
+        ]
+      },
+      "teaserComponentConfigKey": "railAndFlyCustomTeaserComponentKey",
+      "isExpanded": true,
+      "displaySecondaryContent": true,
+      "isBespoke": false,
+      "secondaryContent": {
+        "titleKey": "global.ancillary-secondary-title.category-RAILANDFLY",
+        "subTitleKey": "global.ancillary-secondary-subTitle.category-RAILANDFLY",
+        "icon": "img/secondary-teaser-icons/icon-rail-and-fly.svg",
+        "redirectUrl": "rail-and-fly",
+        "enabledInstantBehaviour": false
+      }
+    },
+    "CREDITCARDENROLLMENT": {
+      "id": "CREDITCARDENROLLMENT",
+      "enabled": true,
+      "displayOrder": 6,
+      "association": "SVC",
+      "hidePrice": false,
+      "maximumAmountAllowed": 0,
+      "errorImagePath": "",
+      "richContent": {
+        "analyticsFriendlyName": "",
+        "titleKey": "",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "teaserComponentConfigKey": "creditCardEnrollmentContComponentKey",
+      "isExpanded": true,
+      "displaySecondaryContent": true,
+      "isBespoke": true,
+      "secondaryContent": {
+        "titleKey": "global.ancillary-secondary-title.category-CREDITCARDENROLLMENT",
+        "subTitleKey": "global.ancillary-secondary-subTitle.category-CREDITCARDENROLLMENT",
+        "icon": "img/secondary-teaser-icons/credit-card-enrollment.svg",
+        "redirectUrl": "",
+        "enabledInstantBehaviour": true
+      }
+    },
+    "SPECIALASSISTANCE": {
+      "id": "SPECIALASSISTANCE",
+      "enabled": true,
+      "displayOrder": 7,
+      "association": "SEGMENT",
+      "hidePrice": false,
+      "maximumAmountAllowed": 0,
+      "errorImagePath": "",
+      "richContent": {
+        "analyticsFriendlyName": "Special assistance",
+        "titleKey": "global.ancillary-title.category-SPECIALASSISTANCE",
+        "additionalTitleKey": "global.ancillary-subtitle.category-SPECIALASSISTANCE",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "global.ancillary-short-description.category-SPECIALASSISTANCE",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": [
+          {
+            "id": "media-0",
+            "accessibilityTextKey": "global.ancillary-ax-text.category-SPECIALASSISTANCE-0",
+            "mediaScales": [
+              {
+                "id": "media-scale-0",
+                "scaleType": "small",
+                "url": "img/rich-content/special-assistance.jpg"
+              }
+            ],
+            "locations": []
+          }
+        ]
+      },
+      "teaserComponentConfigKey": "genericServiceCategoryTeaserComponentKey",
+      "isExpanded": true,
+      "displaySecondaryContent": true,
+      "isBespoke": false,
+      "secondaryContent": {
+        "titleKey": "global.ancillary-secondary-title.category-SPECIALASSISTANCE",
+        "subTitleKey": "global.ancillary-secondary-subTitle.category-SPECIALASSISTANCE",
+        "icon": "img/secondary-teaser-icons/special-assistance.svg",
+        "redirectUrl": "",
+        "enabledInstantBehaviour": false
+      }
+    },
+    "CO2NEUTRALISATION": {
+      "id": "CO2NEUTRALISATION",
+      "enabled": true,
+      "displayOrder": 10,
+      "association": "SVC",
+      "hidePrice": false,
+      "maximumAmountAllowed": 0,
+      "errorImagePath": "",
+      "richContent": {
+        "analyticsFriendlyName": "CO2 neutralisation",
+        "titleKey": "global.ancillary-title.category-CO2NEUTRALISATION",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "global.ancillary-short-description.category-CO2NEUTRALISATION",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": [
+          {
+            "id": "media-0",
+            "accessibilityTextKey": "global.ancillary-ax-text.category-CO2NEUTRALISATION-0",
+            "mediaScales": [
+              {
+                "id": "media-scale-0",
+                "scaleType": "small",
+                "url": "img/rich-content/compensaid.png"
+              }
+            ],
+            "locations": []
+          }
+        ]
+      },
+      "teaserComponentConfigKey": "co2CustomTeaserComponentKey",
+      "isExpanded": true,
+      "displaySecondaryContent": false,
+      "isBespoke": false,
+      "secondaryContent": {
+        "titleKey": "",
+        "subTitleKey": "",
+        "icon": "",
+        "redirectUrl": "",
+        "enabledInstantBehaviour": false
+      }
+    },
+    "CO2INSTANTNEUTRALISATION": {
+      "id": "CO2INSTANTNEUTRALISATION",
+      "enabled": true,
+      "displayOrder": 10,
+      "association": "SVC",
+      "hidePrice": false,
+      "maximumAmountAllowed": 0,
+      "errorImagePath": "",
+      "richContent": {
+        "analyticsFriendlyName": "CO2 Instant neutralisation",
+        "titleKey": "global.ancillary-title.category-CO2NEUTRALISATION",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "global.ancillary-short-description.category-CO2NEUTRALISATION",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "teaserComponentConfigKey": "co2CustomInstantTeaserComponentKey",
+      "isExpanded": true,
+      "displaySecondaryContent": true,
+      "isBespoke": true,
+      "secondaryContent": {
+        "titleKey": "global.ancillary-secondary-title.category-CO2INSTANTNEUTRALISATION",
+        "subTitleKey": "global.ancillary-secondary-subTitle.category-CO2INSTANTNEUTRALISATION",
+        "icon": "img/secondary-teaser-icons/co2-neutralisation.svg",
+        "redirectUrl": "",
+        "enabledInstantBehaviour": true
+      }
+    },
+    "PETS": {
+      "id": "PETS",
+      "enabled": true,
+      "displayOrder": 20,
+      "association": "BOUND",
+      "hidePrice": false,
+      "maximumAmountAllowed": 0,
+      "errorImagePath": "",
+      "richContent": {
+        "analyticsFriendlyName": "Pets in cabin",
+        "titleKey": "global.ancillary-title.category-PETS",
+        "additionalTitleKey": "global.ancillary-subtitle.category-PETS",
+        "longDescriptionKey": "global.ancillary-long-description.category-PETS",
+        "shortDescriptionKey": "global.ancillary-short-description.category-PETS",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": [
+          {
+            "id": "media-0",
+            "accessibilityTextKey": "global.ancillary-ax-text.category-PETS-0",
+            "mediaScales": [
+              {
+                "id": "media-scale-0",
+                "scaleType": "medium",
+                "url": "img/rich-content/pets.png"
+              }
+            ],
+            "locations": []
+          }
+        ]
+      },
+      "teaserComponentConfigKey": "genericServiceCategoryTeaserComponentKey",
+      "isExpanded": true,
+      "displaySecondaryContent": true,
+      "isBespoke": false,
+      "secondaryContent": {
+        "titleKey": "global.ancillary-secondary-title.category-PETS",
+        "subTitleKey": "global.ancillary-secondary-subTitle.category-PETS",
+        "icon": "img/secondary-teaser-icons/pet-in-cabin.svg",
+        "redirectUrl": "",
+        "enabledInstantBehaviour": false
+      }
+    },
+    "DIGITALMENU": {
+      "id": "DIGITALMENU",
+      "enabled": true,
+      "displayOrder": 21,
+      "association": "SVC",
+      "hidePrice": false,
+      "maximumAmountAllowed": 0,
+      "errorImagePath": "",
+      "richContent": {
+        "analyticsFriendlyName": "Digital Menu",
+        "titleKey": "global.ancillary-title.category-DIGITALMENU",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "global.ancillary-short-description.category-DIGITALMENU",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "global.ancillary-add-service-button-aria-label.category-DIGITALMENU",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": [
+          {
+            "id": "media-0",
+            "accessibilityTextKey": "",
+            "mediaScales": [
+              {
+                "id": "media-scale-0",
+                "scaleType": "small",
+                "url": "img/rich-content/digital-menu.jpeg"
+              }
+            ],
+            "locations": []
+          }
+        ]
+      },
+      "teaserComponentConfigKey": "digitalMenuCardComponentKey",
+      "isExpanded": true,
+      "displaySecondaryContent": false,
+      "isBespoke": false,
+      "secondaryContent": {
+        "titleKey": "",
+        "subTitleKey": "",
+        "icon": "",
+        "redirectUrl": "",
+        "enabledInstantBehaviour": false
+      }
+    },
+    "CULINARYHUB": {
+      "id": "CULINARYHUB",
+      "enabled": true,
+      "displayOrder": 21,
+      "association": "SVC",
+      "hidePrice": true,
+      "maximumAmountAllowed": 1,
+      "errorImagePath": "",
+      "richContent": {
+        "analyticsFriendlyName": "Culinary hub",
+        "titleKey": "global.ancillary-title.category-CULINARYHUB",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "global.ancillary-short-description.category-CULINARYHUB",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "global.ancillary-add-service-button-aria-label.category-CULINARYHUB",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": [
+          {
+            "id": "media-0",
+            "accessibilityTextKey": "global.ancillary-ax-text.category-CULINARYHUB-0",
+            "mediaScales": [
+              {
+                "id": "media-0",
+                "scaleType": "large",
+                "url": "img/rich-content/culinary-hub.png"
+              }
+            ],
+            "locations": []
+          }
+        ]
+      },
+      "teaserComponentConfigKey": "culinaryHubTeaserComponentKey",
+      "isExpanded": true,
+      "displaySecondaryContent": false,
+      "isBespoke": true,
+      "secondaryContent": {
+        "titleKey": "",
+        "subTitleKey": "",
+        "icon": "",
+        "redirectUrl": "",
+        "enabledInstantBehaviour": false
+      }
+    },
+    "CARRENTAL": {
+      "id": "CARRENTAL",
+      "enabled": true,
+      "displayOrder": 23,
+      "association": "SVC",
+      "hidePrice": false,
+      "maximumAmountAllowed": 0,
+      "errorImagePath": "",
+      "richContent": {
+        "analyticsFriendlyName": "Car Rental",
+        "titleKey": "global.ancillary-title.category-CARRENTAL",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "global.ancillary-short-description.category-CARRENTAL",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": [
+          {
+            "id": "media-0",
+            "accessibilityTextKey": "global.ancillary-ax-text.category-CARRENTAL-0",
+            "mediaScales": [
+              {
+                "id": "media-scale-0",
+                "scaleType": "small",
+                "url": "img/ancillaries/car-sales.jpg"
+              }
+            ],
+            "locations": []
+          }
+        ]
+      },
+      "teaserComponentConfigKey": "carRentalOfferComponentKey",
+      "isExpanded": true,
+      "displaySecondaryContent": true,
+      "isBespoke": false,
+      "secondaryContent": {
+        "titleKey": "global.ancillary-secondary-title.category-CARRENTAL",
+        "subTitleKey": "global.ancillary-secondary-subTitle.category-CARRENTAL",
+        "icon": "img/secondary-teaser-icons/icon-car.svg",
+        "redirectUrl": "car-product",
+        "enabledInstantBehaviour": false
+      }
+    },
+    "YOUCANALSO": {
+      "id": "YOUCANALSO",
+      "enabled": true,
+      "displayOrder": 30,
+      "association": "SVC",
+      "hidePrice": true,
+      "maximumAmountAllowed": 1,
+      "errorImagePath": "",
+      "richContent": {
+        "analyticsFriendlyName": "You can also",
+        "titleKey": "",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "teaserComponentConfigKey": "youCanAlsoComponentKey",
+      "isExpanded": true,
+      "displaySecondaryContent": false,
+      "isBespoke": true,
+      "secondaryContent": {
+        "titleKey": "",
+        "subTitleKey": "",
+        "icon": "",
+        "redirectUrl": "",
+        "enabledInstantBehaviour": false
+      }
+    },
+    "YILUWIDGET": {
+      "id": "YILUWIDGET",
+      "enabled": true,
+      "displayOrder": 31,
+      "association": "SVC",
+      "hidePrice": true,
+      "maximumAmountAllowed": 1,
+      "errorImagePath": "",
+      "richContent": {
+        "analyticsFriendlyName": "Yilu widget",
+        "titleKey": "",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "teaserComponentConfigKey": "yiluWidgetComponentKey",
+      "isExpanded": true,
+      "displaySecondaryContent": false,
+      "isBespoke": true,
+      "secondaryContent": {
+        "titleKey": "",
+        "subTitleKey": "",
+        "icon": "",
+        "redirectUrl": "",
+        "enabledInstantBehaviour": false
+      }
+    },
+    "MEAL": {
+      "id": "MEAL",
+      "enabled": true,
+      "displayOrder": 999,
+      "association": "SEGMENT",
+      "hidePrice": false,
+      "maximumAmountAllowed": 0,
+      "errorImagePath": "img/dialog/service-error/octagon-cross-message-error.svg",
+      "richContent": {
+        "analyticsFriendlyName": "Special Meals",
+        "titleKey": "global.ancillary-title.category-MEAL",
+        "additionalTitleKey": "global.ancillary-subtitle.category-MEAL",
+        "longDescriptionKey": "global.ancillary-long-description.category-MEAL",
+        "shortDescriptionKey": "global.ancillary-short-description.category-MEAL",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "teaserComponentConfigKey": "",
+      "isExpanded": true,
+      "displaySecondaryContent": true,
+      "isBespoke": true,
+      "secondaryContent": {
+        "titleKey": "global.ancillary-secondary-title.category-MEAL",
+        "subTitleKey": "global.ancillary-secondary-subTitle.category-MEAL",
+        "icon": "img/secondary-teaser-icons/special-meal.svg",
+        "redirectUrl": "",
+        "enabledInstantBehaviour": false
+      }
+    },
+    "PARTNERPLUSBENEFIT": {
+      "id": "PARTNERPLUSBENEFIT",
+      "enabled": true,
+      "displayOrder": 1000,
+      "association": "SVC",
+      "hidePrice": false,
+      "maximumAmountAllowed": 0,
+      "errorImagePath": "",
+      "richContent": {
+        "analyticsFriendlyName": "",
+        "titleKey": "",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "teaserComponentConfigKey": "ppbCustomTeaserComponentKey",
+      "isExpanded": true,
+      "displaySecondaryContent": true,
+      "isBespoke": true,
+      "secondaryContent": {
+        "titleKey": "global.ancillary-secondary-title.category-PARTNERPLUSBENEFIT",
+        "subTitleKey": "global.ancillary-secondary-subTitle.category-PARTNERPLUSBENEFIT",
+        "icon": "img/secondary-teaser-icons/partner-plus-benefit.svg",
+        "redirectUrl": "",
+        "enabledInstantBehaviour": true
+      }
+    },
+    "UPGRADE": {
+      "id": "UPGRADE",
+      "enabled": true,
+      "displayOrder": 99999,
+      "association": "SEGMENT",
+      "hidePrice": false,
+      "maximumAmountAllowed": 0,
+      "errorImagePath": "",
+      "richContent": {
+        "analyticsFriendlyName": "Upgrade",
+        "titleKey": "global.ancillary-title.category-UPGRADE",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "global.ancillary-short-description.category-UPGRADE",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": [
+          {
+            "id": "media-0",
+            "accessibilityTextKey": "global.ancillary-ax-text.category-UPGRADE-0",
+            "mediaScales": [
+              {
+                "id": "media-scale-0",
+                "scaleType": "small",
+                "url": "img/rich-content/cash-upgrade-long-haul.png"
+              }
+            ],
+            "locations": []
+          }
+        ]
+      },
+      "teaserComponentConfigKey": "",
+      "isExpanded": true,
+      "displaySecondaryContent": false,
+      "isBespoke": false,
+      "secondaryContent": {
+        "titleKey": "",
+        "subTitleKey": "",
+        "icon": "",
+        "redirectUrl": "",
+        "enabledInstantBehaviour": false
+      }
+    },
+    "PLUSGRADE": {
+      "id": "PLUSGRADE",
+      "enabled": true,
+      "displayOrder": 1000004,
+      "association": "SEGMENT",
+      "hidePrice": false,
+      "maximumAmountAllowed": 0,
+      "errorImagePath": "",
+      "richContent": {
+        "analyticsFriendlyName": "Plusgrade",
+        "titleKey": "global.ancillary-title.category-PLUSGRADE",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "global.ancillary-short-description.category-PLUSGRADE",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "global.ancillary-add-service-button-aria-label.category-PLUSGRADE",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": [
+          {
+            "id": "media-0",
+            "accessibilityTextKey": "global.ancillary-ax-text.category-PLUSGRADE-0",
+            "mediaScales": [
+              {
+                "id": "media-scale-0",
+                "scaleType": "small",
+                "url": "img/rich-content/plus-grade-long-haul.png"
+              }
+            ],
+            "locations": []
+          }
+        ]
+      },
+      "teaserComponentConfigKey": "",
+      "isExpanded": true,
+      "displaySecondaryContent": false,
+      "isBespoke": false,
+      "secondaryContent": {
+        "titleKey": "",
+        "subTitleKey": "",
+        "icon": "",
+        "redirectUrl": "",
+        "enabledInstantBehaviour": false
+      }
+    },
+    "SDUISER": {
+      "id": "SDUISER",
+      "enabled": true,
+      "displayOrder": 31,
+      "association": "SVC",
+      "hidePrice": true,
+      "maximumAmountAllowed": 1,
+      "errorImagePath": "",
+      "richContent": {
+        "analyticsFriendlyName": "SDUI extra service",
+        "titleKey": "",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "teaserComponentConfigKey": "sduiExtraServicesComponentKey",
+      "isExpanded": true,
+      "displaySecondaryContent": false,
+      "isBespoke": true,
+      "secondaryContent": {
+        "titleKey": "",
+        "subTitleKey": "",
+        "icon": "",
+        "redirectUrl": "",
+        "enabledInstantBehaviour": false
+      }
+    }
+  },
+  "serviceDictionary": {
+    "CCOB": {
+      "serviceCode": "CCOB",
+      "enabled": true,
+      "serviceType": "IN_OCCURRENCE_GROUP",
+      "category": "BAGGAGE",
+      "occurrenceGroup": "ccob",
+      "occurrenceGroupRange": "0-1",
+      "icon": "carry-on",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {
+        "quantity": {
+          "parameterCode": "quantity",
+          "type": "STEPPER",
+          "defaultValue": "0",
+          "usedForPrice": false,
+          "labelKey": "",
+          "displayOrder": 0,
+          "range": "0-1"
+        }
+      },
+      "outputParameters": {}
+    },
+    "FBAG": {
+      "serviceCode": "FBAG",
+      "enabled": true,
+      "serviceType": "IN_OCCURRENCE_GROUP",
+      "category": "BAGGAGE",
+      "occurrenceGroup": "bag_occurrence",
+      "occurrenceGroupRange": "0-1",
+      "icon": "bag",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {
+        "quantity": {
+          "parameterCode": "quantity",
+          "type": "STEPPER",
+          "defaultValue": "",
+          "usedForPrice": false,
+          "labelKey": "",
+          "displayOrder": 0,
+          "range": "1-1"
+        }
+      },
+      "outputParameters": {}
+    },
+    "SBAG": {
+      "serviceCode": "SBAG",
+      "enabled": true,
+      "serviceType": "IN_OCCURRENCE_GROUP",
+      "category": "BAGGAGE",
+      "occurrenceGroup": "bag_occurrence",
+      "occurrenceGroupRange": "2-2",
+      "icon": "bag",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {
+        "quantity": {
+          "parameterCode": "quantity",
+          "type": "STEPPER",
+          "defaultValue": "",
+          "usedForPrice": false,
+          "labelKey": "",
+          "displayOrder": 0,
+          "range": "2-2"
+        }
+      },
+      "outputParameters": {}
+    },
+    "MBAG": {
+      "serviceCode": "MBAG",
+      "enabled": true,
+      "serviceType": "IN_OCCURRENCE_GROUP",
+      "category": "BAGGAGE",
+      "occurrenceGroup": "bag_occurrence",
+      "occurrenceGroupRange": "2-6",
+      "icon": "bag",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {
+        "quantity": {
+          "parameterCode": "quantity",
+          "type": "STEPPER",
+          "defaultValue": "",
+          "usedForPrice": false,
+          "labelKey": "",
+          "displayOrder": 0,
+          "range": "2-6"
+        }
+      },
+      "outputParameters": {}
+    },
+    "SEAT": {
+      "serviceCode": "SEAT",
+      "enabled": true,
+      "serviceType": "STANDALONE",
+      "category": "SEAT",
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "ACKI": {
+      "serviceCode": "ACKI",
+      "enabled": true,
+      "serviceType": "STANDALONE",
+      "category": "ACKI",
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {
+        "quantity": {
+          "parameterCode": "quantity",
+          "type": "HIDDEN",
+          "defaultValue": "1",
+          "usedForPrice": false
+        },
+        "TYPE": {
+          "parameterCode": "TYPE",
+          "type": "SELECTBOX",
+          "defaultValue": "",
+          "usedForPrice": false,
+          "labelKey": "global.ancillary-input-label.service-ACKI-TYPE",
+          "placeholderKey": "global.ancillary-input-placeholder.ACKI-TYPE",
+          "displayOrder": 0,
+          "allowedValues": [
+            {
+              "value": "CTCE/PDF",
+              "labelKey": "global.ancillary-allowed-value-label.service-ACKI-TYPE-0"
+            },
+            {
+              "value": "CTCE/MBP",
+              "labelKey": "global.ancillary-allowed-value-label.service-ACKI-TYPE-1"
+            },
+            {
+              "value": "CTCM/MBP",
+              "labelKey": "global.ancillary-allowed-value-label.service-ACKI-TYPE-2"
+            }
+          ]
+        }
+      },
+      "outputParameters": {}
+    },
+    "UPGD": {
+      "serviceCode": "UPGD",
+      "enabled": true,
+      "serviceType": "STANDALONE",
+      "category": "UPGRADE",
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "INSU": {
+      "serviceCode": "INSU",
+      "enabled": true,
+      "serviceType": "STANDALONE",
+      "category": "INSURANCE",
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "RLFF": {
+      "serviceCode": "RLFF",
+      "enabled": true,
+      "serviceType": "STANDALONE",
+      "category": "RAILANDFLY",
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "RLFY": {
+      "serviceCode": "RLFY",
+      "enabled": true,
+      "serviceType": "STANDALONE",
+      "category": "RAILANDFLY",
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "BCOZ": {
+      "serviceCode": "BCOZ",
+      "enabled": true,
+      "serviceType": "STANDALONE",
+      "category": "CO2NEUTRALISATION",
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "ASAF": {
+      "serviceCode": "ASAF",
+      "enabled": true,
+      "serviceType": "STANDALONE",
+      "category": "CO2NEUTRALISATION",
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "FPML": {
+      "serviceCode": "FPML",
+      "enabled": true,
+      "serviceType": "IN_SUBCATEGORY",
+      "category": "MEAL",
+      "subcategory": "mainCourses",
+      "useEncapsulation": false,
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "CHML": {
+      "serviceCode": "CHML",
+      "enabled": true,
+      "serviceType": "IN_SUBCATEGORY",
+      "category": "MEAL",
+      "subcategory": "mainCourses",
+      "useEncapsulation": false,
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "BBML": {
+      "serviceCode": "BBML",
+      "enabled": true,
+      "serviceType": "IN_SUBCATEGORY",
+      "category": "MEAL",
+      "subcategory": "mainCourses",
+      "useEncapsulation": false,
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "DBML": {
+      "serviceCode": "DBML",
+      "enabled": true,
+      "serviceType": "IN_SUBCATEGORY",
+      "category": "MEAL",
+      "subcategory": "mainCourses",
+      "useEncapsulation": false,
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "GFML": {
+      "serviceCode": "GFML",
+      "enabled": true,
+      "serviceType": "IN_SUBCATEGORY",
+      "category": "MEAL",
+      "subcategory": "mainCourses",
+      "useEncapsulation": false,
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "LCML": {
+      "serviceCode": "LCML",
+      "enabled": true,
+      "serviceType": "IN_SUBCATEGORY",
+      "category": "MEAL",
+      "subcategory": "mainCourses",
+      "useEncapsulation": false,
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "LFML": {
+      "serviceCode": "LFML",
+      "enabled": true,
+      "serviceType": "IN_SUBCATEGORY",
+      "category": "MEAL",
+      "subcategory": "mainCourses",
+      "useEncapsulation": false,
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "NLML": {
+      "serviceCode": "NLML",
+      "enabled": true,
+      "serviceType": "IN_SUBCATEGORY",
+      "category": "MEAL",
+      "subcategory": "mainCourses",
+      "useEncapsulation": false,
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "LSML": {
+      "serviceCode": "LSML",
+      "enabled": true,
+      "serviceType": "IN_SUBCATEGORY",
+      "category": "MEAL",
+      "subcategory": "mainCourses",
+      "useEncapsulation": false,
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "HNML": {
+      "serviceCode": "HNML",
+      "enabled": true,
+      "serviceType": "IN_SUBCATEGORY",
+      "category": "MEAL",
+      "subcategory": "mainCourses",
+      "useEncapsulation": false,
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "KSML": {
+      "serviceCode": "KSML",
+      "enabled": true,
+      "serviceType": "IN_SUBCATEGORY",
+      "category": "MEAL",
+      "subcategory": "mainCourses",
+      "useEncapsulation": false,
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "MOML": {
+      "serviceCode": "MOML",
+      "enabled": true,
+      "serviceType": "IN_SUBCATEGORY",
+      "category": "MEAL",
+      "subcategory": "mainCourses",
+      "useEncapsulation": false,
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "AVML": {
+      "serviceCode": "AVML",
+      "enabled": true,
+      "serviceType": "IN_SUBCATEGORY",
+      "category": "MEAL",
+      "subcategory": "mainCourses",
+      "useEncapsulation": false,
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "VJML": {
+      "serviceCode": "VJML",
+      "enabled": true,
+      "serviceType": "IN_SUBCATEGORY",
+      "category": "MEAL",
+      "subcategory": "mainCourses",
+      "useEncapsulation": false,
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "VLML": {
+      "serviceCode": "VLML",
+      "enabled": true,
+      "serviceType": "IN_SUBCATEGORY",
+      "category": "MEAL",
+      "subcategory": "mainCourses",
+      "useEncapsulation": false,
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "VGML": {
+      "serviceCode": "VGML",
+      "enabled": true,
+      "serviceType": "IN_SUBCATEGORY",
+      "category": "MEAL",
+      "subcategory": "mainCourses",
+      "useEncapsulation": false,
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "JBAG": {
+      "serviceCode": "JBAG",
+      "enabled": true,
+      "serviceType": "IN_OCCURRENCE_GROUP",
+      "category": "BAGGAGE",
+      "occurrenceGroup": "jbag",
+      "occurrenceGroupRange": "0-1",
+      "icon": "oversize-baggage",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {
+        "quantity": {
+          "parameterCode": "quantity",
+          "type": "STEPPER",
+          "defaultValue": "",
+          "usedForPrice": false,
+          "labelKey": "",
+          "displayOrder": 0,
+          "range": "0-1"
+        }
+      },
+      "outputParameters": {}
+    },
+    "IBAG": {
+      "serviceCode": "IBAG",
+      "enabled": true,
+      "serviceType": "IN_OCCURRENCE_GROUP",
+      "category": "BAGGAGE",
+      "occurrenceGroup": "ibag",
+      "occurrenceGroupRange": "0-6",
+      "icon": "heavy-baggage",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {
+        "quantity": {
+          "parameterCode": "quantity",
+          "type": "STEPPER",
+          "defaultValue": "",
+          "usedForPrice": false,
+          "labelKey": "",
+          "displayOrder": 0,
+          "range": "0-6"
+        }
+      },
+      "outputParameters": {}
+    },
+    "KBAG": {
+      "serviceCode": "KBAG",
+      "enabled": true,
+      "serviceType": "IN_OCCURRENCE_GROUP",
+      "category": "BAGGAGE",
+      "occurrenceGroup": "kbag",
+      "occurrenceGroupRange": "0-1",
+      "icon": "heavy-and-oversize-baggage",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {
+        "quantity": {
+          "parameterCode": "quantity",
+          "type": "STEPPER",
+          "defaultValue": "",
+          "usedForPrice": false,
+          "labelKey": "",
+          "displayOrder": 0,
+          "range": "0-1"
+        }
+      },
+      "outputParameters": {}
+    },
+    "CO2": {
+      "serviceCode": "CO2",
+      "enabled": true,
+      "serviceType": "STANDALONE",
+      "category": "CO2NEUTRALISATION",
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "PPB": {
+      "serviceCode": "PPB",
+      "enabled": true,
+      "serviceType": "STANDALONE",
+      "category": "PARTNERPLUSBENEFIT",
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "CO2INST": {
+      "serviceCode": "CO2INST",
+      "enabled": true,
+      "serviceType": "STANDALONE",
+      "category": "CO2INSTANTNEUTRALISATION",
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "DGTLMENU": {
+      "serviceCode": "DGTLMENU",
+      "enabled": true,
+      "serviceType": "STANDALONE",
+      "category": "DIGITALMENU",
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "PETC": {
+      "serviceCode": "PETC",
+      "enabled": true,
+      "serviceType": "STANDALONE",
+      "category": "PETS",
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {
+        "TYPE": {
+          "parameterCode": "TYPE",
+          "type": "SELECTBOX",
+          "defaultValue": "",
+          "usedForPrice": false,
+          "labelKey": "global.ancillary-allowed-value-label.service-PETC-TYPE",
+          "placeholderKey": "global.ancillary-input-placeholder.PETC-TYPE",
+          "displayOrder": 0,
+          "allowedValues": [
+            {
+              "value": "CAT",
+              "labelKey": "global.ancillary-allowed-value-label.service-PETC-TYPE-0"
+            },
+            {
+              "value": "DOG",
+              "labelKey": "global.ancillary-allowed-value-label.service-PETC-TYPE-1"
+            }
+          ]
+        },
+        "quantity": {
+          "parameterCode": "quantity",
+          "type": "HIDDEN",
+          "defaultValue": "1",
+          "usedForPrice": false
+        }
+      },
+      "outputParameters": {}
+    },
+    "CCENROLL": {
+      "serviceCode": "CCENROLL",
+      "enabled": true,
+      "serviceType": "STANDALONE",
+      "category": "CREDITCARDENROLLMENT",
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "YCA": {
+      "serviceCode": "YCA",
+      "enabled": true,
+      "serviceType": "STANDALONE",
+      "category": "YOUCANALSO",
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "YILUWDGT": {
+      "serviceCode": "YILUWDGT",
+      "enabled": true,
+      "serviceType": "STANDALONE",
+      "category": "YILUWIDGET",
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "CARRENT": {
+      "serviceCode": "CARRENT",
+      "enabled": true,
+      "serviceType": "STANDALONE",
+      "category": "CARRENTAL",
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "DEAF": {
+      "serviceCode": "DEAF",
+      "enabled": true,
+      "serviceType": "STANDALONE",
+      "category": "SPECIALASSISTANCE",
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {
+        "quantity": {
+          "parameterCode": "quantity",
+          "type": "CHECKBOX",
+          "defaultValue": "",
+          "usedForPrice": false,
+          "labelKey": "global.ancillary-input-label.service-DEAF-quantity",
+          "displayOrder": 0,
+          "allowedValues": [
+            {
+              "value": "0",
+              "labelKey": ""
+            },
+            {
+              "value": "1",
+              "labelKey": ""
+            }
+          ]
+        }
+      },
+      "outputParameters": {}
+    },
+    "BLND": {
+      "serviceCode": "BLND",
+      "enabled": true,
+      "serviceType": "STANDALONE",
+      "category": "SPECIALASSISTANCE",
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {
+        "quantity": {
+          "parameterCode": "quantity",
+          "type": "CHECKBOX",
+          "defaultValue": "",
+          "usedForPrice": false,
+          "labelKey": "global.ancillary-input-label.service-BLND-quantity",
+          "displayOrder": 0,
+          "allowedValues": [
+            {
+              "value": "0",
+              "labelKey": ""
+            },
+            {
+              "value": "1",
+              "labelKey": ""
+            }
+          ]
+        }
+      },
+      "outputParameters": {}
+    },
+    "WCHS": {
+      "serviceCode": "WCHS",
+      "enabled": true,
+      "serviceType": "IN_SUBCATEGORY",
+      "category": "SPECIALASSISTANCE",
+      "subcategory": "WHEELCHAIR",
+      "useEncapsulation": false,
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "WCHC": {
+      "serviceCode": "WCHC",
+      "enabled": true,
+      "serviceType": "IN_SUBCATEGORY",
+      "category": "SPECIALASSISTANCE",
+      "subcategory": "WHEELCHAIR",
+      "useEncapsulation": false,
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "WCHR": {
+      "serviceCode": "WCHR",
+      "enabled": true,
+      "serviceType": "IN_SUBCATEGORY",
+      "category": "SPECIALASSISTANCE",
+      "subcategory": "WHEELCHAIR",
+      "useEncapsulation": false,
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "CULHUB": {
+      "serviceCode": "CULHUB",
+      "enabled": true,
+      "serviceType": "STANDALONE",
+      "category": "CULINARYHUB",
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "SDUIEXTRASERV": {
+      "serviceCode": "SDUIEXTRASERV",
+      "enabled": true,
+      "serviceType": "STANDALONE",
+      "category": "SDUISER",
+      "icon": "",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {},
+      "outputParameters": {}
+    },
+    "CYAA": {
+      "serviceCode": "CYAA",
+      "enabled": true,
+      "serviceType": "IN_OCCURRENCE_GROUP",
+      "category": "BAGGAGE",
+      "occurrenceGroup": "cyaa",
+      "occurrenceGroupRange": "0-1",
+      "icon": "refx-icon-carry-on",
+      "order": 0,
+      "displaySelectForAllPassengers": false,
+      "inputParameters": {
+        "quantity": {
+          "parameterCode": "quantity",
+          "type": "STEPPER",
+          "defaultValue": "0",
+          "usedForPrice": false,
+          "labelKey": "",
+          "displayOrder": 0,
+          "range": "0-1"
+        }
+      },
+      "outputParameters": {}
+    }
+  },
+  "serviceRichContents": [
+    {
+      "id": "1",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Excess baggage",
+        "titleKey": "global.ancillary-title.service-XBAG",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "XBAG",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Additional bag",
+        "titleKey": "global.ancillary-title.service-bag_occurrence",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "global.ancillary-long-description.service-bag_occurrence",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "bag_occurrence",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Automated checkin",
+        "titleKey": "global.ancillary-title.service-ACKI",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "ACKI",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Rail&Fly Second Class",
+        "titleKey": "global.ancillary-title.service-RLFY",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "RLFY",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Rail&Fly First Class",
+        "titleKey": "global.ancillary-title.service-RLFF",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "RLFF",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "14",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "CO2-Neutralisation climate project",
+        "titleKey": "global.ancillary-title.service-BCOZ",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "BCOZ",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "15",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "CO2-Neutralisation sustainable aviation fuel",
+        "titleKey": "global.ancillary-title.service-ASAF",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "ASAF",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "16",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Child Meal",
+        "titleKey": "global.ancillary-title.service-CHML",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "CHML",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "17",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Low Salt Meal",
+        "titleKey": "global.ancillary-title.service-LSML",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "LSML",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "18",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Baby meal",
+        "titleKey": "global.ancillary-title.service-BBML",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "BBML",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "19",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Diabetic Meal",
+        "titleKey": "global.ancillary-title.service-DBML",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "DBML",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Excess baggage",
+        "titleKey": "global.ancillary-title.service-XBGA",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "XBGA",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "20",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Gluten Free Meal",
+        "titleKey": "global.ancillary-title.service-GFML",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "GFML",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "21",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Low Calorie Meal",
+        "titleKey": "global.ancillary-title.service-LCML",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "LCML",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "22",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Low Fat Meal",
+        "titleKey": "global.ancillary-title.service-LFML",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "LFML",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "23",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "No Lactose Meal",
+        "titleKey": "global.ancillary-title.service-NLML",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "NLML",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "24",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Hindu (Non Vegetarian) Meal",
+        "titleKey": "global.ancillary-title.service-HNML",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "HNML",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "25",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Kosher Meal",
+        "titleKey": "global.ancillary-title.service-KSML",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "KSML",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "26",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Moslem Meal",
+        "titleKey": "global.ancillary-title.service-MOML",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "MOML",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "27",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Asian Vegetarian Meal",
+        "titleKey": "global.ancillary-title.service-AVML",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "AVML",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "28",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Jain meal (vegetarian)",
+        "titleKey": "global.ancillary-title.service-VJML",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "VJML",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "29",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "No fish meal",
+        "titleKey": "global.ancillary-title.service-NFML",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "NFML",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Heavy excess baggage",
+        "titleKey": "global.ancillary-title.service-XBGB",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "XBGB",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "30",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Vegetarian meal (Lacto-Ovo)",
+        "titleKey": "global.ancillary-title.service-VLML",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "VLML",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "31",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Fruit Platter",
+        "titleKey": "global.ancillary-title.service-FPML",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "FPML",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "32",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "IBAG",
+        "titleKey": "global.ancillary-title.service-IBAG",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "global.ancillary-long-description.service-IBAG",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "ibag",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "33",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "JBAG",
+        "titleKey": "global.ancillary-title.service-JBAG",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "global.ancillary-long-description.service-JBAG",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "jbag",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "34",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "KBAG",
+        "titleKey": "global.ancillary-title.service-KBAG",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "global.ancillary-long-description.service-KBAG",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "kbag",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "35",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Pets in cabin",
+        "titleKey": "global.ancillary-title.service-PETC",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "PETC",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Seat",
+        "titleKey": "global.ancillary-title.service-SEAT",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "SEAT",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "42",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Special assistance",
+        "titleKey": "global.ancillary-title.service-WCHS",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "WCHS",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "43",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Special assistance",
+        "titleKey": "global.ancillary-title.service-WCHC",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "WCHC",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "44",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Special assistance",
+        "titleKey": "global.ancillary-title.service-BLND",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "BLND",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "45",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Special assistance",
+        "titleKey": "global.ancillary-title.service-DEAF",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "DEAF",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "46",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Special assistance",
+        "titleKey": "global.ancillary-title.service-WHEELCHAIR",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "global.ancillary-long-description.service-WCH",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "WHEELCHAIR",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "47",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "CCOB",
+        "titleKey": "global.ancillary-title.service-CCOB",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "global.ancillary-long-description.service-CCOB",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "ccob",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Extra bag",
+        "titleKey": "global.ancillary-title.service-FBAG",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "global.ancillary-long-description.service-FBAG",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "FBAG",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Vegetarian meal",
+        "titleKey": "global.ancillary-title.service-VGML",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "VGML",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Schnitzel meal",
+        "titleKey": "global.ancillary-title.service-SCML",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "SCML",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Special assistance",
+        "titleKey": "global.ancillary-title.service-WCHR",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "WCHR",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "Cash Upgrade",
+        "titleKey": "global.ancillary-title.service-UPGD",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "UPGD",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    },
+    {
+      "id": "48",
+      "enabled": true,
+      "richContent": {
+        "analyticsFriendlyName": "CYAA",
+        "titleKey": "global.ancillary-title.service-CYAA",
+        "additionalTitleKey": "",
+        "longDescriptionKey": "global.ancillary-long-description.service-CYAA",
+        "shortDescriptionKey": "",
+        "placeholderKey": "",
+        "addServiceButtonAriaLabelKey": "",
+        "modifyServiceButtonAriaLabelKey": "",
+        "medias": []
+      },
+      "criterias": [
+        {
+          "code": "cyaa",
+          "rfic": "",
+          "rfisc": ""
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,438 @@
+{
+    "data": [
+        {
+            "id": "TSM45",
+            "descriptions": [
+                {
+                    "type": "shortText",
+                    "content": "IBAG"
+                },
+                {
+                    "type": "longText",
+                    "content": "UPTO70LB 32KG AND62LI 158LCM"
+                }
+            ],
+            "reasonForIssuance": {
+                "code": "C",
+                "subCode": "0FM"
+            },
+            "creation": {
+                "office": {
+                    "officeId": "FRALH08BC"
+                }
+            },
+            "quantity": 1,
+            "flightIds": [
+                "ST4"
+            ],
+            "statusCode": "HK",
+            "parameters": [
+                {
+                    "code": "TEXT",
+                    "value": "ADDITIONAL BAG HEAVY 24 UP TO 32KG/MAX. 158CM"
+                }
+            ],
+            "travelerId": "PT2",
+            "isChargeable": true,
+            "prices": {
+                "unitPrices": [
+                    {
+                        "prices": [
+                            {
+                                "base": {
+                                    "value": 12000,
+                                    "currencyCode": "EUR"
+                                },
+                                "total": {
+                                    "value": 12000,
+                                    "currencyCode": "EUR"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "totalPrices": [
+                    {
+                        "base": {
+                            "value": 12000,
+                            "currencyCode": "EUR"
+                        },
+                        "total": {
+                            "value": 12000,
+                            "currencyCode": "EUR"
+                        }
+                    }
+                ]
+            },
+            "details": [
+                {
+                    "flightId": "ST4",
+                    "quantity": 1
+                }
+            ]
+        },
+        {
+            "id": "TSM57",
+            "descriptions": [
+                {
+                    "type": "shortText",
+                    "content": "IBAG"
+                },
+                {
+                    "type": "longText",
+                    "content": "UPTO70LB 32KG AND62LI 158LCM"
+                }
+            ],
+            "reasonForIssuance": {
+                "code": "C",
+                "subCode": "0FM"
+            },
+            "creation": {
+                "office": {
+                    "officeId": "FRALH08BC"
+                }
+            },
+            "quantity": 1,
+            "flightIds": [
+                "ST4"
+            ],
+            "statusCode": "HK",
+            "parameters": [
+                {
+                    "code": "TEXT",
+                    "value": "ADDITIONAL BAG HEAVY 24 UP TO 32KG/MAX. 158CM"
+                }
+            ],
+            "travelerId": "PT2",
+            "isChargeable": true,
+            "prices": {
+                "unitPrices": [
+                    {
+                        "prices": [
+                            {
+                                "base": {
+                                    "value": 12000,
+                                    "currencyCode": "EUR"
+                                },
+                                "total": {
+                                    "value": 12000,
+                                    "currencyCode": "EUR"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "totalPrices": [
+                    {
+                        "base": {
+                            "value": 12000,
+                            "currencyCode": "EUR"
+                        },
+                        "total": {
+                            "value": 12000,
+                            "currencyCode": "EUR"
+                        }
+                    }
+                ]
+            },
+            "details": [
+                {
+                    "flightId": "ST4",
+                    "quantity": 1
+                }
+            ]
+        },
+        {
+            "id": "TSM48",
+            "descriptions": [
+                {
+                    "type": "shortText",
+                    "content": "IBAG"
+                },
+                {
+                    "type": "longText",
+                    "content": "UPTO70LB 32KG AND62LI 158LCM"
+                }
+            ],
+            "reasonForIssuance": {
+                "code": "C",
+                "subCode": "0FM"
+            },
+            "creation": {
+                "office": {
+                    "officeId": "FRALH08BC"
+                }
+            },
+            "quantity": 1,
+            "flightIds": [
+                "ST4"
+            ],
+            "statusCode": "HK",
+            "parameters": [
+                {
+                    "code": "TEXT",
+                    "value": "ADDITIONAL BAG HEAVY 24 UP TO 32KG/MAX. 158CM"
+                }
+            ],
+            "travelerId": "PT2",
+            "isChargeable": true,
+            "prices": {
+                "unitPrices": [
+                    {
+                        "prices": [
+                            {
+                                "base": {
+                                    "value": 12000,
+                                    "currencyCode": "EUR"
+                                },
+                                "total": {
+                                    "value": 12000,
+                                    "currencyCode": "EUR"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "totalPrices": [
+                    {
+                        "base": {
+                            "value": 12000,
+                            "currencyCode": "EUR"
+                        },
+                        "total": {
+                            "value": 12000,
+                            "currencyCode": "EUR"
+                        }
+                    }
+                ]
+            },
+            "details": [
+                {
+                    "flightId": "ST4",
+                    "quantity": 1
+                }
+            ]
+        },
+        {
+            "id": "TSM51",
+            "descriptions": [
+                {
+                    "type": "shortText",
+                    "content": "IBAG"
+                },
+                {
+                    "type": "longText",
+                    "content": "UPTO70LB 32KG AND62LI 158LCM"
+                }
+            ],
+            "reasonForIssuance": {
+                "code": "C",
+                "subCode": "0FM"
+            },
+            "creation": {
+                "office": {
+                    "officeId": "FRALH08BC"
+                }
+            },
+            "quantity": 1,
+            "flightIds": [
+                "ST4"
+            ],
+            "statusCode": "HK",
+            "parameters": [
+                {
+                    "code": "TEXT",
+                    "value": "ADDITIONAL BAG HEAVY 24 UP TO 32KG/MAX. 158CM"
+                }
+            ],
+            "travelerId": "PT2",
+            "isChargeable": true,
+            "prices": {
+                "unitPrices": [
+                    {
+                        "prices": [
+                            {
+                                "base": {
+                                    "value": 12000,
+                                    "currencyCode": "EUR"
+                                },
+                                "total": {
+                                    "value": 12000,
+                                    "currencyCode": "EUR"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "totalPrices": [
+                    {
+                        "base": {
+                            "value": 12000,
+                            "currencyCode": "EUR"
+                        },
+                        "total": {
+                            "value": 12000,
+                            "currencyCode": "EUR"
+                        }
+                    }
+                ]
+            },
+            "details": [
+                {
+                    "flightId": "ST4",
+                    "quantity": 1
+                }
+            ]
+        },
+        {
+            "id": "TSM42",
+            "descriptions": [
+                {
+                    "type": "shortText",
+                    "content": "IBAG"
+                },
+                {
+                    "type": "longText",
+                    "content": "UPTO70LB 32KG AND62LI 158LCM"
+                }
+            ],
+            "reasonForIssuance": {
+                "code": "C",
+                "subCode": "0FM"
+            },
+            "creation": {
+                "office": {
+                    "officeId": "FRALH08BC"
+                }
+            },
+            "quantity": 1,
+            "flightIds": [
+                "ST4"
+            ],
+            "statusCode": "HK",
+            "parameters": [
+                {
+                    "code": "TEXT",
+                    "value": "ADDITIONAL BAG HEAVY 24 UP TO 32KG/MAX. 158CM"
+                }
+            ],
+            "travelerId": "PT2",
+            "isChargeable": true,
+            "prices": {
+                "unitPrices": [
+                    {
+                        "prices": [
+                            {
+                                "base": {
+                                    "value": 12000,
+                                    "currencyCode": "EUR"
+                                },
+                                "total": {
+                                    "value": 12000,
+                                    "currencyCode": "EUR"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "totalPrices": [
+                    {
+                        "base": {
+                            "value": 12000,
+                            "currencyCode": "EUR"
+                        },
+                        "total": {
+                            "value": 12000,
+                            "currencyCode": "EUR"
+                        }
+                    }
+                ]
+            },
+            "details": [
+                {
+                    "flightId": "ST4",
+                    "quantity": 1
+                }
+            ]
+        },
+        {
+            "id": "TSM54",
+            "descriptions": [
+                {
+                    "type": "shortText",
+                    "content": "IBAG"
+                },
+                {
+                    "type": "longText",
+                    "content": "UPTO70LB 32KG AND62LI 158LCM"
+                }
+            ],
+            "reasonForIssuance": {
+                "code": "C",
+                "subCode": "0FM"
+            },
+            "creation": {
+                "office": {
+                    "officeId": "FRALH08BC"
+                }
+            },
+            "quantity": 1,
+            "flightIds": [
+                "ST4"
+            ],
+            "statusCode": "HK",
+            "parameters": [
+                {
+                    "code": "TEXT",
+                    "value": "ADDITIONAL BAG HEAVY 24 UP TO 32KG/MAX. 158CM"
+                }
+            ],
+            "travelerId": "PT2",
+            "isChargeable": true,
+            "prices": {
+                "unitPrices": [
+                    {
+                        "prices": [
+                            {
+                                "base": {
+                                    "value": 12000,
+                                    "currencyCode": "EUR"
+                                },
+                                "total": {
+                                    "value": 12000,
+                                    "currencyCode": "EUR"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "totalPrices": [
+                    {
+                        "base": {
+                            "value": 12000,
+                            "currencyCode": "EUR"
+                        },
+                        "total": {
+                            "value": 12000,
+                            "currencyCode": "EUR"
+                        }
+                    }
+                ]
+            },
+            "details": [
+                {
+                    "flightId": "ST4",
+                    "quantity": 1
+                }
+            ]
+        }
+    ],
+    "dictionaries": {
+        "currency": {
+            "EUR": {
+                "name": "EURO",
+                "decimalPlaces": 2
+            }
+        }
+    }
+}
