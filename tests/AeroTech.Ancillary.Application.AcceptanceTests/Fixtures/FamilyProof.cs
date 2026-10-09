@@ -1,4 +1,5 @@
 using AeroTech.Ancillary.Application.AcceptanceTests.Fakes;
+using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.DefineAncillaryPricing;
 using AeroTech.Ancillary.Query.AncillaryPricingAggregate.Dto;
 using AeroTech.Ancillary.Query.AncillaryPricingAggregate.Queries.GetAncillaryPricingsPaginated.Backoffice;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Dto;
@@ -58,7 +59,7 @@ public sealed class FamilyProof
 
     public async Task<PublishedRule> RuleAsync(
         TestDefineProvisionCommand provision,
-        Func<long, TestDefinePricingCommand>? pricing = null,
+        Func<long, IDefineAncillaryPricingCommand>? pricing = null,
         bool publish = true)
     {
         long provisionId;

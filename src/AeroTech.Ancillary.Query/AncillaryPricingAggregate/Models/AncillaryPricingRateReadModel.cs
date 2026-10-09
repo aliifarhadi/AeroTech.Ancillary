@@ -1,9 +1,8 @@
 using AeroTech.Messages.AirPrice.Enums;
-using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Query.AncillaryPricingAggregate.Models
 {
-    public sealed class AncillaryPricingLineReadModel
+    public sealed class AncillaryPricingRateReadModel
     {
         public long Id { get; set; }
 
@@ -15,16 +14,8 @@ namespace AeroTech.Ancillary.Query.AncillaryPricingAggregate.Models
 
         public int? AgeToExclusive { get; set; }
 
-        public AncillaryPriceLineCategory Category { get; set; }
+        public int CurrencyId { get; set; }
 
-        public string? Code { get; set; }
-
-        public string? Name { get; set; }
-
-        public int? CountryId { get; set; }
-
-        public int? StationAirportId { get; set; }
-
-        public decimal Amount { get; set; }
+        public decimal BaseAmount { get; set; }
     }
 }

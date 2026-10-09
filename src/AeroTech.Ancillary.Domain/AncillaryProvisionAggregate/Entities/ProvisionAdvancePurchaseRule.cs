@@ -22,6 +22,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
 
         public int MinimumPeriod { get; private set; }
 
+        public int? MaximumPeriod { get; private set; }
+
         public TimeUnit Unit { get; private set; }
 
         public bool SameTimeAsTicketed { get; private set; }
@@ -36,6 +38,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
                 return () => null;
 
             Require(args.MinimumPeriod >= 0, nameof(MinimumPeriod));
+            Require(args.MaximumPeriod is null || args.MaximumPeriod >= args.MinimumPeriod, nameof(MaximumPeriod));
             Require(Enum.IsDefined(args.Unit), nameof(Unit));
 
             var rule = stored ?? new ProvisionAdvancePurchaseRule(idGenerator.NewId(), ancillaryProvisionId);
@@ -43,6 +46,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
             return () =>
             {
                 rule.MinimumPeriod = args.MinimumPeriod;
+                rule.MaximumPeriod = args.MaximumPeriod;
                 rule.Unit = args.Unit;
                 rule.SameTimeAsTicketed = args.SameTimeAsTicketed;
 

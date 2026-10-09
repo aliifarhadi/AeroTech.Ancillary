@@ -5,6 +5,7 @@ using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Projection;
 using AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Contracts;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Contracts;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Contracts;
+using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Framework.Core.Domain.Repository;
 using AeroTech.Framework.Core.ServiceContracts;
@@ -16,6 +17,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Pu
     {
         private readonly IAncillaryProvisionRepository _provisions;
         private readonly IAncillaryServiceDefinitionRepository _definitions;
+        private readonly ICurrencyReference _currencies;
         private readonly IAncillaryPricingRepository _pricings;
         private readonly IAncillaryProvisionQueryDbSynchronizer _provisionSynchronizer;
         private readonly IAncillaryPricingQueryDbSynchronizer _pricingSynchronizer;
@@ -25,6 +27,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Pu
         public PublishAncillaryProvisionService(
             IAncillaryProvisionRepository provisions,
             IAncillaryServiceDefinitionRepository definitions,
+            ICurrencyReference currencies,
             IAncillaryPricingRepository pricings,
             IAncillaryProvisionQueryDbSynchronizer provisionSynchronizer,
             IAncillaryPricingQueryDbSynchronizer pricingSynchronizer,
@@ -33,6 +36,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Pu
         {
             _provisions = provisions;
             _definitions = definitions;
+            _currencies = currencies;
             _pricings = pricings;
             _provisionSynchronizer = provisionSynchronizer;
             _pricingSynchronizer = pricingSynchronizer;
@@ -71,7 +75,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Pu
 
             if (active is null)
             {
-                pricing.Activate(now);
+                pricing.Activate(await _currencies.FindDecimalPlacesAsync(pricing, cancellationToken), now);
                 await _pricingSynchronizer.ProjectAsync(pricing.ToReadModelSnapshot(), cancellationToken);
             }
 

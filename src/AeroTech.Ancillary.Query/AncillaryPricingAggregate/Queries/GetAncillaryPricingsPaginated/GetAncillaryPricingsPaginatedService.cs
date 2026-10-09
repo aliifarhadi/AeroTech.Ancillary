@@ -32,21 +32,16 @@ namespace AeroTech.Ancillary.Query.AncillaryPricingAggregate.Queries.GetAncillar
                 .ToListAsync(cancellationToken);
 
             var pricingIds = page.Select(pricing => pricing.Id).ToList();
-            var rateCounts = (await _dbContext.AncillaryPricingLines.AsNoTracking()
-                    .Where(line => pricingIds.Contains(line.AncillaryPricingId))
-                    .Select(line => new { line.AncillaryPricingId, line.PassengerTypeCode, line.AgeFromInclusive, line.AgeToExclusive })
-                    .Distinct()
+            var rates = (await _dbContext.AncillaryPricingRates.AsNoTracking()
+                    .Where(rate => pricingIds.Contains(rate.AncillaryPricingId))
                     .ToListAsync(cancellationToken))
                 .ToLookup(rate => rate.AncillaryPricingId);
-            var currencyIds = page.Select(pricing => pricing.CurrencyId).Distinct().ToList();
+            var currencyIds = rates.SelectMany(pricing => pricing).Select(rate => rate.CurrencyId).Distinct().ToList();
             var currencies = await _dbContext.Currencies.AsNoTracking()
                 .Where(currency => currencyIds.Contains(currency.Id))
                 .ToDictionaryAsync(currency => currency.Id, currency => currency.Code, cancellationToken);
 
-            var projected = page.Select(pricing => AncillaryPricingMapper.ToPaginatedRow(
-                pricing,
-                rateCounts[pricing.Id].Count(),
-                currencies.GetValueOrDefault(pricing.CurrencyId)));
+            var projected = page.Select(pricing => AncillaryPricingMapper.ToPaginatedRow(pricing, rates[pricing.Id].ToList(), currencies));
 
             return GridData<PricingPaginatedRowDto>.Create(
                 PaginatedList<PricingPaginatedRowDto>.Create(projected, pageNumber, pageSize, totalCount));

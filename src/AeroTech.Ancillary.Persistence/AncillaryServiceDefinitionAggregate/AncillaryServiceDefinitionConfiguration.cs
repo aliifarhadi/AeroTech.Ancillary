@@ -35,6 +35,7 @@ namespace AeroTech.Ancillary.Persistence.AncillaryServiceDefinitionAggregate
                 booking.Property(value => value.Method).HasColumnName("BookingMethod");
                 booking.Property(value => value.SsrCode).HasColumnName("BookingSsrCode").HasMaxLength(4);
                 booking.Property(value => value.SsimCode).HasColumnName("BookingSsimCode").HasMaxLength(4);
+                booking.Property(value => value.ConfirmationRequirement).HasColumnName("BookingConfirmationRequirement");
             });
 
             builder.Navigation(definition => definition.Document).IsRequired();

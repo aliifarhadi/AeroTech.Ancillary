@@ -11,5 +11,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments
         WeightUnit WeightUnit,
         BaggageTravelApplication? TravelApplication,
         BaggagePurchaseApplication PurchaseApplication,
-        BaggageRuleDeference? RuleDeference);
+        BaggageRuleDeference? RuleDeference,
+        BaggageChargeKind? ChargeKind = null,
+        BaggageAllowanceConcept? AllowanceConcept = null);
 }

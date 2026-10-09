@@ -10,6 +10,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
                 provision.ServiceDefinitionId,
                 provision.Sequence,
                 provision.CoverageScope,
+                provision.PurchaseStage,
                 provision.Outcome.Disposition,
                 provision.Status);
     }

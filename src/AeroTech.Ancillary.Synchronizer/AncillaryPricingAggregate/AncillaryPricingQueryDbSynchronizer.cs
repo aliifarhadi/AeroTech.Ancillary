@@ -31,8 +31,6 @@ namespace AeroTech.Ancillary.Synchronizer.AncillaryPricingAggregate
             pricing.AncillaryProvisionId = snapshot.AncillaryProvisionId;
             pricing.PricingUnit = snapshot.PricingUnit;
             pricing.Version = snapshot.Version;
-            pricing.CurrencyId = snapshot.CurrencyId;
-            pricing.FeeApplicationUnit = snapshot.FeeApplicationUnit;
             pricing.Status = snapshot.Status;
             pricing.CreatedAt = snapshot.CreatedAt;
             pricing.ActivatedAt = snapshot.ActivatedAt;
@@ -40,33 +38,60 @@ namespace AeroTech.Ancillary.Synchronizer.AncillaryPricingAggregate
             pricing.RetiredAt = snapshot.RetiredAt;
             pricing.LastUpdateTime = _clock.GetDateTime();
 
-            var storedLines = await _dbContext.AncillaryPricingLines
-                .Where(line => line.AncillaryPricingId == snapshot.PricingId)
+            var storedRates = await _dbContext.AncillaryPricingRates
+                .Where(rate => rate.AncillaryPricingId == snapshot.PricingId)
                 .ToListAsync(cancellationToken);
+            var storedComponents = await _dbContext.AncillaryPriceComponents
+                .Where(component => component.AncillaryPricingId == snapshot.PricingId)
+                .ToListAsync(cancellationToken);
+            var snapshotComponents = snapshot.Rates
+                .SelectMany(rate => rate.Components.Select(component => (RateId: rate.RateId, Component: component)))
+                .ToList();
 
-            _dbContext.AncillaryPricingLines.RemoveRange(
-                storedLines.Where(line => snapshot.PriceLines.All(snapshotLine => snapshotLine.PriceLineId != line.Id)));
+            _dbContext.AncillaryPricingRates.RemoveRange(
+                storedRates.Where(rate => snapshot.Rates.All(snapshotRate => snapshotRate.RateId != rate.Id)));
+            _dbContext.AncillaryPriceComponents.RemoveRange(
+                storedComponents.Where(component => snapshotComponents.All(snapshotComponent => snapshotComponent.Component.ComponentId != component.Id)));
 
-            foreach (var snapshotLine in snapshot.PriceLines)
+            foreach (var snapshotRate in snapshot.Rates)
             {
-                var line = storedLines.FirstOrDefault(stored => stored.Id == snapshotLine.PriceLineId);
+                var rate = storedRates.FirstOrDefault(stored => stored.Id == snapshotRate.RateId);
 
-                if (line is null)
+                if (rate is null)
                 {
-                    line = new AncillaryPricingLineReadModel { Id = snapshotLine.PriceLineId };
-                    _dbContext.AncillaryPricingLines.Add(line);
+                    rate = new AncillaryPricingRateReadModel { Id = snapshotRate.RateId };
+                    _dbContext.AncillaryPricingRates.Add(rate);
                 }
 
-                line.AncillaryPricingId = snapshot.PricingId;
-                line.PassengerTypeCode = snapshotLine.PassengerTypeCode;
-                line.AgeFromInclusive = snapshotLine.AgeFromInclusive;
-                line.AgeToExclusive = snapshotLine.AgeToExclusive;
-                line.Category = snapshotLine.Category;
-                line.Code = snapshotLine.Code;
-                line.Name = snapshotLine.Name;
-                line.CountryId = snapshotLine.CountryId;
-                line.StationAirportId = snapshotLine.StationAirportId;
-                line.Amount = snapshotLine.Amount;
+                rate.AncillaryPricingId = snapshot.PricingId;
+                rate.PassengerTypeCode = snapshotRate.PassengerTypeCode;
+                rate.AgeFromInclusive = snapshotRate.AgeFromInclusive;
+                rate.AgeToExclusive = snapshotRate.AgeToExclusive;
+                rate.CurrencyId = snapshotRate.CurrencyId;
+                rate.BaseAmount = snapshotRate.BaseAmount;
+            }
+
+            foreach (var (rateId, snapshotComponent) in snapshotComponents)
+            {
+                var component = storedComponents.FirstOrDefault(stored => stored.Id == snapshotComponent.ComponentId);
+
+                if (component is null)
+                {
+                    component = new AncillaryPriceComponentReadModel { Id = snapshotComponent.ComponentId };
+                    _dbContext.AncillaryPriceComponents.Add(component);
+                }
+
+                component.AncillaryPricingId = snapshot.PricingId;
+                component.AncillaryPricingRateId = rateId;
+                component.Category = snapshotComponent.Category;
+                component.Code = snapshotComponent.Code;
+                component.Name = snapshotComponent.Name;
+                component.CountryId = snapshotComponent.CountryId;
+                component.StationAirportId = snapshotComponent.StationAirportId;
+                component.Amount = snapshotComponent.Amount;
+                component.CurrencyId = snapshotComponent.CurrencyId;
+                component.FeeApplicationUnit = snapshotComponent.FeeApplicationUnit;
+                component.TaxIncludedInSource = snapshotComponent.TaxIncludedInSource;
             }
         }
     }

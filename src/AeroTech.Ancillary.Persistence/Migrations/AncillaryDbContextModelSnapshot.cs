@@ -257,12 +257,6 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<int>("CurrencyId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("FeeApplicationUnit")
-                        .HasColumnType("int");
-
                     b.Property<DateTimeOffset>("LastUpdateTime")
                         .HasColumnType("datetimeoffset");
 
@@ -304,22 +298,12 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.ToTable("AncillaryPricings", "Ancillary");
                 });
 
-            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Entities.AncillaryPricingLine", b =>
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Entities.AncillaryPriceComponent", b =>
                 {
                     b.Property<long>("Id")
                         .HasColumnType("bigint");
 
-                    b.Property<int?>("AgeFromInclusive")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("AgeToExclusive")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Amount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<long>("AncillaryPricingId")
+                    b.Property<long>("AncillaryPricingRateId")
                         .HasColumnType("bigint");
 
                     b.Property<int>("Category")
@@ -332,6 +316,9 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.Property<int?>("CountryId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("FeeApplicationUnit")
+                        .HasColumnType("int");
+
                     b.Property<DateTimeOffset>("LastUpdateTime")
                         .HasColumnType("datetimeoffset");
 
@@ -342,17 +329,56 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int?>("PassengerTypeCode")
+                    b.Property<int?>("StationAirportId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("StationAirportId")
+                    b.Property<bool?>("TaxIncludedInSource")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "AncillaryPricingRateId", "Category", "Code", "CountryId", "StationAirportId", "FeeApplicationUnit" }, "IX_AncillaryPriceComponents_ComponentKey")
+                        .IsUnique();
+
+                    b.ToTable("AncillaryPriceComponents", "Ancillary");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Entities.AncillaryPricingRate", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("AgeFromInclusive")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AgeToExclusive")
+                        .HasColumnType("int");
+
+                    b.Property<long>("AncillaryPricingId")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("BaseAmount")
+                        .HasPrecision(19, 6)
+                        .HasColumnType("decimal(19,6)");
+
+                    b.Property<int>("CurrencyId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("LastUpdatedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("PassengerTypeCode")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AncillaryPricingId");
+                    b.HasIndex(new[] { "AncillaryPricingId", "CurrencyId", "PassengerTypeCode", "AgeFromInclusive", "AgeToExclusive" }, "IX_AncillaryPricingRates_RateKey")
+                        .IsUnique();
 
-                    b.ToTable("AncillaryPricingLines", "Ancillary");
+                    b.ToTable("AncillaryPricingRates", "Ancillary");
                 });
 
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.AncillaryProvision", b =>
@@ -377,6 +403,9 @@ namespace AeroTech.Ancillary.Persistence.Migrations
 
                     b.Property<long?>("LastUpdatedBy")
                         .HasColumnType("bigint");
+
+                    b.Property<int>("PurchaseStage")
+                        .HasColumnType("int");
 
                     b.Property<DateTimeOffset?>("RetiredAt")
                         .HasColumnType("datetimeoffset");
@@ -425,6 +454,9 @@ namespace AeroTech.Ancillary.Persistence.Migrations
 
                     b.Property<long?>("LastUpdatedBy")
                         .HasColumnType("bigint");
+
+                    b.Property<int?>("MaximumPeriod")
+                        .HasColumnType("int");
 
                     b.Property<int>("MinimumPeriod")
                         .HasColumnType("int");
@@ -538,8 +570,14 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.Property<long>("Id")
                         .HasColumnType("bigint");
 
+                    b.Property<int?>("AllowanceConcept")
+                        .HasColumnType("int");
+
                     b.Property<long>("AncillaryProvisionId")
                         .HasColumnType("bigint");
+
+                    b.Property<int?>("ChargeKind")
+                        .HasColumnType("int");
 
                     b.Property<int?>("FirstExcessPiece")
                         .HasColumnType("int");
@@ -2182,10 +2220,44 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Entities.AncillaryPricingLine", b =>
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Entities.AncillaryPriceComponent", b =>
+                {
+                    b.HasOne("AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Entities.AncillaryPricingRate", null)
+                        .WithMany("Components")
+                        .HasForeignKey("AncillaryPricingRateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryPricingAggregate.ValueObjects.Money", "Amount", b1 =>
+                        {
+                            b1.Property<long>("AncillaryPriceComponentId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<decimal>("Amount")
+                                .HasPrecision(19, 6)
+                                .HasColumnType("decimal(19,6)")
+                                .HasColumnName("Amount");
+
+                            b1.Property<int>("CurrencyId")
+                                .HasColumnType("int")
+                                .HasColumnName("CurrencyId");
+
+                            b1.HasKey("AncillaryPriceComponentId");
+
+                            b1.ToTable("AncillaryPriceComponents", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryPriceComponentId");
+                        });
+
+                    b.Navigation("Amount")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Entities.AncillaryPricingRate", b =>
                 {
                     b.HasOne("AeroTech.Ancillary.Domain.AncillaryPricingAggregate.AncillaryPricing", null)
-                        .WithMany("PriceLines")
+                        .WithMany("Rates")
                         .HasForeignKey("AncillaryPricingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2835,6 +2907,10 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                             b1.Property<long>("AncillaryServiceDefinitionId")
                                 .HasColumnType("bigint");
 
+                            b1.Property<int>("ConfirmationRequirement")
+                                .HasColumnType("int")
+                                .HasColumnName("BookingConfirmationRequirement");
+
                             b1.Property<int>("Method")
                                 .HasColumnType("int")
                                 .HasColumnName("BookingMethod");
@@ -2921,7 +2997,12 @@ namespace AeroTech.Ancillary.Persistence.Migrations
 
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryPricingAggregate.AncillaryPricing", b =>
                 {
-                    b.Navigation("PriceLines");
+                    b.Navigation("Rates");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Entities.AncillaryPricingRate", b =>
+                {
+                    b.Navigation("Components");
                 });
 
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.AncillaryProvision", b =>

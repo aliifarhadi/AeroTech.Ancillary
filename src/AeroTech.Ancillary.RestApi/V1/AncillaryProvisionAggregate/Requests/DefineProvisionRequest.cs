@@ -7,6 +7,7 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryProvisionAggregate.Requests
         long ServiceDefinitionId,
         int Sequence,
         ServiceCoverageScope CoverageScope,
+        PurchaseStage PurchaseStage,
         ProvisionQuantityInput Quantity,
         ProvisionApplicationType ApplicationType,
         ProvisionOutcomeInput Outcome,

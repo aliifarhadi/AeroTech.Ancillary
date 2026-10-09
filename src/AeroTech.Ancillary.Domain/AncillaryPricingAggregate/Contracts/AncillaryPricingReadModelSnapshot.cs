@@ -8,24 +8,31 @@ namespace AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Contracts
         long AncillaryProvisionId,
         PricingUnit? PricingUnit,
         int Version,
-        int CurrencyId,
-        FeeApplicationUnit? FeeApplicationUnit,
         PricingStatus Status,
         DateTimeOffset CreatedAt,
         DateTimeOffset? ActivatedAt,
         DateTimeOffset? SuspendedAt,
         DateTimeOffset? RetiredAt,
-        IReadOnlyList<AncillaryPricingLineReadModelSnapshot> PriceLines);
+        IReadOnlyList<AncillaryPricingRateReadModelSnapshot> Rates);
 
-    public sealed record AncillaryPricingLineReadModelSnapshot(
-        long PriceLineId,
+    public sealed record AncillaryPricingRateReadModelSnapshot(
+        long RateId,
         PassengerTypeCode? PassengerTypeCode,
         int? AgeFromInclusive,
         int? AgeToExclusive,
+        int CurrencyId,
+        decimal BaseAmount,
+        IReadOnlyList<AncillaryPriceComponentReadModelSnapshot> Components);
+
+    public sealed record AncillaryPriceComponentReadModelSnapshot(
+        long ComponentId,
         AncillaryPriceLineCategory Category,
         string? Code,
         string? Name,
         int? CountryId,
         int? StationAirportId,
-        decimal Amount);
+        decimal Amount,
+        int CurrencyId,
+        FeeApplicationUnit? FeeApplicationUnit,
+        bool? TaxIncludedInSource);
 }

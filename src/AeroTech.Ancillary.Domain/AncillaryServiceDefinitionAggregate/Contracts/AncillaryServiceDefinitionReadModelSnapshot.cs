@@ -26,6 +26,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Contract
         BookingMethod BookingMethod,
         string? BookingSsrCode,
         string? BookingSsimCode,
+        ConfirmationRequirement BookingConfirmationRequirement,
         DateOnly? SalesEffectiveFrom,
         DateOnly? SalesDiscontinueOn,
         ServiceDefinitionStatus Status,

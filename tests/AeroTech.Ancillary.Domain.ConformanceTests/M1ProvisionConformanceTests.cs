@@ -9,7 +9,7 @@ namespace AeroTech.Ancillary.Domain.ConformanceTests;
 
 public class M1ProvisionConformanceTests
 {
-    private static AncillaryPricingLineArgs Line(decimal amount)
+    private static FiledLine Line(decimal amount)
         => new(null, null, null, AncillaryPriceLineCategory.Ancillary, null, null, null, null, amount);
 
     [Fact]
@@ -26,8 +26,8 @@ public class M1ProvisionConformanceTests
         Assert.Equal(ProvisionApplicationType.Standard, provision.ApplicationType);
         Assert.Equal(CommercialDisposition.Paid, provision.Outcome.Disposition);
         Assert.Equal("Ancillary", provision.Fulfillment.FulfillmentProviderKey);
-        Assert.Equal((501L, Currency, FeeApplicationUnit.Item, PricingStatus.Draft), (pricing.AncillaryProvisionId, pricing.CurrencyId, pricing.FeeApplicationUnit!.Value, pricing.Status));
-        Assert.Equal(2500000m, Assert.Single(pricing.PriceLines).Amount);
+        Assert.Equal((501L, Currency, PricingStatus.Draft), (pricing.AncillaryProvisionId, Assert.Single(pricing.Rates).CurrencyId, pricing.Status));
+        Assert.Equal(2500000m, Assert.Single(pricing.Rates).BasePrice.Amount);
     }
 
     [Fact]
@@ -51,9 +51,9 @@ public class M1ProvisionConformanceTests
     }
 
     [Fact]
-    public void M1_I01_a_price_line_is_a_positive_two_decimal_amount()
+    public void M1_I01_a_base_price_is_positive_and_keeps_the_scale_of_its_currency()
     {
-        BusinessAssert.Throws(16502, 422, () => LoungePricing(priceLines: [Line(10.123m)]));
+        BusinessAssert.Throws(16512, 422, () => LoungePricing(priceLines: [Line(10.123m)]));
         BusinessAssert.Throws(16502, 422, () => LoungePricing(priceLines: [Line(0m)]));
     }
 
@@ -99,12 +99,13 @@ public class M1ProvisionConformanceTests
     [Fact]
     public void M1_G09A_an_unimplemented_fee_application_unit_cannot_be_activated()
     {
-        var perKilogram = LoungePricing(id: 704, feeApplicationUnit: FeeApplicationUnit.PerOneKilogramOver);
+        FiledLine[] withFee = [Line(2500000m), new(null, null, null, AncillaryPriceLineCategory.Fee, "SVC", null, null, null, 1000m)];
+        var perKilogram = LoungePricing(id: 704, feeApplicationUnit: FeeApplicationUnit.PerOneKilogramOver, priceLines: withFee);
 
-        BusinessAssert.Throws(16305, 422, () => perKilogram.Activate(Now.AddMinutes(1)));
+        BusinessAssert.Throws(16305, 422, () => perKilogram.Activate(FiledPrice.Scales, Now.AddMinutes(1)));
 
-        var percent = LoungePricing(id: 705, feeApplicationUnit: FeeApplicationUnit.OnePercentOfFarePerKilogram);
+        var percent = LoungePricing(id: 705, feeApplicationUnit: FeeApplicationUnit.OnePercentOfFarePerKilogram, priceLines: withFee);
 
-        BusinessAssert.Throws(16305, 422, () => percent.Activate(Now.AddMinutes(1)));
+        BusinessAssert.Throws(16305, 422, () => percent.Activate(FiledPrice.Scales, Now.AddMinutes(1)));
     }
 }

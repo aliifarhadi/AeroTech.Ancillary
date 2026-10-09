@@ -42,13 +42,17 @@ public class P2InventoryPolicyConformanceTests
     }
 
     [Fact]
-    public void P2_C01_X09_a_product_flagged_must_check_availability_is_not_declared_unlimited()
+    public void P2_C01_X09_an_unlimited_policy_needs_only_a_resolvable_service_identity()
     {
         var policy = Policy(Args(InventoryAuthority.Unlimited));
 
-        BusinessAssert.Throws(16606, 409, () => policy.Activate(Evidence(mustCheckAvailability: true), 1, Now));
+        Assert.DoesNotContain(typeof(InventoryPolicyEvidence).GetProperties(), property => property.Name.Contains("MustCheck", StringComparison.Ordinal));
         BusinessAssert.Throws(16617, 422, () => policy.Activate(Evidence(identity: false), 1, Now));
         Assert.Equal((InventoryRecordStatus.Draft, 1L), (policy.Status, policy.Version));
+
+        policy.Activate(Evidence(), 1, Now);
+
+        Assert.Equal((InventoryRecordStatus.Active, 2L, Definition), (policy.Status, policy.Version, policy.ServiceDefinitionId));
     }
 
     [Fact]

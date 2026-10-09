@@ -1,5 +1,4 @@
 using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.DefineAncillaryPricing;
-using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.ChangeAncillaryPricing
 {
@@ -7,10 +6,6 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.Chan
     {
         long PricingId { get; }
 
-        int CurrencyId { get; }
-
-        FeeApplicationUnit? FeeApplicationUnit { get; }
-
-        IReadOnlyList<PricingLineInput> PriceLines { get; }
+        IReadOnlyList<PricingRateInput> Rates { get; }
     }
 }

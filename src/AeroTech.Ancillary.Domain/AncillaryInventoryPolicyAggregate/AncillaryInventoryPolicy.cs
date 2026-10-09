@@ -98,13 +98,12 @@ namespace AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate
             EnsureStatus(InventoryRecordStatus.Draft, InventoryRecordStatus.Suspended);
             EnsureVersion(expectedVersion);
 
-            if (!evidence.ServiceDefinitionMatchesIdentity)
+            if (evidence.CurrentServiceDefinitionId is not { } currentServiceDefinitionId)
                 throw ExceptionFactory.InventoryPolicyServiceDefinitionMismatch();
 
             switch (Authority)
             {
                 case InventoryAuthority.Unlimited:
-                    EnsureUnlimitedIsCredible(evidence);
                     break;
                 case InventoryAuthority.Supplier:
                     EnsureSupplierIsRecorded(evidence);
@@ -124,6 +123,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate
                     $"Counting family {limit.CountingFamilyCode}");
             }
 
+            ServiceDefinitionId = currentServiceDefinitionId;
             Status = InventoryRecordStatus.Active;
             ActivatedAt ??= now;
             SuspendedAt = null;
@@ -215,12 +215,6 @@ namespace AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate
             changes.ForEach(change => change());
 
             return planned;
-        }
-
-        private void EnsureUnlimitedIsCredible(InventoryPolicyEvidence evidence)
-        {
-            if (evidence.ActiveProvisionMustCheckAvailability)
-                throw ExceptionFactory.InventoryPolicyActivationRefused("an active provision of this service must check availability, so it cannot be declared unlimited");
         }
 
         private void EnsureSupplierIsRecorded(InventoryPolicyEvidence evidence)

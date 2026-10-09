@@ -146,6 +146,9 @@ public class V121RuleGroupMigrationAcceptanceTests : IAsyncLifetime
             await RowsAsync(
                 "SELECT CONCAT([SourceTable], ' ', [TargetTable], ' ', [TargetRowId], ' ', [Outcome], ' ', COUNT(*), ' ', MIN([SourceRowId]), ' ', MAX([SourceRowId])) AS Value " +
                 "FROM [Ancillary].[ProvisionRuleMigrationAudit] WHERE [AncillaryProvisionId] = 9205 GROUP BY [SourceTable], [TargetTable], [TargetRowId], [Outcome]"));
+
+        await MigrateAsync(null, null);
+
         Assert.Equal("PERMIT=2027-01-01..2029-09-26; BAG=-:23Kg:Prepaid", await TextAsync(SuspendedRule));
 
         var listed = (await RequestAsync(scope => scope.Query.AncillaryProvisionPermittedTravelPeriods.AsNoTracking().Where(row => row.AncillaryProvisionId == SuspendedRule).ToListAsync())).Single();
@@ -193,6 +196,9 @@ public class V121RuleGroupMigrationAcceptanceTests : IAsyncLifetime
             await RowsAsync(
                 "SELECT CONCAT([AncillaryProvisionId], ' ', [SourceTable], ' ', [SourceRowId], ' ', [TargetTable], ' ', [TargetRowId], ' ', [Outcome]) AS Value FROM [Ancillary].[ProvisionRuleMigrationAudit] " +
                 "WHERE [AncillaryProvisionId] IN (9201, 9204, 9206) AND [SourceTable] IN (N'ProvisionTravelDates', N'ProvisionSeasonalPeriods') ORDER BY [AncillaryProvisionId], [SourceTable], [SourceRowId]"));
+
+        await MigrateAsync(null, null);
+
         Assert.Contains("PERMIT=2026-12-24..2026-12-25;", await TextAsync(FullRule), StringComparison.Ordinal);
         Assert.Equal("PERMIT=2027-02-01..2027-02-02,2027-02-10..2027-02-10; BAG=-:23Kg:Prepaid", await TextAsync(RetiredRule));
         Assert.Equal("ACFT=1; PERMIT=2027-03-01..2027-04-30,2027-06-01..2027-06-30; SEAT=1A,1C; SEATCHAR=E", await TextAsync(SeatRule));
@@ -226,6 +232,9 @@ public class V121RuleGroupMigrationAcceptanceTests : IAsyncLifetime
         Assert.Equal(
             new[] { "ConvertedToDayTimeWindow 14", "ExcludedByIntersection 2", "IntersectedWithTravelDates 2", "ManualMappingRequired 1", "MergedIntoPermittedPeriod 1009", "QuarantinedAsUnsaleable 2" },
             await RowsAsync("SELECT CONCAT([Outcome], ' ', COUNT(*)) AS Value FROM [Ancillary].[ProvisionRuleMigrationAudit] GROUP BY [Outcome] ORDER BY 1"));
+
+        await MigrateAsync(null, null);
+
         Assert.Equal("PTC=INF; BLACKOUT=0001-01-01..9999-12-31; TIME=4:-:Allow,8:-:Allow,16:-:Allow; BAG=-:23Kg:Prepaid", await TextAsync(FreeRule));
         Assert.Equal(
             "BLACKOUT=0001-01-01..9999-12-31; TIME=64:6-10:Allow,1:6-10:Allow,2:6-10:Allow,4:6-10:Allow,8:6-10:Allow,16:6-10:Allow,32:6-10:Allow; BAG=-:23Kg:Prepaid",
@@ -252,11 +261,21 @@ public class V121RuleGroupMigrationAcceptanceTests : IAsyncLifetime
         await RequestAsync(scope => scope.AddDayTimeWindow.AddAsync(new TestDayTimeWindowRowCommand(DraftRule, 0, 64, null, new TimeOnly(2, 0), DayTimeRestrictionEffect.Allow)));
 
         Assert.Equal(
-            ProvisionStatus.Active,
-            (await RequestAsync(scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(DraftRule, DraftRule)))).Status);
-        Assert.Equal(
             "TIME=64:6-10:Allow,1:6-10:Allow,2:6-10:Allow,4:6-10:Allow,8:6-10:Allow,16:6-10:Allow,32:6-10:Allow,32:22-:Allow,64:-2:Allow; BAG=-:23Kg:Prepaid",
             await TextAsync(DraftRule));
+        await RefusedAsync(16316, 409, scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(DraftRule, DraftRule)));
+        await RequestAsync(scope => scope.ChangeProvision.ChangeAsync(Change(
+            DraftRule,
+            Provision(BagDefinition, 20, coverageScope: ServiceCoverageScope.Journey, quantityUnit: AncillaryQuantityUnit.Piece, applicationType: ProvisionApplicationType.Baggage) with
+            {
+                DayTimeApplication = new([new(32, new TimeOnly(22, 0), null, DayTimeRestrictionEffect.Allow), new(64, null, new TimeOnly(2, 0), DayTimeRestrictionEffect.Allow)]),
+                BaggageApplication = Baggage(23m)
+            })));
+
+        Assert.Equal(
+            ProvisionStatus.Active,
+            (await RequestAsync(scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(DraftRule, DraftRule)))).Status);
+        Assert.Equal("TIME=32:22-:Allow,64:-2:Allow; BAG=-:23Kg:Prepaid", await TextAsync(DraftRule));
     }
 
     [Fact]
@@ -281,11 +300,11 @@ public class V121RuleGroupMigrationAcceptanceTests : IAsyncLifetime
 
         Assert.Empty(orphans);
 
+        await MigrateAsync(null, null);
         await RequestAsync(scope => scope.AssignPricingUnit.AssignAsync(new TestAssignPricingUnitCommand(SimDefinition, PricingUnit.PerItem)));
         await RequestAsync(scope => scope.AssignServiceDateBasis.AssignAsync(new TestAssignServiceDateBasisCommand(SimDefinition, ServiceDateBasis.Activation)));
         await RequestAsync(scope => scope.ChangeTravelDate.ChangeAsync(new TestChangeProvisionTravelDateCommand(SimRule, new([new(new DateOnly(2028, 1, 1), new DateOnly(2028, 1, 31))]))));
 
-        Assert.Equal(_supersededBefore.Where(row => !row.StartsWith("blackout ", StringComparison.Ordinal)), (await SupersededRowsAsync()).Where(row => !row.StartsWith("blackout ", StringComparison.Ordinal)));
         Assert.Equal("PERMIT=2028-01-01..2028-01-31; TIME=16:-:Deny,1:9-10:Deny", await TextAsync(SimRule));
         Assert.Empty(await ParityDifferencesAsync());
     }

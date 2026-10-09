@@ -30,6 +30,7 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                 provision.Sequence,
                 EnumValueDto.Of(provision.Status),
                 EnumValueDto.Of(provision.CoverageScope),
+                EnumValueDto.Of(provision.PurchaseStage),
                 EnumValueDto.Of(provision.QuantityUnit),
                 provision.MinQuantity,
                 provision.MaxQuantity,
@@ -103,7 +104,7 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                         rows.Windows.Select(row => new BackofficeProvisionDayTimeWindowDto(row.Id, row.DaysOfWeekMask, DaysOfWeek(row.DaysOfWeekMask), row.StartLocalTime, row.EndLocalTime, EnumValueDto.Of(row.Effect))).ToList())
                     : null,
                 provision.AdvancePurchaseRuleId is { } advancePurchaseRuleId && provision.AdvancePurchasePeriod is { } minimumPeriod && provision.AdvancePurchaseUnit is { } unit
-                    ? new BackofficeProvisionAdvancePurchaseDto(advancePurchaseRuleId, minimumPeriod, EnumValueDto.Of(unit), provision.AdvancePurchaseSameTimeAsTicketed)
+                    ? new BackofficeProvisionAdvancePurchaseDto(advancePurchaseRuleId, minimumPeriod, EnumValueDto.Of(unit), provision.AdvancePurchaseSameTimeAsTicketed, provision.AdvancePurchaseMaximumPeriod)
                     : null,
                 provision.BaggageApplicationRuleId is { } baggageApplicationRuleId
                 && provision.BaggageWeightUnit is { } weightUnit
@@ -117,7 +118,9 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                         EnumValueDto.Of(weightUnit),
                         EnumValueDto.OfNullable(provision.BaggageTravelApplication),
                         EnumValueDto.Of(purchaseApplication),
-                        EnumValueDto.OfNullable(provision.BaggageRuleDeference))
+                        EnumValueDto.OfNullable(provision.BaggageRuleDeference),
+                        EnumValueDto.OfNullable(provision.BaggageChargeKind),
+                        EnumValueDto.OfNullable(provision.BaggageAllowanceConcept))
                     : null,
                 provision.SeatApplicationRuleId is { } seatApplicationRuleId
                     ? new BackofficeProvisionSeatApplicationDto(

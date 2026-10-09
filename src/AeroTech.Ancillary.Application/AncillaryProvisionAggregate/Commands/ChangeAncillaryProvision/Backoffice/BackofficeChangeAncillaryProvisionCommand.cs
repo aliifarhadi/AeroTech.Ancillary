@@ -8,6 +8,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Ch
         long ProvisionId,
         int Sequence,
         ServiceCoverageScope CoverageScope,
+        PurchaseStage PurchaseStage,
         ProvisionQuantityInput Quantity,
         ProvisionApplicationType ApplicationType,
         ProvisionOutcomeInput Outcome,

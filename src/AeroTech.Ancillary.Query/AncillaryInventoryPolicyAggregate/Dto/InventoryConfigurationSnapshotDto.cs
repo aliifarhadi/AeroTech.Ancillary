@@ -17,6 +17,7 @@ namespace AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Dto
         DateTimeOffset ObservedAt,
         DateTimeOffset? StaleAfter,
         bool IsGuaranteed,
+        bool RequiresAvailabilityCheck,
         string? ReasonCode);
 
     public sealed record InventoryResourceLocatorDto(

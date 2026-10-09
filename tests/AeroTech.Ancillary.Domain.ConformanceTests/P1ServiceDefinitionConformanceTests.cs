@@ -52,7 +52,7 @@ public class P1ServiceDefinitionConformanceTests
             },
             PropertiesOf<AncillaryServiceDefinition>());
         Assert.Equal(new[] { "Rfic", "Rfisc", "Type" }, PropertiesOf<DocumentDefinition>());
-        Assert.Equal(new[] { "Method", "SsimCode", "SsrCode" }, PropertiesOf<BookingDefinition>());
+        Assert.Equal(new[] { "ConfirmationRequirement", "Method", "SsimCode", "SsrCode" }, PropertiesOf<BookingDefinition>());
     }
 
     [Fact]

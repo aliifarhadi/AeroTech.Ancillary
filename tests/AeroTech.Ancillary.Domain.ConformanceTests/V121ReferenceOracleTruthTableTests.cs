@@ -437,6 +437,6 @@ public class V121ReferenceOracleTruthTableTests
         Assert.Equal(28.5m, ProvisionRuleOracle.UnitTotal(withTax, PassengerTypeCode.CHD, null));
         Assert.Equal(
             new[] { ("SVC", (int?)null), ("YQ", (int?)98) },
-            ProvisionRuleOracle.SelectedLines(withTax, null, null).Where(line => line.Category != AncillaryPriceLineCategory.Ancillary).Select(line => (line.Code!, line.CountryId)).OrderBy(line => line.Item1));
+            ProvisionRuleOracle.SelectedRates(withTax, null, null).Single().Components.Select(component => (component.Code!, component.CountryId)).OrderBy(component => component.Item1));
     }
 }

@@ -32,6 +32,7 @@ namespace AeroTech.Ancillary.Synchronizer.AncillaryProvisionAggregate
             provision.Sequence = snapshot.Sequence;
             provision.Status = snapshot.Status;
             provision.CoverageScope = snapshot.CoverageScope;
+            provision.PurchaseStage = snapshot.PurchaseStage;
             provision.QuantityUnit = snapshot.QuantityUnit;
             provision.MinQuantity = snapshot.MinQuantity;
             provision.MaxQuantity = snapshot.MaxQuantity;
@@ -55,6 +56,7 @@ namespace AeroTech.Ancillary.Synchronizer.AncillaryProvisionAggregate
             provision.AdvancePurchasePeriod = snapshot.AdvancePurchase?.MinimumPeriod;
             provision.AdvancePurchaseUnit = snapshot.AdvancePurchase?.Unit;
             provision.AdvancePurchaseSameTimeAsTicketed = snapshot.AdvancePurchase?.SameTimeAsTicketed ?? false;
+            provision.AdvancePurchaseMaximumPeriod = snapshot.AdvancePurchase?.MaximumPeriod;
             provision.BaggageFreePieces = snapshot.BaggageApplication?.FreePieces;
             provision.BaggageFirstExcessPiece = snapshot.BaggageApplication?.FirstExcessPiece;
             provision.BaggageLastExcessPiece = snapshot.BaggageApplication?.LastExcessPiece;
@@ -63,6 +65,8 @@ namespace AeroTech.Ancillary.Synchronizer.AncillaryProvisionAggregate
             provision.BaggageTravelApplication = snapshot.BaggageApplication?.TravelApplication;
             provision.BaggagePurchaseApplication = snapshot.BaggageApplication?.PurchaseApplication;
             provision.BaggageRuleDeference = snapshot.BaggageApplication?.RuleDeference;
+            provision.BaggageChargeKind = snapshot.BaggageApplication?.ChargeKind;
+            provision.BaggageAllowanceConcept = snapshot.BaggageApplication?.AllowanceConcept;
             provision.PassengerEligibilityRuleId = snapshot.PassengerEligibility?.RuleId;
             provision.SalesRestrictionsRuleId = snapshot.SalesRestrictions?.RuleId;
             provision.GeographyRuleId = snapshot.Geography?.RuleId;

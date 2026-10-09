@@ -4,9 +4,8 @@ using AeroTech.Messages.Ancillary.Enums;
 namespace AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.Contracts
 {
     public sealed record InventoryPolicyEvidence(
-        bool ServiceDefinitionMatchesIdentity,
+        long? CurrentServiceDefinitionId,
         PricingUnit? PricingUnit,
-        bool ActiveProvisionMustCheckAvailability,
         string? SupplierProviderKey,
         InventoryReferenceCheck FlightFlowDelegation,
         InventoryReferenceCheck CountResource,

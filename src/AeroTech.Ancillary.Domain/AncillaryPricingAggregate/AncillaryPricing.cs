@@ -20,7 +20,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryPricingAggregate
             FeeUnit.Ticket
         ];
 
-        private readonly List<AncillaryPricingLine> _priceLines = new();
+        private readonly List<AncillaryPricingRate> _rates = new();
 
         private AncillaryPricing()
         {
@@ -40,10 +40,6 @@ namespace AeroTech.Ancillary.Domain.AncillaryPricingAggregate
 
         public int Version { get; private set; }
 
-        public int CurrencyId { get; private set; }
-
-        public FeeApplicationUnit? FeeApplicationUnit { get; private set; }
-
         public PricingStatus Status { get; private set; }
 
         public DateTimeOffset CreatedAt { get; private set; }
@@ -54,16 +50,15 @@ namespace AeroTech.Ancillary.Domain.AncillaryPricingAggregate
 
         public DateTimeOffset? RetiredAt { get; private set; }
 
-        public IReadOnlyCollection<AncillaryPricingLine> PriceLines => _priceLines.AsReadOnly();
+        public IReadOnlyCollection<AncillaryPricingRate> Rates => _rates.AsReadOnly();
 
         public static AncillaryPricing Define(
             long id,
             long ancillaryProvisionId,
             PricingUnit pricingUnit,
             int version,
-            int currencyId,
-            FeeApplicationUnit? feeApplicationUnit,
-            IReadOnlyList<AncillaryPricingLineArgs> priceLines,
+            IReadOnlyList<AncillaryPricingRateArgs> rates,
+            IReadOnlyDictionary<int, int> currencyDecimalPlaces,
             IIdGenerator idGenerator,
             DateTimeOffset createdAt)
         {
@@ -75,29 +70,30 @@ namespace AeroTech.Ancillary.Domain.AncillaryPricingAggregate
 
             pricing.Status = PricingStatus.Draft;
             pricing.CreatedAt = createdAt;
-            pricing.Apply(currencyId, feeApplicationUnit, priceLines, idGenerator);
+            pricing.Apply(rates, idGenerator);
+            pricing.EnsureScale(currencyDecimalPlaces);
 
             return pricing;
         }
 
         public void Change(
-            int currencyId,
-            FeeApplicationUnit? feeApplicationUnit,
-            IReadOnlyList<AncillaryPricingLineArgs> priceLines,
+            IReadOnlyList<AncillaryPricingRateArgs> rates,
+            IReadOnlyDictionary<int, int> currencyDecimalPlaces,
             IIdGenerator idGenerator)
         {
             if (Status != PricingStatus.Draft)
                 throw ExceptionFactory.PricingStatusChangeNotAllowed();
 
-            Apply(currencyId, feeApplicationUnit, priceLines, idGenerator);
+            Apply(rates, idGenerator);
+            EnsureScale(currencyDecimalPlaces);
         }
 
-        public void Activate(DateTimeOffset now)
+        public void Activate(IReadOnlyDictionary<int, int> currencyDecimalPlaces, DateTimeOffset now)
         {
             if (Status != PricingStatus.Draft)
                 throw ExceptionFactory.PricingStatusChangeNotAllowed();
 
-            EnsurePublishable();
+            EnsurePublishable(currencyDecimalPlaces);
 
             Status = PricingStatus.Active;
             ActivatedAt = now;
@@ -121,12 +117,12 @@ namespace AeroTech.Ancillary.Domain.AncillaryPricingAggregate
             SuspendedAt = now;
         }
 
-        public void Reactivate()
+        public void Reactivate(IReadOnlyDictionary<int, int> currencyDecimalPlaces)
         {
             if (Status != PricingStatus.Suspended)
                 throw ExceptionFactory.PricingStatusChangeNotAllowed();
 
-            EnsurePublishable();
+            EnsurePublishable(currencyDecimalPlaces);
 
             Status = PricingStatus.Active;
             SuspendedAt = null;
@@ -155,7 +151,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryPricingAggregate
 
             revision.Status = PricingStatus.Draft;
             revision.CreatedAt = createdAt;
-            revision.Apply(CurrencyId, FeeApplicationUnit, _priceLines.Select(line => line.ToArgs()).ToList(), idGenerator);
+            revision._rates.AddRange(_rates.Select(rate => rate.CopyTo(idGenerator.NewId(), id, idGenerator)));
 
             return revision;
         }
@@ -166,87 +162,82 @@ namespace AeroTech.Ancillary.Domain.AncillaryPricingAggregate
                 throw ExceptionFactory.ServiceDefinitionPricingUnitAlreadyAssigned();
 
             Require(Enum.IsDefined(pricingUnit), nameof(PricingUnit));
-            EnsureCoherent(pricingUnit, _priceLines);
+            EnsureCoherent(pricingUnit, _rates);
 
             PricingUnit = pricingUnit;
         }
 
-        private void Apply(
-            int currencyId,
-            FeeApplicationUnit? feeApplicationUnit,
-            IReadOnlyList<AncillaryPricingLineArgs> priceLines,
-            IIdGenerator idGenerator)
+        private void Apply(IReadOnlyList<AncillaryPricingRateArgs> rates, IIdGenerator idGenerator)
         {
-            Require(currencyId > 0, nameof(CurrencyId));
-            Require(feeApplicationUnit is null || Enum.IsDefined(feeApplicationUnit.Value), nameof(FeeApplicationUnit));
+            var applied = (rates ?? []).Select(rate => new AncillaryPricingRate(idGenerator.NewId(), Id, rate, idGenerator)).ToList();
 
-            var lines = priceLines.Select(line => new AncillaryPricingLine(idGenerator.NewId(), Id, line)).ToList();
+            EnsureCoherent(PricingUnit, applied);
 
-            EnsureCoherent(PricingUnit, lines);
-
-            CurrencyId = currencyId;
-            FeeApplicationUnit = feeApplicationUnit;
-
-            _priceLines.Clear();
-            _priceLines.AddRange(lines);
+            _rates.Clear();
+            _rates.AddRange(applied);
         }
 
-        private void EnsurePublishable()
+        private void EnsureScale(IReadOnlyDictionary<int, int> currencyDecimalPlaces)
+        {
+            foreach (var rate in _rates)
+                rate.EnsureScale(currencyDecimalPlaces);
+        }
+
+        private void EnsurePublishable(IReadOnlyDictionary<int, int> currencyDecimalPlaces)
         {
             if (PricingUnit is null)
                 throw ExceptionFactory.ServiceDefinitionPricingUnitNotAssigned();
 
-            if (FeeApplicationUnit is { } feeApplicationUnit && !ImplementedFeeApplicationUnits.Contains(feeApplicationUnit))
-                throw ExceptionFactory.FeeApplicationUnitNotSupported(feeApplicationUnit);
+            EnsureCoherent(PricingUnit, _rates);
 
-            EnsureCoherent(PricingUnit, _priceLines);
+            if (_rates.SelectMany(rate => rate.Components).Any(component => component.Code is null))
+                throw ExceptionFactory.PricingIsInvalid($"{nameof(AncillaryPriceComponent)}.{nameof(AncillaryPriceComponent.Code)}");
+
+            foreach (var fee in _rates.SelectMany(rate => rate.Components).Where(component => component.Category == AncillaryPriceLineCategory.Fee))
+            {
+                if (fee.FeeApplicationUnit is not { } feeApplicationUnit)
+                    throw ExceptionFactory.PricingFeeApplicationUnitRequired(fee.Code);
+
+                if (!ImplementedFeeApplicationUnits.Contains(feeApplicationUnit))
+                    throw ExceptionFactory.FeeApplicationUnitNotSupported(feeApplicationUnit);
+            }
+
+            EnsureScale(currencyDecimalPlaces);
         }
 
-        private static void EnsureCoherent(PricingUnit? pricingUnit, IReadOnlyList<AncillaryPricingLine> lines)
+        private static void EnsureCoherent(PricingUnit? pricingUnit, IReadOnlyList<AncillaryPricingRate> rates)
         {
-            var selectors = lines
-                .GroupBy(line => (line.PassengerTypeCode, line.AgeFromInclusive, line.AgeToExclusive))
-                .ToList();
-
+            RequireUnambiguous(rates.Count > 0, nameof(Rates));
             RequireUnambiguous(
-                selectors.Count > 0
-                && selectors.All(selector => selector.Count(line => line.Category == AncillaryPriceLineCategory.Ancillary) == 1),
-                nameof(AncillaryPriceLineCategory.Ancillary));
-            RequireUnambiguous(
-                lines
-                    .Where(line => line.Category != AncillaryPriceLineCategory.Ancillary)
-                    .GroupBy(line => (
-                        line.PassengerTypeCode,
-                        line.AgeFromInclusive,
-                        line.AgeToExclusive,
-                        line.Category,
-                        line.Code,
-                        line.CountryId,
-                        line.StationAirportId))
-                    .All(component => component.Count() == 1),
-                nameof(AncillaryPricingLine.Code));
+                rates
+                    .GroupBy(rate => (rate.CurrencyId, rate.PassengerTypeCode, rate.AgeFromInclusive, rate.AgeToExclusive))
+                    .All(key => key.Count() == 1),
+                nameof(AncillaryPricingRate.CurrencyId));
             RequireUnambiguous(
                 pricingUnit == Unit.PerPassenger
-                || selectors.All(selector => selector.Key.PassengerTypeCode is null && selector.Key.AgeFromInclusive is null),
+                || rates.All(rate => rate.PassengerTypeCode is null && rate.AgeFromInclusive is null),
                 nameof(PricingUnit));
-            RequireUnambiguous(
-                selectors.All(selector => selector.Key.PassengerTypeCode is null)
-                || selectors.All(selector => selector.Key.PassengerTypeCode is not null),
-                nameof(AncillaryPricingLine.PassengerTypeCode));
 
-            foreach (var passengerType in selectors.GroupBy(selector => selector.Key.PassengerTypeCode))
+            foreach (var currency in rates.GroupBy(rate => rate.CurrencyId))
             {
-                var bands = passengerType
-                    .Select(selector => (From: selector.Key.AgeFromInclusive, To: selector.Key.AgeToExclusive))
-                    .OrderBy(band => band.From)
-                    .ToList();
+                RequireUnambiguous(
+                    currency.All(rate => rate.PassengerTypeCode is null) || currency.All(rate => rate.PassengerTypeCode is not null),
+                    nameof(AncillaryPricingRate.PassengerTypeCode));
 
-                RequireUnambiguous(bands.Count == 1 || bands.All(band => band.From is not null), nameof(AncillaryPricingLine.AgeFromInclusive));
+                foreach (var passengerType in currency.GroupBy(rate => rate.PassengerTypeCode))
+                {
+                    var bands = passengerType
+                        .Select(rate => (From: rate.AgeFromInclusive, To: rate.AgeToExclusive))
+                        .OrderBy(band => band.From)
+                        .ToList();
 
-                for (var index = 1; index < bands.Count; index++)
-                    RequireUnambiguous(
-                        bands[index - 1].To is not null && bands[index - 1].To <= bands[index].From,
-                        nameof(AncillaryPricingLine.AgeToExclusive));
+                    RequireUnambiguous(bands.Count == 1 || bands.All(band => band.From is not null), nameof(AncillaryPricingRate.AgeFromInclusive));
+
+                    for (var index = 1; index < bands.Count; index++)
+                        RequireUnambiguous(
+                            bands[index - 1].To is not null && bands[index - 1].To <= bands[index].From,
+                            nameof(AncillaryPricingRate.AgeToExclusive));
+                }
             }
         }
 

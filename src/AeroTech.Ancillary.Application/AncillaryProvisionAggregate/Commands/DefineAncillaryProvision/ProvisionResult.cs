@@ -7,6 +7,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
         long ServiceDefinitionId,
         int Sequence,
         ServiceCoverageScope CoverageScope,
+        PurchaseStage PurchaseStage,
         CommercialDisposition Disposition,
         ProvisionStatus Status);
 }

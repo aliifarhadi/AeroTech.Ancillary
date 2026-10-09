@@ -84,7 +84,9 @@ namespace AeroTech.Ancillary.Query._Shared.DbContexts
 
         public DbSet<AncillaryPricingReadModel> AncillaryPricings => Set<AncillaryPricingReadModel>();
 
-        public DbSet<AncillaryPricingLineReadModel> AncillaryPricingLines => Set<AncillaryPricingLineReadModel>();
+        public DbSet<AncillaryPricingRateReadModel> AncillaryPricingRates => Set<AncillaryPricingRateReadModel>();
+
+        public DbSet<AncillaryPriceComponentReadModel> AncillaryPriceComponents => Set<AncillaryPriceComponentReadModel>();
 
         public DbSet<InventoryPolicyReadModel> AncillaryInventoryPolicies => Set<InventoryPolicyReadModel>();
 

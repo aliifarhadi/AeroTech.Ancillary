@@ -19,11 +19,11 @@ namespace AeroTech.Ancillary.Persistence.AncillaryPricingAggregate
                 .HasForeignKey(pricing => pricing.AncillaryProvisionId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasMany(pricing => pricing.PriceLines)
+            builder.HasMany(pricing => pricing.Rates)
                 .WithOne()
-                .HasForeignKey(line => line.AncillaryPricingId)
+                .HasForeignKey(rate => rate.AncillaryPricingId)
                 .OnDelete(DeleteBehavior.Cascade);
-            builder.Navigation(pricing => pricing.PriceLines).UsePropertyAccessMode(PropertyAccessMode.Field);
+            builder.Navigation(pricing => pricing.Rates).UsePropertyAccessMode(PropertyAccessMode.Field);
 
             builder.HasIndex(pricing => new { pricing.AncillaryProvisionId, pricing.Version }).IsUnique();
             builder.HasIndex(

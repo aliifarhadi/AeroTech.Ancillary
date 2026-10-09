@@ -29,6 +29,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
 
         public ServiceCoverageScope CoverageScope { get; private set; }
 
+        public PurchaseStage PurchaseStage { get; private set; }
+
         public QuantityRule Quantity { get; private set; } = default!;
 
         public ProvisionApplicationType ApplicationType { get; private set; }
@@ -74,6 +76,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             long serviceDefinitionId,
             int sequence,
             ServiceCoverageScope coverageScope,
+            PurchaseStage purchaseStage,
             QuantityRule quantity,
             ProvisionApplicationType applicationType,
             CommercialOutcome outcome,
@@ -90,7 +93,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
 
             provision.Status = ProvisionStatus.Draft;
             provision.CreatedAt = createdAt;
-            provision.Apply(sequence, coverageScope, quantity, applicationType, outcome, settlement, availability, fulfillment, rules, idGenerator);
+            provision.Apply(sequence, coverageScope, purchaseStage, quantity, applicationType, outcome, settlement, availability, fulfillment, rules, idGenerator);
 
             return provision;
         }
@@ -98,6 +101,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
         public void Change(
             int sequence,
             ServiceCoverageScope coverageScope,
+            PurchaseStage purchaseStage,
             QuantityRule quantity,
             ProvisionApplicationType applicationType,
             CommercialOutcome outcome,
@@ -109,13 +113,14 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
         {
             EnsureDraft();
 
-            Apply(sequence, coverageScope, quantity, applicationType, outcome, settlement, availability, fulfillment, rules, idGenerator);
+            Apply(sequence, coverageScope, purchaseStage, quantity, applicationType, outcome, settlement, availability, fulfillment, rules, idGenerator);
         }
 
         public void Activate(AncillaryServiceDefinition definition, DateTimeOffset now)
         {
             EnsureDraft();
             EnsurePublishable(definition);
+            EnsureDescriptorsAreStated();
 
             Status = ProvisionStatus.Active;
             ActivatedAt = now;
@@ -162,6 +167,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
         private void Apply(
             int sequence,
             ServiceCoverageScope coverageScope,
+            PurchaseStage purchaseStage,
             QuantityRule quantity,
             ProvisionApplicationType applicationType,
             CommercialOutcome outcome,
@@ -173,6 +179,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
         {
             Require(sequence > 0, nameof(Sequence));
             Require(Enum.IsDefined(coverageScope), nameof(CoverageScope));
+            Require(Enum.IsDefined(purchaseStage) && purchaseStage != PurchaseStage.LegacyUnspecified, nameof(PurchaseStage));
             Require(Enum.IsDefined(applicationType), nameof(ApplicationType));
 
             var passengerEligibility = ProvisionPassengerEligibilityRule.Plan(PassengerEligibility, Id, rules.PassengerEligibility, idGenerator);
@@ -195,6 +202,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
 
             Sequence = sequence;
             CoverageScope = coverageScope;
+            PurchaseStage = purchaseStage;
             Quantity = quantity;
             ApplicationType = applicationType;
             Outcome = outcome;

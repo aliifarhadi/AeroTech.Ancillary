@@ -32,6 +32,7 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.G
                 EnumValueDto.Of(definition.BookingMethod),
                 definition.BookingSsrCode,
                 definition.BookingSsimCode,
+                EnumValueDto.Of(definition.BookingConfirmationRequirement),
                 definition.SalesEffectiveFrom,
                 definition.SalesDiscontinueOn,
                 EnumValueDto.Of(definition.Status),

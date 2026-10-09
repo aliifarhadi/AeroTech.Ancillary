@@ -205,8 +205,14 @@ public class P2InventoryPolicyAcceptanceTests
 
         var unlimited = await DefineAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, "PET_IN_CABIN", checkedProduct.Id, InventoryAuthority.Unlimited));
 
-        await _harness.RefusedAsync(16606, 409, fixture, scope => scope.ActivateInventoryPolicy.ActivateAsync(new TestInventoryPolicyLifecycleCommand(unlimited.Id, 1)));
-        Assert.Equal("NotConfigured", (await _harness.SnapshotAsync(fixture, "PET_IN_CABIN", 81234)).State.Name);
+        var authored = await _harness.SnapshotAsync(fixture, "PET_IN_CABIN", 81234);
+
+        Assert.Equal(("NotConfigured", "PolicyNotActive", true, false), (authored.State.Name, authored.ReasonCode, authored.RequiresAvailabilityCheck, authored.IsGuaranteed));
+        Assert.Equal(InventoryRecordStatus.Active, (await ActivateAsync(fixture, unlimited.Id, 1)).Status);
+
+        var declared = await _harness.SnapshotAsync(fixture, "PET_IN_CABIN", 81234);
+
+        Assert.Equal(("Unlimited", true, false), (declared.State.Name, declared.RequiresAvailabilityCheck, declared.IsGuaranteed));
         await _harness.RefusedAsync(16617, 422, fixture, scope => scope.DefineInventoryPolicy.DefineAsync(
             new TestDefineInventoryPolicyCommand(airlineId, "WIFI_MESSAGING", plain.Id, InventoryAuthority.Unlimited)));
         await _harness.RefusedAsync(16617, 422, fixture, scope => scope.DefineInventoryPolicy.DefineAsync(
@@ -481,7 +487,7 @@ public class P2InventoryPolicyAcceptanceTests
             new[]
             {
                 "Authority", "ClosedForSale", "ConfiguredCount", "ConfiguredKg", "IsGuaranteed", "ObservedAt", "OwnerAirlineId", "Pattern", "PolicyId", "ReasonCode",
-                "Resource", "ResourceKind", "ServiceDefinitionRef", "StaleAfter", "State"
+                "RequiresAvailabilityCheck", "Resource", "ResourceKind", "ServiceDefinitionRef", "StaleAfter", "State"
             },
             properties.OrderBy(name => name, StringComparer.Ordinal));
         Assert.DoesNotContain(properties, name => OperationalTerms.Any(term => name.Contains(term, StringComparison.Ordinal)));

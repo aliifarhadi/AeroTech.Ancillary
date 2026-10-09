@@ -9,6 +9,7 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Dto
         int Sequence,
         EnumValueDto Status,
         EnumValueDto CoverageScope,
+        EnumValueDto PurchaseStage,
         EnumValueDto QuantityUnit,
         int MinQuantity,
         int MaxQuantity,
@@ -127,7 +128,8 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Dto
         long Id,
         int MinimumPeriod,
         EnumValueDto Unit,
-        bool SameTimeAsTicketed);
+        bool SameTimeAsTicketed,
+        int? MaximumPeriod);
 
     public sealed record BackofficeProvisionBaggageApplicationDto(
         long Id,
@@ -138,5 +140,7 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Dto
         EnumValueDto WeightUnit,
         EnumValueDto? TravelApplication,
         EnumValueDto PurchaseApplication,
-        EnumValueDto? RuleDeference);
+        EnumValueDto? RuleDeference,
+        EnumValueDto? ChargeKind,
+        EnumValueDto? AllowanceConcept);
 }

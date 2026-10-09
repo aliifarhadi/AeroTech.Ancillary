@@ -12,10 +12,6 @@ namespace AeroTech.Ancillary.Query.AncillaryPricingAggregate.Models
 
         public int Version { get; set; }
 
-        public int CurrencyId { get; set; }
-
-        public FeeApplicationUnit? FeeApplicationUnit { get; set; }
-
         public PricingStatus Status { get; set; }
 
         public DateTimeOffset CreatedAt { get; set; }

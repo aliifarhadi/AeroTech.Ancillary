@@ -1,3 +1,4 @@
+using AeroTech.Ancillary.Application.AcceptanceTests.Fakes;
 using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.ActivateAncillaryPricing;
 using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.ChangeAncillaryPricing;
 using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.DefineAncillaryPricing;
@@ -95,6 +96,7 @@ public sealed class AncillaryScope : IAsyncDisposable
         var definitionSynchronizer = new AncillaryServiceDefinitionQueryDbSynchronizer(Query, clock);
         var provisionSynchronizer = new AncillaryProvisionQueryDbSynchronizer(Query, clock);
         var pricingSynchronizer = new AncillaryPricingQueryDbSynchronizer(Query, clock);
+        var currencies = new ReferenceCurrencies(database);
 
         RegisterSupplier = new RegisterSupplierService(Suppliers, supplierSynchronizer, UnitOfWork, ids, clock);
         RetireSupplier = new RetireSupplierService(Suppliers, supplierSynchronizer, UnitOfWork, clock);
@@ -121,6 +123,7 @@ public sealed class AncillaryScope : IAsyncDisposable
         PublishProvision = new PublishAncillaryProvisionService(
             Provisions,
             Definitions,
+            currencies,
             Pricings,
             provisionSynchronizer,
             pricingSynchronizer,
@@ -150,14 +153,14 @@ public sealed class AncillaryScope : IAsyncDisposable
         ChangeDayTimeWindow = new ChangeProvisionDayTimeWindowService(Provisions, provisionSynchronizer, UnitOfWork);
         RemoveDayTimeWindow = new RemoveProvisionDayTimeWindowService(Provisions, provisionSynchronizer, UnitOfWork);
 
-        DefinePricing = new DefineAncillaryPricingService(Pricings, Provisions, Definitions, pricingSynchronizer, UnitOfWork, ids, clock);
-        ChangePricing = new ChangeAncillaryPricingService(Pricings, pricingSynchronizer, UnitOfWork, ids);
-        ActivatePricing = new ActivateAncillaryPricingService(Pricings, Provisions, Definitions, pricingSynchronizer, UnitOfWork, clock);
+        DefinePricing = new DefineAncillaryPricingService(Pricings, Provisions, Definitions, currencies, pricingSynchronizer, UnitOfWork, ids, clock);
+        ChangePricing = new ChangeAncillaryPricingService(Pricings, currencies, pricingSynchronizer, UnitOfWork, ids);
+        ActivatePricing = new ActivateAncillaryPricingService(Pricings, Provisions, Definitions, currencies, pricingSynchronizer, UnitOfWork, clock);
         SuspendPricing = new SuspendAncillaryPricingService(Pricings, Provisions, pricingSynchronizer, UnitOfWork, clock);
-        ReactivatePricing = new ReactivateAncillaryPricingService(Pricings, Provisions, Definitions, pricingSynchronizer, UnitOfWork);
+        ReactivatePricing = new ReactivateAncillaryPricingService(Pricings, Provisions, Definitions, currencies, pricingSynchronizer, UnitOfWork);
         RetirePricing = new RetireAncillaryPricingService(Pricings, Provisions, pricingSynchronizer, UnitOfWork, clock);
         RevisePricing = new ReviseAncillaryPricingService(Pricings, pricingSynchronizer, UnitOfWork, ids, clock);
-        SwitchActivePricing = new SwitchActiveAncillaryPricingService(Pricings, Provisions, Definitions, pricingSynchronizer, UnitOfWork, clock);
+        SwitchActivePricing = new SwitchActiveAncillaryPricingService(Pricings, Provisions, Definitions, currencies, pricingSynchronizer, UnitOfWork, clock);
 
         HoldAncillaryServices = new HoldAncillaryServicesService(Reservations, Definitions, Provisions, Suppliers, UnitOfWork, ids, clock);
         ConfirmAncillaryHold = new ConfirmAncillaryHoldService(Reservations, UnitOfWork, clock);

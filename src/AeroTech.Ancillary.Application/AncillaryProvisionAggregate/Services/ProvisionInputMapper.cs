@@ -111,7 +111,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Services
         public static ProvisionAdvancePurchaseArgs? ToArgs(this ProvisionAdvancePurchaseInput? input)
             => input is null
                 ? null
-                : new ProvisionAdvancePurchaseArgs(input.MinimumPeriod, input.Unit, input.SameTimeAsTicketed);
+                : new ProvisionAdvancePurchaseArgs(input.MinimumPeriod, input.Unit, input.SameTimeAsTicketed, input.MaximumPeriod);
 
         public static ProvisionBaggageApplicationArgs? ToArgs(this ProvisionBaggageApplicationInput? input)
             => input is null
@@ -124,7 +124,9 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Services
                     input.WeightUnit,
                     input.TravelApplication,
                     input.PurchaseApplication,
-                    input.RuleDeference);
+                    input.RuleDeference,
+                    input.ChargeKind,
+                    input.AllowanceConcept);
 
         public static ProvisionSeatApplicationArgs? ToArgs(this ProvisionSeatApplicationInput? input)
             => input is null

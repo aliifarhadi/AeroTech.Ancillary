@@ -11,26 +11,34 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Projection
                 pricing.AncillaryProvisionId,
                 pricing.PricingUnit,
                 pricing.Version,
-                pricing.CurrencyId,
-                pricing.FeeApplicationUnit,
                 pricing.Status,
                 pricing.CreatedAt,
                 pricing.ActivatedAt,
                 pricing.SuspendedAt,
                 pricing.RetiredAt,
-                pricing.PriceLines
-                    .OrderBy(line => line.Id)
-                    .Select(line => new AncillaryPricingLineReadModelSnapshot(
-                        line.Id,
-                        line.PassengerTypeCode,
-                        line.AgeFromInclusive,
-                        line.AgeToExclusive,
-                        line.Category,
-                        line.Code,
-                        line.Name,
-                        line.CountryId,
-                        line.StationAirportId,
-                        line.Amount))
+                pricing.Rates
+                    .OrderBy(rate => rate.Id)
+                    .Select(rate => new AncillaryPricingRateReadModelSnapshot(
+                        rate.Id,
+                        rate.PassengerTypeCode,
+                        rate.AgeFromInclusive,
+                        rate.AgeToExclusive,
+                        rate.CurrencyId,
+                        rate.BaseAmount,
+                        rate.Components
+                            .OrderBy(component => component.Id)
+                            .Select(component => new AncillaryPriceComponentReadModelSnapshot(
+                                component.Id,
+                                component.Category,
+                                component.Code,
+                                component.Name,
+                                component.CountryId,
+                                component.StationAirportId,
+                                component.Amount.Amount,
+                                component.Amount.CurrencyId,
+                                component.FeeApplicationUnit,
+                                component.TaxIncludedInSource))
+                            .ToList()))
                     .ToList());
     }
 }

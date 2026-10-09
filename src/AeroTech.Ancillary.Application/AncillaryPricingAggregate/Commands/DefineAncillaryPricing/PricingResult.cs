@@ -7,6 +7,6 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.Defi
         long AncillaryProvisionId,
         int Version,
         PricingUnit? PricingUnit,
-        int CurrencyId,
+        IReadOnlyList<int> CurrencyIds,
         PricingStatus Status);
 }

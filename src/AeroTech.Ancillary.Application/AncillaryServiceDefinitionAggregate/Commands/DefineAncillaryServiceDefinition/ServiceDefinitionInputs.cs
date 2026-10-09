@@ -10,5 +10,6 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
     public sealed record ServiceDefinitionBookingInput(
         BookingMethod Method,
         string? SsrCode,
-        string? SsimCode);
+        string? SsimCode,
+        ConfirmationRequirement? ConfirmationRequirement = null);
 }

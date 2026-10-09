@@ -104,6 +104,8 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
             RuleFor(baggage => baggage.TravelApplication).IsInEnum().When(baggage => baggage.TravelApplication is not null);
             RuleFor(baggage => baggage.PurchaseApplication).IsInEnum();
             RuleFor(baggage => baggage.RuleDeference).IsInEnum().When(baggage => baggage.RuleDeference is not null);
+            RuleFor(baggage => baggage.ChargeKind).IsInEnum().When(baggage => baggage.ChargeKind is not null);
+            RuleFor(baggage => baggage.AllowanceConcept).IsInEnum().When(baggage => baggage.AllowanceConcept is not null);
         }
     }
 

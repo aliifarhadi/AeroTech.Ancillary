@@ -4,6 +4,7 @@ using AeroTech.Ancillary.Domain.AncillaryPricingAggregate;
 using AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Contracts;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Contracts;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Contracts;
+using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Framework.Core.Domain.Repository;
 using AeroTech.Framework.Core.ServiceContracts;
@@ -15,6 +16,7 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.Defi
         private readonly IAncillaryPricingRepository _pricings;
         private readonly IAncillaryProvisionRepository _provisions;
         private readonly IAncillaryServiceDefinitionRepository _definitions;
+        private readonly ICurrencyReference _currencies;
         private readonly IAncillaryPricingQueryDbSynchronizer _synchronizer;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IIdGenerator _idGenerator;
@@ -24,6 +26,7 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.Defi
             IAncillaryPricingRepository pricings,
             IAncillaryProvisionRepository provisions,
             IAncillaryServiceDefinitionRepository definitions,
+            ICurrencyReference currencies,
             IAncillaryPricingQueryDbSynchronizer synchronizer,
             IUnitOfWork unitOfWork,
             IIdGenerator idGenerator,
@@ -32,6 +35,7 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.Defi
             _pricings = pricings;
             _provisions = provisions;
             _definitions = definitions;
+            _currencies = currencies;
             _synchronizer = synchronizer;
             _unitOfWork = unitOfWork;
             _idGenerator = idGenerator;
@@ -49,14 +53,14 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.Defi
                              ?? throw ExceptionFactory.ProvisionServiceDefinitionNotFound();
             var pricingUnit = definition.PricingUnit ?? throw ExceptionFactory.ServiceDefinitionPricingUnitNotAssigned();
             var version = await _pricings.MaxVersionAsync(provision.Id, cancellationToken) + 1;
+            var rates = command.Rates.ToArgs();
             var pricing = AncillaryPricing.Define(
                 _idGenerator.NewId(),
                 provision.Id,
                 pricingUnit,
                 version,
-                command.CurrencyId,
-                command.FeeApplicationUnit,
-                command.PriceLines.ToArgs(),
+                rates,
+                await _currencies.FindDecimalPlacesAsync(rates, cancellationToken),
                 _idGenerator,
                 _clock.GetDateTime());
 

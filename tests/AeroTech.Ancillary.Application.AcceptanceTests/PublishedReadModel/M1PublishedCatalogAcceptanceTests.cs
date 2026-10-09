@@ -59,16 +59,14 @@ public class M1PublishedCatalogAcceptanceTests
             .SingleAsync(row => row.AncillaryProvisionId == provision.Id && row.Status == PricingStatus.Active);
 
         Assert.Equal((pricing.Id, 1, PricingUnit.PerPassenger), (pricingRow.Id, pricingRow.Version, pricingRow.PricingUnit!.Value));
-        Assert.Equal(M1Commands.Currency, pricingRow.CurrencyId);
-        Assert.Equal(FeeApplicationUnit.Item, pricingRow.FeeApplicationUnit);
         Assert.Equal(_clock.Now, pricingRow.LastUpdateTime);
 
-        var lineRow = await reader.Query.AncillaryPricingLines.AsNoTracking()
+        var rateRow = await reader.Query.AncillaryPricingRates.AsNoTracking()
             .SingleAsync(row => row.AncillaryPricingId == pricingRow.Id);
 
-        Assert.Equal(AncillaryPriceLineCategory.Ancillary, lineRow.Category);
-        Assert.Equal(2500000m, lineRow.Amount);
-        Assert.Equal(((int?)null, (int?)null, (int?)null), ((int?)lineRow.PassengerTypeCode, lineRow.AgeFromInclusive, lineRow.AgeToExclusive));
+        Assert.Equal((M1Commands.Currency, 2500000m), (rateRow.CurrencyId, rateRow.BaseAmount));
+        Assert.Equal(((int?)null, (int?)null, (int?)null), ((int?)rateRow.PassengerTypeCode, rateRow.AgeFromInclusive, rateRow.AgeToExclusive));
+        Assert.Empty(await reader.Query.AncillaryPriceComponents.AsNoTracking().Where(row => row.AncillaryPricingId == pricingRow.Id).ToListAsync());
     }
 
     [Fact]

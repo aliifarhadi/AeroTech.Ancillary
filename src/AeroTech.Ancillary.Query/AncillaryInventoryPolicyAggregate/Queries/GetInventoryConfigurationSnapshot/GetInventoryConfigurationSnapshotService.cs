@@ -25,6 +25,26 @@ namespace AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Queries.Get
         public async Task<InventoryConfigurationSnapshotDto> ExecuteAsync(IGetInventoryConfigurationSnapshotQuery query, CancellationToken cancellationToken = default)
         {
             var ownerAirlineId = await _scope.RequireOwnerAirlineIdAsync(cancellationToken);
+            var snapshot = await ResolveAsync(ownerAirlineId, query, cancellationToken);
+            var versions = _dbContext.AncillaryServiceDefinitions
+                .Where(definition => definition.OwnerAirlineId == ownerAirlineId && definition.ServiceDefinitionRef == query.ServiceDefinitionRef)
+                .Select(definition => definition.Id);
+            var requiresAvailabilityCheck = await _dbContext.AncillaryProvisions
+                .AsNoTracking()
+                .AnyAsync(
+                    provision => versions.Contains(provision.ServiceDefinitionId)
+                                 && provision.Status == ProvisionStatus.Active
+                                 && provision.MustCheckAvailability,
+                    cancellationToken);
+
+            return snapshot with { RequiresAvailabilityCheck = requiresAvailabilityCheck };
+        }
+
+        private async Task<InventoryConfigurationSnapshotDto> ResolveAsync(
+            int ownerAirlineId,
+            IGetInventoryConfigurationSnapshotQuery query,
+            CancellationToken cancellationToken)
+        {
             var policy = await _dbContext.AncillaryInventoryPolicies
                 .AsNoTracking()
                 .FirstOrDefaultAsync(
@@ -215,6 +235,7 @@ namespace AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Queries.Get
                 EnumValueDto.Of(state),
                 _clock.GetDateTime(),
                 null,
+                false,
                 false,
                 reasonCode);
     }

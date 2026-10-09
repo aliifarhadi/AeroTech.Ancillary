@@ -61,7 +61,8 @@ public sealed record TestChangeProvisionCommand(
     ProvisionDayTimeApplicationInput? DayTimeApplication = null,
     ProvisionAdvancePurchaseInput? AdvancePurchase = null,
     ProvisionBaggageApplicationInput? BaggageApplication = null,
-    ProvisionSeatApplicationInput? SeatApplication = null) : IChangeAncillaryProvisionCommand;
+    ProvisionSeatApplicationInput? SeatApplication = null,
+    PurchaseStage PurchaseStage = PurchaseStage.Both) : IChangeAncillaryProvisionCommand;
 
 public sealed record TestProvisionLifecycleCommand(long ProvisionId)
     : ISuspendAncillaryProvisionCommand, IReactivateAncillaryProvisionCommand, IRetireAncillaryProvisionCommand;
@@ -212,7 +213,9 @@ public static class P1Commands
         BaggagePurchaseApplication purchaseApplication = BaggagePurchaseApplication.Prepaid,
         BaggageRuleDeference? ruleDeference = null,
         int? freePieces = null,
-        WeightUnit weightUnit = WeightUnit.Kg)
+        WeightUnit weightUnit = WeightUnit.Kg,
+        BaggageChargeKind? chargeKind = BaggageChargeKind.ExtraPiece,
+        BaggageAllowanceConcept? allowanceConcept = BaggageAllowanceConcept.Piece)
         => new(
             freePieces,
             firstExcessPiece,
@@ -221,7 +224,9 @@ public static class P1Commands
             weightUnit,
             travelApplication,
             purchaseApplication,
-            ruleDeference);
+            ruleDeference,
+            chargeKind,
+            allowanceConcept);
 
     public static ProvisionSeatApplicationInput Seat(string[]? seatNumbers, string[]? seatCharacteristicCodes) => new(seatNumbers, seatCharacteristicCodes);
 }

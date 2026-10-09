@@ -50,6 +50,7 @@ namespace AeroTech.Ancillary.Synchronizer.AncillaryServiceDefinitionAggregate
             definition.BookingMethod = snapshot.BookingMethod;
             definition.BookingSsrCode = snapshot.BookingSsrCode;
             definition.BookingSsimCode = snapshot.BookingSsimCode;
+            definition.BookingConfirmationRequirement = snapshot.BookingConfirmationRequirement;
             definition.SalesEffectiveFrom = snapshot.SalesEffectiveFrom;
             definition.SalesDiscontinueOn = snapshot.SalesDiscontinueOn;
             definition.Status = snapshot.Status;

@@ -171,11 +171,11 @@ public class M1PaginatedAcceptanceTests
         var prices = await scope.GetPricingsPaginated.ExecuteAsync(new BackofficeGetAncillaryPricingsPaginatedQuery { AncillaryProvisionId = first.Id });
 
         Assert.Equal(
-            new[] { "Version", "Pricing Unit", "Currency", "Applies Per", "Rates", "Status", "Created", "Activated" },
+            new[] { "Version", "Pricing Unit", "Currencies", "Rates", "Status", "Created", "Activated" },
             prices.Metadata.Fields.Select(field => field.Title));
         Assert.Equal(
-            (firstPrice.Id.ToString(), first.Id.ToString(), 1, "PerPassenger", "IRR", "Item", 1, "Active"),
-            prices.Results.Select(price => (price.Id, price.AncillaryProvisionId, price.Version, price.PricingUnit!.Name, price.Currency!, price.FeeApplicationUnit!.Name, price.RateCount, price.Status.Name)).Single());
+            (firstPrice.Id.ToString(), first.Id.ToString(), 1, "PerPassenger", "IRR", 1, "Active"),
+            prices.Results.Select(price => (price.Id, price.AncillaryProvisionId, price.Version, price.PricingUnit!.Name, price.Currencies, price.RateCount, price.Status.Name)).Single());
         Assert.Equal(15000000m, Assert.Single((await scope.GetPricingById.ExecuteAsync(firstPrice.Id)).PriceLines).Amount);
 
         var draftPrices = await scope.GetPricingsPaginated.ExecuteAsync(new BackofficeGetAncillaryPricingsPaginatedQuery { Status = PricingStatus.Draft, AncillaryProvisionId = later.Id });

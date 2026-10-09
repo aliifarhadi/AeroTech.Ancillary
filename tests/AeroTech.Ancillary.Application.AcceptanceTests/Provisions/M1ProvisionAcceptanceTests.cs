@@ -53,12 +53,12 @@ public class M1ProvisionAcceptanceTests
         Assert.Equal("Each", detail.QuantityUnit.Name);
         Assert.Equal("Ancillary", detail.FulfillmentProviderKey);
         Assert.Equal(M1Commands.Currency, price.CurrencyId);
-        Assert.Equal("Item", price.FeeApplicationUnit!.Name);
+        Assert.True(Assert.Single(price.Rates).IsUnitTotalComplete);
 
         var line = Assert.Single(price.PriceLines);
 
         Assert.Equal(2500000m, line.Amount);
-        Assert.Equal("Lounge access", line.Name);
+        Assert.Equal("Ancillary", line.Category.Name);
     }
 
     [Fact]
@@ -107,8 +107,9 @@ public class M1ProvisionAcceptanceTests
         await using var _ = scope;
 
         var draft = await scope.DefineProvision.DefineAsync(PaidLounge(definitionId));
+        var lounge = M1Commands.LoungePricing(draft.Id, feeApplicationUnit: FeeApplicationUnit.PerFiveKilogramsOver);
         var pricing = await scope.DefinePricing.DefineAsync(
-            M1Commands.LoungePricing(draft.Id, feeApplicationUnit: FeeApplicationUnit.PerFiveKilogramsOver));
+            lounge with { PriceLines = [.. lounge.PriceLines, new PricingLineInput(null, null, null, AncillaryPriceLineCategory.Fee, "SVC", null, null, null, 1000m)] });
 
         await BusinessAssert.ThrowsAsync(16305, 422, () => scope.ActivatePricing.ActivateAsync(new TestPricingLifecycleCommand(pricing.Id)));
         await BusinessAssert.ThrowsAsync(16305, 422, () => scope.PublishProvision.PublishAsync(

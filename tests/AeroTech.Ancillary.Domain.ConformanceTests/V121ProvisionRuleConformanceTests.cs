@@ -554,7 +554,7 @@ public class V121ProvisionRuleConformanceTests
             new[]
             {
                 "ActivatedAt", "AdvancePurchase", "ApplicationType", "Availability", "BaggageApplication", "CoverageScope", "CreatedAt", "DayTimeApplication",
-                "FareApplication", "FlightApplication", "Fulfillment", "Geography", "Outcome", "PassengerEligibility", "Quantity", "RetiredAt", "SalesRestrictions",
+                "FareApplication", "FlightApplication", "Fulfillment", "Geography", "Outcome", "PassengerEligibility", "PurchaseStage", "Quantity", "RetiredAt", "SalesRestrictions",
                 "SeatApplication", "Sequence", "ServiceDefinitionId", "Settlement", "Status", "SuspendedAt", "TravelDate"
             },
             names);

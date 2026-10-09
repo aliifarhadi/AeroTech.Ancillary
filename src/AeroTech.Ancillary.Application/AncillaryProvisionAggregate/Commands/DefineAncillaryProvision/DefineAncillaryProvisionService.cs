@@ -44,6 +44,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
                 definition.Id,
                 command.Sequence,
                 command.CoverageScope,
+                command.PurchaseStage,
                 command.Quantity.ToRule(),
                 command.ApplicationType,
                 command.Outcome.ToOutcome(),

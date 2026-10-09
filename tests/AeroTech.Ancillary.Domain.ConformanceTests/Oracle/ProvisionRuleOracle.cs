@@ -130,17 +130,27 @@ public static class ProvisionRuleOracle
         };
     }
 
-    public static IReadOnlyList<AncillaryPricingLine> SelectedLines(AncillaryPricing pricing, PassengerTypeCode? passengerType, int? age)
-        => pricing.PriceLines
-            .Where(line => line.PassengerTypeCode is null || line.PassengerTypeCode == passengerType)
-            .Where(line => line.AgeFromInclusive is null || (age is not null && age.Value >= line.AgeFromInclusive.Value && (line.AgeToExclusive is null || age.Value < line.AgeToExclusive.Value)))
+    public static IReadOnlyList<AncillaryPricingRate> SelectedRates(AncillaryPricing pricing, PassengerTypeCode? passengerType, int? age)
+        => pricing.Rates
+            .Where(rate => rate.PassengerTypeCode is null || rate.PassengerTypeCode == passengerType)
+            .Where(rate => rate.AgeFromInclusive is null || (age is not null && age.Value >= rate.AgeFromInclusive.Value && (rate.AgeToExclusive is null || age.Value < rate.AgeToExclusive.Value)))
             .ToList();
 
     public static decimal? UnitTotal(AncillaryPricing pricing, PassengerTypeCode? passengerType, int? age)
     {
-        var lines = SelectedLines(pricing, passengerType, age);
+        var rates = SelectedRates(pricing, passengerType, age);
 
-        return lines.Count(line => line.Category == AncillaryPriceLineCategory.Ancillary) == 1 ? lines.Sum(line => line.Amount) : null;
+        return rates.Count == 1 ? rates[0].UnitTotal.Amount : null;
+    }
+
+    public static OracleRate SelectRate(AncillaryPricing pricing, int currencyId, PassengerTypeCode? passengerType, int? age)
+    {
+        if (pricing.Rates.All(rate => rate.CurrencyId != currencyId))
+            return new OracleRate(OracleRateOutcome.NoMatchingCurrency, null);
+
+        var rates = SelectedRates(pricing, passengerType, age).Where(rate => rate.CurrencyId == currencyId).ToList();
+
+        return rates.Count == 1 ? new OracleRate(OracleRateOutcome.Selected, rates[0]) : new OracleRate(OracleRateOutcome.NoMatchingSelector, null);
     }
 
     public static int CompletedYears(DateOnly dateOfBirth, DateOnly at)

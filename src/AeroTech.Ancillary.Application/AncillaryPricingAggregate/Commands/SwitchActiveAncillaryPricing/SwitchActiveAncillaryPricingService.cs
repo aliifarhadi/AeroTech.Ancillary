@@ -4,6 +4,7 @@ using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Services;
 using AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Contracts;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Contracts;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Contracts;
+using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Framework.Core.Domain.Repository;
 using AeroTech.Framework.Core.ServiceContracts;
@@ -16,6 +17,7 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.Swit
         private readonly IAncillaryPricingRepository _pricings;
         private readonly IAncillaryProvisionRepository _provisions;
         private readonly IAncillaryServiceDefinitionRepository _definitions;
+        private readonly ICurrencyReference _currencies;
         private readonly IAncillaryPricingQueryDbSynchronizer _synchronizer;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IClock _clock;
@@ -24,6 +26,7 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.Swit
             IAncillaryPricingRepository pricings,
             IAncillaryProvisionRepository provisions,
             IAncillaryServiceDefinitionRepository definitions,
+            ICurrencyReference currencies,
             IAncillaryPricingQueryDbSynchronizer synchronizer,
             IUnitOfWork unitOfWork,
             IClock clock)
@@ -31,6 +34,7 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.Swit
             _pricings = pricings;
             _provisions = provisions;
             _definitions = definitions;
+            _currencies = currencies;
             _synchronizer = synchronizer;
             _unitOfWork = unitOfWork;
             _clock = clock;
@@ -60,6 +64,7 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.Swit
                 throw ExceptionFactory.PricingAlreadyActive();
 
             var now = _clock.GetDateTime();
+            var decimalPlaces = await _currencies.FindDecimalPlacesAsync(pricing, cancellationToken);
 
             if (active is not null)
             {
@@ -68,9 +73,9 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.Swit
             }
 
             if (pricing.Status == PricingStatus.Suspended)
-                pricing.Reactivate();
+                pricing.Reactivate(decimalPlaces);
             else
-                pricing.Activate(now);
+                pricing.Activate(decimalPlaces, now);
 
             await _synchronizer.ProjectAsync(pricing.ToReadModelSnapshot(), cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

@@ -13,9 +13,7 @@ namespace AeroTech.Ancillary.Query.AncillaryPricingAggregate.Dto
 
         [Grid("Pricing Unit")] public EnumValueDto? PricingUnit { get; set; }
 
-        [Grid("Currency")] public string? Currency { get; set; }
-
-        [Grid("Applies Per")] public EnumValueDto? FeeApplicationUnit { get; set; }
+        [Grid("Currencies")] public string Currencies { get; set; } = null!;
 
         [Grid("Rates")] public int RateCount { get; set; }
 

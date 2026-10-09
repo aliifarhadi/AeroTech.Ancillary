@@ -35,6 +35,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Ch
             provision.Change(
                 command.Sequence,
                 command.CoverageScope,
+                command.PurchaseStage,
                 command.Quantity.ToRule(),
                 command.ApplicationType,
                 command.Outcome.ToOutcome(),

@@ -32,17 +32,13 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryPricingAggregate.Controllers
         public async Task<IActionResult> Define([FromBody] DefinePricingRequest request, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(new BackofficeDefineAncillaryPricingCommand(
                 request.AncillaryProvisionId,
-                request.CurrencyId,
-                request.FeeApplicationUnit,
-                request.PriceLines), cancellationToken));
+                request.Rates), cancellationToken));
 
         [HttpPut("{pricingId:long}")]
         public async Task<IActionResult> Change(long pricingId, [FromBody] ChangePricingRequest request, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(new BackofficeChangeAncillaryPricingCommand(
                 pricingId,
-                request.CurrencyId,
-                request.FeeApplicationUnit,
-                request.PriceLines), cancellationToken));
+                request.Rates), cancellationToken));
 
         [HttpPost("{pricingId:long}/Activate")]
         public async Task<IActionResult> Activate(long pricingId, CancellationToken cancellationToken)

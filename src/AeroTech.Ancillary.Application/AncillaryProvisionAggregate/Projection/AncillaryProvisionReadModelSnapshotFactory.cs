@@ -14,6 +14,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Projection
                 provision.Sequence,
                 provision.Status,
                 provision.CoverageScope,
+                provision.PurchaseStage,
                 provision.Quantity.Unit,
                 provision.Quantity.MinQuantity,
                 provision.Quantity.MaxQuantity,
@@ -118,7 +119,8 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Projection
                     rule.Id,
                     rule.MinimumPeriod,
                     rule.Unit,
-                    rule.SameTimeAsTicketed);
+                    rule.SameTimeAsTicketed,
+                    rule.MaximumPeriod);
 
         private static ProvisionBaggageApplicationReadModelSnapshot? Snapshot(ProvisionBaggageApplicationRule? rule)
             => rule is null
@@ -132,7 +134,9 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Projection
                     rule.WeightUnit,
                     rule.TravelApplication,
                     rule.PurchaseApplication,
-                    rule.RuleDeference);
+                    rule.RuleDeference,
+                    rule.ChargeKind,
+                    rule.AllowanceConcept);
 
         private static ProvisionSeatApplicationReadModelSnapshot? Snapshot(ProvisionSeatApplicationRule? rule)
             => rule is null

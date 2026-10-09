@@ -15,7 +15,7 @@ namespace AeroTech.Ancillary.Persistence.AncillaryInventoryPolicyAggregate
             var definition = await _dbContext.AncillaryServiceDefinitions
                 .AsNoTracking()
                 .Where(row => row.Id == serviceDefinitionId)
-                .Select(row => new { row.OwnerAirlineId, row.ServiceDefinitionRef, row.PricingUnit, row.SupplierId })
+                .Select(row => new { row.Id, row.OwnerAirlineId, row.ServiceDefinitionRef, row.PricingUnit, row.SupplierId })
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (definition is null)
@@ -28,23 +28,28 @@ namespace AeroTech.Ancillary.Persistence.AncillaryInventoryPolicyAggregate
                                    && supplier.FulfillmentKind == SupplierFulfillmentKind.External)
                 .Select(supplier => supplier.FulfillmentProviderKey)
                 .FirstOrDefaultAsync(cancellationToken);
-            var versions = _dbContext.AncillaryServiceDefinitions
-                .Where(row => row.OwnerAirlineId == definition.OwnerAirlineId && row.ServiceDefinitionRef == definition.ServiceDefinitionRef)
-                .Select(row => row.Id);
-            var mustCheckAvailability = await _dbContext.AncillaryProvisions
-                .AsNoTracking()
-                .AnyAsync(
-                    provision => versions.Contains(provision.ServiceDefinitionId)
-                                 && provision.Status == ProvisionStatus.Active
-                                 && provision.Availability.MustCheckAvailability,
-                    cancellationToken);
 
             return new InventoryCommercialFacts(
+                definition.Id,
                 definition.OwnerAirlineId,
                 definition.ServiceDefinitionRef,
                 definition.PricingUnit,
-                providerKey,
-                mustCheckAvailability);
+                providerKey);
+        }
+
+        public async Task<InventoryCommercialFacts?> FindCurrentAsync(int ownerAirlineId, string serviceDefinitionRef, CancellationToken cancellationToken = default)
+        {
+            var currentId = await _dbContext.AncillaryServiceDefinitions
+                .AsNoTracking()
+                .Where(row => row.OwnerAirlineId == ownerAirlineId
+                              && row.ServiceDefinitionRef == serviceDefinitionRef
+                              && row.Status != ServiceDefinitionStatus.Retired)
+                .OrderByDescending(row => row.Status == ServiceDefinitionStatus.Active)
+                .ThenByDescending(row => row.Version)
+                .Select(row => (long?)row.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return currentId is { } id ? await FindAsync(id, cancellationToken) : null;
         }
     }
 }

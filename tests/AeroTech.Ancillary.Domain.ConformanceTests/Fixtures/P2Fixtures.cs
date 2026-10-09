@@ -45,7 +45,6 @@ public static class P2Fixtures
     public static InventoryPolicyEvidence Evidence(
         PricingUnit? pricingUnit = PricingUnit.PerItem,
         bool identity = true,
-        bool mustCheckAvailability = false,
         string? supplierProviderKey = null,
         InventoryReferenceCheck flightFlow = InventoryReferenceCheck.SourceUnavailable,
         InventoryReferenceCheck countResource = InventoryReferenceCheck.SourceUnavailable,
@@ -54,9 +53,8 @@ public static class P2Fixtures
         InventoryReferenceCheck slotFacility = InventoryReferenceCheck.SourceUnavailable,
         params (string Code, InventoryReferenceCheck Check)[] families)
         => new(
-            identity,
+            identity ? Definition : null,
             pricingUnit,
-            mustCheckAvailability,
             supplierProviderKey,
             flightFlow,
             countResource,

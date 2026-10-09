@@ -34,16 +34,15 @@ namespace AeroTech.Ancillary.Application.AncillaryInventoryPolicyAggregate.Servi
         public async Task<InventoryPolicyEvidence> BuildAsync(AncillaryInventoryPolicy policy, CancellationToken cancellationToken = default)
         {
             var owner = policy.OwnerAirlineId;
-            var facts = await _facts.FindAsync(policy.ServiceDefinitionId, cancellationToken);
+            var facts = await _facts.FindCurrentAsync(owner, policy.ServiceDefinitionRef, cancellationToken);
             var families = new Dictionary<string, InventoryReferenceCheck>(StringComparer.Ordinal);
 
             foreach (var limit in policy.PassengerUsageLimits)
                 families[limit.CountingFamilyCode] = await _families.CheckAsync(owner, limit.CountingFamilyCode, cancellationToken);
 
             return new InventoryPolicyEvidence(
-                facts is not null && facts.OwnerAirlineId == owner && facts.ServiceDefinitionRef == policy.ServiceDefinitionRef,
+                facts?.ServiceDefinitionId,
                 facts?.PricingUnit,
-                facts?.ActiveProvisionMustCheckAvailability == true,
                 facts?.ActiveExternalSupplierProviderKey,
                 policy is { Authority: InventoryAuthority.FlightFlow, ProviderKey: not null }
                     ? await _flightFlow.CheckAsync(owner, policy.ProviderKey, cancellationToken)

@@ -60,6 +60,13 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public const string PricingSelectorConflict = "The price lines are ambiguous for {0}.";
         public const string PricingRequiredByActiveProvision = "The active pricing of an active paid provision can only be replaced, not removed.";
         public const string PricingSwitchExpectationFailed = "The active pricing of the provision is not the expected one.";
+        public const string ProvisionPurchaseStageRequired = "The provision has no purchase stage; file a successor that states PreOrder, PostTicketed or Both.";
+        public const string ProvisionBaggageChargeKindRequired = "A baggage provision needs a charge kind before it is published.";
+        public const string PricingCurrencyNotFound = "Currency {0} is not in the currency reference.";
+        public const string PricingAmountScaleNotAllowed = "Amount {0} has more decimals than currency {1} allows ({2}).";
+        public const string PricingCurrencyMismatch = "A price component in currency {1} cannot belong to a rate in currency {0}.";
+        public const string PricingFlatLineNotSupported = "A base amount is filed as the base price of a rate, not as a price component.";
+        public const string PricingFeeApplicationUnitRequired = "Fee {0} needs a fee application unit before the pricing is published.";
         public const string InventoryPolicyNotFound = "The inventory policy was not found.";
         public const string InventoryPolicyIsInvalid = "Inventory policy field {0} is invalid.";
         public const string InventoryPolicyStatusChangeNotAllowed = "The inventory policy status does not allow this change.";

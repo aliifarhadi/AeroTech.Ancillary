@@ -390,9 +390,9 @@ public class V121ProvisionLifecycleAcceptanceTests
         Assert.Equal(
             new[]
             {
-                "Ancillary.AncillaryPricingLines.Amount decimal(18,2)",
+                "Ancillary.AncillaryPriceComponents.Amount decimal(19,6)",
                 "Ancillary.ProvisionBaggageApplicationRules.Weight decimal(9,2)",
-                "ReadModel.AncillaryPricingLines.Amount decimal(18,2)",
+                "ReadModel.AncillaryPriceComponents.Amount decimal(19,6)",
                 "ReadModel.AncillaryProvisions.BaggageWeight decimal(9,2)"
             },
             columns.OrderBy(column => column, StringComparer.Ordinal));
@@ -434,6 +434,7 @@ public class V121ProvisionLifecycleAcceptanceTests
                     command.ServiceDefinitionId,
                     command.Sequence,
                     command.CoverageScope,
+                    command.PurchaseStage,
                     command.Quantity,
                     command.ApplicationType,
                     command.Outcome,
@@ -458,6 +459,7 @@ public class V121ProvisionLifecycleAcceptanceTests
                     provisionId,
                     command.Sequence,
                     command.CoverageScope,
+                    command.PurchaseStage,
                     command.Quantity,
                     command.ApplicationType,
                     command.Outcome,
@@ -510,12 +512,12 @@ public class V121ProvisionLifecycleAcceptanceTests
 
         string[] PricingErrors(long provisionId, FeeApplicationUnit? feeApplicationUnit, params PricingLineInput[] priceLines)
             => new BackofficeDefineAncillaryPricingCommandValidator()
-                .Validate(new BackofficeDefineAncillaryPricingCommand(provisionId, Eur, feeApplicationUnit, priceLines))
+                .Validate(new BackofficeDefineAncillaryPricingCommand(provisionId, FiledRates.Of(priceLines, Eur, feeApplicationUnit)))
                 .Errors.Select(error => error.PropertyName).ToArray();
 
         string[] PricingChangeErrors(long pricingId, params PricingLineInput[] priceLines)
             => new BackofficeChangeAncillaryPricingCommandValidator()
-                .Validate(new BackofficeChangeAncillaryPricingCommand(pricingId, Eur, FeeApplicationUnit.Item, priceLines))
+                .Validate(new BackofficeChangeAncillaryPricingCommand(pricingId, FiledRates.Of(priceLines, Eur, FeeApplicationUnit.Item)))
                 .Errors.Select(error => error.PropertyName).ToArray();
 
         var wrongCategory = new PricingLineInput(null, null, null, (AncillaryPriceLineCategory)99, null, null, null, null, 1m);
@@ -526,13 +528,13 @@ public class V121ProvisionLifecycleAcceptanceTests
         Assert.Empty(PricingErrors(1, FeeApplicationUnit.Item, FullPrice()));
         Assert.Empty(PricingChangeErrors(1, FullPrice()));
         Assert.Contains("AncillaryProvisionId", PricingErrors(0, FeeApplicationUnit.Item, FullPrice()));
-        Assert.Contains("FeeApplicationUnit", PricingErrors(1, (FeeApplicationUnit)99, FullPrice()));
+        Assert.Contains(PricingErrors(1, (FeeApplicationUnit)99, FullPrice()), error => error.EndsWith(".FeeApplicationUnit", StringComparison.Ordinal));
         Assert.Contains("PricingId", PricingChangeErrors(0, FullPrice()));
         Assert.Equal(
-            new[] { "PriceLines[0].Category", "PriceLines[1].PassengerTypeCode", "PriceLines[2].Code", "PriceLines[3].Name" },
+            new[] { "Rates[0].Components[0].Category", "Rates[0].Components[0].Code", "Rates[0].Components[1].Code", "Rates[1].PassengerTypeCode" },
             PricingErrors(1, null, wrongCategory, wrongPassenger, longCode, longName));
         Assert.Equal(
-            new[] { "PriceLines[0].Category", "PriceLines[1].PassengerTypeCode", "PriceLines[2].Code", "PriceLines[3].Name" },
+            new[] { "Rates[0].Components[0].Category", "Rates[0].Components[0].Code", "Rates[0].Components[1].Code", "Rates[1].PassengerTypeCode" },
             PricingChangeErrors(1, wrongCategory, wrongPassenger, longCode, longName));
 
         Assert.Equal(

@@ -39,6 +39,10 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
 
         public BaggageRuleDeference? RuleDeference { get; private set; }
 
+        public BaggageChargeKind? ChargeKind { get; private set; }
+
+        public BaggageAllowanceConcept? AllowanceConcept { get; private set; }
+
         internal static Func<ProvisionBaggageApplicationRule?> Plan(
             ProvisionBaggageApplicationRule? stored,
             long ancillaryProvisionId,
@@ -61,6 +65,11 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
             Require(args.TravelApplication is null || Enum.IsDefined(args.TravelApplication.Value), nameof(TravelApplication));
             Require(Enum.IsDefined(args.PurchaseApplication), nameof(PurchaseApplication));
             Require(args.RuleDeference is null || Enum.IsDefined(args.RuleDeference.Value), nameof(RuleDeference));
+            Require(args.ChargeKind is null || Enum.IsDefined(args.ChargeKind.Value), nameof(ChargeKind));
+            Require(args.AllowanceConcept is null || Enum.IsDefined(args.AllowanceConcept.Value), nameof(AllowanceConcept));
+            Require(args.ChargeKind != BaggageChargeKind.WeightPackage || args.AllowanceConcept == BaggageAllowanceConcept.Weight, nameof(AllowanceConcept));
+            Require(args.ChargeKind != BaggageChargeKind.ExtraPiece || args.AllowanceConcept == BaggageAllowanceConcept.Piece, nameof(AllowanceConcept));
+            Require(args.ChargeKind != BaggageChargeKind.WeightPackage || args.Weight is not null, nameof(Weight));
 
             var rule = stored ?? new ProvisionBaggageApplicationRule(idGenerator.NewId(), ancillaryProvisionId);
 
@@ -74,6 +83,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
                 rule.TravelApplication = args.TravelApplication;
                 rule.PurchaseApplication = args.PurchaseApplication;
                 rule.RuleDeference = args.RuleDeference;
+                rule.ChargeKind = args.ChargeKind;
+                rule.AllowanceConcept = args.AllowanceConcept;
 
                 return rule;
             };

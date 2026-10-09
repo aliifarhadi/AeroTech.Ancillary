@@ -12,11 +12,12 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.ValueObj
         {
         }
 
-        private BookingDefinition(BookingMethod method, string? ssrCode, string? ssimCode)
+        private BookingDefinition(BookingMethod method, string? ssrCode, string? ssimCode, ConfirmationRequirement confirmationRequirement)
         {
             Method = method;
             SsrCode = ssrCode;
             SsimCode = ssimCode;
+            ConfirmationRequirement = confirmationRequirement;
         }
 
         public BookingMethod Method { get; private set; }
@@ -25,14 +26,21 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.ValueObj
 
         public string? SsimCode { get; private set; }
 
-        public static BookingDefinition Create(BookingMethod method, string? ssrCode, string? ssimCode)
+        public ConfirmationRequirement ConfirmationRequirement { get; private set; }
+
+        public static BookingDefinition Create(
+            BookingMethod method,
+            string? ssrCode,
+            string? ssimCode,
+            ConfirmationRequirement confirmationRequirement = ConfirmationRequirement.Immediate)
         {
             Require(Enum.IsDefined(method), nameof(Method));
             Require(method != BookingMethod.Ssr || IsCode(ssrCode), nameof(SsrCode));
             Require(ssrCode is null || IsCode(ssrCode), nameof(SsrCode));
             Require(ssimCode is null || IsCode(ssimCode), nameof(SsimCode));
+            Require(Enum.IsDefined(confirmationRequirement), nameof(ConfirmationRequirement));
 
-            return new BookingDefinition(method, ssrCode, ssimCode);
+            return new BookingDefinition(method, ssrCode, ssimCode, confirmationRequirement);
         }
 
         protected override IEnumerable<object?> GetEqualityComponents()
@@ -40,6 +48,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.ValueObj
             yield return Method;
             yield return SsrCode;
             yield return SsimCode;
+            yield return ConfirmationRequirement;
         }
 
         private static bool IsCode(string? value)

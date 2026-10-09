@@ -26,6 +26,7 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto
         EnumValueDto BookingMethod,
         string? BookingSsrCode,
         string? BookingSsimCode,
+        EnumValueDto BookingConfirmationRequirement,
         DateOnly? SalesEffectiveFrom,
         DateOnly? SalesDiscontinueOn,
         EnumValueDto Status,

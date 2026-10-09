@@ -10,7 +10,7 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.Defi
                 pricing.AncillaryProvisionId,
                 pricing.Version,
                 pricing.PricingUnit,
-                pricing.CurrencyId,
+                pricing.Rates.Select(rate => rate.CurrencyId).Distinct().OrderBy(currencyId => currencyId).ToList(),
                 pricing.Status);
     }
 }

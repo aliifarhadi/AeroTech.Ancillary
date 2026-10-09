@@ -10,6 +10,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Contracts
         int Sequence,
         ProvisionStatus Status,
         ServiceCoverageScope CoverageScope,
+        PurchaseStage PurchaseStage,
         AncillaryQuantityUnit QuantityUnit,
         int MinQuantity,
         int MaxQuantity,
@@ -94,7 +95,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Contracts
         long RuleId,
         int MinimumPeriod,
         TimeUnit Unit,
-        bool SameTimeAsTicketed);
+        bool SameTimeAsTicketed,
+        int? MaximumPeriod);
 
     public sealed record ProvisionBaggageApplicationReadModelSnapshot(
         long RuleId,
@@ -105,7 +107,9 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Contracts
         WeightUnit WeightUnit,
         BaggageTravelApplication? TravelApplication,
         BaggagePurchaseApplication PurchaseApplication,
-        BaggageRuleDeference? RuleDeference);
+        BaggageRuleDeference? RuleDeference,
+        BaggageChargeKind? ChargeKind,
+        BaggageAllowanceConcept? AllowanceConcept);
 
     public sealed record ProvisionSeatApplicationReadModelSnapshot(
         long RuleId,

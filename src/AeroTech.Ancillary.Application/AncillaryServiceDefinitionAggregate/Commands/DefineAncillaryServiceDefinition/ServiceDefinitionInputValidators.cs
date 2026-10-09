@@ -19,6 +19,7 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
             RuleFor(booking => booking.Method).IsInEnum();
             RuleFor(booking => booking.SsrCode).MaximumLength(4);
             RuleFor(booking => booking.SsimCode).MaximumLength(4);
+            RuleFor(booking => booking.ConfirmationRequirement).IsInEnum().When(booking => booking.ConfirmationRequirement is not null);
         }
     }
 }

@@ -10,6 +10,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Ch
         {
             RuleFor(command => command.ProvisionId).GreaterThan(0);
             RuleFor(command => command.CoverageScope).IsInEnum();
+            RuleFor(command => command.PurchaseStage).IsInEnum();
             RuleFor(command => command.Quantity).NotNull().SetValidator(new ProvisionQuantityInputValidator());
             RuleFor(command => command.ApplicationType).IsInEnum();
             RuleFor(command => command.Outcome).NotNull().SetValidator(new ProvisionOutcomeInputValidator());

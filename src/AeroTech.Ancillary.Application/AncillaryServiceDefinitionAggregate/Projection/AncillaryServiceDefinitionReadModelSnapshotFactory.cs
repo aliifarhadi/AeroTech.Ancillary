@@ -32,6 +32,7 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Pro
                 definition.Booking.Method,
                 definition.Booking.SsrCode,
                 definition.Booking.SsimCode,
+                definition.Booking.ConfirmationRequirement,
                 definition.SalesEffectiveFrom,
                 definition.SalesDiscontinueOn,
                 definition.Status,

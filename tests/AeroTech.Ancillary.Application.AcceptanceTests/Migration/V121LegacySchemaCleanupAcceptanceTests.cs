@@ -11,7 +11,9 @@ namespace AeroTech.Ancillary.Application.AcceptanceTests.Migration;
 
 public class V121LegacySchemaCleanupAcceptanceTests : IAsyncLifetime
 {
-    private const string MigrationAudit = "Ancillary.ProvisionRuleMigrationAudit.";
+    private static readonly string[] Retained = ["Ancillary.ProvisionRuleMigrationAudit."];
+
+    private static bool IsRetained(string column) => Retained.Any(retained => column.StartsWith(retained, StringComparison.Ordinal));
     private const string ProvisionColumn = ".AncillaryProvisions.";
 
     private const string StoredColumns =
@@ -38,6 +40,7 @@ public class V121LegacySchemaCleanupAcceptanceTests : IAsyncLifetime
 
     private readonly TestDatabase _database = new();
     private readonly FixedClock _clock = new();
+    private string[] _currentColumns = [];
     private string[] _currentRowsBefore = [];
 
     public async Task InitializeAsync()
@@ -54,6 +57,7 @@ public class V121LegacySchemaCleanupAcceptanceTests : IAsyncLifetime
 
         await _database.InitializeAsync(StockCapacityCommand, StockCapacityQuery);
 
+        _currentColumns = (await ModelColumnsAsync()).Intersect(await RowsAsync(StoredColumns)).ToArray();
         _currentRowsBefore = await CurrentRowsAsync();
     }
 
@@ -94,7 +98,7 @@ public class V121LegacySchemaCleanupAcceptanceTests : IAsyncLifetime
 
     private async Task<string[]> CurrentRowsAsync()
     {
-        var tables = (await ModelColumnsAsync())
+        var tables = _currentColumns
             .Where(column => column.StartsWith("Ancillary.", StringComparison.Ordinal) || column.StartsWith("ReadModel.", StringComparison.Ordinal))
             .GroupBy(column => column[..column.LastIndexOf('.')], column => column[(column.LastIndexOf('.') + 1)..]);
         var rows = new List<string>();
@@ -126,7 +130,7 @@ public class V121LegacySchemaCleanupAcceptanceTests : IAsyncLifetime
         Assert.NotEqual("0 0 0 0", (await RowsAsync(SupersededValues)).Single());
         Assert.Contains(_currentRowsBefore, row => row.StartsWith("Ancillary.AncillaryProvisions ", StringComparison.Ordinal) && !row.StartsWith("Ancillary.AncillaryProvisions 0 ", StringComparison.Ordinal));
 
-        await MigrateAsync(null, null);
+        await MigrateAsync(LegacyCleanupCommand, LegacyCleanupQuery);
 
         var after = await RowsAsync(StoredColumns);
         var dropped = before.Except(after).ToList();
@@ -142,8 +146,12 @@ public class V121LegacySchemaCleanupAcceptanceTests : IAsyncLifetime
                 "ReadModel.AncillaryProvisionTravelDates"
             },
             dropped.Where(column => !column.Contains(ProvisionColumn, StringComparison.Ordinal)).Select(column => column[..column.LastIndexOf('.')]).Distinct().OrderBy(table => table, StringComparer.Ordinal));
-        Assert.Equal(7, after.Count(column => column.StartsWith(MigrationAudit, StringComparison.Ordinal)));
-        Assert.Equal(await ModelColumnsAsync(), after.Where(column => !column.StartsWith(MigrationAudit, StringComparison.Ordinal)));
+        Assert.Equal(7, after.Count(column => column.StartsWith(Retained[0], StringComparison.Ordinal)));
+        Assert.Equal(_currentRowsBefore, await CurrentRowsAsync());
+
+        await MigrateAsync(null, null);
+
+        Assert.Equal(await ModelColumnsAsync(), (await RowsAsync(StoredColumns)).Where(column => !IsRetained(column)));
         Assert.Equal(_currentRowsBefore, await CurrentRowsAsync());
         Assert.Contains(LegacyCleanupCommand, await RowsAsync("SELECT [MigrationId] AS Value FROM [dbo].[__CommandsMigrationHistory]"));
         Assert.Contains(LegacyCleanupQuery, await RowsAsync("SELECT [MigrationId] AS Value FROM [dbo].[__QueriesMigrationHistory]"));
@@ -155,7 +163,7 @@ public class V121LegacySchemaCleanupAcceptanceTests : IAsyncLifetime
     {
         var shape = await RowsAsync(StoredShape);
 
-        await MigrateAsync(null, null);
+        await MigrateAsync(LegacyCleanupCommand, LegacyCleanupQuery);
         await MigrateAsync(StockCapacityCommand, StockCapacityQuery);
 
         Assert.Equal(shape, await RowsAsync(StoredShape));
@@ -166,7 +174,7 @@ public class V121LegacySchemaCleanupAcceptanceTests : IAsyncLifetime
 
         await MigrateAsync(null, null);
 
-        Assert.Equal(await ModelColumnsAsync(), (await RowsAsync(StoredColumns)).Where(column => !column.StartsWith(MigrationAudit, StringComparison.Ordinal)));
+        Assert.Equal(await ModelColumnsAsync(), (await RowsAsync(StoredColumns)).Where(column => !IsRetained(column)));
         Assert.Equal(_currentRowsBefore, await CurrentRowsAsync());
         Assert.False(await PendingAsync());
     }

@@ -118,6 +118,12 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public static BusinessException ProvisionRuleUnreachable(params object?[] args) =>
             new(16315, ExceptionMessages.ProvisionRuleUnreachable, args) { HttpStatus = 409 };
 
+        public static BusinessException ProvisionPurchaseStageRequired(params object?[] args) =>
+            new(16316, ExceptionMessages.ProvisionPurchaseStageRequired, args) { HttpStatus = 409 };
+
+        public static BusinessException ProvisionBaggageChargeKindRequired(params object?[] args) =>
+            new(16317, ExceptionMessages.ProvisionBaggageChargeKindRequired, args) { HttpStatus = 409 };
+
         public static BusinessException AncillaryHoldNotFound(params object?[] args) =>
             new(16401, ExceptionMessages.AncillaryHoldNotFound, args) { HttpStatus = 404 };
 
@@ -177,6 +183,22 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
 
         public static BusinessException PricingSwitchExpectationFailed(params object?[] args) =>
             new(16510, ExceptionMessages.PricingSwitchExpectationFailed, args) { HttpStatus = 409 };
+
+        public static BusinessException PricingCurrencyNotFound(params object?[] args) =>
+            new(16511, ExceptionMessages.PricingCurrencyNotFound, args) { HttpStatus = 422 };
+
+        public static BusinessException PricingAmountScaleNotAllowed(params object?[] args) =>
+            new(16512, ExceptionMessages.PricingAmountScaleNotAllowed, args) { HttpStatus = 422 };
+
+        public static BusinessException PricingCurrencyMismatch(params object?[] args) =>
+            new(16513, ExceptionMessages.PricingCurrencyMismatch, args) { HttpStatus = 422 };
+
+        public static BusinessException PricingFlatLineNotSupported(params object?[] args) =>
+            new(16514, ExceptionMessages.PricingFlatLineNotSupported, args) { HttpStatus = 422 };
+
+        public static BusinessException PricingFeeApplicationUnitRequired(params object?[] args) =>
+            new(16515, ExceptionMessages.PricingFeeApplicationUnitRequired, args) { HttpStatus = 422 };
+
         public static BusinessException InventoryPolicyNotFound(params object?[] args) =>
             new(16601, ExceptionMessages.InventoryPolicyNotFound, args) { HttpStatus = 404 };
 

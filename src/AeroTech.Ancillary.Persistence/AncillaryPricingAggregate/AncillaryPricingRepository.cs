@@ -16,12 +16,14 @@ namespace AeroTech.Ancillary.Persistence.AncillaryPricingAggregate
 
         public Task<AncillaryPricing?> GetAsync(long id, CancellationToken cancellationToken = default)
             => _dbContext.AncillaryPricings
-                .Include(pricing => pricing.PriceLines)
+                .Include(pricing => pricing.Rates)
+                .ThenInclude(rate => rate.Components)
                 .FirstOrDefaultAsync(pricing => pricing.Id == id, cancellationToken);
 
         public Task<AncillaryPricing?> FindActiveAsync(long ancillaryProvisionId, CancellationToken cancellationToken = default)
             => _dbContext.AncillaryPricings
-                .Include(pricing => pricing.PriceLines)
+                .Include(pricing => pricing.Rates)
+                .ThenInclude(rate => rate.Components)
                 .FirstOrDefaultAsync(
                     pricing => pricing.AncillaryProvisionId == ancillaryProvisionId && pricing.Status == PricingStatus.Active,
                     cancellationToken);
@@ -36,7 +38,8 @@ namespace AeroTech.Ancillary.Persistence.AncillaryPricingAggregate
             IReadOnlyCollection<long> serviceDefinitionIds,
             CancellationToken cancellationToken = default)
             => await _dbContext.AncillaryPricings
-                .Include(pricing => pricing.PriceLines)
+                .Include(pricing => pricing.Rates)
+                .ThenInclude(rate => rate.Components)
                 .Where(pricing => pricing.PricingUnit == null
                                   && _dbContext.AncillaryProvisions.Any(
                                       provision => provision.Id == pricing.AncillaryProvisionId

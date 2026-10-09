@@ -14,7 +14,14 @@ namespace AeroTech.Ancillary.Application.AcceptanceTests.Migration;
 
 public class V121LegacyChainMigrationAcceptanceTests : IAsyncLifetime
 {
+    private const string LegacyJoins =
+        "SELECT CONCAT('season=window:', COUNT(*)) AS Value FROM [Ancillary].[ProvisionDayTimeRestrictions] AS legacy JOIN [Ancillary].[ProvisionDayTimeWindows] AS migrated ON migrated.[Id] = legacy.[Id] WHERE legacy.[AncillaryProvisionId] = 9201 " +
+        "UNION ALL SELECT CONCAT('season=period:', COUNT(*)) FROM [Ancillary].[ProvisionSeasonalPeriods] AS legacy JOIN [Ancillary].[ProvisionPermittedTravelPeriods] AS migrated ON migrated.[Id] = legacy.[Id] " +
+        "AND migrated.[StartDate] = legacy.[StartDate] AND migrated.[EndDate] = legacy.[EndDate] WHERE legacy.[AncillaryProvisionId] = 9201";
+
     private string[] _legacyBefore = [];
+    private string[] _legacyAfter = [];
+    private List<string> _legacyJoinsAfter = [];
 
     private readonly TestDatabase _database = new();
     private readonly FixedClock _clock = new();
@@ -98,6 +105,11 @@ public class V121LegacyChainMigrationAcceptanceTests : IAsyncLifetime
         _legacyBefore = await LegacyRowsAsync();
 
         await _database.InitializeAsync(LegacySeeds.StockCapacityCommand, LegacySeeds.StockCapacityQuery);
+
+        _legacyAfter = await LegacyRowsAsync();
+        _legacyJoinsAfter = await RowsAsync(LegacyJoins);
+
+        await MigrateAsync(null, null);
     }
 
     private async Task<string[]> LegacyRowsAsync()
@@ -116,7 +128,7 @@ public class V121LegacyChainMigrationAcceptanceTests : IAsyncLifetime
     public async Task V121_M04_M06_a_v11_database_migrated_through_v12_to_v121_keeps_every_selector_price_line_status_and_row_identity()
     {
         Assert.Equal(30, _legacyBefore.Length);
-        Assert.Equal(_legacyBefore, await LegacyRowsAsync());
+        Assert.Equal(_legacyBefore, _legacyAfter);
         Assert.Contains(V121Command, await RowsAsync("SELECT [MigrationId] AS Value FROM [dbo].[__CommandsMigrationHistory]"));
         Assert.Contains(V121Query, await RowsAsync("SELECT [MigrationId] AS Value FROM [dbo].[__QueriesMigrationHistory]"));
         Assert.Empty(await ParityDifferencesAsync());
@@ -159,10 +171,7 @@ public class V121LegacyChainMigrationAcceptanceTests : IAsyncLifetime
             stored.PassengerEligibility.PassengerTypes.OrderBy(row => row.Id).Select(row => row.Id).Concat(stored.DayTimeApplication.Windows.OrderBy(row => row.Id).Select(row => row.Id)));
         Assert.Equal(
             new[] { "season=window:2", "season=period:1" },
-            await RowsAsync(
-                "SELECT CONCAT('season=window:', COUNT(*)) AS Value FROM [Ancillary].[ProvisionDayTimeRestrictions] AS legacy JOIN [Ancillary].[ProvisionDayTimeWindows] AS migrated ON migrated.[Id] = legacy.[Id] WHERE legacy.[AncillaryProvisionId] = 9201 " +
-                "UNION ALL SELECT CONCAT('season=period:', COUNT(*)) FROM [Ancillary].[ProvisionSeasonalPeriods] AS legacy JOIN [Ancillary].[ProvisionPermittedTravelPeriods] AS migrated ON migrated.[Id] = legacy.[Id] " +
-                "AND migrated.[StartDate] = legacy.[StartDate] AND migrated.[EndDate] = legacy.[EndDate] WHERE legacy.[AncillaryProvisionId] = 9201"));
+            _legacyJoinsAfter);
 
         var statuses = new List<string>();
 
@@ -177,15 +186,16 @@ public class V121LegacyChainMigrationAcceptanceTests : IAsyncLifetime
 
         var pricing = await RequestAsync(scope => scope.GetPricingById.ExecuteAsync(FullRule));
 
-        Assert.Equal((FullRule, FullRule, 1, Eur, "EUR", "Item", "Active"), (pricing.Id, pricing.AncillaryProvisionId, pricing.Version, pricing.CurrencyId, pricing.Currency, pricing.FeeApplicationUnit!.Name, pricing.Status.Name));
+        Assert.Equal((FullRule, FullRule, 1, Eur, "EUR", "Item", "Active"), (pricing.Id, pricing.AncillaryProvisionId, pricing.Version, pricing.CurrencyId, pricing.Currency, pricing.Rates.Single().Components.Single(component => component.Category.Name == "Fee").FeeApplicationUnit!.Name, pricing.Status.Name));
         Assert.Null(pricing.PricingUnit);
         Assert.Equal(new long[] { 9301, 9302, 9303 }, pricing.PriceLines.Select(line => line.Id));
         Assert.Equal((30m, 2.7m, 1.05m, 33.75m), pricing.Rates.Select(rate => (rate.BaseAmount, rate.TaxAmount, rate.FeeAmount, rate.TotalAmount)).Single());
         Assert.Equal(
             new[] { "155 22.00", "47 65.74", "70 15000000.00" },
             await RowsAsync(
-                "SELECT CONCAT(pricing.[CurrencyId], ' ', SUM(line.[Amount])) AS Value FROM [Ancillary].[AncillaryPricingLines] AS line " +
-                "JOIN [Ancillary].[AncillaryPricings] AS pricing ON pricing.[Id] = line.[AncillaryPricingId] GROUP BY pricing.[CurrencyId] ORDER BY 1"));
+                "SELECT CONCAT(money.[CurrencyId], ' ', CAST(SUM(money.[Amount]) AS decimal(18,2))) AS Value FROM (" +
+                "SELECT [CurrencyId], [BaseAmount] AS [Amount] FROM [Ancillary].[AncillaryPricingRates] UNION ALL SELECT [CurrencyId], [Amount] FROM [Ancillary].[AncillaryPriceComponents]) AS money " +
+                "GROUP BY money.[CurrencyId] ORDER BY 1"));
         Assert.Empty((await RequestAsync(scope => scope.GetPricingsPaginated.ExecuteAsync(
             new BackofficeGetAncillaryPricingsPaginatedQuery { AncillaryProvisionId = FreeRule }))).Results);
 
@@ -202,6 +212,28 @@ public class V121LegacyChainMigrationAcceptanceTests : IAsyncLifetime
         Assert.Equal(
             new[] { "ConvertedToDayTimeWindow 12", "MergedIntoPermittedPeriod 1" },
             await RowsAsync("SELECT CONCAT([Outcome], ' ', COUNT(*)) AS Value FROM [Ancillary].[ProvisionRuleMigrationAudit] GROUP BY [Outcome] ORDER BY 1"));
+    }
+
+    [Theory]
+    [InlineData("Ancillary")]
+    [InlineData("ReadModel")]
+    public async Task PR23_every_legacy_flat_price_keeps_its_currency_and_its_base_components_and_total_after_the_migration(string schema)
+    {
+        Assert.Equal(
+            new[]
+            {
+                "9201 47 30.00 3.75 33.75", "9202 70 15000000.00 0.00 15000000.00", "9204 155 22.00 0.00 22.00", "9205 47 9.99 1.00 10.99", "9206 47 12.00 0.00 12.00",
+                "9207 47 9.00 0.00 9.00"
+            },
+            await RowsAsync(
+                "SELECT CONCAT(priced.[AncillaryPricingId], ' ', priced.[CurrencyId], ' ', CAST(priced.[BaseAmount] AS decimal(18,2)), ' ', CAST(priced.[Components] AS decimal(18,2)), ' ', " +
+                "CAST(priced.[BaseAmount] + priced.[Components] AS decimal(18,2))) AS Value FROM (" +
+                $"SELECT rate.[AncillaryPricingId], rate.[CurrencyId], rate.[BaseAmount], ISNULL((SELECT SUM(component.[Amount]) FROM [{schema}].[AncillaryPriceComponents] AS component " +
+                $"WHERE component.[AncillaryPricingRateId] = rate.[Id] AND component.[CurrencyId] = rate.[CurrencyId]), 0) AS [Components] FROM [{schema}].[AncillaryPricingRates] AS rate) AS priced " +
+                "ORDER BY priced.[AncillaryPricingId]"));
+        Assert.Equal(
+            new[] { "line 9301 9201 1  Extra bag 30.00  ", "line 9302 9201 2 VAT Value added tax 2.70 98 1", "line 9303 9201 3 HDL Handling 1.05  " },
+            _legacyBefore.Where(row => row.StartsWith("line 930", StringComparison.Ordinal) && row.Contains(" 9201 ", StringComparison.Ordinal)));
     }
 
     [Fact]
@@ -235,6 +267,14 @@ public class V121LegacyChainMigrationAcceptanceTests : IAsyncLifetime
         Assert.Equal("FlightDeparture", (await RequestAsync(scope => scope.GetProvisionById.ExecuteAsync(FullRule))).ServiceDateBasis!.Name);
         await RefusedAsync(16214, 409, scope => scope.AssignServiceDateBasis.AssignAsync(new TestAssignServiceDateBasisCommand(BagDefinition, ServiceDateBasis.FlightDeparture)));
         await RefusedAsync(16212, 409, scope => scope.AssignServiceDateBasis.AssignAsync(new TestAssignServiceDateBasisCommand(BagDefinition, ServiceDateBasis.ServiceStart)));
+
+        await RefusedAsync(16316, 409, scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(DraftRule, DraftRule)));
+        await RequestAsync(scope => scope.ChangeProvision.ChangeAsync(Change(
+            DraftRule,
+            Provision(BagDefinition, 20, coverageScope: ServiceCoverageScope.Journey, quantityUnit: AncillaryQuantityUnit.Piece, applicationType: ProvisionApplicationType.Baggage) with
+            {
+                BaggageApplication = Baggage(23m)
+            })));
 
         var published = await RequestAsync(scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(DraftRule, DraftRule)));
 
@@ -271,6 +311,9 @@ public class V121LegacyChainMigrationAcceptanceTests : IAsyncLifetime
         await RefusedAsync(16213, 409, scope => scope.ActivateServiceDefinition.ActivateAsync(new TestActivateServiceDefinitionCommand(SimDefinition)));
         await RequestAsync(scope => scope.AssignServiceDateBasis.AssignAsync(new TestAssignServiceDateBasisCommand(SimDefinition, ServiceDateBasis.Activation)));
         await RequestAsync(scope => scope.ActivateServiceDefinition.ActivateAsync(new TestActivateServiceDefinitionCommand(SimDefinition)));
+
+        await RefusedAsync(16316, 409, scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(SimRule, SimRule)));
+        await RequestAsync(scope => scope.ChangeProvision.ChangeAsync(Change(SimRule, Provision(SimDefinition, 10))));
 
         Assert.Equal(
             ProvisionStatus.Active,

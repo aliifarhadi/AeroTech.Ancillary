@@ -59,6 +59,7 @@ public static class M1Fixtures
             serviceDefinitionId,
             sequence,
             coverageScope,
+            PurchaseStage.Both,
             QuantityRule.Create(AncillaryQuantityUnit.Each, minQuantity, maxQuantity),
             ProvisionApplicationType.Standard,
             CommercialOutcome.Create(disposition, disposition == CommercialDisposition.Paid, false),
@@ -73,15 +74,17 @@ public static class M1Fixtures
         long id = 701,
         long provisionId = 501,
         FeeApplicationUnit feeApplicationUnit = FeeApplicationUnit.Item,
-        IReadOnlyList<AncillaryPricingLineArgs>? priceLines = null)
+        IReadOnlyList<FiledLine>? priceLines = null)
         => AncillaryPricing.Define(
             id,
             provisionId,
             PricingUnit.PerPassenger,
             1,
-            Currency,
-            feeApplicationUnit,
-            priceLines ?? [new AncillaryPricingLineArgs(null, null, null, AncillaryPriceLineCategory.Ancillary, null, "Lounge access", null, null, 2500000m)],
+            FiledPrice.ToRates(
+                priceLines ?? [new FiledLine(null, null, null, AncillaryPriceLineCategory.Ancillary, null, "Lounge access", null, null, 2500000m)],
+                Currency,
+                feeApplicationUnit),
+            FiledPrice.Scales,
             new SequentialIdGenerator(),
             Now);
 

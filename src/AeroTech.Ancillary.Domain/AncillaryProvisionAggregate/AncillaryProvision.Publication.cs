@@ -68,5 +68,14 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             if (DayTimeApplication is { IsUnsatisfiable: true })
                 throw ExceptionFactory.ProvisionRuleUnreachable(nameof(DayTimeApplication));
         }
+
+        private void EnsureDescriptorsAreStated()
+        {
+            if (PurchaseStage == PurchaseStage.LegacyUnspecified)
+                throw ExceptionFactory.ProvisionPurchaseStageRequired();
+
+            if (BaggageApplication is { ChargeKind: null })
+                throw ExceptionFactory.ProvisionBaggageChargeKindRequired();
+        }
     }
 }

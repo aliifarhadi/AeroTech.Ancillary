@@ -65,6 +65,7 @@ public static class P1Fixtures
             1001,
             sequence,
             ServiceCoverageScope.Sector,
+            PurchaseStage.Both,
             QuantityRule.Create(quantityUnit, 1, 1),
             applicationType,
             CommercialOutcome.Create(disposition, disposition == CommercialDisposition.Paid, false),
@@ -79,6 +80,7 @@ public static class P1Fixtures
         => provision.Change(
             provision.Sequence,
             provision.CoverageScope,
+            provision.PurchaseStage,
             provision.Quantity,
             provision.ApplicationType,
             provision.Outcome,
@@ -106,7 +108,9 @@ public static class P1Fixtures
             WeightUnit.Kg,
             BaggageTravelApplication.AllSectors,
             BaggagePurchaseApplication.Prepaid,
-            null);
+            null,
+            BaggageChargeKind.ExtraPiece,
+            BaggageAllowanceConcept.Piece);
 
     public static ProvisionDatePeriodArgs Period(DateOnly startDate, DateOnly endDate) => new(startDate, endDate);
 
@@ -126,21 +130,21 @@ public static class P1Fixtures
 
     public static AncillaryPricing Pricing(
         PricingUnit pricingUnit,
-        IReadOnlyList<AncillaryPricingLineArgs> priceLines,
+        IReadOnlyList<FiledLine> priceLines,
         FeeApplicationUnit? feeApplicationUnit = FeeApplicationUnit.Item,
         long id = 7001,
         int version = 1,
         SequentialIdGenerator? ids = null)
-        => AncillaryPricing.Define(id, 5001, pricingUnit, version, Eur, feeApplicationUnit, priceLines, ids ?? new SequentialIdGenerator(), Now);
+        => AncillaryPricing.Define(id, 5001, pricingUnit, version, FiledPrice.ToRates(priceLines, Eur, feeApplicationUnit), FiledPrice.Scales, ids ?? new SequentialIdGenerator(), Now);
 
-    public static AncillaryPricingLineArgs Base(
+    public static FiledLine Base(
         decimal amount,
         PassengerTypeCode? passengerTypeCode = null,
         int? ageFromInclusive = null,
         int? ageToExclusive = null)
         => new(passengerTypeCode, ageFromInclusive, ageToExclusive, AncillaryPriceLineCategory.Ancillary, null, "Service", null, null, amount);
 
-    public static AncillaryPricingLineArgs Component(
+    public static FiledLine Component(
         AncillaryPriceLineCategory category,
         string? code,
         decimal amount,

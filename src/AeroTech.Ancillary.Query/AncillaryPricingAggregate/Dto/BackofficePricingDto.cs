@@ -7,35 +7,35 @@ namespace AeroTech.Ancillary.Query.AncillaryPricingAggregate.Dto
         long AncillaryProvisionId,
         int Version,
         EnumValueDto? PricingUnit,
-        int CurrencyId,
-        string? Currency,
-        EnumValueDto? FeeApplicationUnit,
         EnumValueDto Status,
         DateTimeOffset CreatedAt,
         DateTimeOffset? ActivatedAt,
         DateTimeOffset? SuspendedAt,
         DateTimeOffset? RetiredAt,
-        IReadOnlyList<BackofficePricingLineDto> PriceLines,
+        IReadOnlyList<string> Currencies,
         IReadOnlyList<BackofficePricingRateDto> Rates);
 
-    public sealed record BackofficePricingLineDto(
+    public sealed record MoneyDto(decimal Amount, int CurrencyId, string? Currency);
+
+    public sealed record BackofficePricingRateDto(
         long Id,
         EnumValueDto? PassengerTypeCode,
         int? AgeFromInclusive,
         int? AgeToExclusive,
+        MoneyDto BasePrice,
+        IReadOnlyList<BackofficePriceComponentDto> Components,
+        MoneyDto UnitTotal,
+        bool IsUnitTotalComplete,
+        IReadOnlyList<BackofficePriceComponentDto> UnappliedFees);
+
+    public sealed record BackofficePriceComponentDto(
+        long Id,
         EnumValueDto Category,
         string? Code,
         string? Name,
         int? CountryId,
         int? StationAirportId,
-        decimal Amount);
-
-    public sealed record BackofficePricingRateDto(
-        EnumValueDto? PassengerTypeCode,
-        int? AgeFromInclusive,
-        int? AgeToExclusive,
-        decimal BaseAmount,
-        decimal TaxAmount,
-        decimal FeeAmount,
-        decimal TotalAmount);
+        MoneyDto Amount,
+        EnumValueDto? FeeApplicationUnit,
+        bool? TaxIncludedInSource);
 }

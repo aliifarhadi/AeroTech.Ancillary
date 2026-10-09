@@ -19,11 +19,15 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models
 
         public ServiceCoverageScope CoverageScope { get; set; }
 
+        public PurchaseStage PurchaseStage { get; set; }
+
         public int? AdvancePurchasePeriod { get; set; }
 
         public TimeUnit? AdvancePurchaseUnit { get; set; }
 
         public bool AdvancePurchaseSameTimeAsTicketed { get; set; }
+
+        public int? AdvancePurchaseMaximumPeriod { get; set; }
 
         public AncillaryQuantityUnit QuantityUnit { get; set; }
 
@@ -48,6 +52,10 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models
         public BaggagePurchaseApplication? BaggagePurchaseApplication { get; set; }
 
         public BaggageRuleDeference? BaggageRuleDeference { get; set; }
+
+        public BaggageChargeKind? BaggageChargeKind { get; set; }
+
+        public BaggageAllowanceConcept? BaggageAllowanceConcept { get; set; }
 
         public CommercialDisposition Disposition { get; set; }
 

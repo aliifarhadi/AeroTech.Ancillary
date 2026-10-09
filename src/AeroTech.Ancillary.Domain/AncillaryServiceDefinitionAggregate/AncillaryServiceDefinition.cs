@@ -230,7 +230,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
                 CommercialName = CommercialName,
                 Description = Description,
                 Document = DocumentDefinition.Create(Document.Type, Document.Rfic, Document.Rfisc),
-                Booking = BookingDefinition.Create(Booking.Method, Booking.SsrCode, Booking.SsimCode),
+                Booking = BookingDefinition.Create(Booking.Method, Booking.SsrCode, Booking.SsimCode, Booking.ConfirmationRequirement),
                 SalesEffectiveFrom = SalesEffectiveFrom,
                 SalesDiscontinueOn = SalesDiscontinueOn,
                 Status = ServiceDefinitionStatus.Draft,

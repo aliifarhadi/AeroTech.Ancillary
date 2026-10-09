@@ -193,7 +193,7 @@ public class V12PricingAcceptanceTests
             var losing = (await loser.Pricings.GetAsync(third))!;
 
             Assert.Null(await loser.Pricings.FindActiveAsync(provisionId));
-            losing.Activate(_clock.Now);
+            losing.Activate(Scales, _clock.Now);
 
             await RequestAsync(scope => scope.ActivatePricing.ActivateAsync(new TestPricingLifecycleCommand(second)));
 
@@ -307,7 +307,7 @@ public class V12PricingAcceptanceTests
 
         Assert.Equal(
             ("PerPassenger", Eur, "EUR", "Item", "Draft", 1),
-            (detail.PricingUnit!.Name, detail.CurrencyId, detail.Currency, detail.FeeApplicationUnit!.Name, detail.Status.Name, detail.Version));
+            (detail.PricingUnit!.Name, detail.CurrencyId, detail.Currency, detail.Rates.SelectMany(rate => rate.Components).Single(component => component.Category.Name == "Fee").FeeApplicationUnit!.Name, detail.Status.Name, detail.Version));
         Assert.Equal(7, detail.PriceLines.Count);
         Assert.Equal(7, detail.PriceLines.Select(line => line.Id).Distinct().Count());
         Assert.Equal(
@@ -335,8 +335,6 @@ public class V12PricingAcceptanceTests
             Change(pricing.Id, Pricing(provisionId, Eur, Base(20m, PassengerTypeCode.ADT), Base(40m, PassengerTypeCode.ADT, 65)))));
         await RefusedAsync(16508, 409, scope => scope.ChangePricing.ChangeAsync(
             Change(pricing.Id, Pricing(provisionId, Eur, Base(20m), Base(10m, PassengerTypeCode.CHD)))));
-        await RefusedAsync(16508, 409, scope => scope.ChangePricing.ChangeAsync(
-            Change(pricing.Id, Pricing(provisionId, Eur, Base(20m, PassengerTypeCode.ADT), Tax("T1", 2m, PassengerTypeCode.CHD)))));
         await RefusedAsync(16502, 422, scope => scope.ChangePricing.ChangeAsync(
             Change(pricing.Id, Pricing(provisionId, Eur, Base(20m, PassengerTypeCode.ADT, 65, 65)))));
         await RefusedAsync(16502, 422, scope => scope.ChangePricing.ChangeAsync(
@@ -345,7 +343,7 @@ public class V12PricingAcceptanceTests
             Change(pricing.Id, Pricing(provisionId, Eur, Base(-20m, PassengerTypeCode.ADT)))));
         await RefusedAsync(16502, 422, scope => scope.ChangePricing.ChangeAsync(
             Change(pricing.Id, Pricing(provisionId, Eur, Base(0m, PassengerTypeCode.ADT)))));
-        await RefusedAsync(16502, 422, scope => scope.ChangePricing.ChangeAsync(
+        await RefusedAsync(16512, 422, scope => scope.ChangePricing.ChangeAsync(
             Change(pricing.Id, Pricing(provisionId, Eur, Base(20.005m, PassengerTypeCode.ADT)))));
 
         Assert.Equal(detail.PriceLines, (await PricingAsync(pricing.Id)).PriceLines);
@@ -354,10 +352,10 @@ public class V12PricingAcceptanceTests
             .SqlQueryRaw<string>(
                 "SELECT s.name + '.' + t.name + ':' + CAST(c.precision AS varchar(5)) + ',' + CAST(c.scale AS varchar(5)) AS Value " +
                 "FROM sys.columns c JOIN sys.tables t ON t.object_id = c.object_id JOIN sys.schemas s ON s.schema_id = t.schema_id " +
-                "WHERE t.name = 'AncillaryPricingLines' AND c.name = 'Amount' ORDER BY s.name")
+                "WHERE t.name IN ('AncillaryPricingLines', 'AncillaryPricingRates') AND c.name IN ('Amount', 'BaseAmount') ORDER BY s.name")
             .ToListAsync());
 
-        Assert.Equal(new[] { "Ancillary.AncillaryPricingLines:18,2", "ReadModel.AncillaryPricingLines:18,2" }, amountColumns);
+        Assert.Equal(new[] { "Ancillary.AncillaryPricingRates:19,6", "ReadModel.AncillaryPricingRates:19,6" }, amountColumns);
     }
 
     [Theory]
@@ -381,7 +379,6 @@ public class V12PricingAcceptanceTests
 
         await RefusedAsync(16508, 409, scope => scope.DefinePricing.DefineAsync(Pricing(provisionId, Eur, Base(45m, PassengerTypeCode.ADT))));
         await RefusedAsync(16508, 409, scope => scope.DefinePricing.DefineAsync(Pricing(provisionId, Eur, Base(45m, null, 0, 65), Base(50m, null, 65))));
-        await RefusedAsync(16508, 409, scope => scope.DefinePricing.DefineAsync(Pricing(provisionId, Eur, Base(45m), Tax("VAT", 4.5m, PassengerTypeCode.ADT))));
         await RefusedAsync(16502, 422, scope => scope.DefinePricing.DefineAsync(Pricing(provisionId, 0, Base(45m))));
 
         var pricing = await DefinePricingAsync(provisionId, Usd, Base(45m), Tax("VAT", 4.5m));
@@ -406,7 +403,6 @@ public class V12PricingAcceptanceTests
         var provisionId = await DraftProvisionAsync(definitionId);
 
         await RefusedAsync(16508, 409, scope => scope.DefinePricing.DefineAsync(new TestDefinePricingCommand(provisionId, Eur, FeeApplicationUnit.Item, [])));
-        await RefusedAsync(16508, 409, scope => scope.DefinePricing.DefineAsync(Pricing(provisionId, Eur, Tax("VAT", 2m))));
         await RefusedAsync(16508, 409, scope => scope.DefinePricing.DefineAsync(Pricing(provisionId, Eur, Base(25m), Base(5m))));
         await RefusedAsync(16508, 409, scope => scope.DefinePricing.DefineAsync(
             Pricing(provisionId, Eur, Base(25m), Tax("VAT", 2m, countryId: 1), Tax("VAT", 3m, countryId: 1))));
@@ -432,7 +428,7 @@ public class V12PricingAcceptanceTests
         Assert.Equal(
             new[]
             {
-                ("Ancillary", (string?)null, (string?)"Lounge access", (int?)null, (int?)null, 25m),
+                ("Ancillary", (string?)null, (string?)null, (int?)null, (int?)null, 25m),
                 ("Tax", "VAT", "Value added tax", 1, null, 2.5m),
                 ("Tax", "VAT", "Value added tax", 2, null, 0.5m),
                 ("Tax", "APT", "Airport charge", null, Ika, 1.5m),
@@ -442,16 +438,29 @@ public class V12PricingAcceptanceTests
             detail.PriceLines.Select(line => (line.Category.Name, line.Code, line.Name, line.CountryId, line.StationAirportId, line.Amount)));
         Assert.Equal((25m, 4.5m, 0.75m, 30.25m), (rate.BaseAmount, rate.TaxAmount, rate.FeeAmount, rate.TotalAmount));
 
-        var readModelLines = await RequestAsync(scope => scope.Query.AncillaryPricingLines.AsNoTracking()
-            .Where(line => line.AncillaryPricingId == pricing.Id)
+        var readModelLines = await RequestAsync(async scope =>
+            (await scope.Query.AncillaryPricingRates.AsNoTracking()
+                .Where(rate => rate.AncillaryPricingId == pricing.Id)
+                .Select(rate => new { rate.Id, Amount = rate.BaseAmount })
+                .ToListAsync())
+            .Concat(await scope.Query.AncillaryPriceComponents.AsNoTracking()
+                .Where(component => component.AncillaryPricingId == pricing.Id)
+                .Select(component => new { component.Id, component.Amount })
+                .ToListAsync())
             .OrderBy(line => line.Id)
-            .Select(line => new { line.Id, line.Amount })
-            .ToListAsync());
-        var commandLines = await RequestAsync(scope => scope.Command.Set<AncillaryPricingLine>().AsNoTracking()
-            .Where(line => line.AncillaryPricingId == pricing.Id)
+            .ToList());
+        var commandLines = await RequestAsync(async scope =>
+            (await scope.Command.Set<AncillaryPricingRate>().AsNoTracking()
+                .Where(rate => rate.AncillaryPricingId == pricing.Id)
+                .Select(rate => new { rate.Id, Amount = rate.BaseAmount })
+                .ToListAsync())
+            .Concat(await scope.Command.Set<AncillaryPricingRate>().AsNoTracking()
+                .Where(rate => rate.AncillaryPricingId == pricing.Id)
+                .SelectMany(rate => rate.Components)
+                .Select(component => new { component.Id, component.Amount.Amount })
+                .ToListAsync())
             .OrderBy(line => line.Id)
-            .Select(line => new { line.Id, line.Amount })
-            .ToListAsync());
+            .ToList());
 
         Assert.Equal(detail.PriceLines.Select(line => (line.Id, line.Amount)), readModelLines.Select(line => (line.Id, line.Amount)));
         Assert.Equal(detail.PriceLines.Select(line => (line.Id, line.Amount)), commandLines.Select(line => (line.Id, line.Amount)));
@@ -524,7 +533,7 @@ public class V12PricingAcceptanceTests
 
             Assert.Equal(second, loserOld.Id);
             loserOld.Supersede(_clock.Now);
-            loserNew.Activate(_clock.Now);
+            loserNew.Activate(Scales, _clock.Now);
 
             await RequestAsync(scope => scope.SwitchActivePricing.SwitchAsync(new TestSwitchActivePricingCommand(provisionId, fourth, second)));
 

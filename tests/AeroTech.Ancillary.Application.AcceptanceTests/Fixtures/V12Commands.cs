@@ -18,13 +18,23 @@ public sealed record TestDefinePricingCommand(
     long AncillaryProvisionId,
     int CurrencyId,
     FeeApplicationUnit? FeeApplicationUnit,
-    IReadOnlyList<PricingLineInput> PriceLines) : IDefineAncillaryPricingCommand;
+    IReadOnlyList<PricingLineInput> PriceLines) : IDefineAncillaryPricingCommand
+{
+    public IReadOnlyList<PricingRateInput> Rates => FiledRates.Of(PriceLines, CurrencyId, FeeApplicationUnit);
+}
+
+public sealed record TestDefinePricingRatesCommand(long AncillaryProvisionId, IReadOnlyList<PricingRateInput> Rates) : IDefineAncillaryPricingCommand;
+
+public sealed record TestChangePricingRatesCommand(long PricingId, IReadOnlyList<PricingRateInput> Rates) : IChangeAncillaryPricingCommand;
 
 public sealed record TestChangePricingCommand(
     long PricingId,
     int CurrencyId,
     FeeApplicationUnit? FeeApplicationUnit,
-    IReadOnlyList<PricingLineInput> PriceLines) : IChangeAncillaryPricingCommand;
+    IReadOnlyList<PricingLineInput> PriceLines) : IChangeAncillaryPricingCommand
+{
+    public IReadOnlyList<PricingRateInput> Rates => FiledRates.Of(PriceLines, CurrencyId, FeeApplicationUnit);
+}
 
 public sealed record TestPricingLifecycleCommand(long PricingId)
     : IActivateAncillaryPricingCommand,
@@ -46,6 +56,8 @@ public sealed record TestAssignPricingUnitCommand(long ServiceDefinitionId, Pric
 public static class V12Commands
 {
     public const int Usd = 155;
+
+    public static readonly IReadOnlyDictionary<int, int> Scales = new Dictionary<int, int> { [47] = 2, [53] = 2, [70] = 0, [75] = 0, [82] = 3, [155] = 2 };
 
     public static TestDefinePricingCommand Pricing(long provisionId, int currencyId, params PricingLineInput[] priceLines)
         => new(provisionId, currencyId, FeeApplicationUnit.Item, priceLines);

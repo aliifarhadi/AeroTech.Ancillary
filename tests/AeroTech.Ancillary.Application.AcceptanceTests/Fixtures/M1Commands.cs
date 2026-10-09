@@ -57,7 +57,8 @@ public sealed record TestDefineProvisionCommand(
     ProvisionDayTimeApplicationInput? DayTimeApplication = null,
     ProvisionAdvancePurchaseInput? AdvancePurchase = null,
     ProvisionBaggageApplicationInput? BaggageApplication = null,
-    ProvisionSeatApplicationInput? SeatApplication = null) : IDefineAncillaryProvisionCommand;
+    ProvisionSeatApplicationInput? SeatApplication = null,
+    PurchaseStage PurchaseStage = PurchaseStage.Both) : IDefineAncillaryProvisionCommand;
 
 public sealed record TestActivateProvisionCommand(long ProvisionId) : IActivateAncillaryProvisionCommand;
 

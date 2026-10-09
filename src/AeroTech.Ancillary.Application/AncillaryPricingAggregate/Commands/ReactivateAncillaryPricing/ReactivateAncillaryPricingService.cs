@@ -4,6 +4,7 @@ using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Services;
 using AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Contracts;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Contracts;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Contracts;
+using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Framework.Core.Domain.Repository;
 
@@ -14,6 +15,7 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.Reac
         private readonly IAncillaryPricingRepository _pricings;
         private readonly IAncillaryProvisionRepository _provisions;
         private readonly IAncillaryServiceDefinitionRepository _definitions;
+        private readonly ICurrencyReference _currencies;
         private readonly IAncillaryPricingQueryDbSynchronizer _synchronizer;
         private readonly IUnitOfWork _unitOfWork;
 
@@ -21,12 +23,14 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.Reac
             IAncillaryPricingRepository pricings,
             IAncillaryProvisionRepository provisions,
             IAncillaryServiceDefinitionRepository definitions,
+            ICurrencyReference currencies,
             IAncillaryPricingQueryDbSynchronizer synchronizer,
             IUnitOfWork unitOfWork)
         {
             _pricings = pricings;
             _provisions = provisions;
             _definitions = definitions;
+            _currencies = currencies;
             _synchronizer = synchronizer;
             _unitOfWork = unitOfWork;
         }
@@ -38,7 +42,7 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.Reac
             var provision = await _provisions.GetAsync(pricing.AncillaryProvisionId, cancellationToken)
                             ?? throw ExceptionFactory.PricingProvisionNotFound();
 
-            pricing.Reactivate();
+            pricing.Reactivate(await _currencies.FindDecimalPlacesAsync(pricing, cancellationToken));
 
             var definition = await _definitions.GetAsync(provision.ServiceDefinitionId, cancellationToken)
                              ?? throw ExceptionFactory.ProvisionServiceDefinitionNotFound();

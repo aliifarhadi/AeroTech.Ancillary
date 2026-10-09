@@ -11,6 +11,8 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Ch
 
         ServiceCoverageScope CoverageScope { get; }
 
+        PurchaseStage PurchaseStage { get; }
+
         ProvisionQuantityInput Quantity { get; }
 
         ProvisionApplicationType ApplicationType { get; }

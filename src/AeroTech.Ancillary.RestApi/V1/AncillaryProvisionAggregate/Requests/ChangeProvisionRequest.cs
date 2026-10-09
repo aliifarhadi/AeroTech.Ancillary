@@ -6,6 +6,7 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryProvisionAggregate.Requests
     public sealed record ChangeProvisionRequest(
         int Sequence,
         ServiceCoverageScope CoverageScope,
+        PurchaseStage PurchaseStage,
         ProvisionQuantityInput Quantity,
         ProvisionApplicationType ApplicationType,
         ProvisionOutcomeInput Outcome,

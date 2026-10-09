@@ -48,7 +48,8 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
     public sealed record ProvisionAdvancePurchaseInput(
         int MinimumPeriod,
         TimeUnit Unit,
-        bool SameTimeAsTicketed = false);
+        bool SameTimeAsTicketed = false,
+        int? MaximumPeriod = null);
 
     public sealed record ProvisionBaggageApplicationInput(
         int? FreePieces,
@@ -58,7 +59,9 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
         WeightUnit WeightUnit,
         BaggageTravelApplication? TravelApplication,
         BaggagePurchaseApplication PurchaseApplication,
-        BaggageRuleDeference? RuleDeference);
+        BaggageRuleDeference? RuleDeference,
+        BaggageChargeKind? ChargeKind = null,
+        BaggageAllowanceConcept? AllowanceConcept = null);
 
     public sealed record ProvisionSeatApplicationInput(
         IReadOnlyList<string>? SeatNumbers = null,

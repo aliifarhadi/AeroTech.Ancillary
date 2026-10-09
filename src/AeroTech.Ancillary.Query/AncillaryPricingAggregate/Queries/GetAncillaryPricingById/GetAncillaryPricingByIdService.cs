@@ -17,17 +17,21 @@ namespace AeroTech.Ancillary.Query.AncillaryPricingAggregate.Queries.GetAncillar
                               .AsNoTracking()
                               .FirstOrDefaultAsync(row => row.Id == pricingId, cancellationToken)
                           ?? throw ExceptionFactory.PricingNotFound();
-            var priceLines = await _dbContext.AncillaryPricingLines
+            var rates = await _dbContext.AncillaryPricingRates
                 .AsNoTracking()
-                .Where(line => line.AncillaryPricingId == pricingId)
+                .Where(rate => rate.AncillaryPricingId == pricingId)
                 .ToListAsync(cancellationToken);
-            var currency = await _dbContext.Currencies
+            var components = await _dbContext.AncillaryPriceComponents
                 .AsNoTracking()
-                .Where(row => row.Id == pricing.CurrencyId)
-                .Select(row => row.Code)
-                .FirstOrDefaultAsync(cancellationToken);
+                .Where(component => component.AncillaryPricingId == pricingId)
+                .ToListAsync(cancellationToken);
+            var currencyIds = rates.Select(rate => rate.CurrencyId).Distinct().ToList();
+            var currencies = await _dbContext.Currencies
+                .AsNoTracking()
+                .Where(row => currencyIds.Contains(row.Id))
+                .ToDictionaryAsync(row => row.Id, row => row.Code, cancellationToken);
 
-            return AncillaryPricingMapper.ToBackofficePricing(pricing, priceLines, currency);
+            return AncillaryPricingMapper.ToBackofficePricing(pricing, rates, components, currencies);
         }
     }
 }

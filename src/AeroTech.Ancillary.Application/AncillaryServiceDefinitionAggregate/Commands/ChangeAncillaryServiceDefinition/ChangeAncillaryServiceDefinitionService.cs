@@ -7,6 +7,7 @@ using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.ValueObjects
 using AeroTech.Ancillary.Domain.SupplierAggregate.Contracts;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Framework.Core.Domain.Repository;
+using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ChangeAncillaryServiceDefinition
 {
@@ -65,7 +66,7 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
                 command.CommercialName,
                 command.Description,
                 DocumentDefinition.Create(command.Document.Type, command.Document.Rfic, command.Document.Rfisc),
-                BookingDefinition.Create(command.Booking.Method, command.Booking.SsrCode, command.Booking.SsimCode),
+                BookingDefinition.Create(command.Booking.Method, command.Booking.SsrCode, command.Booking.SsimCode, command.Booking.ConfirmationRequirement ?? ConfirmationRequirement.Immediate),
                 command.SalesEffectiveFrom,
                 command.SalesDiscontinueOn);
 

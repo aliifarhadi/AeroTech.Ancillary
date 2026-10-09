@@ -50,6 +50,8 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Models
 
         public string? BookingSsimCode { get; set; }
 
+        public ConfirmationRequirement BookingConfirmationRequirement { get; set; }
+
         public DateOnly? SalesEffectiveFrom { get; set; }
 
         public DateOnly? SalesDiscontinueOn { get; set; }
