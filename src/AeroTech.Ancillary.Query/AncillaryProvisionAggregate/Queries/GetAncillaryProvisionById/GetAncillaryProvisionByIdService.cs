@@ -17,10 +17,10 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                                 .AsNoTracking()
                                 .FirstOrDefaultAsync(row => row.Id == provisionId, cancellationToken)
                             ?? throw ExceptionFactory.ProvisionNotFound();
-            var serviceDateBasis = await _dbContext.AncillaryServiceDefinitions
+            var definition = await _dbContext.AncillaryServiceDefinitions
                 .AsNoTracking()
                 .Where(definition => definition.Id == provision.ServiceDefinitionId)
-                .Select(definition => definition.ServiceDateBasis)
+                .Select(definition => new { definition.ServiceDateBasis, definition.Profile, definition.VariantCode })
                 .FirstOrDefaultAsync(cancellationToken);
             var rows = new AncillaryProvisionRuleRows(
                 await _dbContext.AncillaryProvisionPassengerTypes
@@ -159,7 +159,7 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                     .OrderBy(row => row.Id)
                     .ToListAsync(cancellationToken));
 
-            return AncillaryProvisionMapper.ToBackofficeProvision(provision, serviceDateBasis, rows);
+            return AncillaryProvisionMapper.ToBackofficeProvision(provision, definition?.ServiceDateBasis, definition?.Profile, definition?.VariantCode, rows);
         }
     }
 }

@@ -37,6 +37,9 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
             var definition = await _definitions.GetAsync(command.ServiceDefinitionId, cancellationToken)
                              ?? throw ExceptionFactory.ServiceDefinitionNotFound();
 
+            if (definition.Profile is { } profile && profile != command.Profile)
+                throw ExceptionFactory.ServiceDefinitionBelongsToAnotherProfile(profile, command.Profile);
+
             var supplier = await _suppliers.GetAsync(command.SupplierId, cancellationToken)
                            ?? throw ExceptionFactory.ServiceDefinitionSupplierNotFound();
 

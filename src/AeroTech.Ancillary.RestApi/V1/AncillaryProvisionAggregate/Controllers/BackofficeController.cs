@@ -5,6 +5,8 @@ using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddPro
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionPermittedTravelPeriod.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeAncillaryProvision.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionAdvancePurchase.Backoffice;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionAirportServiceRule.Backoffice;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionAssistedTravelRule.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionBaggageApplication.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionBlackoutPeriod.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionDayTimeApplication.Backoffice;
@@ -13,6 +15,7 @@ using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Change
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionFlightApplication.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionGeography.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionPassengerEligibility.Backoffice;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionPetRule.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionPermittedTravelPeriod.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionSalesRestrictions.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionSeatApplication.Backoffice;
@@ -223,6 +226,33 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryProvisionAggregate.Controllers
             CancellationToken cancellationToken)
             => Ok(await _mediator.Send(
                 new BackofficeChangeProvisionSeatApplicationCommand(provisionId, request.SeatApplication),
+                cancellationToken));
+
+        [HttpPut("{provisionId:long}/PetRule")]
+        public async Task<IActionResult> ChangePetRule(
+            long provisionId,
+            [FromBody] ChangeProvisionPetRuleRequest request,
+            CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(
+                new BackofficeChangeProvisionPetRuleCommand(provisionId, request.PetRule),
+                cancellationToken));
+
+        [HttpPut("{provisionId:long}/AssistedTravelRule")]
+        public async Task<IActionResult> ChangeAssistedTravelRule(
+            long provisionId,
+            [FromBody] ChangeProvisionAssistedTravelRuleRequest request,
+            CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(
+                new BackofficeChangeProvisionAssistedTravelRuleCommand(provisionId, request.AssistedTravelRule),
+                cancellationToken));
+
+        [HttpPut("{provisionId:long}/AirportServiceRule")]
+        public async Task<IActionResult> ChangeAirportServiceRule(
+            long provisionId,
+            [FromBody] ChangeProvisionAirportServiceRuleRequest request,
+            CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(
+                new BackofficeChangeProvisionAirportServiceRuleCommand(provisionId, request.AirportServiceRule),
                 cancellationToken));
 
         [HttpPost("{provisionId:long}/TravelDate/PermittedPeriods")]

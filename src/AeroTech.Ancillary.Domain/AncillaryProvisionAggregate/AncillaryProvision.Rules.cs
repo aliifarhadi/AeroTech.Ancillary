@@ -1,5 +1,6 @@
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities;
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Framework.Core.ServiceContracts;
 
@@ -102,6 +103,38 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
                 FlightApplication?.Aircraft.Count ?? 0);
 
             SeatApplication = commit();
+        }
+
+        public void ChangePetRule(AncillaryServiceDefinition definition, ProvisionPetRuleArgs? petRule, IIdGenerator idGenerator)
+        {
+            EnsureDraft();
+            EnsureProfileRule(definition, petRule is not null && definition.Pet is null, nameof(PetRule));
+
+            PetRule = ProvisionPetRule.Plan(PetRule, Id, petRule, idGenerator)();
+        }
+
+        public void ChangeAssistedTravelRule(AncillaryServiceDefinition definition, ProvisionAssistedTravelRuleArgs? assistedTravelRule, IIdGenerator idGenerator)
+        {
+            EnsureDraft();
+            EnsureProfileRule(definition, assistedTravelRule is not null && definition.AssistedTravel is null, nameof(AssistedTravelRule));
+
+            AssistedTravelRule = ProvisionAssistedTravelRule.Plan(AssistedTravelRule, Id, assistedTravelRule, idGenerator)();
+        }
+
+        public void ChangeAirportServiceRule(AncillaryServiceDefinition definition, ProvisionAirportServiceRuleArgs? airportServiceRule, IIdGenerator idGenerator)
+        {
+            EnsureDraft();
+            EnsureProfileRule(definition, airportServiceRule is not null && definition.AirportService is null, nameof(AirportServiceRule));
+
+            AirportServiceRule = ProvisionAirportServiceRule.Plan(AirportServiceRule, Id, airportServiceRule, idGenerator)();
+        }
+
+        private void EnsureProfileRule(AncillaryServiceDefinition definition, bool foreign, string rule)
+        {
+            Require(definition.Id == ServiceDefinitionId, nameof(ServiceDefinitionId));
+
+            if (foreign)
+                throw ExceptionFactory.ProvisionProfileRuleNotAllowed(rule, definition.VariantCode);
         }
 
         public ProvisionPermittedTravelPeriod AddPermittedTravelPeriod(ProvisionDatePeriodArgs period, IIdGenerator idGenerator)

@@ -332,10 +332,12 @@ public class V122VariantMatrixAcceptanceTests : IClassFixture<VariantMatrixCache
         var activeEdit = await RefusalAsync(scope => scope.ChangeServiceDefinition.ChangeAsync(Change(definitionId, definition.Command with { CommercialName = "Renamed" })));
         var revisionId = (await RequestAsync(scope => scope.ReviseServiceDefinition.ReviseAsync(new TestServiceDefinitionLifecycleCommand(definitionId)))).Id;
         var revision = await RequestAsync(scope => scope.GetServiceDefinitionById.ExecuteAsync(revisionId));
-        var other = V122Catalog.Cases.First(candidate =>
-            candidate.Code != code
-            && AncillaryVariant.Find(candidate.Code)!.PricingUnits.Contains(variant.PricingUnit)
-            && AncillaryVariant.Find(candidate.Code)!.ServiceDateBases.Contains(variant.ServiceDateBasis));
+        var other = V122Catalog.Cases
+            .Where(candidate => candidate.Code != code
+                                && AncillaryVariant.Find(candidate.Code)!.PricingUnits.Contains(variant.PricingUnit)
+                                && AncillaryVariant.Find(candidate.Code)!.ServiceDateBases.Contains(variant.ServiceDateBasis))
+            .OrderByDescending(candidate => candidate.Profile == variant.Profile)
+            .First();
         var drift = await RefusalAsync(scope => scope.ChangeServiceDefinition.ChangeAsync(Change(
             revisionId,
             V122Catalog.Define(other, definition.AirlineId, definition.SupplierId) with
@@ -504,7 +506,7 @@ public class V122VariantMatrixAcceptanceTests : IClassFixture<VariantMatrixCache
         Assert.Equal(16203, read.ActiveEdit);
         Assert.Equal(("Draft", 2), (read.Revision.Status.Name, read.Revision.Version));
         AssertTyped(authored, read.Revision);
-        Assert.Equal(16217, read.VariantDrift);
+        Assert.Equal(AncillaryVariant.All.Count(other => other.Profile == authored.Profile) > 1 ? 16217 : 16219, read.VariantDrift);
         Assert.Equal(new[] { $"{authored.Profile}=2" }, read.SpecificationRows);
         Assert.Equal($"{(int)authored.Profile}|{variant}|{(int)authored.Routing}|{(int)ServiceDefinitionStatus.Active}", read.ReadModelRow);
         Assert.Equal(

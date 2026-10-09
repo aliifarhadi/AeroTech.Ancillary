@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using AeroTech.Ancillary.Application.AcceptanceTests.Fixtures;
+using AeroTech.Messages.Ancillary.Enums;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -194,10 +195,8 @@ public class V12BoundaryAcceptanceTests
             "GET Backoffice/Suppliers/Paginated",
             "GET Backoffice/Suppliers/{supplierId:long}",
             "POST Backoffice/Suppliers/{supplierId:long}/Retire",
-            "POST Backoffice/AncillaryServiceDefinitions",
             "GET Backoffice/AncillaryServiceDefinitions/Paginated",
             "GET Backoffice/AncillaryServiceDefinitions/{serviceDefinitionId:long}",
-            "PUT Backoffice/AncillaryServiceDefinitions/{serviceDefinitionId:long}",
             "POST Backoffice/AncillaryServiceDefinitions/{serviceDefinitionId:long}/Activate",
             "POST Backoffice/AncillaryServiceDefinitions/{serviceDefinitionId:long}/Suspend",
             "POST Backoffice/AncillaryServiceDefinitions/{serviceDefinitionId:long}/Reactivate",
@@ -243,9 +242,14 @@ public class V12BoundaryAcceptanceTests
         var groups = new[]
             {
                 "PassengerEligibility", "SalesRestrictions", "Geography", "FlightApplication", "FareApplication", "TravelDate", "DayTimeApplication",
-                "AdvancePurchase", "BaggageApplication", "SeatApplication"
+                "AdvancePurchase", "BaggageApplication", "SeatApplication", "PetRule", "AssistedTravelRule", "AirportServiceRule"
             }
             .Select(group => $"PUT Backoffice/AncillaryProvisions/{{provisionId:long}}/{group}");
+        var typed = Enum.GetNames<AncillaryProfile>().SelectMany(profile => new[]
+        {
+            $"POST Backoffice/AncillaryServiceDefinitions/{profile}",
+            $"PUT Backoffice/AncillaryServiceDefinitions/{profile}/{{serviceDefinitionId:long}}"
+        });
 
         string[] inventory =
         [
@@ -288,9 +292,9 @@ public class V12BoundaryAcceptanceTests
         ];
 
         Assert.Equal(
-            preserved.Concat(added).Concat(rows).Concat(groups).Concat(inventory).OrderBy(route => route, StringComparer.Ordinal),
+            preserved.Concat(added).Concat(rows).Concat(groups).Concat(typed).Concat(inventory).OrderBy(route => route, StringComparer.Ordinal),
             routes.OrderBy(route => route, StringComparer.Ordinal));
-        Assert.Equal(93, routes.Count);
+        Assert.Equal(112, routes.Count);
         Assert.Equal(36, inventory.Length);
         Assert.DoesNotContain(routes, route => new[] { "Sell", "Reserve", "Release", "Expire" }.Any(term => route.Contains(term, StringComparison.Ordinal)));
         Assert.Equal(
@@ -413,12 +417,12 @@ public class V12BoundaryAcceptanceTests
                            && type.Name.EndsWith("Service", StringComparison.Ordinal))
             .ToList();
 
-        Assert.Equal(73, contracts.Count);
+        Assert.Equal(76, contracts.Count);
         Assert.Equal(5, contracts.Count(contract => contract.Namespace!.Contains(".AncillaryInventoryPolicyAggregate.", StringComparison.Ordinal)));
         Assert.Equal(7, contracts.Count(contract => contract.Namespace!.Contains(".FlightCountInventoryAggregate.", StringComparison.Ordinal)));
         Assert.Equal(7, contracts.Count(contract => contract.Namespace!.Contains(".FlightWeightInventoryAggregate.", StringComparison.Ordinal)));
         Assert.Equal(7, contracts.Count(contract => contract.Namespace!.Contains(".AirportSlotInventoryAggregate.", StringComparison.Ordinal)));
-        Assert.Equal(26, contracts.Count(contract => contract.Namespace!.Contains(".AncillaryProvisionAggregate.", StringComparison.Ordinal)));
+        Assert.Equal(29, contracts.Count(contract => contract.Namespace!.Contains(".AncillaryProvisionAggregate.", StringComparison.Ordinal)));
         Assert.Equal(9, contracts.Count(contract => contract.Namespace!.Contains(".AncillaryServiceDefinitionAggregate.", StringComparison.Ordinal)));
         Assert.Equal(8, contracts.Count(contract => contract.Namespace!.Contains(".AncillaryPricingAggregate.", StringComparison.Ordinal)));
         Assert.Equal(2, contracts.Count(contract => contract.Namespace!.Contains($".{FrozenAggregate}.", StringComparison.Ordinal)));

@@ -22,11 +22,16 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
         public static BackofficeProvisionDto ToBackofficeProvision(
             AncillaryProvisionReadModel provision,
             ServiceDateBasis? serviceDateBasis,
+            AncillaryProfile? profile,
+            string? variantCode,
             AncillaryProvisionRuleRows rows)
             => new(
                 provision.Id,
                 provision.ServiceDefinitionId,
                 EnumValueDto.OfNullable(serviceDateBasis),
+                EnumValueDto.OfNullable(profile),
+                variantCode,
+                RuleSections(profile, serviceDateBasis),
                 provision.Sequence,
                 EnumValueDto.Of(provision.Status),
                 EnumValueDto.Of(provision.CoverageScope),
@@ -180,6 +185,42 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                 Status = EnumValueDto.Of(provision.Status),
                 CreatedAt = provision.CreatedAt
             };
+
+        private static IReadOnlyList<string> RuleSections(AncillaryProfile? profile, ServiceDateBasis? serviceDateBasis)
+        {
+            var sections = new List<string>
+            {
+                nameof(BackofficeProvisionDto.PassengerEligibility),
+                nameof(BackofficeProvisionDto.SalesRestrictions),
+                nameof(BackofficeProvisionDto.Geography),
+                nameof(BackofficeProvisionDto.TravelDate),
+                nameof(BackofficeProvisionDto.DayTimeApplication),
+                nameof(BackofficeProvisionDto.AdvancePurchase)
+            };
+
+            if (serviceDateBasis is null or ServiceDateBasis.FlightDeparture)
+            {
+                sections.Add(nameof(BackofficeProvisionDto.FlightApplication));
+                sections.Add(nameof(BackofficeProvisionDto.FareApplication));
+            }
+
+            if (profile is null or AncillaryProfile.Baggage)
+                sections.Add(nameof(BackofficeProvisionDto.BaggageApplication));
+
+            if (profile is null or AncillaryProfile.Seat)
+                sections.Add(nameof(BackofficeProvisionDto.SeatApplication));
+
+            if (profile == AncillaryProfile.Pet)
+                sections.Add(nameof(BackofficeProvisionDto.PetRule));
+
+            if (profile == AncillaryProfile.AssistedTravel)
+                sections.Add(nameof(BackofficeProvisionDto.AssistedTravelRule));
+
+            if (profile == AncillaryProfile.AirportService)
+                sections.Add(nameof(BackofficeProvisionDto.AirportServiceRule));
+
+            return sections;
+        }
 
         private static IReadOnlyList<string> DaysOfWeek(byte mask)
             => MaskOrder.Where((_, index) => (mask & (1 << index)) != 0).Select(day => day.ToString()).ToList();

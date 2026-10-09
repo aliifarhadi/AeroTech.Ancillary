@@ -85,6 +85,9 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public static BusinessException ServiceDefinitionReferenceNotFound(params object?[] args) =>
             new(16218, ExceptionMessages.ServiceDefinitionReferenceNotFound, args) { HttpStatus = 422 };
 
+        public static BusinessException ServiceDefinitionBelongsToAnotherProfile(params object?[] args) =>
+            new(16219, ExceptionMessages.ServiceDefinitionBelongsToAnotherProfile, args) { HttpStatus = 409 };
+
         public static BusinessException ProvisionNotFound(params object?[] args) =>
             new(16301, ExceptionMessages.ProvisionNotFound, args) { HttpStatus = 404 };
 

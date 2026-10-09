@@ -2,6 +2,8 @@ using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddPro
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionDayTimeWindow;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionPermittedTravelPeriod;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionAdvancePurchase;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionAirportServiceRule;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionAssistedTravelRule;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionBaggageApplication;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionBlackoutPeriod;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionDayTimeApplication;
@@ -10,6 +12,7 @@ using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Change
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionFlightApplication;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionGeography;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionPassengerEligibility;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionPetRule;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionPermittedTravelPeriod;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionSalesRestrictions;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionSeatApplication;
@@ -42,6 +45,12 @@ public sealed record TestChangeProvisionAdvancePurchaseCommand(long ProvisionId,
 public sealed record TestChangeProvisionBaggageApplicationCommand(long ProvisionId, ProvisionBaggageApplicationInput? BaggageApplication) : IChangeProvisionBaggageApplicationCommand;
 
 public sealed record TestChangeProvisionSeatApplicationCommand(long ProvisionId, ProvisionSeatApplicationInput? SeatApplication) : IChangeProvisionSeatApplicationCommand;
+
+public sealed record TestChangeProvisionPetRuleCommand(long ProvisionId, ProvisionPetRuleInput? PetRule) : IChangeProvisionPetRuleCommand;
+
+public sealed record TestChangeProvisionAssistedTravelRuleCommand(long ProvisionId, ProvisionAssistedTravelRuleInput? AssistedTravelRule) : IChangeProvisionAssistedTravelRuleCommand;
+
+public sealed record TestChangeProvisionAirportServiceRuleCommand(long ProvisionId, ProvisionAirportServiceRuleInput? AirportServiceRule) : IChangeProvisionAirportServiceRuleCommand;
 
 public sealed record TestPermittedTravelPeriodRowCommand(long ProvisionId, long RowId, DateOnly StartDate, DateOnly EndDate)
     : IAddProvisionPermittedTravelPeriodCommand, IChangeProvisionPermittedTravelPeriodCommand, IRemoveProvisionPermittedTravelPeriodCommand;

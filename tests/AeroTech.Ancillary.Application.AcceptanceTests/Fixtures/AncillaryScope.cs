@@ -13,6 +13,8 @@ using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddPro
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionPermittedTravelPeriod;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionAdvancePurchase;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionAirportServiceRule;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionAssistedTravelRule;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionBaggageApplication;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionBlackoutPeriod;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionDayTimeApplication;
@@ -21,6 +23,7 @@ using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Change
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionFlightApplication;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionGeography;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionPassengerEligibility;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionPetRule;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionPermittedTravelPeriod;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionSalesRestrictions;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionSeatApplication;
@@ -144,6 +147,9 @@ public sealed class AncillaryScope : IAsyncDisposable
         ChangeAdvancePurchase = new ChangeProvisionAdvancePurchaseService(Provisions, provisionSynchronizer, UnitOfWork, ids);
         ChangeBaggageApplication = new ChangeProvisionBaggageApplicationService(Provisions, provisionSynchronizer, UnitOfWork, ids);
         ChangeSeatApplication = new ChangeProvisionSeatApplicationService(Provisions, provisionSynchronizer, UnitOfWork, ids);
+        ChangePetRule = new ChangeProvisionPetRuleService(Provisions, Definitions, provisionSynchronizer, UnitOfWork, ids);
+        ChangeAssistedTravelRule = new ChangeProvisionAssistedTravelRuleService(Provisions, Definitions, provisionSynchronizer, UnitOfWork, ids);
+        ChangeAirportServiceRule = new ChangeProvisionAirportServiceRuleService(Provisions, Definitions, provisionSynchronizer, UnitOfWork, ids);
         AddPermittedTravelPeriod = new AddProvisionPermittedTravelPeriodService(Provisions, provisionSynchronizer, UnitOfWork, ids);
         ChangePermittedTravelPeriod = new ChangeProvisionPermittedTravelPeriodService(Provisions, provisionSynchronizer, UnitOfWork);
         RemovePermittedTravelPeriod = new RemoveProvisionPermittedTravelPeriodService(Provisions, provisionSynchronizer, UnitOfWork);
@@ -248,6 +254,12 @@ public sealed class AncillaryScope : IAsyncDisposable
     public IChangeProvisionBaggageApplicationService ChangeBaggageApplication { get; }
 
     public IChangeProvisionSeatApplicationService ChangeSeatApplication { get; }
+
+    public IChangeProvisionPetRuleService ChangePetRule { get; }
+
+    public IChangeProvisionAssistedTravelRuleService ChangeAssistedTravelRule { get; }
+
+    public IChangeProvisionAirportServiceRuleService ChangeAirportServiceRule { get; }
 
     public IAddProvisionPermittedTravelPeriodService AddPermittedTravelPeriod { get; }
 

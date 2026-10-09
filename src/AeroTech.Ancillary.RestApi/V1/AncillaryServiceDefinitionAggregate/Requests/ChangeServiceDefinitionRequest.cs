@@ -1,9 +1,11 @@
+using System.Text.Json.Serialization;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.DefineAncillaryServiceDefinition;
 using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.RestApi.V1.AncillaryServiceDefinitionAggregate.Requests
 {
-    public sealed record ChangeServiceDefinitionRequest(
+    [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+    public sealed record ChangeServiceDefinitionRequest<TSpecification>(
         long SupplierId,
         string ServiceSubCode,
         ServiceSubCodeSource SubCodeSource,
@@ -14,14 +16,14 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryServiceDefinitionAggregate.Requ
         string? Description2Code,
         PricingUnit PricingUnit,
         ServiceDateBasis ServiceDateBasis,
-        AncillaryProfile Profile,
         string VariantCode,
         DocumentRouting DocumentRouting,
-        ServiceSpecificationInput Specification,
+        TSpecification Specification,
         string CommercialName,
         string? Description,
         ServiceDefinitionDocumentInput Document,
         ServiceDefinitionBookingInput Booking,
         DateOnly? SalesEffectiveFrom,
-        DateOnly? SalesDiscontinueOn);
+        DateOnly? SalesDiscontinueOn)
+        where TSpecification : class;
 }

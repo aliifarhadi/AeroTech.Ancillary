@@ -27,6 +27,7 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public const string ServiceDefinitionNotClassified = "The service definition has no profile, variant and typed specification; classify it before it is activated.";
         public const string ServiceDefinitionSpecificationMismatch = "Profile {0} with variant {1} needs exactly its own typed specification and no other.";
         public const string ServiceDefinitionProfileIsImmutable = "The profile and variant of a published service identity cannot change; define a new service reference.";
+        public const string ServiceDefinitionBelongsToAnotherProfile = "The service definition belongs to profile {0} and cannot be authored as {1}.";
         public const string ServiceDefinitionReferenceNotFound = "Reference {0} of the service definition was not found.";
         public const string ServiceDefinitionServiceDateBasisAlreadyAssigned = "The service date basis of this service identity is already assigned.";
         public const string ProvisionNotFound = "The provision was not found.";

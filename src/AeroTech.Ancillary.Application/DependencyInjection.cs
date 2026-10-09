@@ -13,6 +13,8 @@ using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddPro
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionPermittedTravelPeriod;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionAdvancePurchase;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionAirportServiceRule;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionAssistedTravelRule;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionBaggageApplication;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionBlackoutPeriod;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionDayTimeApplication;
@@ -21,6 +23,7 @@ using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Change
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionFlightApplication;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionGeography;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionPassengerEligibility;
+using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionPetRule;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionPermittedTravelPeriod;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionSalesRestrictions;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionSeatApplication;
@@ -165,6 +168,9 @@ namespace AeroTech.Ancillary.Application
             services.AddScoped<IChangeProvisionAdvancePurchaseService, ChangeProvisionAdvancePurchaseService>();
             services.AddScoped<IChangeProvisionBaggageApplicationService, ChangeProvisionBaggageApplicationService>();
             services.AddScoped<IChangeProvisionSeatApplicationService, ChangeProvisionSeatApplicationService>();
+            services.AddScoped<IChangeProvisionPetRuleService, ChangeProvisionPetRuleService>();
+            services.AddScoped<IChangeProvisionAssistedTravelRuleService, ChangeProvisionAssistedTravelRuleService>();
+            services.AddScoped<IChangeProvisionAirportServiceRuleService, ChangeProvisionAirportServiceRuleService>();
             services.AddScoped<IAddProvisionPermittedTravelPeriodService, AddProvisionPermittedTravelPeriodService>();
             services.AddScoped<IChangeProvisionPermittedTravelPeriodService, ChangeProvisionPermittedTravelPeriodService>();
             services.AddScoped<IRemoveProvisionPermittedTravelPeriodService, RemoveProvisionPermittedTravelPeriodService>();
