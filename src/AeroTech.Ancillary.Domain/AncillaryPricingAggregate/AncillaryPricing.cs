@@ -193,6 +193,9 @@ namespace AeroTech.Ancillary.Domain.AncillaryPricingAggregate
             if (_rates.SelectMany(rate => rate.Components).Any(component => component.Code is null))
                 throw ExceptionFactory.PricingIsInvalid($"{nameof(AncillaryPriceComponent)}.{nameof(AncillaryPriceComponent.Code)}");
 
+            if (_rates.SelectMany(rate => rate.Components).FirstOrDefault(AncillaryPricingRate.HasUnknownTreatment) is { } unclassified)
+                throw ExceptionFactory.PricingTaxTreatmentUnknown(unclassified.Code);
+
             foreach (var fee in _rates.SelectMany(rate => rate.Components).Where(component => component.Category == AncillaryPriceLineCategory.Fee))
             {
                 if (fee.FeeApplicationUnit is not { } feeApplicationUnit)

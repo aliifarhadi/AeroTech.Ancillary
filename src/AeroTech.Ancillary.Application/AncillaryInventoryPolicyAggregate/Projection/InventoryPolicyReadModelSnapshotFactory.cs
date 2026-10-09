@@ -31,7 +31,13 @@ namespace AeroTech.Ancillary.Application.AncillaryInventoryPolicyAggregate.Proje
                 policy.SuspendedAt,
                 policy.RetiredAt,
                 policy.PassengerUsageLimits
-                    .Select(limit => new PassengerUsageLimitReadModelSnapshot(limit.Id, limit.LimitScope, limit.MaxUnits, limit.CountingFamilyCode))
+                    .Select(limit => new PassengerUsageLimitReadModelSnapshot(
+                        limit.Id,
+                        limit.LimitScope,
+                        limit.MaxUnits,
+                        limit.CountingFamilyCode,
+                        limit.ConsumptionUnit,
+                        limit.UnitsPerPurchase))
                     .ToList());
     }
 }

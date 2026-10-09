@@ -34,7 +34,22 @@ public sealed record TestChangeServiceDefinitionCommand(
     DateOnly? SalesEffectiveFrom,
     DateOnly? SalesDiscontinueOn,
     PricingUnit PricingUnit = PricingUnit.PerPassenger,
-    ServiceDateBasis ServiceDateBasis = ServiceDateBasis.FlightDeparture) : IChangeAncillaryServiceDefinitionCommand;
+    ServiceDateBasis ServiceDateBasis = ServiceDateBasis.FlightDeparture) : IChangeAncillaryServiceDefinitionCommand
+{
+    public string? Variant { get; init; }
+
+    public ServiceSpecificationInput? TypedSpecification { get; init; }
+
+    public DocumentRouting? Routing { get; init; }
+
+    public string VariantCode => Variant ?? V122Catalog.VariantFor(PricingUnit, ServiceDateBasis);
+
+    public AncillaryProfile Profile => V122Catalog.ProfileOf(VariantCode);
+
+    public DocumentRouting DocumentRouting => Routing ?? V122Catalog.RoutingOf(Document.Type);
+
+    public ServiceSpecificationInput Specification => TypedSpecification ?? V122Catalog.Specification(VariantCode);
+}
 
 public sealed record TestServiceDefinitionLifecycleCommand(long ServiceDefinitionId)
     : ISuspendAncillaryServiceDefinitionCommand,
@@ -62,7 +77,22 @@ public sealed record TestChangeProvisionCommand(
     ProvisionAdvancePurchaseInput? AdvancePurchase = null,
     ProvisionBaggageApplicationInput? BaggageApplication = null,
     ProvisionSeatApplicationInput? SeatApplication = null,
-    PurchaseStage PurchaseStage = PurchaseStage.Both) : IChangeAncillaryProvisionCommand;
+    PurchaseStage PurchaseStage = PurchaseStage.Both) : IChangeAncillaryProvisionCommand
+{
+    public ProvisionSalesRestrictionsInput? SalesRestrictions { get; init; } = SalesRestrictions ?? V122Catalog.SinglePointOfSale;
+
+    public PriceOrigin? Origin { get; init; }
+
+    public PriceOrigin PriceOrigin => Origin ?? V122Catalog.OriginOf(Outcome.Disposition);
+
+    public string? QuoteProviderKey { get; init; }
+
+    public ProvisionPetRuleInput? PetRule { get; init; }
+
+    public ProvisionAssistedTravelRuleInput? AssistedTravelRule { get; init; }
+
+    public ProvisionAirportServiceRuleInput? AirportServiceRule { get; init; }
+}
 
 public sealed record TestProvisionLifecycleCommand(long ProvisionId)
     : ISuspendAncillaryProvisionCommand, IReactivateAncillaryProvisionCommand, IRetireAncillaryProvisionCommand;
@@ -91,7 +121,8 @@ public static class P1Commands
         DateOnly? salesEffectiveFrom = null,
         DateOnly? salesDiscontinueOn = null,
         PricingUnit pricingUnit = PricingUnit.PerPassenger,
-        ServiceDateBasis serviceDateBasis = ServiceDateBasis.FlightDeparture)
+        ServiceDateBasis serviceDateBasis = ServiceDateBasis.FlightDeparture,
+        string? variant = null)
         => new(
             airlineId,
             supplierId,
@@ -110,7 +141,10 @@ public static class P1Commands
             salesEffectiveFrom,
             salesDiscontinueOn,
             pricingUnit,
-            serviceDateBasis);
+            serviceDateBasis)
+        {
+            Variant = variant
+        };
 
     public static TestDefineServiceDefinitionCommand FirstExcessBagDefinition(int airlineId, long supplierId, string reference = "XBAG_FIRST")
         => new(
@@ -152,7 +186,12 @@ public static class P1Commands
             source.SalesEffectiveFrom,
             source.SalesDiscontinueOn,
             source.PricingUnit,
-            source.ServiceDateBasis);
+            source.ServiceDateBasis)
+        {
+            Variant = source.Variant,
+            TypedSpecification = source.TypedSpecification,
+            Routing = source.Routing
+        };
 
     public static TestDefineProvisionCommand Provision(
         long serviceDefinitionId,
@@ -195,7 +234,15 @@ public static class P1Commands
             source.DayTimeApplication,
             source.AdvancePurchase,
             source.BaggageApplication,
-            source.SeatApplication);
+            source.SeatApplication,
+            source.PurchaseStage)
+        {
+            Origin = source.Origin,
+            QuoteProviderKey = source.QuoteProviderKey,
+            PetRule = source.PetRule,
+            AssistedTravelRule = source.AssistedTravelRule,
+            AirportServiceRule = source.AirportServiceRule
+        };
 
     public static ProvisionPassengerEligibilityInput Passengers(params PassengerTypeCode[] passengerTypeCodes) => new(passengerTypeCodes);
 

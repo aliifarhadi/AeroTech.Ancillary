@@ -133,7 +133,7 @@ public class V121FinalCrossPhaseAcceptanceTests
     public async Task X03_a_baggage_sale_type_never_seeds_a_flight_count_or_a_flight_weight_source()
     {
         var (fixture, airlineId, supplierId) = await _harness.OperatorAsync(connected: false);
-        var package = await _harness.ProductAsync(airlineId, supplierId, "XBAG_WEIGHT_10KG", PricingUnit.PerItem);
+        var package = await _harness.ProductAsync(airlineId, supplierId, "XBAG_WEIGHT_10KG", PricingUnit.PerItem, variant: "A02");
         var piece = await _harness.ProductAsync(airlineId, supplierId, "XBAG_PIECE_23KG", PricingUnit.PerPiece);
 
         await _harness.Proof.RuleAsync(
@@ -177,7 +177,7 @@ public class V121FinalCrossPhaseAcceptanceTests
         Assert.Null(snapshot.ConfiguredCount);
         Assert.Null(snapshot.Resource);
         Assert.Equal(NoSources, await SourceRowsAsync(airlineId));
-        Assert.Empty(await _harness.RowsAsync($"SELECT t.name AS Value FROM sys.tables AS t WHERE t.name LIKE '%Seat%' AND t.name NOT LIKE '%Provision%'"));
+        Assert.Empty(await _harness.RowsAsync($"SELECT t.name AS Value FROM sys.tables AS t WHERE t.name LIKE '%Seat%' AND t.name NOT LIKE '%Provision%' AND t.name NOT LIKE '%Specification%' AND t.name NOT LIKE 'AssistedTravel%'"));
     }
 
     [Fact]
@@ -446,8 +446,8 @@ public class V121FinalCrossPhaseAcceptanceTests
     public async Task X17_a_deferred_daily_room_night_or_assigned_asset_pattern_is_never_activated(LocalInventoryPattern pattern)
     {
         var (fixture, airlineId, supplierId) = await VerifiedAsync();
-        var reference = $"TOUR_{pattern}".ToUpperInvariant();
-        var product = await _harness.ProductAsync(airlineId, supplierId, reference, PricingUnit.PerItem, ServiceDateBasis.ServiceStart);
+        var reference = $"CIP_{pattern}".ToUpperInvariant();
+        var product = await _harness.ProductAsync(airlineId, supplierId, reference, PricingUnit.PerItem, ServiceDateBasis.ServiceStart, "A22");
         var draft = await DefineAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, reference, product.Id, InventoryAuthority.Local, pattern));
 
         await _harness.RefusedAsync(16607, 409, fixture, scope => scope.ActivateInventoryPolicy.ActivateAsync(new TestInventoryPolicyLifecycleCommand(draft.Id, 1)));

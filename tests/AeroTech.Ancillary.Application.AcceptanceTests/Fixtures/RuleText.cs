@@ -29,7 +29,7 @@ public static class RuleText
         if (provision.SalesRestrictions?.SalesDiscontinueAt is { } salesUntil)
             parts.Add($"SALEUNTIL={salesUntil.UtcDateTime:yyyy-MM-dd}");
 
-        Add("POS", provision.SalesRestrictions?.AllowedPointsOfSale.Select(row => row.Value));
+        Add("POS", provision.SalesRestrictions?.AllowedPointsOfSale.Select(row => row.Value).Where(pointOfSale => pointOfSale != V122Catalog.PointOfSale));
         Add("CUST", provision.SalesRestrictions?.AllowedCustomers.Select(row => row.Value));
         Add("CUSTTYPE", provision.SalesRestrictions?.AllowedCustomerTypes.Select(row => row.Value.Name));
         Add("ORG", provision.Geography?.AllowedOriginAirports.Select(row => row.Value));

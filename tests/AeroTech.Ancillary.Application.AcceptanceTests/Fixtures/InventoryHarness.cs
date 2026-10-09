@@ -50,8 +50,9 @@ public sealed class InventoryHarness
         long supplierId,
         string reference,
         PricingUnit pricingUnit = PricingUnit.PerPassenger,
-        ServiceDateBasis basis = ServiceDateBasis.FlightDeparture)
-        => Proof.DefinitionAsync(CarrierDefinition(airlineId, supplierId, reference, "SVC", "F", "TS", reference, pricingUnit: pricingUnit, serviceDateBasis: basis));
+        ServiceDateBasis basis = ServiceDateBasis.FlightDeparture,
+        string? variant = null)
+        => Proof.DefinitionAsync(CarrierDefinition(airlineId, supplierId, reference, "SVC", "F", "TS", reference, pricingUnit: pricingUnit, serviceDateBasis: basis, variant: variant));
 
     public Task<InventoryConfigurationSnapshotDto> SnapshotAsync(InventoryFixture fixture, string reference, long? flightId = null, DateTimeOffset? atUtc = null)
         => RequestAsync(fixture, scope => scope.GetInventoryConfigurationSnapshot.ExecuteAsync(

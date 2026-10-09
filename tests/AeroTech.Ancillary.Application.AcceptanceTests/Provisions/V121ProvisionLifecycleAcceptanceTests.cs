@@ -89,7 +89,7 @@ public class V121ProvisionLifecycleAcceptanceTests
             SalesRestrictions = new(
                 new DateTimeOffset(2026, 11, 1, 0, 0, 0, TimeSpan.FromMinutes(210)),
                 new DateTimeOffset(2026, 12, 1, 0, 0, 0, TimeSpan.FromMinutes(210)),
-                [501, 502],
+                [501],
                 [9001],
                 [CustomerType.TravelAgency, CustomerType.Organization]),
             Geography = new([Thr], [Ist], [Mhd], [Pair(Thr, Ist), Pair(Mhd, Ist, RoutePairDirection.BothDirections)]),
@@ -169,7 +169,7 @@ public class V121ProvisionLifecycleAcceptanceTests
             Assert.Equal(detail.Status.Name, row.Status.ToString());
             Assert.Equal(detail.Status.Name, (await reader.Provisions.GetAsync(draft.Id))!.Status.ToString());
             Assert.Equal(
-                (2, 2, 2, 1, 1, 2, 2, 2),
+                (2, 1, 2, 1, 1, 2, 2, 2),
                 (detail.PassengerEligibility!.AllowedPassengerTypes.Count, detail.SalesRestrictions!.AllowedPointsOfSale.Count, detail.Geography!.AllowedRoutePairs.Count,
                     detail.TravelDate!.PermittedPeriods.Count, detail.TravelDate.BlackoutPeriods.Count, detail.DayTimeApplication!.Windows.Count,
                     detail.FlightApplication!.AllowedFlights.Count, detail.FareApplication!.AllowedRbds.Count));
@@ -254,7 +254,7 @@ public class V121ProvisionLifecycleAcceptanceTests
         var journey = await RequestAsync(scope => scope.DefineProvision.DefineAsync(
             Provision(definitionId, 20, CommercialDisposition.Free, ServiceCoverageScope.Journey) with
             {
-                SalesRestrictions = new(_clock.Now.AddDays(10), _clock.Now.AddDays(20)),
+                SalesRestrictions = new(_clock.Now.AddDays(10), _clock.Now.AddDays(20), [V122Catalog.PointOfSale]),
                 TravelDate = Dates(blackout: [Period(Day(2027, 3, 21), Day(2027, 3, 21))])
             }));
         var paid = await RequestAsync(scope => scope.DefineProvision.DefineAsync(Provision(definitionId, 30)));
@@ -297,12 +297,11 @@ public class V121ProvisionLifecycleAcceptanceTests
     [InlineData(PricingUnit.PerPiece, AncillaryQuantityUnit.Kilogram)]
     [InlineData(PricingUnit.PerKilogram, AncillaryQuantityUnit.Piece)]
     [InlineData(PricingUnit.PerPassenger, AncillaryQuantityUnit.Kilogram)]
-    [InlineData(PricingUnit.PerVehicle, AncillaryQuantityUnit.Piece)]
     public async Task V121_P07_P08_P09_publication_refuses_a_quantity_unit_that_conflicts_with_the_pricing_unit(PricingUnit pricingUnit, AncillaryQuantityUnit quantityUnit)
     {
         var definitionId = await DefinitionAsync(pricingUnit, ServiceDateBasis.FlightDeparture, $"UNIT_{pricingUnit}_{quantityUnit}".ToUpperInvariant());
-        var paid = await RequestAsync(scope => scope.DefineProvision.DefineAsync(Provision(definitionId, 10, quantityUnit: quantityUnit)));
-        var free = await RequestAsync(scope => scope.DefineProvision.DefineAsync(Provision(definitionId, 20, CommercialDisposition.Free, quantityUnit: quantityUnit)));
+        var paid = await RequestAsync(scope => scope.DefineProvision.DefineAsync(V122Catalog.Fit(Provision(definitionId, 10, quantityUnit: quantityUnit), pricingUnit)));
+        var free = await RequestAsync(scope => scope.DefineProvision.DefineAsync(V122Catalog.Fit(Provision(definitionId, 20, CommercialDisposition.Free, quantityUnit: quantityUnit), pricingUnit)));
         var pricing = await RequestAsync(scope => scope.DefinePricing.DefineAsync(Pricing(paid.Id, Eur, Base(10m))));
 
         await RefusedAsync(16312, 409, scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(paid.Id, pricing.Id)));
@@ -319,7 +318,7 @@ public class V121ProvisionLifecycleAcceptanceTests
             _ => AncillaryQuantityUnit.Each
         };
 
-        await RequestAsync(scope => scope.ChangeProvision.ChangeAsync(Change(paid.Id, Provision(definitionId, 10, quantityUnit: compatible))));
+        await RequestAsync(scope => scope.ChangeProvision.ChangeAsync(Change(paid.Id, V122Catalog.Fit(Provision(definitionId, 10, quantityUnit: compatible), pricingUnit))));
 
         Assert.Equal(
             ProvisionStatus.Active,
@@ -329,7 +328,7 @@ public class V121ProvisionLifecycleAcceptanceTests
     [Fact]
     public async Task V121_A03_P18_E11_T06_publication_refuses_a_rule_the_service_basis_cannot_supply_or_that_can_never_match()
     {
-        var simId = await DefinitionAsync(PricingUnit.PerItem, ServiceDateBasis.Activation, "ESIM_TR");
+        var simId = await DefinitionAsync(PricingUnit.PerPassenger, ServiceDateBasis.ServiceStart, "LOUNGE_TR");
         var flightId = await DefinitionAsync(PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture, "PRIORITY");
 
         async Task<long> DraftAsync(TestDefineProvisionCommand command) => (await RequestAsync(scope => scope.DefineProvision.DefineAsync(command))).Id;
@@ -435,6 +434,8 @@ public class V121ProvisionLifecycleAcceptanceTests
                     command.Sequence,
                     command.CoverageScope,
                     command.PurchaseStage,
+                    command.PriceOrigin,
+                    command.QuoteProviderKey,
                     command.Quantity,
                     command.ApplicationType,
                     command.Outcome,
@@ -450,7 +451,10 @@ public class V121ProvisionLifecycleAcceptanceTests
                     command.DayTimeApplication,
                     command.AdvancePurchase,
                     command.BaggageApplication,
-                    command.SeatApplication))
+                    command.SeatApplication,
+                    command.PetRule,
+                    command.AssistedTravelRule,
+                    command.AirportServiceRule))
                 .Errors.Select(error => error.PropertyName).ToArray();
 
         string[] ChangeErrors(long provisionId, TestDefineProvisionCommand command)
@@ -460,6 +464,8 @@ public class V121ProvisionLifecycleAcceptanceTests
                     command.Sequence,
                     command.CoverageScope,
                     command.PurchaseStage,
+                    command.PriceOrigin,
+                    command.QuoteProviderKey,
                     command.Quantity,
                     command.ApplicationType,
                     command.Outcome,
@@ -475,7 +481,10 @@ public class V121ProvisionLifecycleAcceptanceTests
                     command.DayTimeApplication,
                     command.AdvancePurchase,
                     command.BaggageApplication,
-                    command.SeatApplication))
+                    command.SeatApplication,
+                    command.PetRule,
+                    command.AssistedTravelRule,
+                    command.AirportServiceRule))
                 .Errors.Select(error => error.PropertyName).ToArray();
 
         (string Property, TestDefineProvisionCommand Command)[] malformed =

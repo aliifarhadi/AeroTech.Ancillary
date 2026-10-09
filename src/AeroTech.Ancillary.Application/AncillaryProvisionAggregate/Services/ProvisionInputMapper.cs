@@ -34,7 +34,10 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Services
             ProvisionDayTimeApplicationInput? dayTimeApplication,
             ProvisionAdvancePurchaseInput? advancePurchase,
             ProvisionBaggageApplicationInput? baggageApplication,
-            ProvisionSeatApplicationInput? seatApplication)
+            ProvisionSeatApplicationInput? seatApplication,
+            ProvisionPetRuleInput? petRule,
+            ProvisionAssistedTravelRuleInput? assistedTravelRule,
+            ProvisionAirportServiceRuleInput? airportServiceRule)
             => new(
                 passengerEligibility.ToArgs(),
                 salesRestrictions.ToArgs(),
@@ -45,7 +48,10 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Services
                 dayTimeApplication.ToArgs(),
                 advancePurchase.ToArgs(),
                 baggageApplication.ToArgs(),
-                seatApplication.ToArgs());
+                seatApplication.ToArgs(),
+                petRule.ToArgs(),
+                assistedTravelRule.ToArgs(),
+                airportServiceRule.ToArgs());
 
         public static ProvisionPassengerEligibilityArgs? ToArgs(this ProvisionPassengerEligibilityInput? input)
             => input is null
@@ -132,5 +138,26 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Services
             => input is null
                 ? null
                 : new ProvisionSeatApplicationArgs(input.SeatNumbers ?? [], input.SeatCharacteristicCodes ?? []);
+
+        public static ProvisionPetRuleArgs? ToArgs(this ProvisionPetRuleInput? input)
+            => input is null
+                ? null
+                : new ProvisionPetRuleArgs(input.CountryExceptionCode, input.MinAnimalAgeWeeksOverride, input.MaxCombinedKgOverride, input.AcceptanceMode);
+
+        public static ProvisionAssistedTravelRuleArgs? ToArgs(this ProvisionAssistedTravelRuleInput? input)
+            => input is null
+                ? null
+                : new ProvisionAssistedTravelRuleArgs(input.MinimumLeadTimeMinutes, input.ConnectionPolicy, input.MedicalApprovalRequired);
+
+        public static ProvisionAirportServiceRuleArgs? ToArgs(this ProvisionAirportServiceRuleInput? input)
+            => input is null
+                ? null
+                : new ProvisionAirportServiceRuleArgs(
+                    input.TerminalRef,
+                    input.Direction,
+                    input.ServiceWindowStart,
+                    input.ServiceWindowEnd,
+                    input.FacilityId,
+                    input.MaxGuestsPerPrimary);
     }
 }

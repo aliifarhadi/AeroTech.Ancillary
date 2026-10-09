@@ -31,6 +31,10 @@ namespace AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.Entities
 
         public string CountingFamilyCode { get; private set; } = default!;
 
+        public UsageConsumptionUnit ConsumptionUnit { get; private set; }
+
+        public decimal? UnitsPerPurchase { get; private set; }
+
         public PassengerUsageKey KeyFor(PassengerUsageSubject subject)
         {
             var traveller = string.IsNullOrWhiteSpace(subject.StableTravellerIdentity) ? null : subject.StableTravellerIdentity.Trim();
@@ -47,6 +51,11 @@ namespace AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.Entities
                     Require(subject.FlightId is > 0, nameof(subject.FlightId));
 
                     return new PassengerUsageKey(CountingFamilyCode, LimitScope, traveller, null, null, subject.FlightId, null);
+                case PassengerUsageLimitScope.PerPortion:
+                    Require(traveller is not null, nameof(subject.StableTravellerIdentity));
+                    Require(!string.IsNullOrWhiteSpace(subject.PortionRef), nameof(subject.PortionRef));
+
+                    return new PassengerUsageKey(CountingFamilyCode, LimitScope, traveller, null, null, null, null, subject.PortionRef!.Trim());
                 default:
                     Require(traveller is not null, nameof(subject.StableTravellerIdentity));
                     Require(subject.ServiceDate is not null, nameof(subject.ServiceDate));
@@ -64,9 +73,17 @@ namespace AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.Entities
             Require(Enum.IsDefined(args.LimitScope) && args.LimitScope == LimitScope, nameof(LimitScope));
             Require(args.MaxUnits > 0, nameof(MaxUnits));
             Require(InventoryRules.IsCode(code, CountingFamilyCodeMaxLength), nameof(CountingFamilyCode));
+            Require(Enum.IsDefined(args.ConsumptionUnit), nameof(ConsumptionUnit));
+            Require(
+                args.ConsumptionUnit == UsageConsumptionUnit.Kilogram
+                    ? args.UnitsPerPurchase > 0 && args.UnitsPerPurchase == decimal.Round(args.UnitsPerPurchase.Value, 3)
+                    : args.UnitsPerPurchase is null,
+                nameof(UnitsPerPurchase));
 
             MaxUnits = args.MaxUnits;
             CountingFamilyCode = code;
+            ConsumptionUnit = args.ConsumptionUnit;
+            UnitsPerPurchase = args.UnitsPerPurchase;
         }
 
         private static void Require(bool condition, string field)

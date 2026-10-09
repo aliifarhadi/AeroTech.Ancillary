@@ -41,8 +41,8 @@ public class P1BoundaryConformanceTests
 
         string[] forbidden =
         [
-            "StockPool", "Quota", "Adapter", "Wheelchair", "Meal", "Insurance", "Lounge", "Pet", "Wifi", "FastTrack",
-            "PriorityBoarding", "Unaccompanied", "History", "Snapshot", "Split", "Issue", "Cancel", "Release"
+            "StockPool", "Quota", "Adapter", "Insurance", "Lounge", "Wifi", "FastTrack",
+            "PriorityBoarding", "History", "Snapshot", "Split", "Issue", "Cancel", "Release"
         ];
 
         foreach (var term in forbidden)

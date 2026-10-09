@@ -34,6 +34,7 @@ namespace AeroTech.Ancillary.Application.AncillaryInventoryPolicyAggregate.Comma
         {
             RuleFor(limit => limit.LimitScope).IsInEnum();
             RuleFor(limit => limit.CountingFamilyCode).NotEmpty().MaximumLength(30);
+            RuleFor(limit => limit.ConsumptionUnit).IsInEnum();
         }
     }
 }

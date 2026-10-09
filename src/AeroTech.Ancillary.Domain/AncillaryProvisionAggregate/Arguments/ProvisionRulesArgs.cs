@@ -10,7 +10,10 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments
         ProvisionDayTimeApplicationArgs? DayTimeApplication,
         ProvisionAdvancePurchaseArgs? AdvancePurchase,
         ProvisionBaggageApplicationArgs? BaggageApplication,
-        ProvisionSeatApplicationArgs? SeatApplication)
+        ProvisionSeatApplicationArgs? SeatApplication,
+        ProvisionPetRuleArgs? PetRule = null,
+        ProvisionAssistedTravelRuleArgs? AssistedTravelRule = null,
+        ProvisionAirportServiceRuleArgs? AirportServiceRule = null)
     {
         public static ProvisionRulesArgs Unrestricted { get; } = new(null, null, null, null, null, null, null, null, null, null);
     }

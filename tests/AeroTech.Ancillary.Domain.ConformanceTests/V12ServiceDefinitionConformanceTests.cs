@@ -21,6 +21,7 @@ public class V12ServiceDefinitionConformanceTests
                 definition.SubGroupCode,
                 definition.Description1Code,
                 definition.Description2Code),
+            V122Fixtures.Profile(pricingUnit, definition.ServiceDateBasis!.Value, definition.Document.Type),
             pricingUnit,
             definition.ServiceDateBasis!.Value,
             definition.CommercialName,
@@ -45,9 +46,7 @@ public class V12ServiceDefinitionConformanceTests
 
     [Theory]
     [InlineData(PricingUnit.PerPassenger)]
-    [InlineData(PricingUnit.PerRoom)]
     [InlineData(PricingUnit.PerItem)]
-    [InlineData(PricingUnit.PerVehicle)]
     [InlineData(PricingUnit.PerSeat)]
     [InlineData(PricingUnit.PerPiece)]
     [InlineData(PricingUnit.PerKilogram)]
@@ -63,6 +62,15 @@ public class V12ServiceDefinitionConformanceTests
 
         Assert.Equal((pricingUnit, 2, ServiceDefinitionStatus.Draft), (revision.PricingUnit!.Value, revision.Version, revision.Status));
         Assert.Equal(pricingUnit, definition.PricingUnit);
+    }
+
+    [Theory]
+    [InlineData(PricingUnit.PerRoom)]
+    [InlineData(PricingUnit.PerVehicle)]
+    public void V122_a_pricing_unit_that_no_profile_variant_sells_is_refused(PricingUnit pricingUnit)
+    {
+        Assert.DoesNotContain(AncillaryVariant.All, variant => variant.PricingUnits.Contains(pricingUnit));
+        BusinessAssert.Throws(16202, 422, () => CarrierDefinition(pricingUnit: pricingUnit));
     }
 
     [Fact]

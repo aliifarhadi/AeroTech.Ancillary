@@ -7,6 +7,8 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryProvisionAggregate.Requests
         int Sequence,
         ServiceCoverageScope CoverageScope,
         PurchaseStage PurchaseStage,
+        PriceOrigin PriceOrigin,
+        string? QuoteProviderKey,
         ProvisionQuantityInput Quantity,
         ProvisionApplicationType ApplicationType,
         ProvisionOutcomeInput Outcome,
@@ -22,5 +24,8 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryProvisionAggregate.Requests
         ProvisionDayTimeApplicationInput? DayTimeApplication,
         ProvisionAdvancePurchaseInput? AdvancePurchase,
         ProvisionBaggageApplicationInput? BaggageApplication,
-        ProvisionSeatApplicationInput? SeatApplication);
+        ProvisionSeatApplicationInput? SeatApplication,
+        ProvisionPetRuleInput? PetRule,
+        ProvisionAssistedTravelRuleInput? AssistedTravelRule,
+        ProvisionAirportServiceRuleInput? AirportServiceRule);
 }

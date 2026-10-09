@@ -3,6 +3,7 @@ using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Project
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Services;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Contracts;
 using AeroTech.Ancillary.Domain.SupplierAggregate.Contracts;
+using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Framework.Core.Domain.Repository;
 using AeroTech.Framework.Core.ServiceContracts;
@@ -13,6 +14,7 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
     {
         private readonly IAncillaryServiceDefinitionRepository _definitions;
         private readonly ISupplierRepository _suppliers;
+        private readonly IAirportReference _airports;
         private readonly IAncillaryServiceDefinitionQueryDbSynchronizer _synchronizer;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IClock _clock;
@@ -20,12 +22,14 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
         public ActivateAncillaryServiceDefinitionService(
             IAncillaryServiceDefinitionRepository definitions,
             ISupplierRepository suppliers,
+            IAirportReference airports,
             IAncillaryServiceDefinitionQueryDbSynchronizer synchronizer,
             IUnitOfWork unitOfWork,
             IClock clock)
         {
             _definitions = definitions;
             _suppliers = suppliers;
+            _airports = airports;
             _synchronizer = synchronizer;
             _unitOfWork = unitOfWork;
             _clock = clock;
@@ -57,6 +61,12 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
                     definition.ServiceDefinitionRef,
                     serviceDateBasis,
                     cancellationToken);
+
+            foreach (var airportId in definition.ReferencedAirportIds())
+            {
+                if (!await _airports.ExistsAsync(airportId, cancellationToken))
+                    throw ExceptionFactory.ServiceDefinitionReferenceNotFound($"Airport {airportId}");
+            }
 
             definition.Activate(supplier, _clock.GetDateTime());
 

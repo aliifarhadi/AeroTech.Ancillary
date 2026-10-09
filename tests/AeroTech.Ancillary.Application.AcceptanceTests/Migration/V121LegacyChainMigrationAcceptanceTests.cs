@@ -265,7 +265,7 @@ public class V121LegacyChainMigrationAcceptanceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task V121_M04_legacy_rows_stay_unmapped_until_the_pricing_unit_and_the_service_date_basis_are_assigned_and_then_work_as_current_rows()
+    public async Task V122_legacy_rows_take_their_unit_and_basis_but_stay_unpublishable_until_the_definition_is_classified()
     {
         await RefusedAsync(16210, 409, scope => scope.ReviseServiceDefinition.ReviseAsync(new TestServiceDefinitionLifecycleCommand(BagDefinition)));
         await RefusedAsync(16210, 409, scope => scope.DefinePricing.DefineAsync(Pricing(SuspendedRule, Eur, Base(11m))));
@@ -276,8 +276,8 @@ public class V121LegacyChainMigrationAcceptanceTests : IAsyncLifetime
 
         Assert.Equal((BagDefinition, PricingUnit.PerPiece, ServiceDefinitionStatus.Active), (assigned.Id, assigned.PricingUnit!.Value, assigned.Status));
         Assert.Null(assigned.ServiceDateBasis);
-        await RefusedAsync(16213, 409, scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(DraftRule, DraftRule)));
-        await RefusedAsync(16213, 409, scope => scope.ReactivateProvision.ReactivateAsync(new TestProvisionLifecycleCommand(SuspendedRule)));
+        await RefusedAsync(16318, 409, scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(DraftRule, DraftRule)));
+        await RefusedAsync(16318, 409, scope => scope.ReactivateProvision.ReactivateAsync(new TestProvisionLifecycleCommand(SuspendedRule)));
         await RefusedAsync(16213, 409, scope => scope.ReviseServiceDefinition.ReviseAsync(new TestServiceDefinitionLifecycleCommand(BagDefinition)));
         await RefusedAsync(16213, 409, scope => scope.DefineServiceDefinition.DefineAsync(FirstExcessBagDefinition(7, 9001, "XBAG_PIECE_23KG")));
 
@@ -296,66 +296,18 @@ public class V121LegacyChainMigrationAcceptanceTests : IAsyncLifetime
         await RefusedAsync(16214, 409, scope => scope.AssignServiceDateBasis.AssignAsync(new TestAssignServiceDateBasisCommand(BagDefinition, ServiceDateBasis.FlightDeparture)));
         await RefusedAsync(16212, 409, scope => scope.AssignServiceDateBasis.AssignAsync(new TestAssignServiceDateBasisCommand(BagDefinition, ServiceDateBasis.ServiceStart)));
 
-        await RefusedAsync(16316, 409, scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(DraftRule, DraftRule)));
-        await RequestAsync(scope => scope.ChangeProvision.ChangeAsync(Change(
-            DraftRule,
-            Provision(BagDefinition, 20, coverageScope: ServiceCoverageScope.Journey, quantityUnit: AncillaryQuantityUnit.Piece, applicationType: ProvisionApplicationType.Baggage) with
-            {
-                BaggageApplication = Baggage(23m)
-            })));
-
-        var published = await RequestAsync(scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(DraftRule, DraftRule)));
-
-        Assert.Equal(ProvisionStatus.Active, published.Status);
-        Assert.Equal(("Active", "IRR", 15000000m), await RequestAsync(async scope =>
-        {
-            var pricing = await scope.GetPricingById.ExecuteAsync(DraftRule);
-
-            return (pricing.Status.Name, pricing.Currency!, pricing.Rates.Single().TotalAmount);
-        }));
-
-        var revision = await RequestAsync(scope => scope.RevisePricing.ReviseAsync(new TestPricingLifecycleCommand(FullRule)));
-
-        await RequestAsync(scope => scope.ChangePricing.ChangeAsync(
-            Change(revision.Id, Pricing(FullRule, Eur, Base(32m, name: "Extra bag"), Tax("VAT", 2.88m, countryId: 98, stationAirportId: Thr), Fee("HDL", 1.05m)))));
-
-        var switched = await RequestAsync(scope => scope.SwitchActivePricing.SwitchAsync(new TestSwitchActivePricingCommand(FullRule, revision.Id, FullRule)));
-        var original = await RequestAsync(scope => scope.GetPricingById.ExecuteAsync(FullRule));
-
-        Assert.Equal((revision.Id, PricingStatus.Active), (switched.Id, switched.Status));
-        Assert.Equal(("Retired", "PerPiece", 33.75m), (original.Status.Name, original.PricingUnit!.Name, original.Rates.Single().TotalAmount));
-
-        var corrected = await RequestAsync(scope => scope.DefinePricing.DefineAsync(Pricing(SuspendedRule, Eur, Base(9.99m, name: "Extra bag"), Fee("HDL", 1m))));
-
-        await RequestAsync(scope => scope.SwitchActivePricing.SwitchAsync(new TestSwitchActivePricingCommand(SuspendedRule, corrected.Id, SuspendedRule)));
-
-        Assert.Equal(
-            ProvisionStatus.Active,
-            (await RequestAsync(scope => scope.ReactivateProvision.ReactivateAsync(new TestProvisionLifecycleCommand(SuspendedRule)))).Status);
+        await RefusedAsync(16318, 409, scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(DraftRule, DraftRule)));
+        await RefusedAsync(16318, 409, scope => scope.ReactivateProvision.ReactivateAsync(new TestProvisionLifecycleCommand(SuspendedRule)));
 
         var sim = await RequestAsync(scope => scope.AssignPricingUnit.AssignAsync(new TestAssignPricingUnitCommand(SimDefinition, PricingUnit.PerItem)));
 
         Assert.Equal((PricingUnit.PerItem, ServiceDefinitionStatus.Draft), (sim.PricingUnit!.Value, sim.Status));
         await RefusedAsync(16213, 409, scope => scope.ActivateServiceDefinition.ActivateAsync(new TestActivateServiceDefinitionCommand(SimDefinition)));
         await RequestAsync(scope => scope.AssignServiceDateBasis.AssignAsync(new TestAssignServiceDateBasisCommand(SimDefinition, ServiceDateBasis.Activation)));
-        await RequestAsync(scope => scope.ActivateServiceDefinition.ActivateAsync(new TestActivateServiceDefinitionCommand(SimDefinition)));
+        await RefusedAsync(16215, 409, scope => scope.ActivateServiceDefinition.ActivateAsync(new TestActivateServiceDefinitionCommand(SimDefinition)));
 
-        await RefusedAsync(16316, 409, scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(SimRule, SimRule)));
-        await RequestAsync(scope => scope.ChangeProvision.ChangeAsync(Change(SimRule, Provision(SimDefinition, 10))));
-
-        Assert.Equal(
-            ProvisionStatus.Active,
-            (await RequestAsync(scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(SimRule, SimRule)))).Status);
-        Assert.Equal(
-            ("Active", "PerItem", 9m, "Activation"),
-            await RequestAsync(async scope =>
-            {
-                var pricing = await scope.GetPricingById.ExecuteAsync(SimRule);
-                var provision = await scope.GetProvisionById.ExecuteAsync(SimRule);
-
-                return (pricing.Status.Name, pricing.PricingUnit!.Name, pricing.Rates.Single().TotalAmount, provision.ServiceDateBasis!.Name);
-            }));
-
+        Assert.Equal("Active", (await RequestAsync(scope => scope.GetPricingById.ExecuteAsync(FullRule))).Status.Name);
+        Assert.Equal("Active", (await RequestAsync(scope => scope.GetProvisionById.ExecuteAsync(FullRule))).Status.Name);
         await RefusedAsync(16303, 409, scope => scope.AddPermittedTravelPeriod.AddAsync(new TestPermittedTravelPeriodRowCommand(FreeRule, 0, new DateOnly(2027, 1, 1), new DateOnly(2027, 1, 2))));
         Assert.Empty(await ParityDifferencesAsync());
     }

@@ -51,6 +51,13 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
                 command.ServiceDateBasis,
                 cancellationToken);
 
+            await _definitions.EnsureProfileAllowedAsync(
+                definition.OwnerAirlineId,
+                definition.ServiceDefinitionRef,
+                command.Profile,
+                command.VariantCode,
+                cancellationToken);
+
             definition.Change(
                 supplier.Id,
                 command.ServiceSubCode,
@@ -61,6 +68,11 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
                     command.SubGroupCode,
                     command.Description1Code,
                     command.Description2Code),
+                new ServiceDefinitionProfileArgs(
+                    command.Profile,
+                    command.VariantCode,
+                    command.DocumentRouting,
+                    ServiceSpecificationInputMapper.ToArgs(command.Specification ?? new ServiceSpecificationInput())),
                 command.PricingUnit,
                 command.ServiceDateBasis,
                 command.CommercialName,

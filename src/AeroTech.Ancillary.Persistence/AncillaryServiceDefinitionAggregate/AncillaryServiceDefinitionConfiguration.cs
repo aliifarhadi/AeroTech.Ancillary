@@ -41,6 +41,8 @@ namespace AeroTech.Ancillary.Persistence.AncillaryServiceDefinitionAggregate
             builder.Navigation(definition => definition.Document).IsRequired();
             builder.Navigation(definition => definition.Booking).IsRequired();
 
+            builder.OwnsSpecifications();
+
             builder.HasIndex(definition => new { definition.OwnerAirlineId, definition.ServiceDefinitionRef, definition.Version }).IsUnique();
             builder.HasIndex(
                     definition => new { definition.OwnerAirlineId, definition.ServiceDefinitionRef },

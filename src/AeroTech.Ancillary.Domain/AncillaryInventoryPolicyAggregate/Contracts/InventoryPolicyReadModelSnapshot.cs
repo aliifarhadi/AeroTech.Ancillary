@@ -32,5 +32,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.Contracts
         long LimitId,
         PassengerUsageLimitScope LimitScope,
         int MaxUnits,
-        string CountingFamilyCode);
+        string CountingFamilyCode,
+        UsageConsumptionUnit ConsumptionUnit,
+        decimal? UnitsPerPurchase);
 }

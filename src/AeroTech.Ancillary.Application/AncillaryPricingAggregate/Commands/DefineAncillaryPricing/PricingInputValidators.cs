@@ -29,6 +29,7 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.Defi
             RuleFor(component => component.Name).MaximumLength(100);
             RuleFor(component => component.Amount).NotNull().SetValidator(new MoneyInputValidator());
             RuleFor(component => component.FeeApplicationUnit).IsInEnum().When(component => component.FeeApplicationUnit is not null);
+            RuleFor(component => component.TaxTreatment).IsInEnum().When(component => component.TaxTreatment is not null);
         }
     }
 }

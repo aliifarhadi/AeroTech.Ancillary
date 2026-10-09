@@ -7,7 +7,7 @@ using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
 {
-    public sealed class AncillaryServiceDefinition : AggregateRoot<long>
+    public sealed partial class AncillaryServiceDefinition : AggregateRoot<long>
     {
         private const int RefMaxLength = 30;
         private const int CommercialNameMaxLength = 100;
@@ -84,6 +84,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
             string serviceSubCode,
             ServiceSubCodeSource subCodeSource,
             ServiceDefinitionClassificationArgs classification,
+            ServiceDefinitionProfileArgs profile,
             PricingUnit pricingUnit,
             ServiceDateBasis serviceDateBasis,
             string commercialName,
@@ -108,6 +109,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
                 serviceSubCode,
                 subCodeSource,
                 classification,
+                profile,
                 pricingUnit,
                 serviceDateBasis,
                 commercialName,
@@ -125,6 +127,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
             string serviceSubCode,
             ServiceSubCodeSource subCodeSource,
             ServiceDefinitionClassificationArgs classification,
+            ServiceDefinitionProfileArgs profile,
             PricingUnit pricingUnit,
             ServiceDateBasis serviceDateBasis,
             string commercialName,
@@ -142,6 +145,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
                 serviceSubCode,
                 subCodeSource,
                 classification,
+                profile,
                 pricingUnit,
                 serviceDateBasis,
                 commercialName,
@@ -165,6 +169,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
 
             EnsurePricingUnitAssigned();
             EnsureServiceDateBasisAssigned();
+            EnsureClassified();
 
             Status = ServiceDefinitionStatus.Active;
             ActivatedAt = now;
@@ -192,6 +197,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
 
             EnsurePricingUnitAssigned();
             EnsureServiceDateBasisAssigned();
+            EnsureClassified();
 
             Status = ServiceDefinitionStatus.Active;
             SuspendedAt = null;
@@ -215,7 +221,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
             EnsureServiceDateBasisAssigned();
             Require(version > Version, nameof(Version));
 
-            return new AncillaryServiceDefinition(id, OwnerAirlineId, SupplierId, ServiceDefinitionRef)
+            var revision = new AncillaryServiceDefinition(id, OwnerAirlineId, SupplierId, ServiceDefinitionRef)
             {
                 Version = version,
                 ServiceTypeCode = ServiceTypeCode,
@@ -236,6 +242,10 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
                 Status = ServiceDefinitionStatus.Draft,
                 CreatedAt = createdAt
             };
+
+            CopyProfileTo(revision);
+
+            return revision;
         }
 
         public void AssignServiceDateBasis(ServiceDateBasis serviceDateBasis)
@@ -263,6 +273,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
             string serviceSubCode,
             ServiceSubCodeSource subCodeSource,
             ServiceDefinitionClassificationArgs classification,
+            ServiceDefinitionProfileArgs profile,
             PricingUnit pricingUnit,
             ServiceDateBasis serviceDateBasis,
             string commercialName,
@@ -284,6 +295,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
                 nameof(SalesDiscontinueOn));
 
             ApplyClassification(serviceSubCode, subCodeSource, classification, document);
+            ApplyProfile(profile, pricingUnit, serviceDateBasis, document, booking);
 
             SupplierId = supplierId;
             ServiceSubCode = serviceSubCode;

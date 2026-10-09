@@ -28,6 +28,11 @@ namespace AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Entities
             Require(args.FeeApplicationUnit is null || Enum.IsDefined(args.FeeApplicationUnit.Value), nameof(FeeApplicationUnit));
             Require(args.Category == AncillaryPriceLineCategory.Fee || args.FeeApplicationUnit is null, nameof(FeeApplicationUnit));
             Require(args.Category == AncillaryPriceLineCategory.Tax || args.TaxIncludedInSource is null, nameof(TaxIncludedInSource));
+            Require(args.Category == AncillaryPriceLineCategory.Tax || args.TaxTreatment is null, nameof(TaxTreatment));
+
+            if (args.Category == AncillaryPriceLineCategory.Tax
+                && args.TaxTreatment is not (Messages.Ancillary.Enums.TaxTreatment.AddedToBase or Messages.Ancillary.Enums.TaxTreatment.IncludedInBase))
+                throw ExceptionFactory.PricingTaxTreatmentRequired(args.Code);
 
             var amount = Money.Of(args.Amount, args.CurrencyId);
 
@@ -44,6 +49,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Entities
             Amount = amount;
             FeeApplicationUnit = args.FeeApplicationUnit;
             TaxIncludedInSource = args.TaxIncludedInSource;
+            TaxTreatment = args.TaxTreatment;
         }
 
         public long AncillaryPricingRateId { get; private set; }
@@ -64,6 +70,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Entities
 
         public bool? TaxIncludedInSource { get; private set; }
 
+        public TaxTreatment? TaxTreatment { get; private set; }
+
         internal AncillaryPriceComponent CopyTo(long id, long ancillaryPricingRateId)
             => new()
             {
@@ -76,7 +84,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Entities
                 StationAirportId = StationAirportId,
                 Amount = Amount.Copy(),
                 FeeApplicationUnit = FeeApplicationUnit,
-                TaxIncludedInSource = TaxIncludedInSource
+                TaxIncludedInSource = TaxIncludedInSource,
+                TaxTreatment = TaxTreatment
             };
 
         private static void Require(bool condition, string field)

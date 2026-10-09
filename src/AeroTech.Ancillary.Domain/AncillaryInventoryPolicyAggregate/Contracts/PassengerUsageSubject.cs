@@ -5,5 +5,6 @@ namespace AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.Contracts
         long? OrderId,
         long? OrderTravellerId,
         long? FlightId,
-        DateOnly? ServiceDate);
+        DateOnly? ServiceDate,
+        string? PortionRef = null);
 }

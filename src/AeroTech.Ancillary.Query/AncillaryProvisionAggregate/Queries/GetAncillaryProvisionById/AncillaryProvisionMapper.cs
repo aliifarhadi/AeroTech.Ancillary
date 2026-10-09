@@ -31,6 +31,8 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                 EnumValueDto.Of(provision.Status),
                 EnumValueDto.Of(provision.CoverageScope),
                 EnumValueDto.Of(provision.PurchaseStage),
+                EnumValueDto.Of(provision.PriceOrigin),
+                provision.QuoteProviderKey,
                 EnumValueDto.Of(provision.QuantityUnit),
                 provision.MinQuantity,
                 provision.MaxQuantity,
@@ -127,6 +129,31 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                         seatApplicationRuleId,
                         rows.SeatNumbers.Select(row => new BackofficeProvisionRuleRowDto<string>(row.Id, row.SeatNumber)).ToList(),
                         rows.SeatCharacteristics.Select(row => new BackofficeProvisionRuleRowDto<string>(row.Id, row.CharacteristicCode)).ToList())
+                    : null,
+                provision.PetRuleId is { } petRuleId && provision.PetAcceptanceMode is { } acceptanceMode
+                    ? new BackofficeProvisionPetRuleDto(
+                        petRuleId,
+                        provision.PetCountryExceptionCode,
+                        provision.PetMinAnimalAgeWeeksOverride,
+                        provision.PetMaxCombinedKgOverride,
+                        EnumValueDto.Of(acceptanceMode))
+                    : null,
+                provision.AssistedTravelRuleId is { } assistedTravelRuleId
+                    ? new BackofficeProvisionAssistedTravelRuleDto(
+                        assistedTravelRuleId,
+                        provision.AssistedTravelMinimumLeadTimeMinutes,
+                        EnumValueDto.OfNullable(provision.AssistedTravelConnectionPolicy),
+                        provision.AssistedTravelMedicalApprovalRequired)
+                    : null,
+                provision.AirportServiceRuleId is { } airportServiceRuleId
+                    ? new BackofficeProvisionAirportServiceRuleDto(
+                        airportServiceRuleId,
+                        provision.AirportServiceTerminalRef,
+                        EnumValueDto.OfNullable(provision.AirportServiceDirection),
+                        provision.AirportServiceWindowStart,
+                        provision.AirportServiceWindowEnd,
+                        provision.AirportServiceFacilityId,
+                        provision.AirportServiceMaxGuestsPerPrimary)
                     : null);
 
         public static ProvisionPaginatedRowDto ToPaginatedRow(
@@ -141,6 +168,7 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                 Sequence = provision.Sequence,
                 CoverageScope = EnumValueDto.Of(provision.CoverageScope),
                 Disposition = EnumValueDto.Of(provision.Disposition),
+                PriceOrigin = EnumValueDto.Of(provision.PriceOrigin),
                 QuantityUnit = EnumValueDto.Of(provision.QuantityUnit),
                 MinQuantity = provision.MinQuantity,
                 MaxQuantity = provision.MaxQuantity,

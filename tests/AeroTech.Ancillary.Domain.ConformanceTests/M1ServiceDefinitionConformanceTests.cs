@@ -45,7 +45,7 @@ public class M1ServiceDefinitionConformanceTests
     public void M1_C01_an_unknown_industry_sub_code_is_refused()
     {
         BusinessAssert.Throws(16207, 422, () => AncillaryServiceDefinition.Define(
-            1002, Airline, 2001, "LNG_X", 1, "0ZZ", ServiceSubCodeSource.Industry, NoClassification, PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture,
+            1002, Airline, 2001, "LNG_X", 1, "0ZZ", ServiceSubCodeSource.Industry, NoClassification, V122Fixtures.Profile(PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture, AncillaryDocumentType.EmdStandalone), PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture,
             "Lounge access", null,
             DocumentDefinition.Create(AncillaryDocumentType.EmdStandalone, "E", "0ZZ"),
             BookingDefinition.Create(BookingMethod.NoBookingProcessRequired, null, null),
@@ -58,6 +58,7 @@ public class M1ServiceDefinitionConformanceTests
         BusinessAssert.Throws(16208, 422, () => AncillaryServiceDefinition.Define(
             1002, Airline, 2001, "LNG_X", 1, "0BX", ServiceSubCodeSource.Industry,
             new ServiceDefinitionClassificationArgs("C", null, null, null, null),
+            V122Fixtures.Profile(PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture, AncillaryDocumentType.EmdStandalone),
             PricingUnit.PerPassenger,
             ServiceDateBasis.FlightDeparture,
             "Lounge access", null,
@@ -66,21 +67,21 @@ public class M1ServiceDefinitionConformanceTests
             null, null, Now));
 
         BusinessAssert.Throws(16208, 422, () => AncillaryServiceDefinition.Define(
-            1002, Airline, 2001, "LNG_X", 1, "0BX", ServiceSubCodeSource.Industry, NoClassification, PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture,
+            1002, Airline, 2001, "LNG_X", 1, "0BX", ServiceSubCodeSource.Industry, NoClassification, V122Fixtures.Profile(PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture, AncillaryDocumentType.EmdAssociated), PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture,
             "Lounge access", null,
             DocumentDefinition.Create(AncillaryDocumentType.EmdAssociated, "E", "0BX"),
             BookingDefinition.Create(BookingMethod.NoBookingProcessRequired, null, null),
             null, null, Now));
 
         BusinessAssert.Throws(16208, 422, () => AncillaryServiceDefinition.Define(
-            1002, Airline, 2001, "LNG_X", 1, "0BX", ServiceSubCodeSource.Industry, NoClassification, PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture,
+            1002, Airline, 2001, "LNG_X", 1, "0BX", ServiceSubCodeSource.Industry, NoClassification, V122Fixtures.Profile(PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture, AncillaryDocumentType.EmdStandalone), PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture,
             "Lounge access", null,
             DocumentDefinition.Create(AncillaryDocumentType.EmdStandalone, "C", "0BX"),
             BookingDefinition.Create(BookingMethod.NoBookingProcessRequired, null, null),
             null, null, Now));
 
         BusinessAssert.Throws(16208, 422, () => AncillaryServiceDefinition.Define(
-            1002, Airline, 2001, "LNG_X", 1, "0BX", ServiceSubCodeSource.Industry, NoClassification, PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture,
+            1002, Airline, 2001, "LNG_X", 1, "0BX", ServiceSubCodeSource.Industry, NoClassification, V122Fixtures.Profile(PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture, AncillaryDocumentType.EmdStandalone), PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture,
             "Lounge access", null,
             DocumentDefinition.Create(AncillaryDocumentType.EmdStandalone, "E", "0CC"),
             BookingDefinition.Create(BookingMethod.NoBookingProcessRequired, null, null),
@@ -93,6 +94,7 @@ public class M1ServiceDefinitionConformanceTests
         var definition = AncillaryServiceDefinition.Define(
             1002, Airline, 2001, "LNG_OWN", 1, "XLG", ServiceSubCodeSource.CarrierDefined,
             new ServiceDefinitionClassificationArgs("F", "LG", null, null, null),
+            V122Fixtures.Profile(PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture, AncillaryDocumentType.EmdStandalone),
             PricingUnit.PerPassenger,
             ServiceDateBasis.FlightDeparture,
             "Own lounge", null,
@@ -106,6 +108,7 @@ public class M1ServiceDefinitionConformanceTests
         BusinessAssert.Throws(16202, 422, () => AncillaryServiceDefinition.Define(
             1003, Airline, 2001, "LNG_OWN2", 1, "XLG", ServiceSubCodeSource.CarrierDefined,
             new ServiceDefinitionClassificationArgs("Q", "LG", null, null, null),
+            V122Fixtures.Profile(PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture, AncillaryDocumentType.EmdStandalone),
             PricingUnit.PerPassenger,
             ServiceDateBasis.FlightDeparture,
             "Own lounge", null,
@@ -116,6 +119,7 @@ public class M1ServiceDefinitionConformanceTests
         BusinessAssert.Throws(16202, 422, () => AncillaryServiceDefinition.Define(
             1003, Airline, 2001, "LNG_OWN2", 1, "XLG", ServiceSubCodeSource.CarrierDefined,
             new ServiceDefinitionClassificationArgs("F", null, null, null, null),
+            V122Fixtures.Profile(PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture, AncillaryDocumentType.EmdStandalone),
             PricingUnit.PerPassenger,
             ServiceDateBasis.FlightDeparture,
             "Own lounge", null,
@@ -130,7 +134,7 @@ public class M1ServiceDefinitionConformanceTests
         BusinessAssert.Throws(16202, 422, () => LoungeDefinition(reference: "lng ika"));
         BusinessAssert.Throws(16202, 422, () => LoungeDefinition(reference: new string('R', 31)));
         BusinessAssert.Throws(16202, 422, () => AncillaryServiceDefinition.Define(
-            1002, Airline, 0, "LNG_X", 1, "0BX", ServiceSubCodeSource.Industry, NoClassification, PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture,
+            1002, Airline, 0, "LNG_X", 1, "0BX", ServiceSubCodeSource.Industry, NoClassification, V122Fixtures.Profile(PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture, AncillaryDocumentType.EmdStandalone), PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture,
             "Lounge access", null,
             DocumentDefinition.Create(AncillaryDocumentType.EmdStandalone, "E", "0BX"),
             BookingDefinition.Create(BookingMethod.NoBookingProcessRequired, null, null),

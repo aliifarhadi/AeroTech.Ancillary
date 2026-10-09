@@ -31,7 +31,7 @@ public class V121FinalPricingConformanceTests
         => new(passengerTypeCode, ageFromInclusive, ageToExclusive, baseAmount, currencyId, components);
 
     private static AncillaryPriceComponentArgs Tax(string code, decimal amount, int currencyId, int? countryId = null, int? stationAirportId = null, bool? includedInSource = null)
-        => new(AncillaryPriceLineCategory.Tax, code, null, countryId, stationAirportId, amount, currencyId, null, includedInSource);
+        => new(AncillaryPriceLineCategory.Tax, code, null, countryId, stationAirportId, amount, currencyId, null, includedInSource, TaxTreatment.AddedToBase);
 
     private static AncillaryPriceComponentArgs Fee(string code, decimal amount, int currencyId, FeeApplicationUnit? unit = FeeApplicationUnit.Item)
         => new(AncillaryPriceLineCategory.Fee, code, null, null, null, amount, currencyId, unit, null);
@@ -49,8 +49,8 @@ public class V121FinalPricingConformanceTests
             Rate(Eur, 40m, PassengerTypeCode.ADT, components: [Tax("XT", 4m, Eur), Fee("SVC", 1m, Eur)]));
         var rate = Assert.Single(pricing.Rates);
 
-        Assert.Equal(new[] { "AncillaryPricingId", "AgeFromInclusive", "AgeToExclusive", "BaseAmount", "BasePrice", "Components", "CurrencyId", "IsUnitTotalComplete", "PassengerTypeCode", "UnappliedFees", "UnitTotal" }.OrderBy(name => name, StringComparer.Ordinal), PropertiesOf<AncillaryPricingRate>());
-        Assert.Equal(new[] { "Amount", "AncillaryPricingRateId", "Category", "Code", "CountryId", "FeeApplicationUnit", "Name", "StationAirportId", "TaxIncludedInSource" }, PropertiesOf<AncillaryPriceComponent>());
+        Assert.Equal(new[] { "AncillaryPricingId", "AgeFromInclusive", "AgeToExclusive", "BaseAmount", "BasePrice", "Components", "CurrencyId", "IncludedTaxes", "IsUnitTotalComplete", "PassengerTypeCode", "UnappliedFees", "UnitTotal" }.OrderBy(name => name, StringComparer.Ordinal), PropertiesOf<AncillaryPricingRate>());
+        Assert.Equal(new[] { "Amount", "AncillaryPricingRateId", "Category", "Code", "CountryId", "FeeApplicationUnit", "Name", "StationAirportId", "TaxIncludedInSource", "TaxTreatment" }, PropertiesOf<AncillaryPriceComponent>());
         Assert.Equal(new[] { "ActivatedAt", "AncillaryProvisionId", "CreatedAt", "PricingUnit", "Rates", "RetiredAt", "Status", "SuspendedAt", "Version" }, PropertiesOf<AncillaryPricing>());
         Assert.Equal($"{Eur}:40", Text(rate.BasePrice));
         Assert.Equal(new[] { $"Fee SVC {Eur}:1 Item", $"Tax XT {Eur}:4 " }, rate.Components.Select(component => $"{component.Category} {component.Code} {Text(component.Amount)} {component.FeeApplicationUnit}").OrderBy(text => text, StringComparer.Ordinal));

@@ -55,6 +55,8 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryProvisionAggregate.Controllers
                 request.Sequence,
                 request.CoverageScope,
                 request.PurchaseStage,
+                request.PriceOrigin,
+                request.QuoteProviderKey,
                 request.Quantity,
                 request.ApplicationType,
                 request.Outcome,
@@ -70,7 +72,10 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryProvisionAggregate.Controllers
                 request.DayTimeApplication,
                 request.AdvancePurchase,
                 request.BaggageApplication,
-                request.SeatApplication), cancellationToken));
+                request.SeatApplication,
+                request.PetRule,
+                request.AssistedTravelRule,
+                request.AirportServiceRule), cancellationToken));
 
         [HttpPut("{provisionId:long}")]
         public async Task<IActionResult> Change(long provisionId, [FromBody] ChangeProvisionRequest request, CancellationToken cancellationToken)
@@ -79,6 +84,8 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryProvisionAggregate.Controllers
                 request.Sequence,
                 request.CoverageScope,
                 request.PurchaseStage,
+                request.PriceOrigin,
+                request.QuoteProviderKey,
                 request.Quantity,
                 request.ApplicationType,
                 request.Outcome,
@@ -94,7 +101,10 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryProvisionAggregate.Controllers
                 request.DayTimeApplication,
                 request.AdvancePurchase,
                 request.BaggageApplication,
-                request.SeatApplication), cancellationToken));
+                request.SeatApplication,
+                request.PetRule,
+                request.AssistedTravelRule,
+                request.AirportServiceRule), cancellationToken));
 
         [HttpPost("{provisionId:long}/Activate")]
         public async Task<IActionResult> Activate(long provisionId, CancellationToken cancellationToken)

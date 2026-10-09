@@ -34,6 +34,12 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Models
 
         public ServiceDateBasis? ServiceDateBasis { get; set; }
 
+        public AncillaryProfile? Profile { get; set; }
+
+        public string? VariantCode { get; set; }
+
+        public DocumentRouting? DocumentRouting { get; set; }
+
         public string CommercialName { get; set; } = default!;
 
         public string? Description { get; set; }

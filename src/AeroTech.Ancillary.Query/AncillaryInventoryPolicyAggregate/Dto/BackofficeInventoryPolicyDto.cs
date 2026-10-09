@@ -42,5 +42,7 @@ namespace AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Dto
         long Id,
         EnumValueDto LimitScope,
         int MaxUnits,
-        string CountingFamilyCode);
+        string CountingFamilyCode,
+        EnumValueDto ConsumptionUnit,
+        decimal? UnitsPerPurchase);
 }

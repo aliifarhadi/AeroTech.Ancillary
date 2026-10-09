@@ -40,6 +40,7 @@ namespace AeroTech.Ancillary.Persistence.AncillaryProvisionAggregate
             {
                 fulfillment.Property(value => value.FulfillmentProviderKey).HasColumnName("FulfillmentProviderKey").HasMaxLength(50).IsRequired();
             });
+            builder.Property(provision => provision.QuoteProviderKey).HasMaxLength(50);
             builder.Navigation(provision => provision.Quantity).IsRequired();
             builder.Navigation(provision => provision.Outcome).IsRequired();
             builder.Navigation(provision => provision.Settlement).IsRequired();
@@ -84,6 +85,18 @@ namespace AeroTech.Ancillary.Persistence.AncillaryProvisionAggregate
             builder.HasOne(provision => provision.SeatApplication)
                 .WithOne()
                 .HasForeignKey<ProvisionSeatApplicationRule>(rule => rule.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne(provision => provision.PetRule)
+                .WithOne()
+                .HasForeignKey<ProvisionPetRule>(rule => rule.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne(provision => provision.AssistedTravelRule)
+                .WithOne()
+                .HasForeignKey<ProvisionAssistedTravelRule>(rule => rule.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne(provision => provision.AirportServiceRule)
+                .WithOne()
+                .HasForeignKey<ProvisionAirportServiceRule>(rule => rule.AncillaryProvisionId)
                 .OnDelete(DeleteBehavior.Cascade);
             builder.HasIndex(
                     provision => new { provision.ServiceDefinitionId, provision.Sequence },

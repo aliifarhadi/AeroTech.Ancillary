@@ -1,3 +1,4 @@
+using AeroTech.Ancillary.Domain.ConformanceTests.Fixtures;
 using AeroTech.Messages.AirPrice.Enums;
 using AeroTech.Messages.Ancillary.Enums;
 using AeroTech.Messages.Core.Enums;
@@ -81,7 +82,7 @@ public sealed record OracleContext
 
     public DateOnly? DateOfBirth { get; init; }
 
-    public long? PointOfSaleId { get; init; }
+    public long? PointOfSaleId { get; init; } = V122Fixtures.PointOfSale;
 
     public long? CustomerId { get; init; }
 

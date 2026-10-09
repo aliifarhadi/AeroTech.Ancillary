@@ -17,6 +17,10 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
             RuleFor(command => command.Description2Code).MaximumLength(2);
             RuleFor(command => command.PricingUnit).IsInEnum();
             RuleFor(command => command.ServiceDateBasis).IsInEnum();
+            RuleFor(command => command.Profile).IsInEnum();
+            RuleFor(command => command.VariantCode).NotEmpty().MaximumLength(8);
+            RuleFor(command => command.DocumentRouting).IsInEnum();
+            RuleFor(command => command.Specification).NotNull().SetValidator(new ServiceSpecificationInputValidator());
             RuleFor(command => command.CommercialName).NotEmpty().MaximumLength(100);
             RuleFor(command => command.Description).MaximumLength(500);
             RuleFor(command => command.Document).NotNull().SetValidator(new ServiceDefinitionDocumentInputValidator());

@@ -42,7 +42,7 @@ public class V121FinalPricingAcceptanceTests
         decimal amount,
         int currencyId,
         FeeApplicationUnit? unit = null)
-        => new(category, code, null, null, null, new MoneyInput(amount, currencyId), unit, null);
+        => new(category, code, null, null, null, new MoneyInput(amount, currencyId), unit, null, category == AncillaryPriceLineCategory.Tax ? TaxTreatment.AddedToBase : null);
 
     private async Task<TResult> RequestAsync<TResult>(Func<AncillaryScope, Task<TResult>> request)
     {

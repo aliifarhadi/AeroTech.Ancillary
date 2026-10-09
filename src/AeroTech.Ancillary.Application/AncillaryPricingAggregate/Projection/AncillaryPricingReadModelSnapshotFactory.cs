@@ -37,7 +37,8 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Projection
                                 component.Amount.Amount,
                                 component.Amount.CurrencyId,
                                 component.FeeApplicationUnit,
-                                component.TaxIncludedInSource))
+                                component.TaxIncludedInSource,
+                                component.TaxTreatment))
                             .ToList()))
                     .ToList());
     }

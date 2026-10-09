@@ -32,7 +32,7 @@ namespace AeroTech.Ancillary.Application.AncillaryInventoryPolicyAggregate.Servi
                 (passengerUsageLimits ?? [])
                     .Select(limit => limit is null
                         ? throw ExceptionFactory.InventoryPolicyIsInvalid(nameof(passengerUsageLimits))
-                        : new PassengerUsageLimitArgs(limit.LimitScope, limit.MaxUnits, limit.CountingFamilyCode))
+                        : new PassengerUsageLimitArgs(limit.LimitScope, limit.MaxUnits, limit.CountingFamilyCode, limit.ConsumptionUnit, limit.UnitsPerPurchase))
                     .ToList());
 
         private static FlightWeightConsumption? ToWeight(FlightWeightConsumptionInput? weight)

@@ -15,6 +15,8 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Projection
                 provision.Status,
                 provision.CoverageScope,
                 provision.PurchaseStage,
+                provision.PriceOrigin,
+                provision.QuoteProviderKey,
                 provision.Quantity.Unit,
                 provision.Quantity.MinQuantity,
                 provision.Quantity.MaxQuantity,
@@ -41,7 +43,10 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Projection
                 Snapshot(provision.DayTimeApplication),
                 Snapshot(provision.AdvancePurchase),
                 Snapshot(provision.BaggageApplication),
-                Snapshot(provision.SeatApplication));
+                Snapshot(provision.SeatApplication),
+                Snapshot(provision.PetRule),
+                Snapshot(provision.AssistedTravelRule),
+                Snapshot(provision.AirportServiceRule));
 
         private static ProvisionPassengerEligibilityReadModelSnapshot? Snapshot(ProvisionPassengerEligibilityRule? rule)
             => rule is null
@@ -145,6 +150,37 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Projection
                     rule.Id,
                     Rows(rule.SeatNumbers, row => row.SeatNumber),
                     Rows(rule.SeatCharacteristics, row => row.CharacteristicCode));
+
+        private static ProvisionPetRuleReadModelSnapshot? Snapshot(ProvisionPetRule? rule)
+            => rule is null
+                ? null
+                : new ProvisionPetRuleReadModelSnapshot(
+                    rule.Id,
+                    rule.CountryExceptionCode,
+                    rule.MinAnimalAgeWeeksOverride,
+                    rule.MaxCombinedKgOverride,
+                    rule.AcceptanceMode);
+
+        private static ProvisionAssistedTravelRuleReadModelSnapshot? Snapshot(ProvisionAssistedTravelRule? rule)
+            => rule is null
+                ? null
+                : new ProvisionAssistedTravelRuleReadModelSnapshot(
+                    rule.Id,
+                    rule.MinimumLeadTimeMinutes,
+                    rule.ConnectionPolicy,
+                    rule.MedicalApprovalRequired);
+
+        private static ProvisionAirportServiceRuleReadModelSnapshot? Snapshot(ProvisionAirportServiceRule? rule)
+            => rule is null
+                ? null
+                : new ProvisionAirportServiceRuleReadModelSnapshot(
+                    rule.Id,
+                    rule.TerminalRef,
+                    rule.Direction,
+                    rule.ServiceWindowStart,
+                    rule.ServiceWindowEnd,
+                    rule.FacilityId,
+                    rule.MaxGuestsPerPrimary);
 
         private static IReadOnlyList<ProvisionRuleRowReadModelSnapshot<TValue>> Rows<TRow, TValue>(IEnumerable<TRow> rows, Func<TRow, TValue> value)
             where TRow : Entity<long>

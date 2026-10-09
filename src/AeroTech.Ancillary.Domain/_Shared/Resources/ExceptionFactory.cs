@@ -73,6 +73,18 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public static BusinessException ServiceDefinitionServiceDateBasisAlreadyAssigned(params object?[] args) =>
             new(16214, ExceptionMessages.ServiceDefinitionServiceDateBasisAlreadyAssigned, args) { HttpStatus = 409 };
 
+        public static BusinessException ServiceDefinitionNotClassified(params object?[] args) =>
+            new(16215, ExceptionMessages.ServiceDefinitionNotClassified, args) { HttpStatus = 409 };
+
+        public static BusinessException ServiceDefinitionSpecificationMismatch(params object?[] args) =>
+            new(16216, ExceptionMessages.ServiceDefinitionSpecificationMismatch, args) { HttpStatus = 422 };
+
+        public static BusinessException ServiceDefinitionProfileIsImmutable(params object?[] args) =>
+            new(16217, ExceptionMessages.ServiceDefinitionProfileIsImmutable, args) { HttpStatus = 409 };
+
+        public static BusinessException ServiceDefinitionReferenceNotFound(params object?[] args) =>
+            new(16218, ExceptionMessages.ServiceDefinitionReferenceNotFound, args) { HttpStatus = 422 };
+
         public static BusinessException ProvisionNotFound(params object?[] args) =>
             new(16301, ExceptionMessages.ProvisionNotFound, args) { HttpStatus = 404 };
 
@@ -123,6 +135,24 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
 
         public static BusinessException ProvisionBaggageChargeKindRequired(params object?[] args) =>
             new(16317, ExceptionMessages.ProvisionBaggageChargeKindRequired, args) { HttpStatus = 409 };
+
+        public static BusinessException ProvisionDefinitionNotClassified(params object?[] args) =>
+            new(16318, ExceptionMessages.ProvisionDefinitionNotClassified, args) { HttpStatus = 409 };
+
+        public static BusinessException ProvisionSinglePointOfSaleRequired(params object?[] args) =>
+            new(16319, ExceptionMessages.ProvisionSinglePointOfSaleRequired, args) { HttpStatus = 409 };
+
+        public static BusinessException ProvisionPriceOriginMismatch(params object?[] args) =>
+            new(16320, ExceptionMessages.ProvisionPriceOriginMismatch, args) { HttpStatus = 422 };
+
+        public static BusinessException ProvisionProfileRuleNotAllowed(params object?[] args) =>
+            new(16321, ExceptionMessages.ProvisionProfileRuleNotAllowed, args) { HttpStatus = 409 };
+
+        public static BusinessException ProvisionQuoteAuthorityRequired(params object?[] args) =>
+            new(16322, ExceptionMessages.ProvisionQuoteAuthorityRequired, args) { HttpStatus = 409 };
+
+        public static BusinessException ProvisionPurchaseStageNotAllowed(params object?[] args) =>
+            new(16323, ExceptionMessages.ProvisionPurchaseStageNotAllowed, args) { HttpStatus = 409 };
 
         public static BusinessException AncillaryHoldNotFound(params object?[] args) =>
             new(16401, ExceptionMessages.AncillaryHoldNotFound, args) { HttpStatus = 404 };
@@ -198,6 +228,15 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
 
         public static BusinessException PricingFeeApplicationUnitRequired(params object?[] args) =>
             new(16515, ExceptionMessages.PricingFeeApplicationUnitRequired, args) { HttpStatus = 422 };
+
+        public static BusinessException PricingTaxTreatmentRequired(params object?[] args) =>
+            new(16516, ExceptionMessages.PricingTaxTreatmentRequired, args) { HttpStatus = 422 };
+
+        public static BusinessException PricingTaxTreatmentUnknown(params object?[] args) =>
+            new(16517, ExceptionMessages.PricingTaxTreatmentUnknown, args) { HttpStatus = 409 };
+
+        public static BusinessException PricingIncludedTaxExceedsBase(params object?[] args) =>
+            new(16518, ExceptionMessages.PricingIncludedTaxExceedsBase, args) { HttpStatus = 422 };
 
         public static BusinessException InventoryPolicyNotFound(params object?[] args) =>
             new(16601, ExceptionMessages.InventoryPolicyNotFound, args) { HttpStatus = 404 };

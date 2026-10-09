@@ -58,8 +58,10 @@ public class V12PricingAcceptanceTests
         long definitionId,
         CommercialDisposition disposition = CommercialDisposition.Paid,
         int sequence = 10,
-        AncillaryQuantityUnit quantityUnit = AncillaryQuantityUnit.Each)
-        => (await RequestAsync(scope => scope.DefineProvision.DefineAsync(Provision(definitionId, sequence, disposition, quantityUnit: quantityUnit)))).Id;
+        AncillaryQuantityUnit quantityUnit = AncillaryQuantityUnit.Each,
+        PricingUnit pricingUnit = PricingUnit.PerPassenger)
+        => (await RequestAsync(scope => scope.DefineProvision.DefineAsync(
+            V122Catalog.Fit(Provision(definitionId, sequence, disposition, quantityUnit: quantityUnit), pricingUnit)))).Id;
 
     private Task<PricingResult> DefinePricingAsync(long provisionId, int currencyId, params PricingLineInput[] priceLines)
         => RequestAsync(scope => scope.DefinePricing.DefineAsync(Pricing(provisionId, currencyId, priceLines)));
@@ -84,7 +86,7 @@ public class V12PricingAcceptanceTests
     public async Task V12_P01_the_pricing_unit_is_fixed_for_a_service_identity_once_a_version_is_published()
     {
         var (airlineId, supplierId, _) = await DefinitionAsync();
-        var command = CarrierDefinition(airlineId, supplierId, "SIM_CARD", "SIM", "M", "ST", "Travel SIM card");
+        var command = CarrierDefinition(airlineId, supplierId, "WIFI_PLAN", "WIF", "F", "IE", "Wi-Fi plan", variant: "A24");
         var first = await RequestAsync(scope => scope.DefineServiceDefinition.DefineAsync(command));
 
         Assert.Equal(PricingUnit.PerPassenger, first.PricingUnit);
@@ -94,9 +96,9 @@ public class V12PricingAcceptanceTests
 
         Assert.Equal(PricingUnit.PerItem, changed.PricingUnit);
 
-        var otherDraft = await RequestAsync(scope => scope.DefineServiceDefinition.DefineAsync(command with { PricingUnit = PricingUnit.PerVehicle }));
+        var otherDraft = await RequestAsync(scope => scope.DefineServiceDefinition.DefineAsync(command with { PricingUnit = PricingUnit.PerPassenger }));
 
-        Assert.Equal((2, PricingUnit.PerVehicle), (otherDraft.Version, otherDraft.PricingUnit!.Value));
+        Assert.Equal((2, PricingUnit.PerPassenger), (otherDraft.Version, otherDraft.PricingUnit!.Value));
 
         await RequestAsync(scope => scope.ActivateServiceDefinition.ActivateAsync(new TestActivateServiceDefinitionCommand(first.Id)));
 
@@ -127,7 +129,7 @@ public class V12PricingAcceptanceTests
 
         var detail = await RequestAsync(scope => scope.GetServiceDefinitionById.ExecuteAsync(revision.Id));
         var stored = await RequestAsync(scope => scope.Command.AncillaryServiceDefinitions.AsNoTracking()
-            .Where(row => row.OwnerAirlineId == airlineId && row.ServiceDefinitionRef == "SIM_CARD")
+            .Where(row => row.OwnerAirlineId == airlineId && row.ServiceDefinitionRef == "WIFI_PLAN")
             .OrderBy(row => row.Version)
             .Select(row => row.PricingUnit)
             .ToListAsync());
@@ -141,7 +143,7 @@ public class V12PricingAcceptanceTests
     public async Task V12_P01_a_pricing_takes_the_unit_of_its_service_and_a_wrong_unit_is_never_published()
     {
         var (airlineId, supplierId, _) = await DefinitionAsync();
-        var command = CarrierDefinition(airlineId, supplierId, "TRANSFER", "TRF", "F", "GT", "Airport transfer");
+        var command = CarrierDefinition(airlineId, supplierId, "WIFI_PASS", "WFP", "F", "IE", "Wi-Fi pass", variant: "A24");
         var definition = await RequestAsync(scope => scope.DefineServiceDefinition.DefineAsync(command));
         var provisionId = await DraftProvisionAsync(definition.Id);
         var perPassenger = await DefinePricingAsync(provisionId, Eur, Base(18m, PassengerTypeCode.ADT), Base(9m, PassengerTypeCode.CHD));
@@ -149,7 +151,7 @@ public class V12PricingAcceptanceTests
         Assert.Equal(PricingUnit.PerPassenger, perPassenger.PricingUnit);
 
         await RequestAsync(scope => scope.ChangeServiceDefinition.ChangeAsync(
-            Change(definition.Id, command with { PricingUnit = PricingUnit.PerVehicle })));
+            Change(definition.Id, command with { PricingUnit = PricingUnit.PerItem })));
 
         await RefusedAsync(16506, 409, scope => scope.ActivatePricing.ActivateAsync(new TestPricingLifecycleCommand(perPassenger.Id)));
         await RefusedAsync(16307, 409, scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(provisionId, perPassenger.Id)));
@@ -162,7 +164,7 @@ public class V12PricingAcceptanceTests
         var perVehicle = await DefinePricingAsync(provisionId, Eur, Base(80m));
         var published = await RequestAsync(scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(provisionId, perVehicle.Id)));
 
-        Assert.Equal((PricingUnit.PerVehicle, 2, ProvisionStatus.Active), (perVehicle.PricingUnit!.Value, perVehicle.Version, published.Status));
+        Assert.Equal((PricingUnit.PerItem, 2, ProvisionStatus.Active), (perVehicle.PricingUnit!.Value, perVehicle.Version, published.Status));
         Assert.Equal(
             new[] { (perPassenger.Id, 1, PricingStatus.Draft), (perVehicle.Id, 2, PricingStatus.Active) },
             await VersionsAsync(provisionId));
@@ -359,9 +361,7 @@ public class V12PricingAcceptanceTests
     }
 
     [Theory]
-    [InlineData(PricingUnit.PerRoom, "HOTEL_ROOM")]
-    [InlineData(PricingUnit.PerItem, "SIM_ITEM")]
-    [InlineData(PricingUnit.PerVehicle, "PRIVATE_TRANSFER")]
+    [InlineData(PricingUnit.PerItem, "WIFI_ITEM")]
     [InlineData(PricingUnit.PerSeat, "SEAT_CHOICE")]
     [InlineData(PricingUnit.PerPiece, "EXTRA_PIECE")]
     [InlineData(PricingUnit.PerKilogram, "EXTRA_KILO")]
@@ -375,7 +375,8 @@ public class V12PricingAcceptanceTests
                 PricingUnit.PerPiece => AncillaryQuantityUnit.Piece,
                 PricingUnit.PerKilogram => AncillaryQuantityUnit.Kilogram,
                 _ => AncillaryQuantityUnit.Each
-            });
+            },
+            pricingUnit: pricingUnit);
 
         await RefusedAsync(16508, 409, scope => scope.DefinePricing.DefineAsync(Pricing(provisionId, Eur, Base(45m, PassengerTypeCode.ADT))));
         await RefusedAsync(16508, 409, scope => scope.DefinePricing.DefineAsync(Pricing(provisionId, Eur, Base(45m, null, 0, 65), Base(50m, null, 65))));

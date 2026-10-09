@@ -397,7 +397,7 @@ public class V12BoundaryAcceptanceTests
         Assert.Contains(authored, path => Path.GetFileName(path) == "ProvisionDayTimeWindow.cs");
         Assert.Contains(authored, path => Path.GetFileName(path) == "ServiceDateBasis.cs");
         Assert.Equal(
-            10,
+            13,
             authored.Count(path => InFolder(path, "AeroTech.Ancillary.Domain") && Regex.IsMatch(Path.GetFileName(path), @"^Provision[A-Za-z]+Rule\.cs$")));
     }
 

@@ -92,6 +92,7 @@ namespace AeroTech.Ancillary.Synchronizer.AncillaryPricingAggregate
                 component.CurrencyId = snapshotComponent.CurrencyId;
                 component.FeeApplicationUnit = snapshotComponent.FeeApplicationUnit;
                 component.TaxIncludedInSource = snapshotComponent.TaxIncludedInSource;
+                component.TaxTreatment = snapshotComponent.TaxTreatment;
             }
         }
     }

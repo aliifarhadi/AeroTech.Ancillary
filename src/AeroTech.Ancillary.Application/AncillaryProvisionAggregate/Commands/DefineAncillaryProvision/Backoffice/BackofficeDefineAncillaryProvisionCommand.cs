@@ -8,6 +8,8 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
         int Sequence,
         ServiceCoverageScope CoverageScope,
         PurchaseStage PurchaseStage,
+        PriceOrigin PriceOrigin,
+        string? QuoteProviderKey,
         ProvisionQuantityInput Quantity,
         ProvisionApplicationType ApplicationType,
         ProvisionOutcomeInput Outcome,
@@ -23,5 +25,8 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
         ProvisionDayTimeApplicationInput? DayTimeApplication,
         ProvisionAdvancePurchaseInput? AdvancePurchase,
         ProvisionBaggageApplicationInput? BaggageApplication,
-        ProvisionSeatApplicationInput? SeatApplication) : IRequest<ProvisionResult>, IDefineAncillaryProvisionCommand;
+        ProvisionSeatApplicationInput? SeatApplication,
+        ProvisionPetRuleInput? PetRule,
+        ProvisionAssistedTravelRuleInput? AssistedTravelRule,
+        ProvisionAirportServiceRuleInput? AirportServiceRule) : IRequest<ProvisionResult>, IDefineAncillaryProvisionCommand;
 }

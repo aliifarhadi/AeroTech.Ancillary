@@ -32,7 +32,8 @@ public static class P1Fixtures
         string reference = "MEAL_VGML",
         int version = 1,
         PricingUnit pricingUnit = PricingUnit.PerPassenger,
-        ServiceDateBasis serviceDateBasis = ServiceDateBasis.FlightDeparture)
+        ServiceDateBasis serviceDateBasis = ServiceDateBasis.FlightDeparture,
+        string? variant = null)
         => AncillaryServiceDefinition.Define(
             id,
             Airline,
@@ -42,6 +43,7 @@ public static class P1Fixtures
             "MVG",
             ServiceSubCodeSource.CarrierDefined,
             new ServiceDefinitionClassificationArgs("F", "ML", "VG", null, null),
+            variant is null ? V122Fixtures.Profile(pricingUnit, serviceDateBasis) : V122Fixtures.Profile(variant),
             pricingUnit,
             serviceDateBasis,
             "Vegetarian meal",
@@ -66,6 +68,8 @@ public static class P1Fixtures
             sequence,
             ServiceCoverageScope.Sector,
             PurchaseStage.Both,
+            V122Fixtures.Origin(disposition),
+            null,
             QuantityRule.Create(quantityUnit, 1, 1),
             applicationType,
             CommercialOutcome.Create(disposition, disposition == CommercialDisposition.Paid, false),
@@ -81,6 +85,8 @@ public static class P1Fixtures
             provision.Sequence,
             provision.CoverageScope,
             provision.PurchaseStage,
+            provision.PriceOrigin,
+            provision.QuoteProviderKey,
             provision.Quantity,
             provision.ApplicationType,
             provision.Outcome,
@@ -93,6 +99,8 @@ public static class P1Fixtures
     public static ProvisionRulesArgs Rules(ProvisionRulesArgs? rules, ProvisionApplicationType applicationType)
     {
         var requested = rules ?? ProvisionRulesArgs.Unrestricted;
+
+        requested = requested.SalesRestrictions is null ? requested with { SalesRestrictions = V122Fixtures.SinglePointOfSale } : requested;
 
         return applicationType == ProvisionApplicationType.Baggage && requested.BaggageApplication is null
             ? requested with { BaggageApplication = Baggage() }

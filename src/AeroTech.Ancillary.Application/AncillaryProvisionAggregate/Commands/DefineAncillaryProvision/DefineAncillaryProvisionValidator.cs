@@ -10,6 +10,8 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
             RuleFor(command => command.ServiceDefinitionId).GreaterThan(0);
             RuleFor(command => command.CoverageScope).IsInEnum();
             RuleFor(command => command.PurchaseStage).IsInEnum();
+            RuleFor(command => command.PriceOrigin).IsInEnum();
+            RuleFor(command => command.QuoteProviderKey).MaximumLength(50);
             RuleFor(command => command.Quantity).NotNull().SetValidator(new ProvisionQuantityInputValidator());
             RuleFor(command => command.ApplicationType).IsInEnum();
             RuleFor(command => command.Outcome).NotNull().SetValidator(new ProvisionOutcomeInputValidator());
@@ -46,6 +48,15 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
             RuleFor(command => command.SeatApplication!)
                 .SetValidator(new ProvisionSeatApplicationInputValidator())
                 .When(command => command.SeatApplication is not null);
+            RuleFor(command => command.PetRule!)
+                .SetValidator(new ProvisionPetRuleInputValidator())
+                .When(command => command.PetRule is not null);
+            RuleFor(command => command.AssistedTravelRule!)
+                .SetValidator(new ProvisionAssistedTravelRuleInputValidator())
+                .When(command => command.AssistedTravelRule is not null);
+            RuleFor(command => command.AirportServiceRule!)
+                .SetValidator(new ProvisionAirportServiceRuleInputValidator())
+                .When(command => command.AirportServiceRule is not null);
         }
     }
 }

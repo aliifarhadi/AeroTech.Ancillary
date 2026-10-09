@@ -473,7 +473,8 @@ public class V121ProvisionRuleAcceptanceTests
         var definitionId = await ActiveDefinitionAsync();
         var rule = await _proof.RuleAsync(Free(definitionId));
 
-        Assert.All(RuleIds(rule.Provision), Assert.Null);
+        Assert.Equal(1, RuleIds(rule.Provision).Count(ruleId => ruleId is not null));
+        Assert.Equal(V122Catalog.PointOfSale, rule.Provision.SalesRestrictions!.AllowedPointsOfSale.Single().Value);
         Assert.Equal("Active", rule.Provision.Status.Name);
 
         var tables = await RowsAsync($"SELECT s.name + '.' + t.name AS Value FROM sys.tables t JOIN sys.schemas s ON s.schema_id = t.schema_id WHERE t.name LIKE '%Provision%' AND t.name NOT LIKE '%PriceLines' AND t.name NOT IN ('AncillaryProvisions') ORDER BY 1");
@@ -481,9 +482,9 @@ public class V121ProvisionRuleAcceptanceTests
         var command = tables.Where(table => table.StartsWith("Ancillary.", StringComparison.Ordinal)).Select(table => table["Ancillary.".Length..]).ToList();
         var read = tables.Where(table => table.StartsWith("ReadModel.", StringComparison.Ordinal)).Select(table => table["ReadModel.AncillaryProvision".Length..]).ToList();
 
-        Assert.Equal(10, command.Count(table => table.EndsWith("Rules", StringComparison.Ordinal)));
+        Assert.Equal(13, command.Count(table => table.EndsWith("Rules", StringComparison.Ordinal)));
         Assert.Equal(27, command.Count(table => !table.EndsWith("Rules", StringComparison.Ordinal) && !legacy.Contains(table) && table != "ProvisionRuleMigrationAudit"));
-        Assert.Equal(38, command.Count);
+        Assert.Equal(41, command.Count);
         Assert.Equal(27, read.Count);
         Assert.All(legacy, table => Assert.DoesNotContain(table, command));
 
@@ -564,8 +565,8 @@ public class V121ProvisionRuleAcceptanceTests
         var losing = (await loser.Provisions.GetAsync(second.Id))!;
         var definition = (await winner.Definitions.GetAsync(definitionId))!;
 
-        winning.Activate(definition, _clock.Now);
-        losing.Activate(definition, _clock.Now);
+        winning.Activate(definition, null, _clock.Now);
+        losing.Activate(definition, null, _clock.Now);
 
         await winner.UnitOfWork.SaveChangesAsync();
         await BusinessAssert.ThrowsAsync(16306, 409, () => loser.UnitOfWork.SaveChangesAsync());

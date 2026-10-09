@@ -122,6 +122,9 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.Property<long>("Id")
                         .HasColumnType("bigint");
 
+                    b.Property<int>("ConsumptionUnit")
+                        .HasColumnType("int");
+
                     b.Property<string>("CountingFamilyCode")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -135,6 +138,10 @@ namespace AeroTech.Ancillary.Query.Migrations
 
                     b.Property<int>("MaxUnits")
                         .HasColumnType("int");
+
+                    b.Property<decimal?>("UnitsPerPurchase")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
 
                     b.HasKey("Id");
 
@@ -268,6 +275,9 @@ namespace AeroTech.Ancillary.Query.Migrations
 
                     b.Property<bool?>("TaxIncludedInSource")
                         .HasColumnType("bit");
+
+                    b.Property<int?>("TaxTreatment")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -789,8 +799,42 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.Property<int?>("AdvancePurchaseUnit")
                         .HasColumnType("int");
 
+                    b.Property<int?>("AirportServiceDirection")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("AirportServiceFacilityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("AirportServiceMaxGuestsPerPrimary")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("AirportServiceRuleId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("AirportServiceTerminalRef")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<TimeOnly?>("AirportServiceWindowEnd")
+                        .HasColumnType("time");
+
+                    b.Property<TimeOnly?>("AirportServiceWindowStart")
+                        .HasColumnType("time");
+
                     b.Property<int>("ApplicationType")
                         .HasColumnType("int");
+
+                    b.Property<int?>("AssistedTravelConnectionPolicy")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("AssistedTravelMedicalApprovalRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("AssistedTravelMinimumLeadTimeMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("AssistedTravelRuleId")
+                        .HasColumnType("bigint");
 
                     b.Property<int?>("BaggageAllowanceConcept")
                         .HasColumnType("int");
@@ -882,11 +926,35 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.Property<long?>("PassengerEligibilityRuleId")
                         .HasColumnType("bigint");
 
+                    b.Property<int?>("PetAcceptanceMode")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PetCountryExceptionCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<decimal?>("PetMaxCombinedKgOverride")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<int?>("PetMinAnimalAgeWeeksOverride")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("PetRuleId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("PriceOrigin")
+                        .HasColumnType("int");
+
                     b.Property<int>("PurchaseStage")
                         .HasColumnType("int");
 
                     b.Property<int>("QuantityUnit")
                         .HasColumnType("int");
+
+                    b.Property<string>("QuoteProviderKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("ReissueRefund")
                         .HasColumnType("int");
@@ -1081,6 +1149,9 @@ namespace AeroTech.Ancillary.Query.Migrations
                         .HasMaxLength(3)
                         .HasColumnType("nvarchar(3)");
 
+                    b.Property<int?>("DocumentRouting")
+                        .HasColumnType("int");
+
                     b.Property<int>("DocumentType")
                         .HasColumnType("int");
 
@@ -1096,6 +1167,9 @@ namespace AeroTech.Ancillary.Query.Migrations
                         .HasColumnType("int");
 
                     b.Property<int?>("PricingUnit")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Profile")
                         .HasColumnType("int");
 
                     b.Property<DateTimeOffset?>("RetiredAt")
@@ -1145,6 +1219,10 @@ namespace AeroTech.Ancillary.Query.Migrations
 
                     b.Property<DateTimeOffset?>("SuspendedAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("VariantCode")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<int>("Version")
                         .HasColumnType("int");

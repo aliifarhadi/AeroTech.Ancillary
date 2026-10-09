@@ -12,6 +12,7 @@ namespace AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Configurati
             builder.HasKey(limit => limit.Id);
             builder.Property(limit => limit.Id).ValueGeneratedNever();
             builder.Property(limit => limit.CountingFamilyCode).HasMaxLength(30).IsRequired();
+            builder.Property(limit => limit.UnitsPerPurchase).HasPrecision(18, 3);
             builder.HasIndex(limit => limit.InventoryPolicyId);
         }
     }

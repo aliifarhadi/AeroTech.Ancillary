@@ -23,7 +23,8 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Services
                             component.Amount.Amount,
                             component.Amount.CurrencyId,
                             component.FeeApplicationUnit,
-                            component.TaxIncludedInSource))
+                            component.TaxIncludedInSource,
+                            component.TaxTreatment))
                         .ToList()))
                 .ToList() ?? [];
     }

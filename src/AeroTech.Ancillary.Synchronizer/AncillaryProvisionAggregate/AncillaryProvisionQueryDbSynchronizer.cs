@@ -33,6 +33,8 @@ namespace AeroTech.Ancillary.Synchronizer.AncillaryProvisionAggregate
             provision.Status = snapshot.Status;
             provision.CoverageScope = snapshot.CoverageScope;
             provision.PurchaseStage = snapshot.PurchaseStage;
+            provision.PriceOrigin = snapshot.PriceOrigin;
+            provision.QuoteProviderKey = snapshot.QuoteProviderKey;
             provision.QuantityUnit = snapshot.QuantityUnit;
             provision.MinQuantity = snapshot.MinQuantity;
             provision.MaxQuantity = snapshot.MaxQuantity;
@@ -77,6 +79,22 @@ namespace AeroTech.Ancillary.Synchronizer.AncillaryProvisionAggregate
             provision.AdvancePurchaseRuleId = snapshot.AdvancePurchase?.RuleId;
             provision.BaggageApplicationRuleId = snapshot.BaggageApplication?.RuleId;
             provision.SeatApplicationRuleId = snapshot.SeatApplication?.RuleId;
+            provision.PetRuleId = snapshot.PetRule?.RuleId;
+            provision.PetCountryExceptionCode = snapshot.PetRule?.CountryExceptionCode;
+            provision.PetMinAnimalAgeWeeksOverride = snapshot.PetRule?.MinAnimalAgeWeeksOverride;
+            provision.PetMaxCombinedKgOverride = snapshot.PetRule?.MaxCombinedKgOverride;
+            provision.PetAcceptanceMode = snapshot.PetRule?.AcceptanceMode;
+            provision.AssistedTravelRuleId = snapshot.AssistedTravelRule?.RuleId;
+            provision.AssistedTravelMinimumLeadTimeMinutes = snapshot.AssistedTravelRule?.MinimumLeadTimeMinutes;
+            provision.AssistedTravelConnectionPolicy = snapshot.AssistedTravelRule?.ConnectionPolicy;
+            provision.AssistedTravelMedicalApprovalRequired = snapshot.AssistedTravelRule?.MedicalApprovalRequired;
+            provision.AirportServiceRuleId = snapshot.AirportServiceRule?.RuleId;
+            provision.AirportServiceTerminalRef = snapshot.AirportServiceRule?.TerminalRef;
+            provision.AirportServiceDirection = snapshot.AirportServiceRule?.Direction;
+            provision.AirportServiceWindowStart = snapshot.AirportServiceRule?.ServiceWindowStart;
+            provision.AirportServiceWindowEnd = snapshot.AirportServiceRule?.ServiceWindowEnd;
+            provision.AirportServiceFacilityId = snapshot.AirportServiceRule?.FacilityId;
+            provision.AirportServiceMaxGuestsPerPrimary = snapshot.AirportServiceRule?.MaxGuestsPerPrimary;
 
             ProjectRows(
                 _dbContext.AncillaryProvisionPassengerTypes,

@@ -27,6 +27,14 @@ namespace AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Com
 
         ServiceDateBasis ServiceDateBasis { get; }
 
+        AncillaryProfile Profile { get; }
+
+        string VariantCode { get; }
+
+        DocumentRouting DocumentRouting { get; }
+
+        ServiceSpecificationInput Specification { get; }
+
         string CommercialName { get; }
 
         string? Description { get; }

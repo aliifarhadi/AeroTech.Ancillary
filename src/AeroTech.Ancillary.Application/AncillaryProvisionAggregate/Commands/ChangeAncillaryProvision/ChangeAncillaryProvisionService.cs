@@ -36,6 +36,8 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Ch
                 command.Sequence,
                 command.CoverageScope,
                 command.PurchaseStage,
+                command.PriceOrigin,
+                command.QuoteProviderKey,
                 command.Quantity.ToRule(),
                 command.ApplicationType,
                 command.Outcome.ToOutcome(),
@@ -52,7 +54,10 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Ch
                     command.DayTimeApplication,
                     command.AdvancePurchase,
                     command.BaggageApplication,
-                    command.SeatApplication),
+                    command.SeatApplication,
+                    command.PetRule,
+                    command.AssistedTravelRule,
+                    command.AirportServiceRule),
                 _idGenerator);
 
             await _synchronizer.ProjectAsync(provision.ToReadModelSnapshot(), cancellationToken);

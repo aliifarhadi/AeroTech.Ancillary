@@ -10,6 +10,8 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Dto
         EnumValueDto Status,
         EnumValueDto CoverageScope,
         EnumValueDto PurchaseStage,
+        EnumValueDto PriceOrigin,
+        string? QuoteProviderKey,
         EnumValueDto QuantityUnit,
         int MinQuantity,
         int MaxQuantity,
@@ -36,7 +38,10 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Dto
         BackofficeProvisionDayTimeApplicationDto? DayTimeApplication,
         BackofficeProvisionAdvancePurchaseDto? AdvancePurchase,
         BackofficeProvisionBaggageApplicationDto? BaggageApplication,
-        BackofficeProvisionSeatApplicationDto? SeatApplication);
+        BackofficeProvisionSeatApplicationDto? SeatApplication,
+        BackofficeProvisionPetRuleDto? PetRule,
+        BackofficeProvisionAssistedTravelRuleDto? AssistedTravelRule,
+        BackofficeProvisionAirportServiceRuleDto? AirportServiceRule);
 
     public sealed record BackofficeProvisionRuleRowDto<TValue>(
         long Id,
@@ -94,6 +99,28 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Dto
         long Id,
         IReadOnlyList<BackofficeProvisionRuleRowDto<string>> SeatNumbers,
         IReadOnlyList<BackofficeProvisionRuleRowDto<string>> SeatCharacteristics);
+
+    public sealed record BackofficeProvisionPetRuleDto(
+        long Id,
+        string? CountryExceptionCode,
+        int? MinAnimalAgeWeeksOverride,
+        decimal? MaxCombinedKgOverride,
+        EnumValueDto AcceptanceMode);
+
+    public sealed record BackofficeProvisionAssistedTravelRuleDto(
+        long Id,
+        int? MinimumLeadTimeMinutes,
+        EnumValueDto? ConnectionPolicy,
+        bool? MedicalApprovalRequired);
+
+    public sealed record BackofficeProvisionAirportServiceRuleDto(
+        long Id,
+        string? TerminalRef,
+        EnumValueDto? Direction,
+        TimeOnly? ServiceWindowStart,
+        TimeOnly? ServiceWindowEnd,
+        long? FacilityId,
+        int? MaxGuestsPerPrimary);
 
     public sealed record BackofficeProvisionAgeBandDto(
         long Id,

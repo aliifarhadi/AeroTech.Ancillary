@@ -5,6 +5,7 @@ using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Projection;
 using AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Contracts;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Contracts;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Contracts;
+using AeroTech.Ancillary.Domain.SupplierAggregate.Contracts;
 using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Framework.Core.Domain.Repository;
@@ -17,6 +18,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Pu
     {
         private readonly IAncillaryProvisionRepository _provisions;
         private readonly IAncillaryServiceDefinitionRepository _definitions;
+        private readonly ISupplierRepository _suppliers;
         private readonly ICurrencyReference _currencies;
         private readonly IAncillaryPricingRepository _pricings;
         private readonly IAncillaryProvisionQueryDbSynchronizer _provisionSynchronizer;
@@ -27,6 +29,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Pu
         public PublishAncillaryProvisionService(
             IAncillaryProvisionRepository provisions,
             IAncillaryServiceDefinitionRepository definitions,
+            ISupplierRepository suppliers,
             ICurrencyReference currencies,
             IAncillaryPricingRepository pricings,
             IAncillaryProvisionQueryDbSynchronizer provisionSynchronizer,
@@ -36,6 +39,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Pu
         {
             _provisions = provisions;
             _definitions = definitions;
+            _suppliers = suppliers;
             _currencies = currencies;
             _pricings = pricings;
             _provisionSynchronizer = provisionSynchronizer;
@@ -87,7 +91,9 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Pu
                 await _provisionSynchronizer.ProjectAsync(superseded.ToReadModelSnapshot(), cancellationToken);
             }
 
-            provision.Activate(definition, now);
+            var supplier = await _suppliers.GetAsync(definition.SupplierId, cancellationToken);
+
+            provision.Activate(definition, supplier?.QuoteAuthorityKey(), now);
 
             await _provisionSynchronizer.ProjectAsync(provision.ToReadModelSnapshot(), cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

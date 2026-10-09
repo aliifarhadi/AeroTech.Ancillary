@@ -13,6 +13,10 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Configurations
             builder.Property(provision => provision.Id).ValueGeneratedNever();
             builder.Property(provision => provision.BaggageWeight).HasPrecision(9, 2);
             builder.Property(provision => provision.FulfillmentProviderKey).HasMaxLength(50).IsRequired();
+            builder.Property(provision => provision.QuoteProviderKey).HasMaxLength(50);
+            builder.Property(provision => provision.PetCountryExceptionCode).HasMaxLength(10);
+            builder.Property(provision => provision.PetMaxCombinedKgOverride).HasPrecision(18, 3);
+            builder.Property(provision => provision.AirportServiceTerminalRef).HasMaxLength(30);
             builder.HasIndex(provision => new { provision.ServiceDefinitionId, provision.Status });
         }
     }

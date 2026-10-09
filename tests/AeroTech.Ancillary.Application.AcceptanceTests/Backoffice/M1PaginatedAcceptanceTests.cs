@@ -154,7 +154,7 @@ public class M1PaginatedAcceptanceTests
         Assert.Equal(
             new[]
             {
-                "Sequence", "Coverage", "Disposition", "Unit", "Min", "Max", "Permitted Periods", "Blackouts", "Day/Time", "Sales From",
+                "Sequence", "Coverage", "Disposition", "Price Origin", "Unit", "Min", "Max", "Permitted Periods", "Blackouts", "Day/Time", "Sales From",
                 "Sales Until", "Status", "Created"
             },
             all.Metadata.Fields.Select(field => field.Title));

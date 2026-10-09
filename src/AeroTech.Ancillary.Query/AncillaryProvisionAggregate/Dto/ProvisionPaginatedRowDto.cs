@@ -15,6 +15,8 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Dto
 
         [Grid("Disposition")] public EnumValueDto Disposition { get; set; } = null!;
 
+        [Grid("Price Origin")] public EnumValueDto PriceOrigin { get; set; } = null!;
+
         [Grid("Unit")] public EnumValueDto QuantityUnit { get; set; } = null!;
 
         [Grid("Min")] public int MinQuantity { get; set; }

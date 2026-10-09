@@ -62,8 +62,9 @@ namespace AeroTech.Ancillary.Query.AncillaryPricingAggregate.Queries.GetAncillar
                 rate.AgeToExclusive,
                 ToMoney(rate.BaseAmount, rate.CurrencyId, currencies),
                 components.Select(component => ToComponent(component, currencies)).ToList(),
-                ToMoney(rate.BaseAmount + components.Where(component => !IsUnapplied(component)).Sum(component => component.Amount), rate.CurrencyId, currencies),
-                unapplied.Count == 0,
+                ToMoney(rate.BaseAmount + components.Where(component => !IsUnapplied(component) && !IsIncluded(component)).Sum(component => component.Amount), rate.CurrencyId, currencies),
+                ToMoney(components.Where(IsIncluded).Sum(component => component.Amount), rate.CurrencyId, currencies),
+                unapplied.Count == 0 && !components.Any(HasUnknownTreatment),
                 unapplied.Select(component => ToComponent(component, currencies)).ToList());
         }
 
@@ -77,10 +78,17 @@ namespace AeroTech.Ancillary.Query.AncillaryPricingAggregate.Queries.GetAncillar
                 component.StationAirportId,
                 ToMoney(component.Amount, component.CurrencyId, currencies),
                 EnumValueDto.OfNullable(component.FeeApplicationUnit),
-                component.TaxIncludedInSource);
+                component.TaxIncludedInSource,
+                EnumValueDto.OfNullable(component.TaxTreatment));
 
         private static bool IsUnapplied(AncillaryPriceComponentReadModel component)
             => component.Category == AncillaryPriceLineCategory.Fee && component.FeeApplicationUnit != FeeApplicationUnit.Item;
+
+        private static bool IsIncluded(AncillaryPriceComponentReadModel component)
+            => component.TaxTreatment == TaxTreatment.IncludedInBase;
+
+        private static bool HasUnknownTreatment(AncillaryPriceComponentReadModel component)
+            => component.Category == AncillaryPriceLineCategory.Tax && !IsIncluded(component) && component.TaxTreatment != TaxTreatment.AddedToBase;
 
         private static MoneyDto ToMoney(decimal amount, int currencyId, IReadOnlyDictionary<int, string> currencies)
             => new(amount, currencyId, currencies.GetValueOrDefault(currencyId));

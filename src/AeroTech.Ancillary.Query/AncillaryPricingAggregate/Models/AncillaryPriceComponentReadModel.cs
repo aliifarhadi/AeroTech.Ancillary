@@ -27,5 +27,7 @@ namespace AeroTech.Ancillary.Query.AncillaryPricingAggregate.Models
         public FeeApplicationUnit? FeeApplicationUnit { get; set; }
 
         public bool? TaxIncludedInSource { get; set; }
+
+        public TaxTreatment? TaxTreatment { get; set; }
     }
 }

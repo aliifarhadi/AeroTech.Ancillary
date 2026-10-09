@@ -12,5 +12,6 @@ namespace AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.Contracts
         InventoryCountUnit? CountUnitOfLiveSources,
         InventoryReferenceCheck WeightResource,
         InventoryReferenceCheck SlotFacility,
-        IReadOnlyDictionary<string, InventoryReferenceCheck> CountingFamilies);
+        IReadOnlyDictionary<string, InventoryReferenceCheck> CountingFamilies,
+        IReadOnlyDictionary<string, IReadOnlyList<UsageConsumptionUnit>>? CountingFamilyUnits = null);
 }

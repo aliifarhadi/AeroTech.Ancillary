@@ -121,6 +121,14 @@ namespace AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate
                 InventoryRules.EnsureVerified(
                     evidence.CountingFamilies.GetValueOrDefault(limit.CountingFamilyCode, InventoryReferenceCheck.SourceUnavailable),
                     $"Counting family {limit.CountingFamilyCode}");
+
+                var familyUnits = _passengerUsageLimits
+                    .Where(other => other.CountingFamilyCode == limit.CountingFamilyCode)
+                    .Select(other => other.ConsumptionUnit)
+                    .Concat(evidence.CountingFamilyUnits?.GetValueOrDefault(limit.CountingFamilyCode) ?? []);
+
+                if (familyUnits.Any(unit => unit != limit.ConsumptionUnit))
+                    throw ExceptionFactory.InventoryPolicyActivationRefused($"Counting family {limit.CountingFamilyCode} mixes consumption units");
             }
 
             ServiceDefinitionId = currentServiceDefinitionId;

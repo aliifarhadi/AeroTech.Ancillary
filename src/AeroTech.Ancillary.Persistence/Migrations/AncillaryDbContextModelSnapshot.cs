@@ -215,6 +215,9 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.Property<long>("Id")
                         .HasColumnType("bigint");
 
+                    b.Property<int>("ConsumptionUnit")
+                        .HasColumnType("int");
+
                     b.Property<string>("CountingFamilyCode")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -234,6 +237,10 @@ namespace AeroTech.Ancillary.Persistence.Migrations
 
                     b.Property<int>("MaxUnits")
                         .HasColumnType("int");
+
+                    b.Property<decimal?>("UnitsPerPurchase")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
 
                     b.HasKey("Id");
 
@@ -335,6 +342,9 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.Property<bool?>("TaxIncludedInSource")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("TaxTreatment")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex(new[] { "AncillaryPricingRateId", "Category", "Code", "CountryId", "StationAirportId", "FeeApplicationUnit" }, "IX_AncillaryPriceComponents_ComponentKey")
@@ -404,8 +414,15 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.Property<long?>("LastUpdatedBy")
                         .HasColumnType("bigint");
 
+                    b.Property<int>("PriceOrigin")
+                        .HasColumnType("int");
+
                     b.Property<int>("PurchaseStage")
                         .HasColumnType("int");
+
+                    b.Property<string>("QuoteProviderKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTimeOffset?>("RetiredAt")
                         .HasColumnType("datetimeoffset");
@@ -563,6 +580,78 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("ProvisionAircraft", "Ancillary");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities.ProvisionAirportServiceRule", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("AncillaryProvisionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("Direction")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("FacilityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("LastUpdatedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("MaxGuestsPerPrimary")
+                        .HasColumnType("int");
+
+                    b.Property<TimeOnly?>("ServiceWindowEnd")
+                        .HasColumnType("time");
+
+                    b.Property<TimeOnly?>("ServiceWindowStart")
+                        .HasColumnType("time");
+
+                    b.Property<string>("TerminalRef")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AncillaryProvisionId")
+                        .IsUnique();
+
+                    b.ToTable("ProvisionAirportServiceRules", "Ancillary");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities.ProvisionAssistedTravelRule", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("AncillaryProvisionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("ConnectionPolicy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("LastUpdatedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool?>("MedicalApprovalRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("MinimumLeadTimeMinutes")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AncillaryProvisionId")
+                        .IsUnique();
+
+                    b.ToTable("ProvisionAssistedTravelRules", "Ancillary");
                 });
 
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities.ProvisionBaggageApplicationRule", b =>
@@ -1259,6 +1348,42 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.ToTable("ProvisionPermittedTravelPeriods", "Ancillary");
                 });
 
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities.ProvisionPetRule", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("AcceptanceMode")
+                        .HasColumnType("int");
+
+                    b.Property<long>("AncillaryProvisionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CountryExceptionCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("LastUpdatedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal?>("MaxCombinedKgOverride")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<int?>("MinAnimalAgeWeeksOverride")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AncillaryProvisionId")
+                        .IsUnique();
+
+                    b.ToTable("ProvisionPetRules", "Ancillary");
+                });
+
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities.ProvisionPointOfSale", b =>
                 {
                     b.Property<long>("Id")
@@ -1696,6 +1821,9 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                         .HasMaxLength(2)
                         .HasColumnType("nvarchar(2)");
 
+                    b.Property<int?>("DocumentRouting")
+                        .HasColumnType("int");
+
                     b.Property<string>("GroupCode")
                         .IsRequired()
                         .HasMaxLength(2)
@@ -1711,6 +1839,9 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.Property<int?>("PricingUnit")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Profile")
                         .HasColumnType("int");
 
                     b.Property<DateTimeOffset?>("RetiredAt")
@@ -1761,6 +1892,10 @@ namespace AeroTech.Ancillary.Persistence.Migrations
 
                     b.Property<DateTimeOffset?>("SuspendedAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("VariantCode")
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
 
                     b.Property<int>("Version")
                         .HasColumnType("int");
@@ -2450,6 +2585,24 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities.ProvisionAirportServiceRule", b =>
+                {
+                    b.HasOne("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.AncillaryProvision", null)
+                        .WithOne("AirportServiceRule")
+                        .HasForeignKey("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities.ProvisionAirportServiceRule", "AncillaryProvisionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities.ProvisionAssistedTravelRule", b =>
+                {
+                    b.HasOne("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.AncillaryProvision", null)
+                        .WithOne("AssistedTravelRule")
+                        .HasForeignKey("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities.ProvisionAssistedTravelRule", "AncillaryProvisionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities.ProvisionBaggageApplicationRule", b =>
                 {
                     b.HasOne("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.AncillaryProvision", null)
@@ -2759,6 +2912,15 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities.ProvisionPetRule", b =>
+                {
+                    b.HasOne("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.AncillaryProvision", null)
+                        .WithOne("PetRule")
+                        .HasForeignKey("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities.ProvisionPetRule", "AncillaryProvisionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities.ProvisionPointOfSale", b =>
                 {
                     b.HasOne("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.AncillaryProvision", null)
@@ -2902,6 +3064,750 @@ namespace AeroTech.Ancillary.Persistence.Migrations
 
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.AncillaryServiceDefinition", b =>
                 {
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.AirportServiceSpecification", "AirportService", b1 =>
+                        {
+                            b1.Property<long>("AncillaryServiceDefinitionId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<int>("AirportId")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Direction")
+                                .HasColumnType("int");
+
+                            b1.Property<long?>("FacilityId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<string>("IanaTimeZone")
+                                .HasMaxLength(64)
+                                .HasColumnType("nvarchar(64)");
+
+                            b1.Property<int>("Kind")
+                                .HasColumnType("int");
+
+                            b1.Property<int?>("MaxGuestsPerPrimary")
+                                .HasColumnType("int");
+
+                            b1.Property<bool>("RequiresSpecificAppointment")
+                                .HasColumnType("bit");
+
+                            b1.Property<TimeOnly?>("ServiceWindowEnd")
+                                .HasColumnType("time");
+
+                            b1.Property<TimeOnly?>("ServiceWindowStart")
+                                .HasColumnType("time");
+
+                            b1.Property<string>("TerminalRef")
+                                .HasMaxLength(30)
+                                .HasColumnType("nvarchar(30)");
+
+                            b1.Property<int?>("VisitDurationMinutes")
+                                .HasColumnType("int");
+
+                            b1.HasKey("AncillaryServiceDefinitionId");
+
+                            b1.ToTable("AirportServiceSpecifications", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryServiceDefinitionId");
+
+                            b1.OwnsMany("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.SpecificationCode", "IncludedComponentCodes", b2 =>
+                                {
+                                    b2.Property<long>("AncillaryServiceDefinitionId")
+                                        .HasColumnType("bigint");
+
+                                    b2.Property<string>("Code")
+                                        .HasMaxLength(30)
+                                        .HasColumnType("nvarchar(30)");
+
+                                    b2.HasKey("AncillaryServiceDefinitionId", "Code");
+
+                                    b2.ToTable("AirportServiceSpecificationComponents", "Ancillary");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AncillaryServiceDefinitionId");
+                                });
+
+                            b1.Navigation("IncludedComponentCodes");
+                        });
+
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.AssistedTravelSpecification", "AssistedTravel", b1 =>
+                        {
+                            b1.Property<long>("AncillaryServiceDefinitionId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<int>("AssistanceKind")
+                                .HasColumnType("int");
+
+                            b1.HasKey("AncillaryServiceDefinitionId");
+
+                            b1.ToTable("AssistedTravelSpecifications", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryServiceDefinitionId");
+
+                            b1.OwnsOne("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.BassinetDetails", "Bassinet", b2 =>
+                                {
+                                    b2.Property<long>("AncillaryServiceDefinitionId")
+                                        .HasColumnType("bigint");
+
+                                    b2.Property<int?>("MaxInfantAgeMonths")
+                                        .HasColumnType("int");
+
+                                    b2.Property<decimal?>("MaxInfantWeightKg")
+                                        .HasPrecision(18, 3)
+                                        .HasColumnType("decimal(18,3)");
+
+                                    b2.Property<bool>("RequiresInfantAndGuardian")
+                                        .HasColumnType("bit");
+
+                                    b2.HasKey("AncillaryServiceDefinitionId");
+
+                                    b2.ToTable("AssistedTravelBassinetDetails", "Ancillary");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AncillaryServiceDefinitionId");
+
+                                    b2.OwnsMany("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.SpecificationCode", "CompatibleSeatGroups", b3 =>
+                                        {
+                                            b3.Property<long>("AncillaryServiceDefinitionId")
+                                                .HasColumnType("bigint");
+
+                                            b3.Property<string>("Code")
+                                                .HasMaxLength(25)
+                                                .HasColumnType("nvarchar(25)");
+
+                                            b3.HasKey("AncillaryServiceDefinitionId", "Code");
+
+                                            b3.ToTable("AssistedTravelBassinetSeatGroups", "Ancillary");
+
+                                            b3.WithOwner()
+                                                .HasForeignKey("AncillaryServiceDefinitionId");
+                                        });
+
+                                    b2.Navigation("CompatibleSeatGroups");
+                                });
+
+                            b1.OwnsOne("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.DisabilityAssistanceDetails", "DisabilityAssistance", b2 =>
+                                {
+                                    b2.Property<long>("AncillaryServiceDefinitionId")
+                                        .HasColumnType("bigint");
+
+                                    b2.Property<int?>("RequiredCommunicationMethod")
+                                        .HasColumnType("int");
+
+                                    b2.HasKey("AncillaryServiceDefinitionId");
+
+                                    b2.ToTable("AssistedTravelDisabilityDetails", "Ancillary");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AncillaryServiceDefinitionId");
+
+                                    b2.OwnsMany("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.SpecificationCode", "AllowedSsrCodes", b3 =>
+                                        {
+                                            b3.Property<long>("AncillaryServiceDefinitionId")
+                                                .HasColumnType("bigint");
+
+                                            b3.Property<string>("Code")
+                                                .HasMaxLength(4)
+                                                .HasColumnType("nvarchar(4)");
+
+                                            b3.HasKey("AncillaryServiceDefinitionId", "Code");
+
+                                            b3.ToTable("AssistedTravelDisabilitySsrCodes", "Ancillary");
+
+                                            b3.WithOwner()
+                                                .HasForeignKey("AncillaryServiceDefinitionId");
+                                        });
+
+                                    b2.Navigation("AllowedSsrCodes");
+                                });
+
+                            b1.OwnsOne("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.MedicalEquipmentDetails", "MedicalEquipment", b2 =>
+                                {
+                                    b2.Property<long>("AncillaryServiceDefinitionId")
+                                        .HasColumnType("bigint");
+
+                                    b2.Property<int>("EquipmentKind")
+                                        .HasColumnType("int");
+
+                                    b2.Property<string>("MedicalServiceCode")
+                                        .IsRequired()
+                                        .HasMaxLength(4)
+                                        .HasColumnType("nvarchar(4)");
+
+                                    b2.Property<decimal?>("OxygenUnits")
+                                        .HasPrecision(18, 3)
+                                        .HasColumnType("decimal(18,3)");
+
+                                    b2.Property<bool>("RequiresMedicalApproval")
+                                        .HasColumnType("bit");
+
+                                    b2.HasKey("AncillaryServiceDefinitionId");
+
+                                    b2.ToTable("AssistedTravelMedicalDetails", "Ancillary");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AncillaryServiceDefinitionId");
+
+                                    b2.OwnsMany("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.SpecificationCode", "EvidenceTypeCodes", b3 =>
+                                        {
+                                            b3.Property<long>("AncillaryServiceDefinitionId")
+                                                .HasColumnType("bigint");
+
+                                            b3.Property<string>("Code")
+                                                .HasMaxLength(30)
+                                                .HasColumnType("nvarchar(30)");
+
+                                            b3.HasKey("AncillaryServiceDefinitionId", "Code");
+
+                                            b3.ToTable("AssistedTravelMedicalEvidenceCodes", "Ancillary");
+
+                                            b3.WithOwner()
+                                                .HasForeignKey("AncillaryServiceDefinitionId");
+                                        });
+
+                                    b2.Navigation("EvidenceTypeCodes");
+                                });
+
+                            b1.OwnsOne("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.UnaccompaniedMinorDetails", "UnaccompaniedMinor", b2 =>
+                                {
+                                    b2.Property<long>("AncillaryServiceDefinitionId")
+                                        .HasColumnType("bigint");
+
+                                    b2.Property<int>("ConnectionPolicy")
+                                        .HasColumnType("int");
+
+                                    b2.Property<bool>("GuardianContactRequired")
+                                        .HasColumnType("bit");
+
+                                    b2.Property<int>("MaxAgeYearsExclusive")
+                                        .HasColumnType("int");
+
+                                    b2.Property<int>("MinAgeYears")
+                                        .HasColumnType("int");
+
+                                    b2.HasKey("AncillaryServiceDefinitionId");
+
+                                    b2.ToTable("AssistedTravelMinorDetails", "Ancillary");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AncillaryServiceDefinitionId");
+
+                                    b2.OwnsMany("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.SpecificationReference", "AllowedTransitAirports", b3 =>
+                                        {
+                                            b3.Property<long>("AncillaryServiceDefinitionId")
+                                                .HasColumnType("bigint");
+
+                                            b3.Property<long>("ReferenceId")
+                                                .HasColumnType("bigint")
+                                                .HasColumnName("AirportId");
+
+                                            b3.HasKey("AncillaryServiceDefinitionId", "ReferenceId");
+
+                                            b3.ToTable("AssistedTravelMinorTransitAirports", "Ancillary");
+
+                                            b3.WithOwner()
+                                                .HasForeignKey("AncillaryServiceDefinitionId");
+                                        });
+
+                                    b2.Navigation("AllowedTransitAirports");
+                                });
+
+                            b1.OwnsOne("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.WheelchairDetails", "Wheelchair", b2 =>
+                                {
+                                    b2.Property<long>("AncillaryServiceDefinitionId")
+                                        .HasColumnType("bigint");
+
+                                    b2.Property<string>("AssistanceLevelCode")
+                                        .HasMaxLength(20)
+                                        .HasColumnType("nvarchar(20)");
+
+                                    b2.Property<int>("LeadTimeMinutes")
+                                        .HasColumnType("int");
+
+                                    b2.HasKey("AncillaryServiceDefinitionId");
+
+                                    b2.ToTable("AssistedTravelWheelchairDetails", "Ancillary");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AncillaryServiceDefinitionId");
+
+                                    b2.OwnsMany("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.SpecificationCode", "AllowedSsrCodes", b3 =>
+                                        {
+                                            b3.Property<long>("AncillaryServiceDefinitionId")
+                                                .HasColumnType("bigint");
+
+                                            b3.Property<string>("Code")
+                                                .HasMaxLength(4)
+                                                .HasColumnType("nvarchar(4)");
+
+                                            b3.HasKey("AncillaryServiceDefinitionId", "Code");
+
+                                            b3.ToTable("AssistedTravelWheelchairSsrCodes", "Ancillary");
+
+                                            b3.WithOwner()
+                                                .HasForeignKey("AncillaryServiceDefinitionId");
+                                        });
+
+                                    b2.Navigation("AllowedSsrCodes");
+                                });
+
+                            b1.Navigation("Bassinet");
+
+                            b1.Navigation("DisabilityAssistance");
+
+                            b1.Navigation("MedicalEquipment");
+
+                            b1.Navigation("UnaccompaniedMinor");
+
+                            b1.Navigation("Wheelchair");
+                        });
+
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.BaggageSpecification", "Baggage", b1 =>
+                        {
+                            b1.Property<long>("AncillaryServiceDefinitionId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<int?>("AllowanceConcept")
+                                .HasColumnType("int");
+
+                            b1.Property<int?>("ChargeCombination")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("ChargeKind")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("EquipmentKind")
+                                .HasMaxLength(20)
+                                .HasColumnType("nvarchar(20)");
+
+                            b1.Property<decimal?>("MaxKgPerPiece")
+                                .HasPrecision(18, 3)
+                                .HasColumnType("decimal(18,3)");
+
+                            b1.Property<decimal?>("MaxLinearSumCm")
+                                .HasPrecision(18, 3)
+                                .HasColumnType("decimal(18,3)");
+
+                            b1.Property<decimal?>("PackageWeightKg")
+                                .HasPrecision(18, 3)
+                                .HasColumnType("decimal(18,3)");
+
+                            b1.Property<decimal?>("WeightFromExclusiveKg")
+                                .HasPrecision(18, 3)
+                                .HasColumnType("decimal(18,3)");
+
+                            b1.Property<decimal?>("WeightToInclusiveKg")
+                                .HasPrecision(18, 3)
+                                .HasColumnType("decimal(18,3)");
+
+                            b1.HasKey("AncillaryServiceDefinitionId");
+
+                            b1.ToTable("BaggageSpecifications", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryServiceDefinitionId");
+
+                            b1.OwnsOne("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.DimensionsCm", "MaxSize", b2 =>
+                                {
+                                    b2.Property<long>("BaggageSpecificationAncillaryServiceDefinitionId")
+                                        .HasColumnType("bigint");
+
+                                    b2.Property<decimal>("HeightCm")
+                                        .HasPrecision(18, 3)
+                                        .HasColumnType("decimal(18,3)")
+                                        .HasColumnName("MaxHeightCm");
+
+                                    b2.Property<decimal>("LengthCm")
+                                        .HasPrecision(18, 3)
+                                        .HasColumnType("decimal(18,3)")
+                                        .HasColumnName("MaxLengthCm");
+
+                                    b2.Property<decimal>("WidthCm")
+                                        .HasPrecision(18, 3)
+                                        .HasColumnType("decimal(18,3)")
+                                        .HasColumnName("MaxWidthCm");
+
+                                    b2.HasKey("BaggageSpecificationAncillaryServiceDefinitionId");
+
+                                    b2.ToTable("BaggageSpecifications", "Ancillary");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("BaggageSpecificationAncillaryServiceDefinitionId");
+                                });
+
+                            b1.Navigation("MaxSize");
+                        });
+
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.ConnectivitySpecification", "Connectivity", b1 =>
+                        {
+                            b1.Property<long>("AncillaryServiceDefinitionId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<int>("DeliveryStage")
+                                .HasColumnType("int");
+
+                            b1.Property<int?>("DurationMinutes")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("FulfillmentProviderRef")
+                                .HasMaxLength(50)
+                                .HasColumnType("nvarchar(50)");
+
+                            b1.Property<int?>("IncludedDataMb")
+                                .HasColumnType("int");
+
+                            b1.Property<int?>("MaxDevices")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("PlanKind")
+                                .HasColumnType("int");
+
+                            b1.HasKey("AncillaryServiceDefinitionId");
+
+                            b1.ToTable("ConnectivitySpecifications", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryServiceDefinitionId");
+
+                            b1.OwnsMany("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.SpecificationReference", "EligibleAircraft", b2 =>
+                                {
+                                    b2.Property<long>("AncillaryServiceDefinitionId")
+                                        .HasColumnType("bigint");
+
+                                    b2.Property<long>("ReferenceId")
+                                        .HasColumnType("bigint")
+                                        .HasColumnName("AircraftId");
+
+                                    b2.HasKey("AncillaryServiceDefinitionId", "ReferenceId");
+
+                                    b2.ToTable("ConnectivitySpecificationAircraft", "Ancillary");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AncillaryServiceDefinitionId");
+                                });
+
+                            b1.Navigation("EligibleAircraft");
+                        });
+
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.MealSpecification", "Meal", b1 =>
+                        {
+                            b1.Property<long>("AncillaryServiceDefinitionId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<int>("CateringLeadTimeMinutes")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("DietaryCode")
+                                .HasMaxLength(20)
+                                .HasColumnType("nvarchar(20)");
+
+                            b1.Property<string>("ExclusiveMealFamilyCode")
+                                .HasMaxLength(30)
+                                .HasColumnType("nvarchar(30)");
+
+                            b1.Property<string>("MealCode")
+                                .HasMaxLength(4)
+                                .HasColumnType("nvarchar(4)");
+
+                            b1.Property<int>("MealKind")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("MenuItemRef")
+                                .HasMaxLength(40)
+                                .HasColumnType("nvarchar(40)");
+
+                            b1.HasKey("AncillaryServiceDefinitionId");
+
+                            b1.ToTable("MealSpecifications", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryServiceDefinitionId");
+                        });
+
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.PetSpecification", "Pet", b1 =>
+                        {
+                            b1.Property<long>("AncillaryServiceDefinitionId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<decimal>("MaxCombinedWeightKg")
+                                .HasPrecision(18, 3)
+                                .HasColumnType("decimal(18,3)");
+
+                            b1.Property<int?>("MinAnimalAgeWeeks")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("TransportMode")
+                                .HasColumnType("int");
+
+                            b1.HasKey("AncillaryServiceDefinitionId");
+
+                            b1.ToTable("PetSpecifications", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryServiceDefinitionId");
+
+                            b1.OwnsMany("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.PetAnimal", "AllowedAnimalTypes", b2 =>
+                                {
+                                    b2.Property<long>("AncillaryServiceDefinitionId")
+                                        .HasColumnType("bigint");
+
+                                    b2.Property<int>("AnimalType")
+                                        .HasColumnType("int");
+
+                                    b2.Property<string>("OtherCode")
+                                        .HasMaxLength(10)
+                                        .HasColumnType("nvarchar(10)");
+
+                                    b2.HasKey("AncillaryServiceDefinitionId", "AnimalType", "OtherCode");
+
+                                    b2.ToTable("PetSpecificationAnimalTypes", "Ancillary");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AncillaryServiceDefinitionId");
+                                });
+
+                            b1.OwnsMany("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.PetSizeBracket", "AllowedHoldAnimalSizeBrackets", b2 =>
+                                {
+                                    b2.Property<long>("AncillaryServiceDefinitionId")
+                                        .HasColumnType("bigint");
+
+                                    b2.Property<string>("Code")
+                                        .HasMaxLength(20)
+                                        .HasColumnType("nvarchar(20)");
+
+                                    b2.Property<decimal>("WeightFromExclusiveKg")
+                                        .HasPrecision(18, 3)
+                                        .HasColumnType("decimal(18,3)");
+
+                                    b2.Property<decimal>("WeightToInclusiveKg")
+                                        .HasPrecision(18, 3)
+                                        .HasColumnType("decimal(18,3)");
+
+                                    b2.HasKey("AncillaryServiceDefinitionId", "Code");
+
+                                    b2.ToTable("PetSpecificationSizeBrackets", "Ancillary");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AncillaryServiceDefinitionId");
+                                });
+
+                            b1.OwnsMany("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.SpecificationCode", "RequiredDocumentCodes", b2 =>
+                                {
+                                    b2.Property<long>("AncillaryServiceDefinitionId")
+                                        .HasColumnType("bigint");
+
+                                    b2.Property<string>("Code")
+                                        .HasMaxLength(30)
+                                        .HasColumnType("nvarchar(30)");
+
+                                    b2.HasKey("AncillaryServiceDefinitionId", "Code");
+
+                                    b2.ToTable("PetSpecificationDocumentCodes", "Ancillary");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AncillaryServiceDefinitionId");
+                                });
+
+                            b1.OwnsOne("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.DimensionsCm", "CarrierDimensionsMaxCm", b2 =>
+                                {
+                                    b2.Property<long>("PetSpecificationAncillaryServiceDefinitionId")
+                                        .HasColumnType("bigint");
+
+                                    b2.Property<decimal>("HeightCm")
+                                        .HasPrecision(18, 3)
+                                        .HasColumnType("decimal(18,3)")
+                                        .HasColumnName("CarrierMaxHeightCm");
+
+                                    b2.Property<decimal>("LengthCm")
+                                        .HasPrecision(18, 3)
+                                        .HasColumnType("decimal(18,3)")
+                                        .HasColumnName("CarrierMaxLengthCm");
+
+                                    b2.Property<decimal>("WidthCm")
+                                        .HasPrecision(18, 3)
+                                        .HasColumnType("decimal(18,3)")
+                                        .HasColumnName("CarrierMaxWidthCm");
+
+                                    b2.HasKey("PetSpecificationAncillaryServiceDefinitionId");
+
+                                    b2.ToTable("PetSpecifications", "Ancillary");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("PetSpecificationAncillaryServiceDefinitionId");
+                                });
+
+                            b1.Navigation("AllowedAnimalTypes");
+
+                            b1.Navigation("AllowedHoldAnimalSizeBrackets");
+
+                            b1.Navigation("CarrierDimensionsMaxCm")
+                                .IsRequired();
+
+                            b1.Navigation("RequiredDocumentCodes");
+                        });
+
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.PrioritySpecification", "Priority", b1 =>
+                        {
+                            b1.Property<long>("AncillaryServiceDefinitionId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<string>("FareBenefitRef")
+                                .HasMaxLength(40)
+                                .HasColumnType("nvarchar(40)");
+
+                            b1.Property<int>("Kind")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("PriorityGroupCode")
+                                .HasMaxLength(20)
+                                .HasColumnType("nvarchar(20)");
+
+                            b1.Property<string>("PriorityZoneCode")
+                                .HasMaxLength(20)
+                                .HasColumnType("nvarchar(20)");
+
+                            b1.HasKey("AncillaryServiceDefinitionId");
+
+                            b1.ToTable("PrioritySpecifications", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryServiceDefinitionId");
+
+                            b1.OwnsMany("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.SpecificationReference", "Airports", b2 =>
+                                {
+                                    b2.Property<long>("AncillaryServiceDefinitionId")
+                                        .HasColumnType("bigint");
+
+                                    b2.Property<long>("ReferenceId")
+                                        .HasColumnType("bigint")
+                                        .HasColumnName("AirportId");
+
+                                    b2.HasKey("AncillaryServiceDefinitionId", "ReferenceId");
+
+                                    b2.ToTable("PrioritySpecificationAirports", "Ancillary");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AncillaryServiceDefinitionId");
+                                });
+
+                            b1.Navigation("Airports");
+                        });
+
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.SeatSpecification", "Seat", b1 =>
+                        {
+                            b1.Property<long>("AncillaryServiceDefinitionId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<int?>("ExtraOccupiedSeatCount")
+                                .HasColumnType("int");
+
+                            b1.Property<int?>("ExtraSeatPurpose")
+                                .HasColumnType("int");
+
+                            b1.Property<bool>("RequiresAdjacentSeat")
+                                .HasColumnType("bit");
+
+                            b1.Property<bool>("RequiresExitRowEligibility")
+                                .HasColumnType("bit");
+
+                            b1.Property<bool>("RequiresExternalTicketAction")
+                                .HasColumnType("bit");
+
+                            b1.Property<int>("SeatPurpose")
+                                .HasColumnType("int");
+
+                            b1.HasKey("AncillaryServiceDefinitionId");
+
+                            b1.ToTable("SeatSpecifications", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryServiceDefinitionId");
+
+                            b1.OwnsMany("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.SpecificationReference", "ApplicableCabins", b2 =>
+                                {
+                                    b2.Property<long>("AncillaryServiceDefinitionId")
+                                        .HasColumnType("bigint");
+
+                                    b2.Property<long>("ReferenceId")
+                                        .HasColumnType("bigint")
+                                        .HasColumnName("CabinClassId");
+
+                                    b2.HasKey("AncillaryServiceDefinitionId", "ReferenceId");
+
+                                    b2.ToTable("SeatSpecificationCabins", "Ancillary");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AncillaryServiceDefinitionId");
+                                });
+
+                            b1.OwnsMany("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.SpecificationCode", "SeatCharacteristicCodes", b2 =>
+                                {
+                                    b2.Property<long>("AncillaryServiceDefinitionId")
+                                        .HasColumnType("bigint");
+
+                                    b2.Property<string>("Code")
+                                        .HasMaxLength(25)
+                                        .HasColumnType("nvarchar(25)");
+
+                                    b2.HasKey("AncillaryServiceDefinitionId", "Code");
+
+                                    b2.ToTable("SeatSpecificationCharacteristicCodes", "Ancillary");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AncillaryServiceDefinitionId");
+                                });
+
+                            b1.Navigation("ApplicableCabins");
+
+                            b1.Navigation("SeatCharacteristicCodes");
+                        });
+
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.UpgradeSpecification", "Upgrade", b1 =>
+                        {
+                            b1.Property<long>("AncillaryServiceDefinitionId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<int>("AllowedUpgradeKind")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("FromCabinId")
+                                .HasColumnType("int");
+
+                            b1.Property<bool>("RequiresTicketExchange")
+                                .HasColumnType("bit");
+
+                            b1.Property<int>("ToCabinId")
+                                .HasColumnType("int");
+
+                            b1.HasKey("AncillaryServiceDefinitionId");
+
+                            b1.ToTable("UpgradeSpecifications", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryServiceDefinitionId");
+
+                            b1.OwnsMany("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.SpecificationReference", "EligibleFareFamilies", b2 =>
+                                {
+                                    b2.Property<long>("AncillaryServiceDefinitionId")
+                                        .HasColumnType("bigint");
+
+                                    b2.Property<long>("ReferenceId")
+                                        .HasColumnType("bigint")
+                                        .HasColumnName("FareFamilyId");
+
+                                    b2.HasKey("AncillaryServiceDefinitionId", "ReferenceId");
+
+                                    b2.ToTable("UpgradeSpecificationFareFamilies", "Ancillary");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AncillaryServiceDefinitionId");
+                                });
+
+                            b1.Navigation("EligibleFareFamilies");
+                        });
+
                     b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.ValueObjects.BookingDefinition", "Booking", b1 =>
                         {
                             b1.Property<long>("AncillaryServiceDefinitionId")
@@ -2960,11 +3866,29 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                                 .HasForeignKey("AncillaryServiceDefinitionId");
                         });
 
+                    b.Navigation("AirportService");
+
+                    b.Navigation("AssistedTravel");
+
+                    b.Navigation("Baggage");
+
                     b.Navigation("Booking")
                         .IsRequired();
 
+                    b.Navigation("Connectivity");
+
                     b.Navigation("Document")
                         .IsRequired();
+
+                    b.Navigation("Meal");
+
+                    b.Navigation("Pet");
+
+                    b.Navigation("Priority");
+
+                    b.Navigation("Seat");
+
+                    b.Navigation("Upgrade");
                 });
 
             modelBuilder.Entity("AeroTech.Ancillary.Domain.FlightCountInventoryAggregate.Entities.FlightCountAdjustment", b =>
@@ -3009,6 +3933,10 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                 {
                     b.Navigation("AdvancePurchase");
 
+                    b.Navigation("AirportServiceRule");
+
+                    b.Navigation("AssistedTravelRule");
+
                     b.Navigation("BaggageApplication");
 
                     b.Navigation("DayTimeApplication");
@@ -3020,6 +3948,8 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.Navigation("Geography");
 
                     b.Navigation("PassengerEligibility");
+
+                    b.Navigation("PetRule");
 
                     b.Navigation("SalesRestrictions");
 

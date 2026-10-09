@@ -68,6 +68,12 @@ public class V121FinalFamilyAcceptanceTests : IClassFixture<FinalFamilyCache>
         AirportSlotConsumptionInput? Slot = null,
         Action<InventoryFixture>? Connect = null);
 
+    private static readonly IReadOnlyDictionary<string, string> Variants = new Dictionary<string, string>
+    {
+        ["F01"] = "A02", ["F02"] = "A01", ["F03"] = "A03", ["F04"] = "A06", ["F05"] = "A13", ["F06"] = "A08", ["F07"] = "A11",
+        ["F08"] = "A15", ["F09"] = "A19", ["F10"] = "A23", ["F11"] = "A20", ["F12"] = "A22", ["F13"] = "A24"
+    };
+
     private static readonly IReadOnlyDictionary<string, Family> Catalog = new Dictionary<string, Family>
     {
         ["F01"] = new(
@@ -99,16 +105,16 @@ public class V121FinalFamilyAcceptanceTests : IClassFixture<FinalFamilyCache>
             "*[-] 30 EUR +Fee:HDL:1/Item +Tax:VAT:2.7 = 33.7 EUR",
             UnlimitedPolicy),
         ["F03"] = new(
-            "XBAG_OVERWEIGHT", "XOW", "C", "BG", PricingUnit.PerItem, ServiceDateBasis.FlightDeparture, null,
-            id => Provision(id, 10, applicationType: ProvisionApplicationType.Baggage) with
+            "XBAG_OVERWEIGHT", "XOW", "C", "BG", PricingUnit.PerPiece, ServiceDateBasis.FlightDeparture, null,
+            id => Provision(id, 10, quantityUnit: AncillaryQuantityUnit.Piece, applicationType: ProvisionApplicationType.Baggage) with
             {
                 FlightApplication = new(AllowedAircraftIds: [3]),
                 BaggageApplication = Baggage(32m, chargeKind: BaggageChargeKind.Overweight, allowanceConcept: null)
             },
             [Rate(60m, Usd)],
             InventoryAuthority.Unlimited,
-            "PerItem FlightDeparture NoBookingProcessRequired/- Immediate None wrongUnit=16312",
-            "Both Paid Sector 1-1Each book=False check=False | ACFT=3; BAG=-:32Kg:Prepaid | KIND=Overweight/-",
+            "PerPiece FlightDeparture NoBookingProcessRequired/- Immediate None wrongUnit=16312",
+            "Both Paid Sector 1-1Piece book=False check=False | ACFT=3; BAG=-:32Kg:Prepaid | KIND=Overweight/-",
             "*[-] 60 USD = 60 USD",
             UnlimitedPolicy),
         ["F04"] = new(
@@ -251,31 +257,7 @@ public class V121FinalFamilyAcceptanceTests : IClassFixture<FinalFamilyCache>
             "PerItem FlightDeparture NoBookingProcessRequired/- Immediate None wrongUnit=16312",
             "Both Paid Sector 1-4Each book=False check=False | FLT=81234; ACFT=3",
             "*[-] 9.99 USD = 9.99 USD",
-            UnlimitedPolicy),
-        ["F14"] = new(
-            "INS_TRAVEL", "INB", "M", "IN", PricingUnit.PerPassenger, ServiceDateBasis.CoverageStart, null,
-            id => Provision(id, 10, coverageScope: ServiceCoverageScope.Order) with
-            {
-                PassengerEligibility = new(AllowedAgeBands: [new(0, 80)]),
-                Geography = new(CoverageCountryIds: [Turkey])
-            },
-            [Rate(12m, Eur, ageFrom: 0, ageTo: 65), Rate(20m, Eur, ageFrom: 65, ageTo: 80)],
-            InventoryAuthority.Supplier,
-            "PerPassenger CoverageStart NoBookingProcessRequired/- Immediate None wrongUnit=16312",
-            "Both Paid Order 1-1Each book=False check=False | AGE=0-80; COVER=90",
-            "*[0-65] 12 EUR = 12 EUR | *[65-80] 20 EUR = 20 EUR",
-            SupplierPolicy,
-            "InsurerA"),
-        ["F15"] = new(
-            "ESIM_TR_5GB", "SIM", "M", "SM", PricingUnit.PerItem, ServiceDateBasis.Activation, null,
-            id => Provision(id, 10, coverageScope: ServiceCoverageScope.Order, maxQuantity: 5) with { Geography = new(CoverageCountryIds: [Turkey]) },
-            [Rate(12m, Usd), Rate(11m, Eur)],
-            InventoryAuthority.Supplier,
-            "PerItem Activation NoBookingProcessRequired/- Immediate None wrongUnit=16312",
-            "Both Paid Order 1-5Each book=False check=False | COVER=90",
-            "*[-] 11 EUR = 11 EUR | *[-] 12 USD = 12 USD",
-            SupplierPolicy,
-            "TelecomA")
+            UnlimitedPolicy)
     };
 
     private readonly TestDatabase _database;
@@ -299,7 +281,7 @@ public class V121FinalFamilyAcceptanceTests : IClassFixture<FinalFamilyCache>
         => new(passengerTypeCode, ageFrom, ageTo, new MoneyInput(amount, currencyId), components);
 
     private static PriceComponentInput Tax(string code, decimal amount, int currencyId)
-        => new(AncillaryPriceLineCategory.Tax, code, null, null, null, new MoneyInput(amount, currencyId), null, null);
+        => new(AncillaryPriceLineCategory.Tax, code, null, null, null, new MoneyInput(amount, currencyId), null, null, TaxTreatment.AddedToBase);
 
     private static PriceComponentInput Fee(string code, decimal amount, int currencyId, FeeApplicationUnit unit)
         => new(AncillaryPriceLineCategory.Fee, code, null, null, null, new MoneyInput(amount, currencyId), unit, null);
@@ -410,7 +392,7 @@ public class V121FinalFamilyAcceptanceTests : IClassFixture<FinalFamilyCache>
             $"sources={sources}");
     }
 
-    private async Task<FinalFamilyOutcome> BuildAsync(Family family)
+    private async Task<FinalFamilyOutcome> BuildAsync(Family family, string variant)
     {
         var clock = new FixedClock();
         var harness = new InventoryHarness(_database, clock);
@@ -430,7 +412,8 @@ public class V121FinalFamilyAcceptanceTests : IClassFixture<FinalFamilyCache>
             family.Reference,
             family.Booking,
             pricingUnit: family.PricingUnit,
-            serviceDateBasis: family.Basis));
+            serviceDateBasis: family.Basis,
+            variant: variant));
         var command = family.Rule(definition.Id);
         var wrongUnit = command.Quantity.Unit == AncillaryQuantityUnit.Each ? AncillaryQuantityUnit.Kilogram : AncillaryQuantityUnit.Each;
         var probe = await RequestAsync(clock, scope => scope.DefineProvision.DefineAsync(Provision(definition.Id, 900, CommercialDisposition.Free, quantityUnit: wrongUnit)));
@@ -469,7 +452,7 @@ public class V121FinalFamilyAcceptanceTests : IClassFixture<FinalFamilyCache>
         return new FinalFamilyOutcome(DefinitionText(definition, refusedUnit), RuleLine(published.Provision), price, policy);
     }
 
-    private Task<FinalFamilyOutcome> OutcomeOfAsync(string family) => _cache.GetAsync(family, () => BuildAsync(Catalog[family]));
+    private Task<FinalFamilyOutcome> OutcomeOfAsync(string family) => _cache.GetAsync(family, () => BuildAsync(Catalog[family], Variants[family]));
 
     [Theory]
     [MemberData(nameof(Families))]
@@ -497,7 +480,7 @@ public class V121FinalFamilyAcceptanceTests : IClassFixture<FinalFamilyCache>
         var clock = new FixedClock();
         var harness = new InventoryHarness(_database, clock);
         var (fixture, airlineId, supplierId) = await harness.OperatorAsync(connected: false);
-        var definition = await harness.ProductAsync(airlineId, supplierId, "XBAG_WEIGHT_10KG", PricingUnit.PerItem);
+        var definition = await harness.ProductAsync(airlineId, supplierId, "XBAG_WEIGHT_10KG", PricingUnit.PerItem, variant: "A02");
 
         TestDefineProvisionCommand Package(int sequence, long pointOfSale)
             => Provision(definition.Id, sequence, coverageScope: ServiceCoverageScope.Journey, maxQuantity: 4, applicationType: ProvisionApplicationType.Baggage) with
@@ -581,7 +564,7 @@ public class V121FinalFamilyAcceptanceTests : IClassFixture<FinalFamilyCache>
         var clock = new FixedClock();
         var harness = new InventoryHarness(_database, clock);
         var (fixture, airlineId, supplierId) = await harness.OperatorAsync();
-        var lounge = await harness.ProductAsync(airlineId, supplierId, "LOUNGE_IKA", basis: ServiceDateBasis.ServiceStart);
+        var lounge = await harness.ProductAsync(airlineId, supplierId, "LOUNGE_IKA", basis: ServiceDateBasis.ServiceStart, variant: "A20");
         var policy = await harness.RequestAsync(fixture, scope => scope.DefineInventoryPolicy.DefineAsync(
             new TestDefineInventoryPolicyCommand(airlineId, "LOUNGE_IKA", lounge.Id, InventoryAuthority.Local, LocalInventoryPattern.AirportSlot, SlotConsumption: SlotUse())));
 

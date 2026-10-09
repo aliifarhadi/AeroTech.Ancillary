@@ -74,6 +74,9 @@ namespace AeroTech.Ancillary.Domain.SupplierAggregate
             RetiredAt = now;
         }
 
+        public string? QuoteAuthorityKey()
+            => Status == SupplierStatus.Active && FulfillmentKind == SupplierFulfillmentKind.External ? FulfillmentProviderKey : null;
+
         private static bool IsProviderKey(string? value)
             => value is { Length: >= 1 and <= FulfillmentProviderKeyMaxLength } && !value.Any(char.IsWhiteSpace);
 

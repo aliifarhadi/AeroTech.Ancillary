@@ -34,5 +34,6 @@ namespace AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Contracts
         decimal Amount,
         int CurrencyId,
         FeeApplicationUnit? FeeApplicationUnit,
-        bool? TaxIncludedInSource);
+        bool? TaxIncludedInSource,
+        TaxTreatment? TaxTreatment);
 }

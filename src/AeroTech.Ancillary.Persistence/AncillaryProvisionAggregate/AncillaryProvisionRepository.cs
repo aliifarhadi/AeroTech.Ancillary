@@ -82,6 +82,9 @@ namespace AeroTech.Ancillary.Persistence.AncillaryProvisionAggregate
                 .ThenInclude(rule => rule.SeatNumbers)
                 .Include(provision => provision.SeatApplication!)
                 .ThenInclude(rule => rule.SeatCharacteristics)
+                .Include(provision => provision.PetRule)
+                .Include(provision => provision.AssistedTravelRule)
+                .Include(provision => provision.AirportServiceRule)
                 .AsSplitQuery();
     }
 }

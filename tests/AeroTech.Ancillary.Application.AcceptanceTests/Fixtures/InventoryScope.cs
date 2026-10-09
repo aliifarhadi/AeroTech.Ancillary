@@ -77,7 +77,7 @@ public sealed class InventoryScope : IAsyncDisposable
         var airportSlotSynchronizer = new AirportSlotInventoryQueryDbSynchronizer(Query, clock);
         var caller = new InventoryCallerScope(fixture, fixture);
         var facts = new InventoryCommercialFactsReader(Command);
-        var evidence = new InventoryPolicyEvidenceBuilder(facts, fixture, fixture, fixture, fixture, FlightCountInventories);
+        var evidence = new InventoryPolicyEvidenceBuilder(facts, fixture, fixture, fixture, fixture, FlightCountInventories, Policies);
 
         DefineInventoryPolicy = new DefineInventoryPolicyService(Policies, policySynchronizer, UnitOfWork, caller, facts, ids, clock);
         ChangeInventoryPolicy = new ChangeInventoryPolicyService(Policies, policySynchronizer, UnitOfWork, caller, facts, ids, clock);

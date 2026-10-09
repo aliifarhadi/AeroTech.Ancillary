@@ -34,7 +34,22 @@ public sealed record TestDefineServiceDefinitionCommand(
     DateOnly? SalesEffectiveFrom,
     DateOnly? SalesDiscontinueOn,
     PricingUnit PricingUnit = PricingUnit.PerPassenger,
-    ServiceDateBasis ServiceDateBasis = ServiceDateBasis.FlightDeparture) : IDefineAncillaryServiceDefinitionCommand;
+    ServiceDateBasis ServiceDateBasis = ServiceDateBasis.FlightDeparture) : IDefineAncillaryServiceDefinitionCommand
+{
+    public string? Variant { get; init; }
+
+    public ServiceSpecificationInput? TypedSpecification { get; init; }
+
+    public DocumentRouting? Routing { get; init; }
+
+    public string VariantCode => Variant ?? V122Catalog.VariantFor(PricingUnit, ServiceDateBasis);
+
+    public AncillaryProfile Profile => V122Catalog.ProfileOf(VariantCode);
+
+    public DocumentRouting DocumentRouting => Routing ?? V122Catalog.RoutingOf(Document.Type);
+
+    public ServiceSpecificationInput Specification => TypedSpecification ?? V122Catalog.Specification(VariantCode);
+}
 
 public sealed record TestActivateServiceDefinitionCommand(long ServiceDefinitionId) : IActivateAncillaryServiceDefinitionCommand;
 
@@ -58,7 +73,22 @@ public sealed record TestDefineProvisionCommand(
     ProvisionAdvancePurchaseInput? AdvancePurchase = null,
     ProvisionBaggageApplicationInput? BaggageApplication = null,
     ProvisionSeatApplicationInput? SeatApplication = null,
-    PurchaseStage PurchaseStage = PurchaseStage.Both) : IDefineAncillaryProvisionCommand;
+    PurchaseStage PurchaseStage = PurchaseStage.Both) : IDefineAncillaryProvisionCommand
+{
+    public ProvisionSalesRestrictionsInput? SalesRestrictions { get; init; } = SalesRestrictions ?? V122Catalog.SinglePointOfSale;
+
+    public PriceOrigin? Origin { get; init; }
+
+    public PriceOrigin PriceOrigin => Origin ?? V122Catalog.OriginOf(Outcome.Disposition);
+
+    public string? QuoteProviderKey { get; init; }
+
+    public ProvisionPetRuleInput? PetRule { get; init; }
+
+    public ProvisionAssistedTravelRuleInput? AssistedTravelRule { get; init; }
+
+    public ProvisionAirportServiceRuleInput? AirportServiceRule { get; init; }
+}
 
 public sealed record TestActivateProvisionCommand(long ProvisionId) : IActivateAncillaryProvisionCommand;
 

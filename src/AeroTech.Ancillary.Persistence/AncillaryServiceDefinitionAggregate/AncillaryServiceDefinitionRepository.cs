@@ -15,7 +15,7 @@ namespace AeroTech.Ancillary.Persistence.AncillaryServiceDefinitionAggregate
             => await _dbContext.AncillaryServiceDefinitions.AddAsync(definition, cancellationToken);
 
         public Task<AncillaryServiceDefinition?> GetAsync(long id, CancellationToken cancellationToken = default)
-            => _dbContext.AncillaryServiceDefinitions.FirstOrDefaultAsync(definition => definition.Id == id, cancellationToken);
+            => _dbContext.AncillaryServiceDefinitions.AsSplitQuery().FirstOrDefaultAsync(definition => definition.Id == id, cancellationToken);
 
         public async Task<int> MaxVersionAsync(int ownerAirlineId, string serviceDefinitionRef, CancellationToken cancellationToken = default)
             => await _dbContext.AncillaryServiceDefinitions
@@ -32,6 +32,7 @@ namespace AeroTech.Ancillary.Persistence.AncillaryServiceDefinitionAggregate
                 .Where(definition => definition.OwnerAirlineId == ownerAirlineId
                                      && definition.ServiceDefinitionRef == serviceDefinitionRef)
                 .OrderBy(definition => definition.Version)
+                .AsSplitQuery()
                 .ToListAsync(cancellationToken);
 
         public Task<bool> HasActiveAsync(int ownerAirlineId, string serviceDefinitionRef, CancellationToken cancellationToken = default)

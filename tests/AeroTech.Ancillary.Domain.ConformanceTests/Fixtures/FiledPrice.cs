@@ -35,7 +35,8 @@ public static class FiledPrice
                         line.Amount,
                         currencyId,
                         line.Category == AncillaryPriceLineCategory.Fee ? feeApplicationUnit : null,
-                        null))
+                        null,
+                        line.Category == AncillaryPriceLineCategory.Tax ? TaxTreatment.AddedToBase : null))
                     .ToList();
                 var bases = selector.Where(line => line.Category == AncillaryPriceLineCategory.Ancillary).ToList();
 

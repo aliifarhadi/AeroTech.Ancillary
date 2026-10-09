@@ -10,7 +10,7 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Services
     {
         public static void EnsurePriceable(this AncillaryProvision provision)
         {
-            if (provision.Outcome.Disposition != CommercialDisposition.Paid || provision.Status == ProvisionStatus.Retired)
+            if (!provision.IsPricedByFiling() || provision.Status == ProvisionStatus.Retired)
                 throw ExceptionFactory.PricingProvisionNotPriceable();
         }
 
@@ -22,7 +22,7 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Services
 
         public static void EnsureAllowedBy(this AncillaryProvision provision, AncillaryPricing? activePricing)
         {
-            if (provision.Outcome.Disposition == CommercialDisposition.Paid)
+            if (provision.IsPricedByFiling())
             {
                 if (activePricing is null)
                     throw ExceptionFactory.ProvisionActivePricingRequired();
@@ -32,5 +32,8 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Services
                 throw ExceptionFactory.ProvisionActivePricingNotAllowed();
             }
         }
+
+        private static bool IsPricedByFiling(this AncillaryProvision provision)
+            => provision.Outcome.Disposition == CommercialDisposition.Paid && provision.PriceOrigin != PriceOrigin.ExternalQuote;
     }
 }

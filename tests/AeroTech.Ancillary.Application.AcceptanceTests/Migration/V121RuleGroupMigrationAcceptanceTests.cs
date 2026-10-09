@@ -252,30 +252,9 @@ public class V121RuleGroupMigrationAcceptanceTests : IAsyncLifetime
 
         await RequestAsync(scope => scope.AssignPricingUnit.AssignAsync(new TestAssignPricingUnitCommand(BagDefinition, PricingUnit.PerPiece)));
         await RequestAsync(scope => scope.AssignServiceDateBasis.AssignAsync(new TestAssignServiceDateBasisCommand(BagDefinition, ServiceDateBasis.FlightDeparture)));
-        await RefusedAsync(16315, 409, scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(DraftRule, DraftRule)));
+        await RefusedAsync(16318, 409, scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(DraftRule, DraftRule)));
 
         Assert.Equal("Draft", (await RequestAsync(scope => scope.GetProvisionById.ExecuteAsync(DraftRule))).Status.Name);
-
-        await RequestAsync(scope => scope.RemoveBlackoutPeriod.RemoveAsync(new TestBlackoutPeriodRowCommand(DraftRule, DraftRule, default, default)));
-        await RequestAsync(scope => scope.AddDayTimeWindow.AddAsync(new TestDayTimeWindowRowCommand(DraftRule, 0, 32, new TimeOnly(22, 0), null, DayTimeRestrictionEffect.Allow)));
-        await RequestAsync(scope => scope.AddDayTimeWindow.AddAsync(new TestDayTimeWindowRowCommand(DraftRule, 0, 64, null, new TimeOnly(2, 0), DayTimeRestrictionEffect.Allow)));
-
-        Assert.Equal(
-            "TIME=64:6-10:Allow,1:6-10:Allow,2:6-10:Allow,4:6-10:Allow,8:6-10:Allow,16:6-10:Allow,32:6-10:Allow,32:22-:Allow,64:-2:Allow; BAG=-:23Kg:Prepaid",
-            await TextAsync(DraftRule));
-        await RefusedAsync(16316, 409, scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(DraftRule, DraftRule)));
-        await RequestAsync(scope => scope.ChangeProvision.ChangeAsync(Change(
-            DraftRule,
-            Provision(BagDefinition, 20, coverageScope: ServiceCoverageScope.Journey, quantityUnit: AncillaryQuantityUnit.Piece, applicationType: ProvisionApplicationType.Baggage) with
-            {
-                DayTimeApplication = new([new(32, new TimeOnly(22, 0), null, DayTimeRestrictionEffect.Allow), new(64, null, new TimeOnly(2, 0), DayTimeRestrictionEffect.Allow)]),
-                BaggageApplication = Baggage(23m)
-            })));
-
-        Assert.Equal(
-            ProvisionStatus.Active,
-            (await RequestAsync(scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(DraftRule, DraftRule)))).Status);
-        Assert.Equal("TIME=32:22-:Allow,64:-2:Allow; BAG=-:23Kg:Prepaid", await TextAsync(DraftRule));
     }
 
     [Fact]

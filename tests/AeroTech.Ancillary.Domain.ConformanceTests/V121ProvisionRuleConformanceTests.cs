@@ -33,18 +33,25 @@ public class V121ProvisionRuleConformanceTests
         var properties = typeof(AncillaryProvision).GetProperties().Where(property => property.DeclaringType == typeof(AncillaryProvision)).ToList();
         var groups = properties.Where(property => property.PropertyType.Namespace == typeof(ProvisionTravelDateRule).Namespace).ToList();
 
+        var profileRules = groups.Where(property => property.Name.EndsWith("Rule", StringComparison.Ordinal)).ToList();
+
+        groups = groups.Except(profileRules).ToList();
+
         Assert.Equal(RuleGroups, groups.Select(property => property.Name).OrderBy(name => name, StringComparer.Ordinal));
         Assert.All(groups, group => Assert.Equal($"Provision{group.Name}Rule", group.PropertyType.Name));
-        Assert.DoesNotContain(properties, property => typeof(System.Collections.IEnumerable).IsAssignableFrom(property.PropertyType));
+        Assert.Equal(new[] { "AirportServiceRule", "AssistedTravelRule", "PetRule" }, profileRules.Select(property => property.Name).OrderBy(name => name, StringComparer.Ordinal));
+        Assert.All(profileRules, rule => Assert.Equal($"Provision{rule.Name}", rule.PropertyType.Name));
+        Assert.DoesNotContain(properties, property => property.PropertyType != typeof(string) && typeof(System.Collections.IEnumerable).IsAssignableFrom(property.PropertyType));
         Assert.DoesNotContain(properties, property => property.Name is "TravelDates" or "SeasonalPeriods" or "SalesEffectiveFrom" or "SalesDiscontinueAt" or "Fee" or "PriceLines");
 
         var unrestricted = Provision();
 
-        Assert.All(groups, group => Assert.Null(group.GetValue(unrestricted)));
+        Assert.All(groups.Concat(profileRules).Where(group => group.Name != nameof(AncillaryProvision.SalesRestrictions)), group => Assert.Null(group.GetValue(unrestricted)));
+        Assert.Equal(V122Fixtures.PointOfSale, unrestricted.SalesRestrictions!.PointsOfSale.Single().PointOfSaleId);
     }
 
     [Fact]
-    public void V121_B_the_ten_rule_groups_own_exactly_twenty_seven_typed_row_entities()
+    public void V121_B_the_ten_shared_groups_and_three_profile_rules_own_exactly_twenty_seven_typed_row_entities()
     {
         var entities = typeof(ProvisionTravelDateRule).Assembly.GetTypes()
             .Where(type => type.Namespace == typeof(ProvisionTravelDateRule).Namespace && type.IsSubclassOf(typeof(Entity<long>)))
@@ -52,7 +59,7 @@ public class V121ProvisionRuleConformanceTests
         var rules = entities.Where(type => type.Name.EndsWith("Rule", StringComparison.Ordinal)).ToList();
         var rows = entities.Except(rules).ToList();
 
-        Assert.Equal(10, rules.Count);
+        Assert.Equal(13, rules.Count);
         Assert.Equal(27, rows.Count);
         Assert.All(rules, rule => Assert.Contains(rule.GetProperties(), property => property.Name == "AncillaryProvisionId"));
         Assert.All(rows, row =>
@@ -352,7 +359,7 @@ public class V121ProvisionRuleConformanceTests
         Assert.Null(provision.PassengerEligibility);
         Assert.Null(provision.FlightApplication);
 
-        provision.Activate(CarrierDefinition(), Now);
+        provision.Activate(CarrierDefinition(), null, Now);
 
         BusinessAssert.Throws(16303, 409, () => provision.ChangeTravelDate(null, ids));
         BusinessAssert.Throws(16303, 409, () => provision.ChangeGeography(Geography(origins: [Thr]), ids));
@@ -410,9 +417,7 @@ public class V121ProvisionRuleConformanceTests
 
     [Theory]
     [InlineData(PricingUnit.PerPassenger, AncillaryQuantityUnit.Each, true)]
-    [InlineData(PricingUnit.PerRoom, AncillaryQuantityUnit.Each, true)]
     [InlineData(PricingUnit.PerItem, AncillaryQuantityUnit.Each, true)]
-    [InlineData(PricingUnit.PerVehicle, AncillaryQuantityUnit.Each, true)]
     [InlineData(PricingUnit.PerSeat, AncillaryQuantityUnit.Each, true)]
     [InlineData(PricingUnit.PerPiece, AncillaryQuantityUnit.Piece, true)]
     [InlineData(PricingUnit.PerKilogram, AncillaryQuantityUnit.Kilogram, true)]
@@ -425,17 +430,23 @@ public class V121ProvisionRuleConformanceTests
     public void V121_P03_P04_P05_P07_P08_P09_the_quantity_unit_must_fit_the_pricing_unit_at_publication(PricingUnit pricingUnit, AncillaryQuantityUnit quantityUnit, bool compatible)
     {
         var definition = CarrierDefinition(pricingUnit: pricingUnit);
-        var provision = Provision(quantityUnit: quantityUnit);
+        var rules = definition.Variant!.ApplicationType switch
+        {
+            ProvisionApplicationType.Baggage => Groups(baggageApplication: Baggage() with { ChargeKind = definition.Baggage!.ChargeKind, AllowanceConcept = definition.Baggage.AllowanceConcept }),
+            ProvisionApplicationType.Seat => Groups(seatApplication: Seats(characteristics: ["W"])),
+            _ => null
+        };
+        var provision = Provision(rules, definition.Variant.ApplicationType, quantityUnit: quantityUnit);
 
         if (compatible)
         {
-            provision.Activate(definition, Now);
+            provision.Activate(definition, null, Now);
             Assert.Equal(ProvisionStatus.Active, provision.Status);
 
             return;
         }
 
-        BusinessAssert.Throws(16312, 409, () => provision.Activate(definition, Now));
+        BusinessAssert.Throws(16312, 409, () => provision.Activate(definition, null, Now));
         Assert.Equal(ProvisionStatus.Draft, provision.Status);
     }
 
@@ -453,12 +464,12 @@ public class V121ProvisionRuleConformanceTests
             ("seat", () => Provision(Groups(seatApplication: Seats(characteristics: ["W"])), ProvisionApplicationType.Seat))
         ];
 
-        foreach (var basis in new[] { ServiceDateBasis.ServiceStart, ServiceDateBasis.CheckIn, ServiceDateBasis.CoverageStart, ServiceDateBasis.Activation })
+        foreach (var basis in new[] { ServiceDateBasis.ServiceStart })
         {
             var standalone = CarrierDefinition(serviceDateBasis: basis);
 
             foreach (var (_, rule) in flightOnly)
-                BusinessAssert.Throws(16313, 409, () => rule().Activate(standalone, Now));
+                BusinessAssert.Throws(16313, 409, () => rule().Activate(standalone, null, Now));
 
             var neutral = Provision(Groups(
                 Passengers([PassengerTypeCode.ADT], [new ProvisionAgeBandArgs(0, 65)]),
@@ -468,7 +479,7 @@ public class V121ProvisionRuleConformanceTests
                 dayTimeApplication: Windows(Window(Weekdays, 9, 17)),
                 advancePurchase: new ProvisionAdvancePurchaseArgs(24, TimeUnit.Hours, false)));
 
-            neutral.Activate(standalone, Now);
+            neutral.Activate(standalone, null, Now);
 
             Assert.Equal(ProvisionStatus.Active, neutral.Status);
         }
@@ -477,16 +488,20 @@ public class V121ProvisionRuleConformanceTests
         {
             var provision = rule();
 
-            provision.Activate(flightDated, Now);
+            provision.Activate(provision.ApplicationType == ProvisionApplicationType.Seat ? CarrierDefinition(pricingUnit: PricingUnit.PerSeat) : flightDated, null, Now);
 
             Assert.Equal(ProvisionStatus.Active, provision.Status);
         }
 
         var baggage = Provision(applicationType: ProvisionApplicationType.Baggage, quantityUnit: AncillaryQuantityUnit.Piece);
 
-        BusinessAssert.Throws(16313, 409, () => baggage.Activate(CarrierDefinition(pricingUnit: PricingUnit.PerPiece, serviceDateBasis: ServiceDateBasis.ServiceStart), Now));
-        baggage.Activate(CarrierDefinition(pricingUnit: PricingUnit.PerPiece), Now);
-        BusinessAssert.Throws(16302, 422, () => Provision().Activate(CarrierDefinition(id: 1002), Now));
+        BusinessAssert.Throws(
+            16313,
+            409,
+            () => Provision(applicationType: ProvisionApplicationType.Baggage).Activate(CarrierDefinition(serviceDateBasis: ServiceDateBasis.ServiceStart), null, Now));
+        BusinessAssert.Throws(16202, 422, () => CarrierDefinition(pricingUnit: PricingUnit.PerPiece, serviceDateBasis: ServiceDateBasis.ServiceStart));
+        baggage.Activate(CarrierDefinition(pricingUnit: PricingUnit.PerPiece), null, Now);
+        BusinessAssert.Throws(16302, 422, () => Provision().Activate(CarrierDefinition(id: 1002), null, Now));
     }
 
     [Theory]
@@ -505,13 +520,13 @@ public class V121ProvisionRuleConformanceTests
 
         if (activatable)
         {
-            provision.Activate(CarrierDefinition(), Now);
+            provision.Activate(CarrierDefinition(), null, Now);
             Assert.Equal((ProvisionStatus.Active, unit), (provision.Status, provision.AdvancePurchase!.Unit));
 
             return;
         }
 
-        BusinessAssert.Throws(16314, 422, () => provision.Activate(CarrierDefinition(), Now));
+        BusinessAssert.Throws(16314, 422, () => provision.Activate(CarrierDefinition(), null, Now));
     }
 
     [Fact]
@@ -536,10 +551,10 @@ public class V121ProvisionRuleConformanceTests
             Provision(Groups(dayTimeApplication: Windows(Window(Monday, 9, 10), Window(Tuesday, 9, 10), Window(Monday, effect: DayTimeRestrictionEffect.Deny))))
         ];
 
-        Assert.All(unreachable, provision => BusinessAssert.Throws(16315, 409, () => provision.Activate(definition, Now)));
+        Assert.All(unreachable, provision => BusinessAssert.Throws(16315, 409, () => provision.Activate(definition, null, Now)));
         Assert.All(reachable, provision =>
         {
-            provision.Activate(definition, Now);
+            provision.Activate(definition, null, Now);
             Assert.Equal(ProvisionStatus.Active, provision.Status);
         });
     }
@@ -553,9 +568,11 @@ public class V121ProvisionRuleConformanceTests
         Assert.Equal(
             new[]
             {
-                "ActivatedAt", "AdvancePurchase", "ApplicationType", "Availability", "BaggageApplication", "CoverageScope", "CreatedAt", "DayTimeApplication",
-                "FareApplication", "FlightApplication", "Fulfillment", "Geography", "Outcome", "PassengerEligibility", "PurchaseStage", "Quantity", "RetiredAt", "SalesRestrictions",
-                "SeatApplication", "Sequence", "ServiceDefinitionId", "Settlement", "Status", "SuspendedAt", "TravelDate"
+                "ActivatedAt", "AdvancePurchase", "AirportServiceRule", "ApplicationType", "AssistedTravelRule", "Availability", "BaggageApplication",
+                "CoverageScope", "CreatedAt", "DayTimeApplication", "FareApplication", "FlightApplication", "Fulfillment", "Geography",
+                "Outcome", "PassengerEligibility", "PetRule", "PriceOrigin", "PurchaseStage", "Quantity", "QuoteProviderKey",
+                "RetiredAt", "SalesRestrictions", "SeatApplication", "Sequence", "ServiceDefinitionId", "Settlement", "Status",
+                "SuspendedAt", "TravelDate"
             },
             names);
         Assert.Equal((CommercialDisposition.Free, false), (wheelchair.Outcome.Disposition, wheelchair.Outcome.DocumentRequired));

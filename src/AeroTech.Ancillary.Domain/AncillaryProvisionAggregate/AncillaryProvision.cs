@@ -11,6 +11,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
 {
     public sealed partial class AncillaryProvision : AggregateRoot<long>
     {
+        private const int QuoteProviderKeyMaxLength = 50;
+
         private AncillaryProvision()
         {
         }
@@ -30,6 +32,10 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
         public ServiceCoverageScope CoverageScope { get; private set; }
 
         public PurchaseStage PurchaseStage { get; private set; }
+
+        public PriceOrigin PriceOrigin { get; private set; }
+
+        public string? QuoteProviderKey { get; private set; }
 
         public QuantityRule Quantity { get; private set; } = default!;
 
@@ -71,12 +77,20 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
 
         public ProvisionSeatApplicationRule? SeatApplication { get; private set; }
 
+        public ProvisionPetRule? PetRule { get; private set; }
+
+        public ProvisionAssistedTravelRule? AssistedTravelRule { get; private set; }
+
+        public ProvisionAirportServiceRule? AirportServiceRule { get; private set; }
+
         public static AncillaryProvision Define(
             long id,
             long serviceDefinitionId,
             int sequence,
             ServiceCoverageScope coverageScope,
             PurchaseStage purchaseStage,
+            PriceOrigin priceOrigin,
+            string? quoteProviderKey,
             QuantityRule quantity,
             ProvisionApplicationType applicationType,
             CommercialOutcome outcome,
@@ -93,7 +107,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
 
             provision.Status = ProvisionStatus.Draft;
             provision.CreatedAt = createdAt;
-            provision.Apply(sequence, coverageScope, purchaseStage, quantity, applicationType, outcome, settlement, availability, fulfillment, rules, idGenerator);
+            provision.Apply(sequence, coverageScope, purchaseStage, priceOrigin, quoteProviderKey, quantity, applicationType, outcome, settlement, availability, fulfillment, rules, idGenerator);
 
             return provision;
         }
@@ -102,6 +116,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             int sequence,
             ServiceCoverageScope coverageScope,
             PurchaseStage purchaseStage,
+            PriceOrigin priceOrigin,
+            string? quoteProviderKey,
             QuantityRule quantity,
             ProvisionApplicationType applicationType,
             CommercialOutcome outcome,
@@ -113,14 +129,15 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
         {
             EnsureDraft();
 
-            Apply(sequence, coverageScope, purchaseStage, quantity, applicationType, outcome, settlement, availability, fulfillment, rules, idGenerator);
+            Apply(sequence, coverageScope, purchaseStage, priceOrigin, quoteProviderKey, quantity, applicationType, outcome, settlement, availability, fulfillment, rules, idGenerator);
         }
 
-        public void Activate(AncillaryServiceDefinition definition, DateTimeOffset now)
+        public void Activate(AncillaryServiceDefinition definition, string? recordedQuoteProviderKey, DateTimeOffset now)
         {
             EnsureDraft();
             EnsurePublishable(definition);
             EnsureDescriptorsAreStated();
+            EnsureProfileConformance(definition, recordedQuoteProviderKey);
 
             Status = ProvisionStatus.Active;
             ActivatedAt = now;
@@ -168,6 +185,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             int sequence,
             ServiceCoverageScope coverageScope,
             PurchaseStage purchaseStage,
+            PriceOrigin priceOrigin,
+            string? quoteProviderKey,
             QuantityRule quantity,
             ProvisionApplicationType applicationType,
             CommercialOutcome outcome,
@@ -182,6 +201,15 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             Require(Enum.IsDefined(purchaseStage) && purchaseStage != PurchaseStage.LegacyUnspecified, nameof(PurchaseStage));
             Require(Enum.IsDefined(applicationType), nameof(ApplicationType));
 
+            if (!Enum.IsDefined(priceOrigin) || priceOrigin != OriginOf(outcome.Disposition, priceOrigin))
+                throw ExceptionFactory.ProvisionPriceOriginMismatch(outcome.Disposition, priceOrigin);
+
+            Require(
+                priceOrigin == PriceOrigin.ExternalQuote
+                    ? quoteProviderKey is { Length: >= 1 and <= QuoteProviderKeyMaxLength } && quoteProviderKey.All(char.IsLetterOrDigit)
+                    : quoteProviderKey is null,
+                nameof(QuoteProviderKey));
+
             var passengerEligibility = ProvisionPassengerEligibilityRule.Plan(PassengerEligibility, Id, rules.PassengerEligibility, idGenerator);
             var salesRestrictions = ProvisionSalesRestrictionsRule.Plan(SalesRestrictions, Id, rules.SalesRestrictions, idGenerator);
             var geography = ProvisionGeographyRule.Plan(Geography, Id, rules.Geography, idGenerator);
@@ -192,6 +220,9 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             var advancePurchase = ProvisionAdvancePurchaseRule.Plan(AdvancePurchase, Id, rules.AdvancePurchase, idGenerator);
             var baggageApplication = ProvisionBaggageApplicationRule.Plan(BaggageApplication, Id, rules.BaggageApplication, idGenerator);
             var seatApplication = ProvisionSeatApplicationRule.Plan(SeatApplication, Id, rules.SeatApplication, idGenerator);
+            var petRule = ProvisionPetRule.Plan(PetRule, Id, rules.PetRule, idGenerator);
+            var assistedTravelRule = ProvisionAssistedTravelRule.Plan(AssistedTravelRule, Id, rules.AssistedTravelRule, idGenerator);
+            var airportServiceRule = ProvisionAirportServiceRule.Plan(AirportServiceRule, Id, rules.AirportServiceRule, idGenerator);
 
             EnsureApplicationRules(
                 applicationType,
@@ -203,6 +234,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             Sequence = sequence;
             CoverageScope = coverageScope;
             PurchaseStage = purchaseStage;
+            PriceOrigin = priceOrigin;
+            QuoteProviderKey = quoteProviderKey;
             Quantity = quantity;
             ApplicationType = applicationType;
             Outcome = outcome;
@@ -220,7 +253,18 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             AdvancePurchase = advancePurchase();
             BaggageApplication = baggageApplication();
             SeatApplication = seatApplication();
+            PetRule = petRule();
+            AssistedTravelRule = assistedTravelRule();
+            AirportServiceRule = airportServiceRule();
         }
+
+        private static PriceOrigin OriginOf(CommercialDisposition disposition, PriceOrigin requested)
+            => disposition switch
+            {
+                CommercialDisposition.Paid => requested == PriceOrigin.ExternalQuote ? PriceOrigin.ExternalQuote : PriceOrigin.Filed,
+                CommercialDisposition.Free => PriceOrigin.Free,
+                _ => PriceOrigin.NotAvailable
+            };
 
         private void EnsureDraft()
         {

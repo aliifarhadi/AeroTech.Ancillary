@@ -12,6 +12,10 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
 
         PurchaseStage PurchaseStage { get; }
 
+        PriceOrigin PriceOrigin { get; }
+
+        string? QuoteProviderKey { get; }
+
         ProvisionQuantityInput Quantity { get; }
 
         ProvisionApplicationType ApplicationType { get; }
@@ -43,5 +47,11 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
         ProvisionBaggageApplicationInput? BaggageApplication { get; }
 
         ProvisionSeatApplicationInput? SeatApplication { get; }
+
+        ProvisionPetRuleInput? PetRule { get; }
+
+        ProvisionAssistedTravelRuleInput? AssistedTravelRule { get; }
+
+        ProvisionAirportServiceRuleInput? AirportServiceRule { get; }
     }
 }

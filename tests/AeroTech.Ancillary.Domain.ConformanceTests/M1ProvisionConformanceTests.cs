@@ -75,11 +75,11 @@ public class M1ProvisionConformanceTests
     {
         var provision = LoungeProvision();
 
-        provision.Activate(LoungeDefinition(), Now.AddMinutes(1));
+        provision.Activate(LoungeDefinition(), null, Now.AddMinutes(1));
 
         Assert.Equal(ProvisionStatus.Active, provision.Status);
         Assert.Equal(Now.AddMinutes(1), provision.ActivatedAt);
-        BusinessAssert.Throws(16303, 409, () => provision.Activate(LoungeDefinition(), Now.AddMinutes(2)));
+        BusinessAssert.Throws(16303, 409, () => provision.Activate(LoungeDefinition(), null, Now.AddMinutes(2)));
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public class M1ProvisionConformanceTests
 
         BusinessAssert.Throws(16303, 409, () => provision.Supersede(Now));
 
-        provision.Activate(LoungeDefinition(), Now.AddMinutes(1));
+        provision.Activate(LoungeDefinition(), null, Now.AddMinutes(1));
         provision.Supersede(Now.AddMinutes(2));
 
         Assert.Equal(ProvisionStatus.Retired, provision.Status);

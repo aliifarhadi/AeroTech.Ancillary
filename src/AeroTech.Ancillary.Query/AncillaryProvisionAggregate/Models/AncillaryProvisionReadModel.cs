@@ -21,6 +21,10 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models
 
         public PurchaseStage PurchaseStage { get; set; }
 
+        public PriceOrigin PriceOrigin { get; set; }
+
+        public string? QuoteProviderKey { get; set; }
+
         public int? AdvancePurchasePeriod { get; set; }
 
         public TimeUnit? AdvancePurchaseUnit { get; set; }
@@ -94,6 +98,38 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models
         public long? BaggageApplicationRuleId { get; set; }
 
         public long? SeatApplicationRuleId { get; set; }
+
+        public long? PetRuleId { get; set; }
+
+        public string? PetCountryExceptionCode { get; set; }
+
+        public int? PetMinAnimalAgeWeeksOverride { get; set; }
+
+        public decimal? PetMaxCombinedKgOverride { get; set; }
+
+        public ConfirmationRequirement? PetAcceptanceMode { get; set; }
+
+        public long? AssistedTravelRuleId { get; set; }
+
+        public int? AssistedTravelMinimumLeadTimeMinutes { get; set; }
+
+        public MinorConnectionPolicy? AssistedTravelConnectionPolicy { get; set; }
+
+        public bool? AssistedTravelMedicalApprovalRequired { get; set; }
+
+        public long? AirportServiceRuleId { get; set; }
+
+        public string? AirportServiceTerminalRef { get; set; }
+
+        public AirportServiceDirection? AirportServiceDirection { get; set; }
+
+        public TimeOnly? AirportServiceWindowStart { get; set; }
+
+        public TimeOnly? AirportServiceWindowEnd { get; set; }
+
+        public long? AirportServiceFacilityId { get; set; }
+
+        public int? AirportServiceMaxGuestsPerPrimary { get; set; }
 
         public DateTimeOffset CreatedAt { get; set; }
 

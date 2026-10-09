@@ -81,14 +81,14 @@ public class P2InventoryPolicyAcceptanceTests
     public async Task P2_C01_unlimited_policy_creates_no_stock_rows()
     {
         var (fixture, airlineId, supplierId) = await _harness.OperatorAsync();
-        var product = await _harness.ProductAsync(airlineId, supplierId, "INS_TRAVEL_BASIC", basis: ServiceDateBasis.CoverageStart);
-        var draft = await DefineAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, "INS_TRAVEL_BASIC", product.Id, InventoryAuthority.Unlimited));
+        var product = await _harness.ProductAsync(airlineId, supplierId, "PRIORITY_BASIC");
+        var draft = await DefineAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, "PRIORITY_BASIC", product.Id, InventoryAuthority.Unlimited));
 
         await _harness.RefusedAsync(16602, 422, fixture, scope => scope.ChangeInventoryPolicy.ChangeAsync(
             new TestChangeInventoryPolicyCommand(draft.Id, product.Id, InventoryAuthority.Unlimited, 1, CountConsumption: Count())));
 
         var active = await ActivateAsync(fixture, draft.Id, 1);
-        var snapshot = await _harness.SnapshotAsync(fixture, "INS_TRAVEL_BASIC");
+        var snapshot = await _harness.SnapshotAsync(fixture, "PRIORITY_BASIC");
 
         Assert.Equal((InventoryRecordStatus.Active, 2L), (active.Status, active.Version));
         Assert.Equal(("Unlimited", "Unlimited", false), (snapshot.State.Name, snapshot.Authority!.Name, snapshot.IsGuaranteed));
@@ -101,7 +101,7 @@ public class P2InventoryPolicyAcceptanceTests
             new TestChangeInventoryPolicyCommand(draft.Id, product.Id, InventoryAuthority.Unlimited, 2)));
 
         var suspended = await _harness.RequestAsync(fixture, scope => scope.SuspendInventoryPolicy.SuspendAsync(new TestInventoryPolicyLifecycleCommand(draft.Id, 2)));
-        var closed = await _harness.SnapshotAsync(fixture, "INS_TRAVEL_BASIC");
+        var closed = await _harness.SnapshotAsync(fixture, "PRIORITY_BASIC");
 
         Assert.Equal((InventoryRecordStatus.Suspended, 3L), (suspended.Status, suspended.Version));
         Assert.Equal(("ClosedForSale", "PolicySuspended", true), (closed.State.Name, closed.ReasonCode, closed.ClosedForSale!.Value));
@@ -111,9 +111,9 @@ public class P2InventoryPolicyAcceptanceTests
         var retired = await _harness.RequestAsync(fixture, scope => scope.RetireInventoryPolicy.RetireAsync(new TestInventoryPolicyLifecycleCommand(draft.Id, 4)));
 
         Assert.Equal((InventoryRecordStatus.Retired, 5L), (retired.Status, retired.Version));
-        Assert.Equal("NotConfigured", (await _harness.SnapshotAsync(fixture, "INS_TRAVEL_BASIC")).State.Name);
+        Assert.Equal("NotConfigured", (await _harness.SnapshotAsync(fixture, "PRIORITY_BASIC")).State.Name);
 
-        var successor = await DefineAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, "INS_TRAVEL_BASIC", product.Id, InventoryAuthority.Unlimited));
+        var successor = await DefineAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, "PRIORITY_BASIC", product.Id, InventoryAuthority.Unlimited));
 
         Assert.NotEqual(draft.Id, successor.Id);
         Assert.Equal(
@@ -127,16 +127,16 @@ public class P2InventoryPolicyAcceptanceTests
     {
         var (fixture, airlineId, localSupplierId) = await _harness.OperatorAsync();
         var hotelId = await _harness.Proof.SupplierAsync(new TestRegisterSupplierCommand(airlineId, "City Hotels", SupplierFulfillmentKind.External, "HotelPartnerA"));
-        var room = await _harness.ProductAsync(airlineId, hotelId, "HOTEL_ROOM_STD", PricingUnit.PerRoom, ServiceDateBasis.CheckIn);
+        var room = await _harness.ProductAsync(airlineId, hotelId, "LOUNGE_PARTNER", basis: ServiceDateBasis.ServiceStart);
         var own = await _harness.ProductAsync(airlineId, localSupplierId, "LOUNGE_OWN", basis: ServiceDateBasis.ServiceStart);
-        var wrongKey = await DefineAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, "HOTEL_ROOM_STD", room.Id, InventoryAuthority.Supplier, ProviderKey: "OtherPartner"));
+        var wrongKey = await DefineAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, "LOUNGE_PARTNER", room.Id, InventoryAuthority.Supplier, ProviderKey: "OtherPartner"));
 
         await _harness.RefusedAsync(16606, 409, fixture, scope => scope.ActivateInventoryPolicy.ActivateAsync(new TestInventoryPolicyLifecycleCommand(wrongKey.Id, 1)));
 
         var corrected = await _harness.RequestAsync(fixture, scope => scope.ChangeInventoryPolicy.ChangeAsync(
             new TestChangeInventoryPolicyCommand(wrongKey.Id, room.Id, InventoryAuthority.Supplier, 1, ProviderKey: "HotelPartnerA")));
         var active = await ActivateAsync(fixture, wrongKey.Id, corrected.Version);
-        var snapshot = await _harness.SnapshotAsync(fixture, "HOTEL_ROOM_STD");
+        var snapshot = await _harness.SnapshotAsync(fixture, "LOUNGE_PARTNER");
 
         Assert.Equal((InventoryRecordStatus.Active, 3L, "HotelPartnerA"), (active.Status, active.Version, active.ProviderKey));
         Assert.Equal(("DelegatedCheckRequired", "Supplier", "DelegatedSourceNotConnected", false), (snapshot.State.Name, snapshot.Authority!.Name, snapshot.ReasonCode, snapshot.IsGuaranteed));
@@ -342,7 +342,7 @@ public class P2InventoryPolicyAcceptanceTests
     public async Task P2_D04_H06_R03_a_pattern_without_a_verified_source_model_is_reported_unsupported_and_never_unlimited(LocalInventoryPattern pattern)
     {
         var (fixture, airlineId, supplierId) = await _harness.OperatorAsync();
-        var product = await _harness.ProductAsync(airlineId, supplierId, $"TOUR_{pattern}".ToUpperInvariant(), PricingUnit.PerItem, ServiceDateBasis.ServiceStart);
+        var product = await _harness.ProductAsync(airlineId, supplierId, $"CIP_{pattern}".ToUpperInvariant(), PricingUnit.PerItem, ServiceDateBasis.ServiceStart, "A22");
         var draft = await DefineAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, product.ServiceDefinitionRef, product.Id, InventoryAuthority.Local, pattern));
 
         await _harness.RefusedAsync(16607, 409, fixture, scope => scope.ActivateInventoryPolicy.ActivateAsync(new TestInventoryPolicyLifecycleCommand(draft.Id, 1)));

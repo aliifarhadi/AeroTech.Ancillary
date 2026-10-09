@@ -67,6 +67,25 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
         IReadOnlyList<string>? SeatNumbers = null,
         IReadOnlyList<string>? SeatCharacteristicCodes = null);
 
+    public sealed record ProvisionPetRuleInput(
+        string? CountryExceptionCode,
+        int? MinAnimalAgeWeeksOverride,
+        decimal? MaxCombinedKgOverride,
+        ConfirmationRequirement AcceptanceMode);
+
+    public sealed record ProvisionAssistedTravelRuleInput(
+        int? MinimumLeadTimeMinutes,
+        MinorConnectionPolicy? ConnectionPolicy,
+        bool? MedicalApprovalRequired);
+
+    public sealed record ProvisionAirportServiceRuleInput(
+        string? TerminalRef,
+        AirportServiceDirection? Direction,
+        TimeOnly? ServiceWindowStart,
+        TimeOnly? ServiceWindowEnd,
+        long? FacilityId,
+        int? MaxGuestsPerPrimary);
+
     public sealed record ProvisionAgeBandInput(
         int AgeFromInclusive,
         int? AgeToExclusive);

@@ -118,6 +118,32 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
         }
     }
 
+    public sealed class ProvisionPetRuleInputValidator : AbstractValidator<ProvisionPetRuleInput>
+    {
+        public ProvisionPetRuleInputValidator()
+        {
+            RuleFor(petRule => petRule.CountryExceptionCode).MaximumLength(10);
+            RuleFor(petRule => petRule.AcceptanceMode).IsInEnum();
+        }
+    }
+
+    public sealed class ProvisionAssistedTravelRuleInputValidator : AbstractValidator<ProvisionAssistedTravelRuleInput>
+    {
+        public ProvisionAssistedTravelRuleInputValidator()
+        {
+            RuleFor(assistedTravelRule => assistedTravelRule.ConnectionPolicy).IsInEnum().When(assistedTravelRule => assistedTravelRule.ConnectionPolicy is not null);
+        }
+    }
+
+    public sealed class ProvisionAirportServiceRuleInputValidator : AbstractValidator<ProvisionAirportServiceRuleInput>
+    {
+        public ProvisionAirportServiceRuleInputValidator()
+        {
+            RuleFor(airportServiceRule => airportServiceRule.TerminalRef).MaximumLength(30);
+            RuleFor(airportServiceRule => airportServiceRule.Direction).IsInEnum().When(airportServiceRule => airportServiceRule.Direction is not null);
+        }
+    }
+
     public sealed class ProvisionQuantityInputValidator : AbstractValidator<ProvisionQuantityInput>
     {
         public ProvisionQuantityInputValidator()

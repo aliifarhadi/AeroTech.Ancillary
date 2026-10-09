@@ -20,5 +20,6 @@ namespace AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.Defi
         int? StationAirportId,
         MoneyInput Amount,
         FeeApplicationUnit? FeeApplicationUnit,
-        bool? TaxIncludedInSource);
+        bool? TaxIncludedInSource,
+        TaxTreatment? TaxTreatment = null);
 }

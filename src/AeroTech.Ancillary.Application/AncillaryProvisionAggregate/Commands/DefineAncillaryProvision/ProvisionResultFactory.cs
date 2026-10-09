@@ -12,6 +12,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
                 provision.CoverageScope,
                 provision.PurchaseStage,
                 provision.Outcome.Disposition,
+                provision.PriceOrigin,
                 provision.Status);
     }
 }

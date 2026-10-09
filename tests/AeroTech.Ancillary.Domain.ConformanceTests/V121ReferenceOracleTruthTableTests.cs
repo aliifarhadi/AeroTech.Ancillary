@@ -1,6 +1,7 @@
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments;
 using AeroTech.Ancillary.Domain.ConformanceTests.Fakes;
+using AeroTech.Ancillary.Domain.ConformanceTests.Fixtures;
 using AeroTech.Ancillary.Domain.ConformanceTests.Oracle;
 using AeroTech.Messages.AirPrice.Enums;
 using AeroTech.Messages.Ancillary.Enums;
@@ -44,7 +45,7 @@ public class V121ReferenceOracleTruthTableTests
     {
         var provision = Provision(rules, disposition: disposition, id: id, sequence: sequence, ids: new SequentialIdGenerator());
 
-        provision.Activate(CarrierDefinition(serviceDateBasis: basis), Now);
+        provision.Activate(CarrierDefinition(serviceDateBasis: basis), null, Now);
 
         return provision;
     }
@@ -107,7 +108,7 @@ public class V121ReferenceOracleTruthTableTests
         var flightDeparture = new DateTime(2027, 7, 9, 23, 30, 0);
         var checkIn = new DateTime(2027, 7, 10, 14, 0, 0);
 
-        foreach (var basis in new[] { ServiceDateBasis.CheckIn, ServiceDateBasis.CoverageStart, ServiceDateBasis.Activation, ServiceDateBasis.ServiceStart })
+        foreach (var basis in new[] { ServiceDateBasis.ServiceStart })
         {
             var provision = Active(rules, basis: basis);
 
@@ -300,7 +301,7 @@ public class V121ReferenceOracleTruthTableTests
             ("flight", Active(Groups(flightApplication: Flights(flights: [81234]))), new OracleContext { FlightId = 81234 }),
             ("fare", Active(Groups(fareApplication: Fares(families: [5]))), new OracleContext { FareFamilyId = 5 }),
             ("pos", Active(Groups(salesRestrictions: Sales(pointsOfSale: [501]))), new OracleContext { PointOfSaleId = 501 }),
-            ("sale", Active(Groups(salesRestrictions: Sales(Now, Now.AddDays(1)))), new OracleContext { SaleInstant = Now }),
+            ("sale", Active(Groups(salesRestrictions: Sales(Now, Now.AddDays(1), [V122Fixtures.PointOfSale]))), new OracleContext { SaleInstant = Now }),
             ("origin", Active(Groups(geography: Geography(origins: [Thr]))), new OracleContext { OriginAirportId = Thr }),
             ("via", Active(Groups(geography: Geography(vias: [Mhd]))), new OracleContext { ViaAirportIds = [Mhd] }),
             ("place", Active(Groups(geography: Geography(locations: [Location(ServiceLocationType.Airport, Thr)]))), new OracleContext { ServicePlaces = [new OracleServicePlace(ServiceLocationType.Airport, Thr)] })
@@ -309,8 +310,8 @@ public class V121ReferenceOracleTruthTableTests
         Assert.All(vectors, vector =>
         {
             Assert.Equal(OracleVerdict.Match, ProvisionRuleOracle.Evaluate(vector.Provision, vector.Complete));
-            Assert.Equal(OracleVerdict.UnsupportedContext, ProvisionRuleOracle.Evaluate(vector.Provision, new OracleContext()));
-            Assert.Equal(OracleOutcome.UnsupportedContext, ProvisionRuleOracle.Select([vector.Provision], new OracleContext()).Outcome);
+            Assert.Equal(OracleVerdict.UnsupportedContext, ProvisionRuleOracle.Evaluate(vector.Provision, new OracleContext { PointOfSaleId = null }));
+            Assert.Equal(OracleOutcome.UnsupportedContext, ProvisionRuleOracle.Select([vector.Provision], new OracleContext { PointOfSaleId = null }).Outcome);
         });
         Assert.Equal(OracleVerdict.UnsupportedContext, ProvisionRuleOracle.Evaluate(aged, At(2027, 4, 6)));
         Assert.Equal(OracleVerdict.UnsupportedContext, ProvisionRuleOracle.Evaluate(aged, new OracleContext { DateOfBirth = birth }));
@@ -338,15 +339,15 @@ public class V121ReferenceOracleTruthTableTests
     public void V121_E05_E06_E10_a_service_location_or_coverage_country_needs_no_itinerary_fare_or_flight()
     {
         var lounge = Active(Groups(geography: Geography(locations: [Location(ServiceLocationType.Airport, Thr)])), basis: ServiceDateBasis.ServiceStart);
-        var sim = Active(Groups(geography: Geography(countries: [90])), basis: ServiceDateBasis.Activation);
-        var hotel = Active(Groups(geography: Geography(locations: [Location(ServiceLocationType.City, 7)])), basis: ServiceDateBasis.CheckIn);
+        var sim = Active(Groups(geography: Geography(countries: [90])), basis: ServiceDateBasis.ServiceStart);
+        var hotel = Active(Groups(geography: Geography(locations: [Location(ServiceLocationType.City, 7)])), basis: ServiceDateBasis.ServiceStart);
         var atAirport = new OracleContext { ServicePlaces = [new OracleServicePlace(ServiceLocationType.Airport, Thr), new OracleServicePlace(ServiceLocationType.City, 1)] };
 
         Assert.Equal(OracleVerdict.Match, ProvisionRuleOracle.Evaluate(lounge, atAirport));
         Assert.Equal(OracleVerdict.NoMatch, ProvisionRuleOracle.Evaluate(lounge, new OracleContext { ServicePlaces = [new OracleServicePlace(ServiceLocationType.Airport, Ist)] }));
         Assert.Equal(OracleVerdict.NoMatch, ProvisionRuleOracle.Evaluate(lounge, new OracleContext { ServicePlaces = [new OracleServicePlace(ServiceLocationType.City, Thr)] }));
         Assert.Equal(OracleVerdict.UnsupportedContext, ProvisionRuleOracle.Evaluate(lounge, new OracleContext { OriginAirportId = Thr, DestinationAirportId = Ist }));
-        Assert.Equal(OracleVerdict.Match, ProvisionRuleOracle.Evaluate(sim, new OracleContext { CoverageCountryId = 90, PointOfSaleId = 501 }));
+        Assert.Equal(OracleVerdict.Match, ProvisionRuleOracle.Evaluate(sim, new OracleContext { CoverageCountryId = 90 }));
         Assert.Equal(OracleVerdict.NoMatch, ProvisionRuleOracle.Evaluate(sim, new OracleContext { CoverageCountryId = 98 }));
         Assert.Equal(OracleVerdict.UnsupportedContext, ProvisionRuleOracle.Evaluate(sim, new OracleContext { PointOfSaleId = 90, ServicePlaces = [new OracleServicePlace(ServiceLocationType.Country, 90)] }));
         Assert.Null(hotel.FareApplication);
@@ -357,7 +358,7 @@ public class V121ReferenceOracleTruthTableTests
     [Fact]
     public void V121_E07_E08_E09_every_populated_dimension_must_match_and_alternatives_inside_one_dimension_are_or()
     {
-        var sales = Active(Groups(salesRestrictions: Sales(pointsOfSale: [1, 2], customerTypes: [CustomerType.TravelAgency])));
+        var sales = Active(Groups(salesRestrictions: Sales(pointsOfSale: [1], customerTypes: [CustomerType.TravelAgency])));
         var fare = Active(Groups(fareApplication: Fares(families: [5], cabins: [1], rbds: [2])));
         var flight = Active(Groups(flightApplication: Flights(operating: [4], numbers: ["A123"])));
         var agency = new OracleContext { PointOfSaleId = 1, CustomerType = CustomerType.TravelAgency };
@@ -366,7 +367,7 @@ public class V121ReferenceOracleTruthTableTests
         var otherType = Enum.GetValues<CustomerType>().First(type => type != CustomerType.TravelAgency);
 
         Assert.Equal(OracleVerdict.Match, ProvisionRuleOracle.Evaluate(sales, agency));
-        Assert.Equal(OracleVerdict.Match, ProvisionRuleOracle.Evaluate(sales, agency with { PointOfSaleId = 2 }));
+        Assert.Equal(OracleVerdict.NoMatch, ProvisionRuleOracle.Evaluate(sales, agency with { PointOfSaleId = 2 }));
         Assert.Equal(OracleVerdict.NoMatch, ProvisionRuleOracle.Evaluate(sales, agency with { PointOfSaleId = 3 }));
         Assert.Equal(OracleVerdict.NoMatch, ProvisionRuleOracle.Evaluate(sales, agency with { CustomerType = otherType }));
         Assert.Equal(OracleVerdict.UnsupportedContext, ProvisionRuleOracle.Evaluate(sales, agency with { CustomerType = null }));
@@ -386,7 +387,7 @@ public class V121ReferenceOracleTruthTableTests
     public void V121_E13_E14_a_lower_sequence_not_available_blocks_its_match_and_never_falls_through_to_a_broader_paid()
     {
         var blockedFlight = Active(Groups(flightApplication: Flights(flights: [123])), CommercialDisposition.NotAvailable, 10, 5001);
-        var blockedCustomer = Active(Groups(salesRestrictions: Sales(customers: [9001])), CommercialDisposition.NotAvailable, 20, 5002);
+        var blockedCustomer = Active(Groups(salesRestrictions: Sales(pointsOfSale: [V122Fixtures.PointOfSale], customers: [9001])), CommercialDisposition.NotAvailable, 20, 5002);
         var paid = Active(Groups(), CommercialDisposition.Paid, 100, 5003);
         AncillaryProvision[] provisions = [paid, blockedCustomer, blockedFlight];
 

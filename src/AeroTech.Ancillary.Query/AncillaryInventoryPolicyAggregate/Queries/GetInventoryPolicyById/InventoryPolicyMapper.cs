@@ -31,7 +31,13 @@ namespace AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Queries.Get
                     : null,
                 limits
                     .OrderBy(limit => limit.Id)
-                    .Select(limit => new BackofficePassengerUsageLimitDto(limit.Id, EnumValueDto.Of(limit.LimitScope), limit.MaxUnits, limit.CountingFamilyCode))
+                    .Select(limit => new BackofficePassengerUsageLimitDto(
+                        limit.Id,
+                        EnumValueDto.Of(limit.LimitScope),
+                        limit.MaxUnits,
+                        limit.CountingFamilyCode,
+                        EnumValueDto.Of(limit.ConsumptionUnit),
+                        limit.UnitsPerPurchase))
                     .ToList(),
                 EnumValueDto.Of(policy.Status),
                 policy.Version,

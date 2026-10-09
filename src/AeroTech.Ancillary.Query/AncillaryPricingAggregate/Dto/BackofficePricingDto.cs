@@ -25,6 +25,7 @@ namespace AeroTech.Ancillary.Query.AncillaryPricingAggregate.Dto
         MoneyDto BasePrice,
         IReadOnlyList<BackofficePriceComponentDto> Components,
         MoneyDto UnitTotal,
+        MoneyDto IncludedTaxes,
         bool IsUnitTotalComplete,
         IReadOnlyList<BackofficePriceComponentDto> UnappliedFees);
 
@@ -37,5 +38,6 @@ namespace AeroTech.Ancillary.Query.AncillaryPricingAggregate.Dto
         int? StationAirportId,
         MoneyDto Amount,
         EnumValueDto? FeeApplicationUnit,
-        bool? TaxIncludedInSource);
+        bool? TaxIncludedInSource,
+        EnumValueDto? TaxTreatment);
 }

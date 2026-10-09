@@ -9,5 +9,6 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
         ServiceCoverageScope CoverageScope,
         PurchaseStage PurchaseStage,
         CommercialDisposition Disposition,
+        PriceOrigin PriceOrigin,
         ProvisionStatus Status);
 }

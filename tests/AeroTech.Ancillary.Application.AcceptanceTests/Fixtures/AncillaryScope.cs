@@ -103,7 +103,7 @@ public sealed class AncillaryScope : IAsyncDisposable
 
         DefineServiceDefinition = new DefineAncillaryServiceDefinitionService(Definitions, Suppliers, definitionSynchronizer, UnitOfWork, ids, clock);
         ChangeServiceDefinition = new ChangeAncillaryServiceDefinitionService(Definitions, Suppliers, definitionSynchronizer, UnitOfWork);
-        ActivateServiceDefinition = new ActivateAncillaryServiceDefinitionService(Definitions, Suppliers, definitionSynchronizer, UnitOfWork, clock);
+        ActivateServiceDefinition = new ActivateAncillaryServiceDefinitionService(Definitions, Suppliers, new TestOnlyAirportReference(), definitionSynchronizer, UnitOfWork, clock);
         SuspendServiceDefinition = new SuspendAncillaryServiceDefinitionService(Definitions, Suppliers, definitionSynchronizer, UnitOfWork, clock);
         ReactivateServiceDefinition = new ReactivateAncillaryServiceDefinitionService(Definitions, Suppliers, definitionSynchronizer, UnitOfWork);
         RetireServiceDefinition = new RetireAncillaryServiceDefinitionService(Definitions, Suppliers, definitionSynchronizer, UnitOfWork, clock);
@@ -119,10 +119,11 @@ public sealed class AncillaryScope : IAsyncDisposable
 
         DefineProvision = new DefineAncillaryProvisionService(Provisions, Definitions, provisionSynchronizer, UnitOfWork, ids, clock);
         ChangeProvision = new ChangeAncillaryProvisionService(Provisions, provisionSynchronizer, UnitOfWork, ids);
-        ActivateProvision = new ActivateAncillaryProvisionService(Provisions, Definitions, Pricings, provisionSynchronizer, UnitOfWork, clock);
+        ActivateProvision = new ActivateAncillaryProvisionService(Provisions, Definitions, Suppliers, Pricings, provisionSynchronizer, UnitOfWork, clock);
         PublishProvision = new PublishAncillaryProvisionService(
             Provisions,
             Definitions,
+            Suppliers,
             currencies,
             Pricings,
             provisionSynchronizer,
@@ -167,7 +168,7 @@ public sealed class AncillaryScope : IAsyncDisposable
 
         GetSupplierById = new GetSupplierByIdService(Query);
         GetSuppliersPaginated = new GetSuppliersPaginatedService(Query);
-        GetServiceDefinitionById = new GetAncillaryServiceDefinitionByIdService(Query);
+        GetServiceDefinitionById = new GetAncillaryServiceDefinitionByIdService(Query, Definitions);
         GetServiceDefinitionsPaginated = new GetAncillaryServiceDefinitionsPaginatedService(Query);
         GetProvisionById = new GetAncillaryProvisionByIdService(Query);
         GetProvisionsPaginated = new GetAncillaryProvisionsPaginatedService(Query);

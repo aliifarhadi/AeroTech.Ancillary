@@ -71,6 +71,8 @@ namespace AeroTech.Ancillary.Synchronizer.AncillaryInventoryPolicyAggregate
                 row.LimitScope = limit.LimitScope;
                 row.MaxUnits = limit.MaxUnits;
                 row.CountingFamilyCode = limit.CountingFamilyCode;
+                row.ConsumptionUnit = limit.ConsumptionUnit;
+                row.UnitsPerPurchase = limit.UnitsPerPurchase;
             }
         }
     }

@@ -45,6 +45,8 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
                 command.Sequence,
                 command.CoverageScope,
                 command.PurchaseStage,
+                command.PriceOrigin,
+                command.QuoteProviderKey,
                 command.Quantity.ToRule(),
                 command.ApplicationType,
                 command.Outcome.ToOutcome(),
@@ -61,7 +63,10 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
                     command.DayTimeApplication,
                     command.AdvancePurchase,
                     command.BaggageApplication,
-                    command.SeatApplication),
+                    command.SeatApplication,
+                    command.PetRule,
+                    command.AssistedTravelRule,
+                    command.AirportServiceRule),
                 _idGenerator,
                 _clock.GetDateTime());
 

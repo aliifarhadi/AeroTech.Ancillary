@@ -25,5 +25,20 @@ namespace AeroTech.Ancillary.Persistence.AncillaryInventoryPolicyAggregate
                           && policy.ServiceDefinitionRef == serviceDefinitionRef
                           && policy.Status != InventoryRecordStatus.Retired,
                 cancellationToken);
+
+        public async Task<IReadOnlyList<UsageConsumptionUnit>> FindFamilyConsumptionUnitsAsync(
+            int ownerAirlineId,
+            string countingFamilyCode,
+            long exceptPolicyId,
+            CancellationToken cancellationToken = default)
+            => await _dbContext.AncillaryInventoryPolicies
+                .Where(policy => policy.OwnerAirlineId == ownerAirlineId
+                                 && policy.Id != exceptPolicyId
+                                 && (policy.Status == InventoryRecordStatus.Active || policy.Status == InventoryRecordStatus.Suspended))
+                .SelectMany(policy => policy.PassengerUsageLimits)
+                .Where(limit => limit.CountingFamilyCode == countingFamilyCode)
+                .Select(limit => limit.ConsumptionUnit)
+                .Distinct()
+                .ToListAsync(cancellationToken);
     }
 }

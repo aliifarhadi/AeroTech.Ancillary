@@ -1,4 +1,5 @@
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate;
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.ValueObjects;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.ValueObjects;
@@ -21,24 +22,37 @@ public class V121FinalDescriptorConformanceTests
             10,
             ServiceCoverageScope.Sector,
             purchaseStage,
+            V122Fixtures.Origin(CommercialDisposition.Free),
+            null,
             QuantityRule.Create(AncillaryQuantityUnit.Each, 1, 1),
             ProvisionApplicationType.Standard,
             CommercialOutcome.Create(CommercialDisposition.Free, false, false),
             SettlementDefinition.Create(ReissueRefundPolicy.NonRefundable, null, false, false),
             AvailabilityDefinition.Create(false),
             FulfillmentDefinition.Create("Ancillary"),
-            ProvisionRulesArgs.Unrestricted,
+            Rules(null, ProvisionApplicationType.Standard),
             new SequentialIdGenerator(),
             Now);
 
     private static AncillaryProvision Bag(ProvisionBaggageApplicationArgs baggage)
-        => Provision(Groups(baggageApplication: baggage), ProvisionApplicationType.Baggage, CommercialDisposition.Free);
+        => Provision(Groups(baggageApplication: baggage), ProvisionApplicationType.Baggage, CommercialDisposition.Free, quantityUnit: AncillaryQuantityUnit.Piece);
+
+    private static AncillaryServiceDefinition BaggageDefinition(BaggageChargeKind chargeKind)
+        => CarrierDefinition(
+            pricingUnit: PricingUnit.PerPiece,
+            variant: chargeKind switch
+            {
+                BaggageChargeKind.Overweight => AncillaryVariant.Overweight,
+                BaggageChargeKind.Oversize => AncillaryVariant.Oversize,
+                BaggageChargeKind.SpecialEquipment => AncillaryVariant.SpecialEquipment,
+                _ => AncillaryVariant.ExtraCheckedBag
+            });
 
     [Fact]
     public void D04_the_four_descriptor_enums_carry_exactly_the_approved_members()
     {
         Assert.Equal(new[] { "Immediate=1", "SubjectToConfirmation=2" }, Enum.GetValues<ConfirmationRequirement>().Select(value => $"{value}={(int)value}"));
-        Assert.Equal(new[] { "PreOrder=1", "PostTicketed=2", "Both=3", "LegacyUnspecified=4" }, Enum.GetValues<PurchaseStage>().Select(value => $"{value}={(int)value}"));
+        Assert.Equal(new[] { "PreOrder=1", "PostTicketed=2", "Both=3", "LegacyUnspecified=4", "OnBoard=5" }, Enum.GetValues<PurchaseStage>().Select(value => $"{value}={(int)value}"));
         Assert.Equal(
             new[] { "ExtraPiece=1", "WeightPackage=2", "Overweight=3", "Oversize=4", "SpecialEquipment=5" },
             Enum.GetValues<BaggageChargeKind>().Select(value => $"{value}={(int)value}"));
@@ -54,7 +68,7 @@ public class V121FinalDescriptorConformanceTests
     {
         var provision = Staged(purchaseStage);
 
-        provision.Activate(CarrierDefinition(), Now);
+        provision.Activate(CarrierDefinition(), null, Now);
 
         Assert.Equal((purchaseStage, ProvisionStatus.Active), (provision.PurchaseStage, provision.Status));
     }
@@ -69,7 +83,7 @@ public class V121FinalDescriptorConformanceTests
 
         typeof(AncillaryProvision).GetProperty(nameof(AncillaryProvision.PurchaseStage))!.SetValue(migrated, PurchaseStage.LegacyUnspecified);
 
-        BusinessAssert.Throws(16316, 409, () => migrated.Activate(CarrierDefinition(), Now));
+        BusinessAssert.Throws(16316, 409, () => migrated.Activate(CarrierDefinition(), null, Now));
         Assert.Equal(ProvisionStatus.Draft, migrated.Status);
 
         BusinessAssert.Throws(16302, 422, () => Replace(migrated, ProvisionRulesArgs.Unrestricted, new SequentialIdGenerator()));
@@ -100,7 +114,7 @@ public class V121FinalDescriptorConformanceTests
         BusinessAssert.Throws(16302, 422, () => Provision(Groups(advancePurchase: new ProvisionAdvancePurchaseArgs(24, TimeUnit.Hours, false, 23))));
         BusinessAssert.Throws(16302, 422, () => Provision(Groups(advancePurchase: new ProvisionAdvancePurchaseArgs(0, TimeUnit.Hours, false, -1))));
 
-        window.Activate(CarrierDefinition(), Now);
+        window.Activate(CarrierDefinition(), null, Now);
 
         Assert.Equal(ProvisionStatus.Active, window.Status);
     }
@@ -134,17 +148,22 @@ public class V121FinalDescriptorConformanceTests
     {
         var provision = Bag(Baggage() with { ChargeKind = chargeKind, AllowanceConcept = allowanceConcept });
 
-        provision.Activate(CarrierDefinition(), Now);
+        provision.Activate(BaggageDefinition(chargeKind), null, Now);
 
         Assert.Equal((chargeKind, allowanceConcept, ProvisionStatus.Active), (provision.BaggageApplication!.ChargeKind!.Value, provision.BaggageApplication.AllowanceConcept, provision.Status));
     }
 
     [Fact]
-    public void D08_a_baggage_rule_without_a_charge_kind_stays_a_draft()
+    public void D08_the_charge_kind_is_owned_by_the_specification_and_a_contradicting_rule_stays_a_draft()
     {
-        var legacy = Bag(Baggage() with { ChargeKind = null, AllowanceConcept = null });
+        var silent = Bag(Baggage() with { ChargeKind = null, AllowanceConcept = null });
+        var contradicting = Bag(Baggage() with { ChargeKind = BaggageChargeKind.Oversize, AllowanceConcept = null });
+        var definition = BaggageDefinition(BaggageChargeKind.ExtraPiece);
 
-        BusinessAssert.Throws(16317, 409, () => legacy.Activate(CarrierDefinition(), Now));
-        Assert.Equal(ProvisionStatus.Draft, legacy.Status);
+        silent.Activate(definition, null, Now);
+
+        BusinessAssert.Throws(16321, 409, () => contradicting.Activate(definition, null, Now));
+        Assert.Equal((ProvisionStatus.Active, ProvisionStatus.Draft), (silent.Status, contradicting.Status));
+        Assert.Equal(BaggageChargeKind.ExtraPiece, definition.Baggage!.ChargeKind);
     }
 }

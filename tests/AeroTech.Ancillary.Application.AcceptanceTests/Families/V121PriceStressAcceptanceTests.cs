@@ -139,7 +139,7 @@ public class V121PriceStressAcceptanceTests
         var definitionId = await DefinitionAsync("LOUNGE_BY_SELLER", basis: ServiceDateBasis.ServiceStart);
 
         await _proof.RuleAsync(
-            Provision(definitionId, 5, CommercialDisposition.NotAvailable) with { SalesRestrictions = new(AllowedCustomerIds: [9001]) });
+            Provision(definitionId, 5, CommercialDisposition.NotAvailable) with { SalesRestrictions = new(AllowedPointOfSaleIds: [V122Catalog.PointOfSale], AllowedCustomerIds: [9001]) });
         await _proof.RuleAsync(
             Provision(definitionId, 10) with { SalesRestrictions = new(AllowedPointOfSaleIds: [AgencyOffice], AllowedCustomerTypes: [CustomerType.TravelAgency]) },
             provisionId => Pricing(provisionId, Usd, Base(22m, PassengerTypeCode.ADT), Base(12m, PassengerTypeCode.CHD)));

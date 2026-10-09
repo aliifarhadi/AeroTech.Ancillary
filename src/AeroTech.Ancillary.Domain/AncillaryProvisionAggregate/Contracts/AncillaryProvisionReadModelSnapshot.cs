@@ -11,6 +11,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Contracts
         ProvisionStatus Status,
         ServiceCoverageScope CoverageScope,
         PurchaseStage PurchaseStage,
+        PriceOrigin PriceOrigin,
+        string? QuoteProviderKey,
         AncillaryQuantityUnit QuantityUnit,
         int MinQuantity,
         int MaxQuantity,
@@ -37,7 +39,10 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Contracts
         ProvisionDayTimeApplicationReadModelSnapshot? DayTimeApplication,
         ProvisionAdvancePurchaseReadModelSnapshot? AdvancePurchase,
         ProvisionBaggageApplicationReadModelSnapshot? BaggageApplication,
-        ProvisionSeatApplicationReadModelSnapshot? SeatApplication);
+        ProvisionSeatApplicationReadModelSnapshot? SeatApplication,
+        ProvisionPetRuleReadModelSnapshot? PetRule,
+        ProvisionAssistedTravelRuleReadModelSnapshot? AssistedTravelRule,
+        ProvisionAirportServiceRuleReadModelSnapshot? AirportServiceRule);
 
     public sealed record ProvisionRuleRowReadModelSnapshot<TValue>(
         long RowId,
@@ -115,6 +120,28 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Contracts
         long RuleId,
         IReadOnlyList<ProvisionRuleRowReadModelSnapshot<string>> SeatNumbers,
         IReadOnlyList<ProvisionRuleRowReadModelSnapshot<string>> SeatCharacteristics);
+
+    public sealed record ProvisionPetRuleReadModelSnapshot(
+        long RuleId,
+        string? CountryExceptionCode,
+        int? MinAnimalAgeWeeksOverride,
+        decimal? MaxCombinedKgOverride,
+        ConfirmationRequirement AcceptanceMode);
+
+    public sealed record ProvisionAssistedTravelRuleReadModelSnapshot(
+        long RuleId,
+        int? MinimumLeadTimeMinutes,
+        MinorConnectionPolicy? ConnectionPolicy,
+        bool? MedicalApprovalRequired);
+
+    public sealed record ProvisionAirportServiceRuleReadModelSnapshot(
+        long RuleId,
+        string? TerminalRef,
+        AirportServiceDirection? Direction,
+        TimeOnly? ServiceWindowStart,
+        TimeOnly? ServiceWindowEnd,
+        long? FacilityId,
+        int? MaxGuestsPerPrimary);
 
     public sealed record ProvisionAgeBandReadModelSnapshot(
         long RowId,

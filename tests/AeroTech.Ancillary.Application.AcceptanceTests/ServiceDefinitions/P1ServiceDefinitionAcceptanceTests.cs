@@ -2,6 +2,7 @@ using AeroTech.Ancillary.Application.AcceptanceTests.Fakes;
 using AeroTech.Ancillary.Application.AcceptanceTests.Fixtures;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ChangeAncillaryServiceDefinition.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.DefineAncillaryServiceDefinition;
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.GetAncillaryServiceDefinitionsPaginated.Backoffice;
 using AeroTech.Messages.Ancillary.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -302,6 +303,10 @@ public class P1ServiceDefinitionAcceptanceTests
                 null,
                 PricingUnit.PerPassenger,
                 ServiceDateBasis.FlightDeparture,
+                AncillaryProfile.Priority,
+                AncillaryVariant.PriorityBoardingCheckin,
+                V122Catalog.RoutingOf(documentType),
+                V122Catalog.Specification(AncillaryVariant.PriorityBoardingCheckin),
                 commercialName,
                 null,
                 new ServiceDefinitionDocumentInput(documentType, null, null),

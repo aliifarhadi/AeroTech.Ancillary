@@ -14,6 +14,7 @@ namespace AeroTech.Ancillary.Application.AncillaryInventoryPolicyAggregate.Servi
         private readonly IAirportFacilityReference _facilities;
         private readonly ICountingFamilyReference _families;
         private readonly IFlightCountInventoryRepository _countInventories;
+        private readonly IInventoryPolicyRepository _policies;
 
         public InventoryPolicyEvidenceBuilder(
             IInventoryCommercialFactsReader facts,
@@ -21,7 +22,8 @@ namespace AeroTech.Ancillary.Application.AncillaryInventoryPolicyAggregate.Servi
             IInventoryResourceReference resources,
             IAirportFacilityReference facilities,
             ICountingFamilyReference families,
-            IFlightCountInventoryRepository countInventories)
+            IFlightCountInventoryRepository countInventories,
+            IInventoryPolicyRepository policies)
         {
             _facts = facts;
             _flightFlow = flightFlow;
@@ -29,6 +31,7 @@ namespace AeroTech.Ancillary.Application.AncillaryInventoryPolicyAggregate.Servi
             _facilities = facilities;
             _families = families;
             _countInventories = countInventories;
+            _policies = policies;
         }
 
         public async Task<InventoryPolicyEvidence> BuildAsync(AncillaryInventoryPolicy policy, CancellationToken cancellationToken = default)
@@ -36,9 +39,13 @@ namespace AeroTech.Ancillary.Application.AncillaryInventoryPolicyAggregate.Servi
             var owner = policy.OwnerAirlineId;
             var facts = await _facts.FindCurrentAsync(owner, policy.ServiceDefinitionRef, cancellationToken);
             var families = new Dictionary<string, InventoryReferenceCheck>(StringComparer.Ordinal);
+            var familyUnits = new Dictionary<string, IReadOnlyList<UsageConsumptionUnit>>(StringComparer.Ordinal);
 
             foreach (var limit in policy.PassengerUsageLimits)
+            {
                 families[limit.CountingFamilyCode] = await _families.CheckAsync(owner, limit.CountingFamilyCode, cancellationToken);
+                familyUnits[limit.CountingFamilyCode] = await _policies.FindFamilyConsumptionUnitsAsync(owner, limit.CountingFamilyCode, policy.Id, cancellationToken);
+            }
 
             return new InventoryPolicyEvidence(
                 facts?.ServiceDefinitionId,
@@ -59,7 +66,8 @@ namespace AeroTech.Ancillary.Application.AncillaryInventoryPolicyAggregate.Servi
                 policy.SlotConsumption is { } slot
                     ? (await _facilities.CheckAsync(owner, slot.FacilityId, cancellationToken)).Result
                     : InventoryReferenceCheck.SourceUnavailable,
-                families);
+                families,
+                familyUnits);
         }
     }
 }

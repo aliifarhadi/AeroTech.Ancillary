@@ -20,5 +20,7 @@ namespace AeroTech.Ancillary.Application.AncillaryInventoryPolicyAggregate.Comma
     public sealed record PassengerUsageLimitInput(
         PassengerUsageLimitScope LimitScope,
         int MaxUnits,
-        string CountingFamilyCode);
+        string CountingFamilyCode,
+        UsageConsumptionUnit ConsumptionUnit = UsageConsumptionUnit.PurchasedUnit,
+        decimal? UnitsPerPurchase = null);
 }

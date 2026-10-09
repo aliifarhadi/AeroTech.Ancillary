@@ -42,6 +42,9 @@ namespace AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Entities
                 .GroupBy(component => (component.Category, component.Code, component.CountryId, component.StationAirportId, component.FeeApplicationUnit))
                 .Any(identity => identity.Count() > 1))
                 throw ExceptionFactory.PricingSelectorConflict(nameof(AncillaryPriceComponent.Code));
+
+            if (IncludedTaxes.Amount > BaseAmount)
+                throw ExceptionFactory.PricingIncludedTaxExceedsBase();
         }
 
         public long AncillaryPricingId { get; private set; }
@@ -61,12 +64,16 @@ namespace AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Entities
         public Money BasePrice => Money.Of(BaseAmount, CurrencyId);
 
         public Money UnitTotal => _components
-            .Where(component => !IsUnapplied(component))
+            .Where(component => !IsUnapplied(component) && component.TaxTreatment != TaxTreatment.IncludedInBase)
             .Aggregate(BasePrice, (total, component) => total.Add(component.Amount));
+
+        public Money IncludedTaxes => _components
+            .Where(component => component.TaxTreatment == TaxTreatment.IncludedInBase)
+            .Aggregate(Money.Of(0m, CurrencyId), (total, component) => total.Add(component.Amount));
 
         public IReadOnlyList<AncillaryPriceComponent> UnappliedFees => _components.Where(IsUnapplied).ToList();
 
-        public bool IsUnitTotalComplete => !_components.Any(IsUnapplied);
+        public bool IsUnitTotalComplete => !_components.Any(component => IsUnapplied(component) || HasUnknownTreatment(component));
 
         internal AncillaryPricingRate CopyTo(long id, long ancillaryPricingId, IIdGenerator idGenerator)
         {
@@ -93,6 +100,10 @@ namespace AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Entities
             foreach (var component in _components)
                 component.Amount.EnsureScale(currencyDecimalPlaces);
         }
+
+        internal static bool HasUnknownTreatment(AncillaryPriceComponent component)
+            => component.Category == AncillaryPriceLineCategory.Tax
+               && component.TaxTreatment is not (TaxTreatment.AddedToBase or TaxTreatment.IncludedInBase);
 
         private static bool IsUnapplied(AncillaryPriceComponent component)
             => component.Category == AncillaryPriceLineCategory.Fee && component.FeeApplicationUnit != FeeApplicationUnit.Item;

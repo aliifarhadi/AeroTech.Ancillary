@@ -30,6 +30,7 @@ public class P1ServiceDefinitionConformanceTests
                 definition.SubGroupCode,
                 definition.Description1Code,
                 definition.Description2Code),
+            V122Fixtures.Profile(definition.PricingUnit!.Value, definition.ServiceDateBasis!.Value, definition.Document.Type),
             definition.PricingUnit!.Value,
             definition.ServiceDateBasis!.Value,
             commercialName,
@@ -45,10 +46,12 @@ public class P1ServiceDefinitionConformanceTests
         Assert.Equal(
             new[]
             {
-                "ActivatedAt", "Booking", "CommercialName", "CreatedAt", "Description", "Description1Code", "Description2Code",
-                "Document", "GroupCode", "OwnerAirlineId", "PricingUnit", "RetiredAt", "SalesDiscontinueOn", "SalesEffectiveFrom",
-                "ServiceDateBasis", "ServiceDefinitionRef", "ServiceSubCode", "ServiceTypeCode", "Status", "SubCodeSource", "SubGroupCode",
-                "SupplierId", "SuspendedAt", "Version"
+                "ActivatedAt", "AirportService", "AssistedTravel", "Baggage", "Booking", "CommercialName", "Connectivity",
+                "CreatedAt", "Description", "Description1Code", "Description2Code", "Document", "DocumentRouting", "GroupCode",
+                "IsClassified", "Meal", "OwnerAirlineId", "Pet", "PricingUnit", "Priority", "Profile",
+                "RetiredAt", "SalesDiscontinueOn", "SalesEffectiveFrom", "Seat", "SelectionContract", "ServiceDateBasis", "ServiceDefinitionRef",
+                "ServiceSubCode", "ServiceTypeCode", "Status", "SubCodeSource", "SubGroupCode", "SupplierId", "SuspendedAt",
+                "Upgrade", "Variant", "VariantCode", "Version"
             },
             PropertiesOf<AncillaryServiceDefinition>());
         Assert.Equal(new[] { "Rfic", "Rfisc", "Type" }, PropertiesOf<DocumentDefinition>());
@@ -69,6 +72,7 @@ public class P1ServiceDefinitionConformanceTests
             "0ZZ",
             ServiceSubCodeSource.Industry,
             new ServiceDefinitionClassificationArgs(null, null, null, null, null),
+            V122Fixtures.Profile(PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture, AncillaryDocumentType.None),
             PricingUnit.PerPassenger,
             ServiceDateBasis.FlightDeparture,
             "Wheelchair",
@@ -120,6 +124,7 @@ public class P1ServiceDefinitionConformanceTests
             "MCH",
             ServiceSubCodeSource.CarrierDefined,
             new ServiceDefinitionClassificationArgs("F", "ML", "CH", "KD", null),
+            V122Fixtures.Profile(PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture, AncillaryDocumentType.None),
             PricingUnit.PerPassenger,
             ServiceDateBasis.FlightDeparture,
             "Child meal",
@@ -148,6 +153,7 @@ public class P1ServiceDefinitionConformanceTests
             "0ZZ",
             ServiceSubCodeSource.Industry,
             new ServiceDefinitionClassificationArgs(null, null, null, null, null),
+            V122Fixtures.Profile(PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture, AncillaryDocumentType.None),
             PricingUnit.PerPassenger,
             ServiceDateBasis.FlightDeparture,
             "Renamed",
@@ -297,6 +303,7 @@ public class P1ServiceDefinitionConformanceTests
             "PTC",
             ServiceSubCodeSource.CarrierDefined,
             new ServiceDefinitionClassificationArgs("F", "PT", null, null, null),
+            V122Fixtures.Profile(PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture, AncillaryDocumentType.EmdAssociated),
             PricingUnit.PerPassenger,
             ServiceDateBasis.FlightDeparture,
             "Pet in cabin",

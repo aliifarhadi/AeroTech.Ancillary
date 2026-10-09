@@ -13,5 +13,9 @@ namespace AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Models
         public int MaxUnits { get; set; }
 
         public string CountingFamilyCode { get; set; } = default!;
+
+        public UsageConsumptionUnit ConsumptionUnit { get; set; }
+
+        public decimal? UnitsPerPurchase { get; set; }
     }
 }

@@ -1,11 +1,14 @@
 using AeroTech.Ancillary.Application.AcceptanceTests.Fakes;
 using AeroTech.Ancillary.Application.AcceptanceTests.Fixtures;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.DefineAncillaryProvision;
+using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.DefineAncillaryServiceDefinition;
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Dto;
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto;
 using AeroTech.Messages.AirPrice.Enums;
 using AeroTech.Messages.Ancillary.Enums;
 using AeroTech.Messages.Core.Enums;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 using static AeroTech.Ancillary.Application.AcceptanceTests.Fixtures.P1Commands;
 using static AeroTech.Ancillary.Application.AcceptanceTests.Fixtures.V121Commands;
@@ -145,7 +148,7 @@ public class V121FamilyAcceptanceTests
                 Geography = new(AllowedRoutePairs: [Pair(Thr, Ist, RoutePairDirection.BothDirections)]),
                 FlightApplication = new(AllowedFlightNumbers: ["W5112"]),
                 TravelDate = Dates([winter]),
-                BaggageApplication = Baggage(30m)
+                BaggageApplication = Baggage(30m, chargeKind: BaggageChargeKind.Overweight, allowanceConcept: null)
             },
             provisionId => Pricing(provisionId, Eur, Base(4.5m, name: "Extra kilogram")));
 
@@ -162,18 +165,18 @@ public class V121FamilyAcceptanceTests
         var (airlineId, supplierId) = await SupplierAsync();
 
         var sports = await _proof.ProveAsync(
-            CarrierDefinition(airlineId, supplierId, "SPORT_EQUIPMENT", "SPQ", "C", "BG", "Sports equipment", Ssr("SPEQ"), pricingUnit: PricingUnit.PerPiece),
+            CarrierDefinition(airlineId, supplierId, "SPORT_EQUIPMENT", "SPQ", "C", "BG", "Sports equipment", Ssr("SPEQ"), pricingUnit: PricingUnit.PerPiece, variant: "A06"),
             definitionId => Provision(definitionId, 10, coverageScope: ServiceCoverageScope.Journey, quantityUnit: AncillaryQuantityUnit.Piece, maxQuantity: 2, applicationType: ProvisionApplicationType.Baggage) with
             {
                 FlightApplication = new(AllowedAircraftIds: [1, 2]),
                 TravelDate = Dates(blackout: [Period(Day(2027, 3, 20), Day(2027, 4, 2))]),
-                BaggageApplication = Baggage(32m, purchaseApplication: BaggagePurchaseApplication.PrepaidAndCheckIn)
+                BaggageApplication = Baggage(32m, purchaseApplication: BaggagePurchaseApplication.PrepaidAndCheckIn, chargeKind: BaggageChargeKind.SpecialEquipment, allowanceConcept: null)
             },
             draft => draft with
             {
                 FlightApplication = new(AllowedAircraftIds: [1, 2, 3]),
                 TravelDate = Dates(blackout: [Period(Day(2027, 3, 20), Day(2027, 4, 2)), Period(Day(2027, 12, 24), Day(2027, 12, 26))]),
-                BaggageApplication = Baggage(30m, purchaseApplication: BaggagePurchaseApplication.PrepaidAndCheckIn)
+                BaggageApplication = Baggage(30m, purchaseApplication: BaggagePurchaseApplication.PrepaidAndCheckIn, chargeKind: BaggageChargeKind.SpecialEquipment, allowanceConcept: null)
             },
             Definition(PricingUnit.PerPiece, ServiceDateBasis.FlightDeparture, "Ssr", "SPEQ"),
             Rules("ACFT=1,2; BLACKOUT=2027-03-20..2027-04-02; BAG=-:32Kg:PrepaidAndCheckIn"),
@@ -193,7 +196,7 @@ public class V121FamilyAcceptanceTests
         var (airlineId, supplierId) = await SupplierAsync();
 
         var ramp = await _proof.ProveAsync(
-            CarrierDefinition(airlineId, supplierId, "WHEELCHAIR_RAMP", "WCR", "F", "AS", "Wheelchair to aircraft door", Ssr("WCHR")),
+            CarrierDefinition(airlineId, supplierId, "WHEELCHAIR_RAMP", "WCR", "F", "AS", "Wheelchair to aircraft door", Ssr("WCHR"), variant: "A15"),
             definitionId => Provision(definitionId, 100, CommercialDisposition.Free) with { Geography = new(AllowedOriginAirportIds: [Ika, Thr]) },
             draft => draft with { Geography = new(AllowedOriginAirportIds: [Ika, Thr, Mhd]), Outcome = draft.Outcome with { BookingRequired = true } },
             definition =>
@@ -220,7 +223,7 @@ public class V121FamilyAcceptanceTests
             await FiledAsync(ramp.ServiceDefinitionId));
         await RefusedAsync(16505, 409, scope => scope.DefinePricing.DefineAsync(Pricing(ramp.ProvisionId, Eur, Base(20m))));
         await BusinessAssert.ThrowsAsync(16207, 422, () => _proof.DefinitionAsync(
-            CarrierDefinition(airlineId, supplierId, "WHEELCHAIR_FAKE", "0WC", "F", "AS", "Wheelchair", Ssr("WCHR")) with { SubCodeSource = ServiceSubCodeSource.Industry },
+            CarrierDefinition(airlineId, supplierId, "WHEELCHAIR_FAKE", "0WC", "F", "AS", "Wheelchair", Ssr("WCHR"), variant: "A15") with { SubCodeSource = ServiceSubCodeSource.Industry },
             activate: false));
     }
 
@@ -230,7 +233,7 @@ public class V121FamilyAcceptanceTests
         var (airlineId, supplierId) = await SupplierAsync();
 
         var meal = await _proof.ProveAsync(
-            CarrierDefinition(airlineId, supplierId, "MEAL_VGML", "VGM", "F", "ML", "Vegetarian meal", Ssr("VGML")),
+            CarrierDefinition(airlineId, supplierId, "MEAL_VGML", "VGM", "F", "ML", "Vegetarian meal", Ssr("VGML"), variant: "A12"),
             definitionId => Provision(definitionId, 10, bookingRequired: true) with
             {
                 PassengerEligibility = Passengers(PassengerTypeCode.ADT, PassengerTypeCode.CHD),
@@ -263,61 +266,6 @@ public class V121FamilyAcceptanceTests
     }
 
     [Fact]
-    public async Task V121_F05_P01_travel_insurance_uses_the_coverage_start_two_age_rates_and_an_upper_age_exclusion()
-    {
-        var airlineId = _database.NextAirlineId();
-        var insurerId = await _proof.SupplierAsync(new TestRegisterSupplierCommand(airlineId, "SafeTrip Insurance", SupplierFulfillmentKind.External, "InsurancePartnerA"));
-
-        var insurance = await _proof.ProveAsync(
-            CarrierDefinition(airlineId, insurerId, "INS_BASIC", "INB", "M", "IN", "Travel insurance basic", serviceDateBasis: ServiceDateBasis.CoverageStart),
-            definitionId => Provision(definitionId, 10, coverageScope: ServiceCoverageScope.Order) with
-            {
-                PassengerEligibility = new(AllowedAgeBands: [new(0, 80)]),
-                SalesRestrictions = new(
-                    new DateTimeOffset(2026, 10, 1, 0, 0, 0, TimeSpan.Zero),
-                    new DateTimeOffset(2027, 1, 1, 0, 0, 0, TimeSpan.Zero),
-                    [AirlineOffice, AgencyOffice],
-                    AllowedCustomerTypes: [CustomerType.Individual]),
-                Geography = new(CoverageCountryIds: [Turkey]),
-                TravelDate = Dates([Period(Day(2026, 10, 1), Day(2026, 12, 31))])
-            },
-            draft => draft with
-            {
-                Geography = new(CoverageCountryIds: [Turkey, Iran]),
-                TravelDate = Dates([Period(Day(2026, 10, 1), Day(2027, 1, 31))])
-            },
-            definition =>
-            {
-                Definition(PricingUnit.PerPassenger, ServiceDateBasis.CoverageStart)(definition);
-                Assert.Equal((insurerId, "SafeTrip Insurance", "INB"), (definition.SupplierId, definition.SupplierName, definition.ServiceSubCode));
-            },
-            Rules($"AGE=0-80; SALEFROM=2026-10-01; SALEUNTIL=2027-01-01; POS={AirlineOffice},{AgencyOffice}; CUSTTYPE=Individual; COVER=90; PERMIT=2026-10-01..2026-12-31"),
-            Rules($"AGE=0-80; SALEFROM=2026-10-01; SALEUNTIL=2027-01-01; POS={AirlineOffice},{AgencyOffice}; CUSTTYPE=Individual; COVER=90,98; PERMIT=2026-10-01..2027-01-31"),
-            Priced(
-                "PerPassenger EUR ADT[0-65]=20+0+0=20 | ADT[65-]=40+0+0=40",
-                "PerPassenger EUR ADT[0-65]=21+0+0=21 | ADT[65-]=42+0+0=42",
-                provisionId => Pricing(provisionId, Eur, Base(20m, PassengerTypeCode.ADT, 0, 65), Base(40m, PassengerTypeCode.ADT, 65)),
-                provisionId => Pricing(provisionId, Eur, Base(21m, PassengerTypeCode.ADT, 0, 65), Base(42m, PassengerTypeCode.ADT, 65))));
-        var excluded = await _proof.RuleAsync(
-            Provision(insurance.ServiceDefinitionId, 5, CommercialDisposition.NotAvailable, ServiceCoverageScope.Order) with { PassengerEligibility = new(AllowedAgeBands: [new(80, null)]) });
-
-        Assert.Null(excluded.Pricing);
-        Assert.Equal(
-            new[] { (5, "NotAvailable", "AGE=80-"), (10, "Paid", $"AGE=0-80; SALEFROM=2026-10-01; SALEUNTIL=2027-01-01; POS={AirlineOffice},{AgencyOffice}; CUSTTYPE=Individual; COVER=90,98; PERMIT=2026-10-01..2027-01-31") },
-            (await FiledAsync(insurance.ServiceDefinitionId)).Select(row => (row.Sequence, row.Disposition, row.Rules)));
-        await RefusedAsync(16508, 409, scope => scope.DefinePricing.DefineAsync(
-            Pricing(insurance.ProvisionId, Eur, Base(20m, PassengerTypeCode.ADT, 0, 66), Base(40m, PassengerTypeCode.ADT, 65))));
-        await RefusedAsync(16302, 422, scope => scope.DefineProvision.DefineAsync(
-            Provision(insurance.ServiceDefinitionId, 30) with { PassengerEligibility = new(AllowedAgeBands: [new(0, 65), new(64, null)]) }));
-
-        var flightBound = await _proof.RuleAsync(
-            Provision(insurance.ServiceDefinitionId, 40, CommercialDisposition.Free) with { FlightApplication = new(AllowedFlightIds: [81234]) },
-            publish: false);
-
-        await RefusedAsync(16313, 409, scope => scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(flightBound.Provision.Id)));
-    }
-
-    [Fact]
     public async Task V121_F06_P06_a_paid_seat_is_per_seat_by_aircraft_and_seat_characteristic_and_owns_no_occupancy()
     {
         var (airlineId, supplierId) = await SupplierAsync();
@@ -326,7 +274,7 @@ public class V121FamilyAcceptanceTests
             => Provision(definitionId, sequence, disposition, applicationType: ProvisionApplicationType.Seat);
 
         var seat = await _proof.ProveAsync(
-            CarrierDefinition(airlineId, supplierId, "SEAT_CHOICE", "SEA", "F", "SA", "Seat selection", pricingUnit: PricingUnit.PerSeat),
+            CarrierDefinition(airlineId, supplierId, "SEAT_CHOICE", "SEA", "F", "SA", "Seat selection", pricingUnit: PricingUnit.PerSeat, variant: "A07"),
             definitionId => SeatRule(definitionId, 10) with { FlightApplication = new(AllowedAircraftIds: [1]), SeatApplication = Seat(null, ["W", "LS"]) },
             draft => draft with { FlightApplication = new(AllowedAircraftIds: [1, 2]), SeatApplication = Seat(["12a", "12F"], ["W"]) },
             Definition(PricingUnit.PerSeat, ServiceDateBasis.FlightDeparture),
@@ -396,7 +344,7 @@ public class V121FamilyAcceptanceTests
         var (airlineId, supplierId) = await SupplierAsync();
 
         var priority = await _proof.ProveAsync(
-            CarrierDefinition(airlineId, supplierId, "PRIORITY_BOARDING", "PRB", "F", "TS", "Priority boarding"),
+            CarrierDefinition(airlineId, supplierId, "PRIORITY_BOARDING", "PRB", "F", "TS", "Priority boarding", variant: "A23"),
             definitionId => Provision(definitionId, 10) with
             {
                 FlightApplication = new(AllowedFlightIds: [81234, 81240]),
@@ -423,7 +371,7 @@ public class V121FamilyAcceptanceTests
         var (airlineId, supplierId) = await SupplierAsync();
 
         var fastTrack = await _proof.ProveAsync(
-            CarrierDefinition(airlineId, supplierId, "FAST_TRACK", "FST", "F", "TS", "Fast track security", serviceDateBasis: ServiceDateBasis.ServiceStart),
+            CarrierDefinition(airlineId, supplierId, "FAST_TRACK", "FST", "F", "TS", "Fast track security", serviceDateBasis: ServiceDateBasis.ServiceStart, variant: "A21"),
             definitionId => Provision(definitionId, 10) with
             {
                 SalesRestrictions = new(AllowedPointOfSaleIds: [AirlineOffice]),
@@ -432,12 +380,12 @@ public class V121FamilyAcceptanceTests
             },
             draft => draft with
             {
-                SalesRestrictions = new(AllowedPointOfSaleIds: [AirlineOffice, AgencyOffice], AllowedCustomerTypes: [CustomerType.Individual, CustomerType.TravelAgency]),
+                SalesRestrictions = new(AllowedPointOfSaleIds: [AgencyOffice], AllowedCustomerTypes: [CustomerType.Individual, CustomerType.TravelAgency]),
                 TravelDate = Dates(blackout: [Period(Day(2027, 3, 20), Day(2027, 4, 2)), Period(Day(2027, 4, 3), Day(2027, 4, 5))])
             },
             Definition(PricingUnit.PerPassenger, ServiceDateBasis.ServiceStart),
             Rules($"POS={AirlineOffice}; AT=Airport:1; BLACKOUT=2027-03-20..2027-04-02"),
-            Rules($"POS={AirlineOffice},{AgencyOffice}; CUSTTYPE=Individual,TravelAgency; AT=Airport:1; BLACKOUT=2027-03-20..2027-04-05"),
+            Rules($"POS={AgencyOffice}; CUSTTYPE=Individual,TravelAgency; AT=Airport:1; BLACKOUT=2027-03-20..2027-04-05"),
             Flat(PricingUnit.PerPassenger, 10m, 12m));
 
         Assert.Equal((0, 1), (await _proof.ListedProvisionsAsync(fastTrack.ServiceDefinitionId)).Select(row => (row.PermittedPeriodCount, row.BlackoutPeriodCount)).Single());
@@ -449,7 +397,7 @@ public class V121FamilyAcceptanceTests
         var (airlineId, supplierId) = await SupplierAsync();
 
         var wifi = await _proof.ProveAsync(
-            CarrierDefinition(airlineId, supplierId, "WIFI_FULL", "WIF", "F", "IE", "Wi-Fi full flight", pricingUnit: PricingUnit.PerItem),
+            CarrierDefinition(airlineId, supplierId, "WIFI_FULL", "WIF", "F", "IE", "Wi-Fi full flight", pricingUnit: PricingUnit.PerItem, variant: "A24"),
             definitionId => Provision(definitionId, 10, maxQuantity: 4) with { FlightApplication = new(AllowedFlightIds: [81234], AllowedAircraftIds: [3]) },
             draft => draft with { FlightApplication = new(AllowedOperatingAirlineIds: [1], AllowedFlightIds: [81234, 81240], AllowedAircraftIds: [3, 4]) },
             Definition(PricingUnit.PerItem, ServiceDateBasis.FlightDeparture),
@@ -467,7 +415,7 @@ public class V121FamilyAcceptanceTests
         var (airlineId, supplierId) = await SupplierAsync();
 
         await _proof.ProveAsync(
-            CarrierDefinition(airlineId, supplierId, "PET_IN_CABIN", "PET", "C", "PT", "Pet in cabin", Ssr("PETC"), pricingUnit: PricingUnit.PerItem),
+            CarrierDefinition(airlineId, supplierId, "PET_IN_CABIN", "PET", "C", "PT", "Pet in cabin", new ServiceDefinitionBookingInput(BookingMethod.Ssr, "PETC", null, ConfirmationRequirement.SubjectToConfirmation), pricingUnit: PricingUnit.PerItem, variant: "A13"),
             definitionId => Provision(definitionId, 10, coverageScope: ServiceCoverageScope.Journey, bookingRequired: true) with
             {
                 Geography = new(AllowedRoutePairs: [Pair(Thr, Ist, RoutePairDirection.BothDirections)]),
@@ -495,7 +443,7 @@ public class V121FamilyAcceptanceTests
         var (airlineId, supplierId) = await SupplierAsync();
 
         await _proof.ProveAsync(
-            CarrierDefinition(airlineId, supplierId, "MEET_ASSIST", "MAS", "F", "TS", "Meet and assist", serviceDateBasis: ServiceDateBasis.ServiceStart),
+            CarrierDefinition(airlineId, supplierId, "MEET_ASSIST", "MAS", "F", "TS", "Meet and assist", serviceDateBasis: ServiceDateBasis.ServiceStart, variant: "A22"),
             definitionId => Provision(definitionId, 10) with
             {
                 PassengerEligibility = Passengers(PassengerTypeCode.ADT, PassengerTypeCode.CHD),
@@ -523,7 +471,7 @@ public class V121FamilyAcceptanceTests
         var (airlineId, supplierId) = await SupplierAsync();
 
         var minor = await _proof.ProveAsync(
-            CarrierDefinition(airlineId, supplierId, "UMNR", "UMN", "F", "UN", "Unaccompanied minor", Ssr("UMNR")),
+            CarrierDefinition(airlineId, supplierId, "UMNR", "UMN", "F", "UN", "Unaccompanied minor", Ssr("UMNR"), variant: "A19"),
             definitionId => Provision(definitionId, 20, CommercialDisposition.Free, ServiceCoverageScope.Journey, bookingRequired: true) with
             {
                 PassengerEligibility = new([PassengerTypeCode.CHD], [new(5, 12)]),
@@ -545,147 +493,22 @@ public class V121FamilyAcceptanceTests
         Assert.Equal(new[] { (10, "NotAvailable"), (20, "Free") }, (await FiledAsync(minor.ServiceDefinitionId)).Select(row => (row.Sequence, row.Disposition)));
     }
 
-    [Fact]
-    public async Task V121_F14_P04_a_hotel_room_is_per_room_dated_by_check_in_in_a_service_city_without_any_flight()
+    [Theory]
+    [InlineData("INS_BASIC", PricingUnit.PerPassenger, ServiceDateBasis.CoverageStart)]
+    [InlineData("HOTEL_ROOM_STD", PricingUnit.PerRoom, ServiceDateBasis.CheckIn)]
+    [InlineData("ESIM_TR_5GB", PricingUnit.PerItem, ServiceDateBasis.Activation)]
+    [InlineData("TRANSFER_PRIVATE", PricingUnit.PerVehicle, ServiceDateBasis.ServiceStart)]
+    [InlineData("TRANSFER_SHARED", PricingUnit.PerPassenger, ServiceDateBasis.ServiceStart)]
+    public async Task V122_a_product_outside_the_nine_profiles_has_no_variant_and_cannot_be_authored(string reference, PricingUnit pricingUnit, ServiceDateBasis basis)
     {
-        var (airlineId, _) = await SupplierAsync();
-        var hotelId = await _proof.SupplierAsync(new TestRegisterSupplierCommand(airlineId, "City Hotels", SupplierFulfillmentKind.External, "HotelPartnerA"));
+        var (airlineId, supplierId) = await SupplierAsync();
+        var command = CarrierDefinition(airlineId, supplierId, reference, "OUT", "M", "XX", reference, pricingUnit: pricingUnit, serviceDateBasis: basis, variant: "NONE");
 
-        var room = await _proof.ProveAsync(
-            CarrierDefinition(airlineId, hotelId, "HOTEL_ROOM_STD", "HTL", "M", "HT", "Standard hotel room", pricingUnit: PricingUnit.PerRoom, serviceDateBasis: ServiceDateBasis.CheckIn),
-            definitionId => Provision(definitionId, 10, coverageScope: ServiceCoverageScope.Order, maxQuantity: 2) with
-            {
-                Geography = new(ServiceLocations: [Location(ServiceLocationType.City, Tehran)]),
-                TravelDate = Dates([Period(Day(2027, 5, 1), Day(2027, 9, 30))])
-            },
-            draft => draft with
-            {
-                TravelDate = Dates([Period(Day(2027, 5, 1), Day(2027, 9, 30))], [Period(Day(2027, 6, 1), Day(2027, 6, 5))]),
-                AdvancePurchase = new(1, TimeUnit.Days)
-            },
-            Definition(PricingUnit.PerRoom, ServiceDateBasis.CheckIn),
-            draft =>
-            {
-                Rules("AT=City:7; PERMIT=2027-05-01..2027-09-30")(draft);
-                Assert.Equal(("Each", 1, 2, "Standard", "CheckIn"), (draft.QuantityUnit.Name, draft.MinQuantity, draft.MaxQuantity, draft.ApplicationType.Name, draft.ServiceDateBasis!.Name));
-                Assert.Null(draft.FlightApplication);
-                Assert.Null(draft.FareApplication);
-            },
-            Rules("AT=City:7; PERMIT=2027-05-01..2027-09-30; BLACKOUT=2027-06-01..2027-06-05; ADVANCE=1Days"),
-            Flat(PricingUnit.PerRoom, 45m, 48m));
+        Assert.DoesNotContain(AncillaryVariant.All, variant => variant.Code == command.VariantCode);
+        await RefusedAsync(16202, 422, scope => scope.DefineServiceDefinition.DefineAsync(command));
 
-        await RefusedAsync(16508, 409, scope => scope.DefinePricing.DefineAsync(Pricing(room.ProvisionId, Eur, Base(45m, PassengerTypeCode.ADT))));
+        await using var reader = new AncillaryScope(_database, _clock);
 
-        foreach (var flightBound in new[]
-                 {
-                     Provision(room.ServiceDefinitionId, 20, CommercialDisposition.Free) with { FlightApplication = new(AllowedFlightIds: [81234]) },
-                     Provision(room.ServiceDefinitionId, 20, CommercialDisposition.Free) with { FareApplication = new(AllowedCabinClassIds: [1]) },
-                     Provision(room.ServiceDefinitionId, 20, CommercialDisposition.Free) with { Geography = new(AllowedOriginAirportIds: [Thr]) }
-                 })
-        {
-            var draft = await _proof.RuleAsync(flightBound, publish: false);
-
-            await RefusedAsync(16313, 409, scope => scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(draft.Provision.Id)));
-        }
-    }
-
-    [Fact]
-    public async Task V121_F15_P05_an_esim_is_per_item_dated_by_activation_with_a_coverage_country_and_no_flight_or_ticket()
-    {
-        var (airlineId, _) = await SupplierAsync();
-        var telecomId = await _proof.SupplierAsync(new TestRegisterSupplierCommand(airlineId, "Roam Telecom", SupplierFulfillmentKind.External, "SimPartnerA"));
-
-        var sim = await _proof.ProveAsync(
-            CarrierDefinition(airlineId, telecomId, "ESIM_TR_5GB", "SIM", "M", "SM", "eSIM Turkey 5 GB", pricingUnit: PricingUnit.PerItem, serviceDateBasis: ServiceDateBasis.Activation),
-            definitionId => Provision(definitionId, 10, coverageScope: ServiceCoverageScope.Order, maxQuantity: 5) with
-            {
-                Geography = new(CoverageCountryIds: [Turkey])
-            },
-            draft => draft with
-            {
-                SalesRestrictions = new(AllowedPointOfSaleIds: [AirlineOffice]),
-                Geography = new(CoverageCountryIds: [Turkey, Iran]),
-                TravelDate = Dates([Period(Day(2027, 1, 1), Day(2027, 12, 31))])
-            },
-            Definition(PricingUnit.PerItem, ServiceDateBasis.Activation),
-            draft =>
-            {
-                Rules("COVER=90")(draft);
-                Assert.Equal(("Activation", "Each", 5), (draft.ServiceDateBasis!.Name, draft.QuantityUnit.Name, draft.MaxQuantity));
-                Assert.Null(draft.FlightApplication);
-                Assert.Null(draft.SalesRestrictions);
-            },
-            Rules($"POS={AirlineOffice}; COVER=90,98; PERMIT=2027-01-01..2027-12-31"),
-            Flat(PricingUnit.PerItem, 12m, 13m));
-        var ticketed = await _proof.RuleAsync(
-            Provision(sim.ServiceDefinitionId, 20, CommercialDisposition.Free) with { AdvancePurchase = new(0, TimeUnit.Hours, true) },
-            publish: false);
-
-        Assert.Equal("ADVANCE=0Hours+TICKET", RuleText.Of(ticketed.Provision));
-        await RefusedAsync(16313, 409, scope => scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(ticketed.Provision.Id)));
-        await RefusedAsync(16508, 409, scope => scope.DefinePricing.DefineAsync(Pricing(sim.ProvisionId, Eur, Base(12m, null, 0, 65), Base(14m, null, 65))));
-    }
-
-    [Fact]
-    public async Task V121_F16_P03_a_private_transfer_is_per_vehicle_at_its_service_locations_for_up_to_two_vehicles()
-    {
-        var (airlineId, _) = await SupplierAsync();
-        var transferId = await _proof.SupplierAsync(new TestRegisterSupplierCommand(airlineId, "City Transfers", SupplierFulfillmentKind.External, "TransferPartnerA"));
-
-        var transfer = await _proof.ProveAsync(
-            CarrierDefinition(airlineId, transferId, "TRANSFER_PRIVATE", "TRP", "M", "TR", "Private airport transfer", pricingUnit: PricingUnit.PerVehicle, serviceDateBasis: ServiceDateBasis.ServiceStart),
-            definitionId => Provision(definitionId, 10, coverageScope: ServiceCoverageScope.Order, maxQuantity: 2) with
-            {
-                Geography = new(ServiceLocations: [Location(ServiceLocationType.Airport, Ika), Location(ServiceLocationType.City, Tehran)])
-            },
-            draft => draft with
-            {
-                DayTimeApplication = DayTime(Window(EveryDay, 5, 23)),
-                AdvancePurchase = new(180, TimeUnit.Minutes)
-            },
-            Definition(PricingUnit.PerVehicle, ServiceDateBasis.ServiceStart),
-            draft =>
-            {
-                Rules("AT=Airport:2,City:7")(draft);
-                Assert.Equal(("Each", 1, 2), (draft.QuantityUnit.Name, draft.MinQuantity, draft.MaxQuantity));
-            },
-            Rules("AT=Airport:2,City:7; TIME=127:5-23:Allow; ADVANCE=180Minutes"),
-            Flat(PricingUnit.PerVehicle, 80m, 85m));
-
-        await RefusedAsync(16508, 409, scope => scope.DefinePricing.DefineAsync(Pricing(transfer.ProvisionId, Eur, Base(80m, PassengerTypeCode.ADT))));
-    }
-
-    [Fact]
-    public async Task V121_F17_P02_a_shared_transfer_is_per_passenger_with_adult_and_child_rates_and_an_explicit_free_infant_rule()
-    {
-        var (airlineId, _) = await SupplierAsync();
-        var transferId = await _proof.SupplierAsync(new TestRegisterSupplierCommand(airlineId, "City Shuttle", SupplierFulfillmentKind.External, "TransferPartnerB"));
-
-        var shuttle = await _proof.ProveAsync(
-            CarrierDefinition(airlineId, transferId, "TRANSFER_SHARED", "TRS", "M", "TR", "Shared airport shuttle", serviceDateBasis: ServiceDateBasis.ServiceStart),
-            definitionId => Provision(definitionId, 10, coverageScope: ServiceCoverageScope.Order) with
-            {
-                PassengerEligibility = Passengers(PassengerTypeCode.ADT, PassengerTypeCode.CHD),
-                Geography = new(ServiceLocations: [Location(ServiceLocationType.Airport, Ika)])
-            },
-            draft => draft with { Geography = new(ServiceLocations: [Location(ServiceLocationType.Airport, Ika), Location(ServiceLocationType.City, Tehran)]) },
-            Definition(PricingUnit.PerPassenger, ServiceDateBasis.ServiceStart),
-            Rules("PTC=ADT,CHD; AT=Airport:2"),
-            Rules("PTC=ADT,CHD; AT=Airport:2,City:7"),
-            Priced(
-                "PerPassenger EUR ADT[-]=18+0+0=18 | CHD[-]=9+0+0=9",
-                "PerPassenger EUR ADT[-]=19+0+0=19 | CHD[-]=9.5+0+0=9.5",
-                provisionId => Pricing(provisionId, Eur, Base(18m, PassengerTypeCode.ADT), Base(9m, PassengerTypeCode.CHD)),
-                provisionId => Pricing(provisionId, Eur, Base(19m, PassengerTypeCode.ADT), Base(9.5m, PassengerTypeCode.CHD))));
-        var infants = await _proof.RuleAsync(
-            Provision(shuttle.ServiceDefinitionId, 5, CommercialDisposition.Free, ServiceCoverageScope.Order) with { PassengerEligibility = Passengers(PassengerTypeCode.INF) });
-
-        Assert.Null(infants.Pricing);
-        Assert.Equal(
-            new[] { (5, "Free", "PTC=INF"), (10, "Paid", "PTC=ADT,CHD; AT=Airport:2,City:7") },
-            (await FiledAsync(shuttle.ServiceDefinitionId)).Select(row => (row.Sequence, row.Disposition, row.Rules)));
-        await RefusedAsync(16502, 422, scope => scope.DefinePricing.DefineAsync(
-            Pricing(shuttle.ProvisionId, Eur, Base(18m, PassengerTypeCode.ADT), Base(0m, PassengerTypeCode.INF))));
-        await RefusedAsync(16505, 409, scope => scope.DefinePricing.DefineAsync(Pricing(infants.Provision.Id, Eur, Base(1m, PassengerTypeCode.INF))));
+        Assert.False(await reader.Command.AncillaryServiceDefinitions.AnyAsync(definition => definition.OwnerAirlineId == airlineId));
     }
 }
