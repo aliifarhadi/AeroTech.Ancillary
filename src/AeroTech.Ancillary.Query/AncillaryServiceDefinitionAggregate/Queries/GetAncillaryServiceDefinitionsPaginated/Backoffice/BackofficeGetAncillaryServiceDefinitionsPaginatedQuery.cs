@@ -15,6 +15,10 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.G
         public string? ServiceTypeCode { get; set; }
         public string? GroupCode { get; set; }
         public ServiceDefinitionStatus? Status { get; set; }
+
+        public AncillaryProfile? Profile { get; set; }
+
+        public string? VariantCode { get; set; }
         public string? Search { get; set; }
     }
 }

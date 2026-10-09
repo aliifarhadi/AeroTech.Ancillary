@@ -18,6 +18,10 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.G
 
         ServiceDefinitionStatus? Status { get; }
 
+        AncillaryProfile? Profile { get; }
+
+        string? VariantCode { get; }
+
         string? Search { get; }
 
         int PageNumber { get; }

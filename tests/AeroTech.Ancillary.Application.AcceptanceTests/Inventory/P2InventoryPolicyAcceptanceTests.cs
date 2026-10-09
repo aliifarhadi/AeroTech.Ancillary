@@ -5,6 +5,7 @@ using AeroTech.Ancillary.Application.AncillaryInventoryPolicyAggregate.Commands.
 using AeroTech.Ancillary.Application.AncillaryInventoryPolicyAggregate.Commands.DefineInventoryPolicy.Backoffice;
 using AeroTech.Ancillary.Application.FlightCountInventoryAggregate.Commands.AdjustFlightCountInventory.Backoffice;
 using AeroTech.Ancillary.Application.FlightWeightInventoryAggregate.Commands.DefineFlightWeightInventory.Backoffice;
+using AeroTech.Ancillary.Providers.FlightFlow.Services;
 using AeroTech.Ancillary.Providers.InventoryReferences;
 using AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Dto;
 using AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Queries.GetInventoryPoliciesPaginated.Backoffice;
@@ -166,7 +167,7 @@ public class P2InventoryPolicyAcceptanceTests
 
         await _harness.RefusedAsync(16608, 409, fixture, scope => scope.ActivateInventoryPolicy.ActivateAsync(new TestInventoryPolicyLifecycleCommand(policy.Id, 1)));
         Assert.Equal(InventoryReferenceCheck.SourceUnavailable, await new NotConnectedFlightFlowDelegationReference().CheckAsync(airlineId, "FlightFlow"));
-        Assert.Equal(InventoryReferenceCheck.SourceUnavailable, await new NotConnectedFlightOccurrenceReference().CheckAsync(airlineId, 81234));
+        Assert.Equal(InventoryReferenceCheck.SourceUnavailable, await new FlightFlowFlightOccurrenceReference(new HttpClient()).CheckAsync(airlineId, 81234));
         Assert.Equal(InventoryReferenceCheck.SourceUnavailable, await new NotConnectedInventoryResourceReference().CheckAsync(airlineId, InventoryResourceKind.FlightCount, PetResource));
         Assert.Equal(InventoryReferenceCheck.SourceUnavailable, (await new NotConnectedAirportFacilityReference().CheckAsync(airlineId, Lounge)).Result);
         Assert.Equal(InventoryReferenceCheck.SourceUnavailable, await new NotConnectedCountingFamilyReference().CheckAsync(airlineId, "MEAL"));

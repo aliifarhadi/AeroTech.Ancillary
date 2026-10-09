@@ -10,6 +10,7 @@ using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Command
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.SuspendAncillaryServiceDefinition.Backoffice;
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.GetAncillaryServiceDefinitionById.Backoffice;
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.GetAncillaryServiceDefinitionsPaginated.Backoffice;
+using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.GetAncillaryVariants.Backoffice;
 using AeroTech.Ancillary.RestApi.V1.AncillaryServiceDefinitionAggregate.Requests;
 using AeroTech.Ancillary.RestApi.V1._Shared;
 using AeroTech.Messages.Ancillary.Enums;
@@ -191,6 +192,10 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryServiceDefinitionAggregate.Cont
         public async Task<IActionResult> Paginated(
             [FromQuery] BackofficeGetAncillaryServiceDefinitionsPaginatedQuery query,
             CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(query, cancellationToken));
+
+        [HttpGet("Variants")]
+        public async Task<IActionResult> Variants([FromQuery] BackofficeGetAncillaryVariantsQuery query, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(query, cancellationToken));
 
         [HttpGet("{serviceDefinitionId:long}")]

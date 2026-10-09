@@ -12,6 +12,7 @@ using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryP
 using AeroTech.Ancillary.Query.AncillaryReservationAggregate.Queries.GetAncillaryHoldById;
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.GetAncillaryServiceDefinitionById;
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.GetAncillaryServiceDefinitionsPaginated;
+using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.GetAncillaryVariants;
 using AeroTech.Ancillary.Query.FlightCountInventoryAggregate.Queries.GetFlightCountInventoriesPaginated;
 using AeroTech.Ancillary.Query.FlightCountInventoryAggregate.Queries.GetFlightCountInventoryById;
 using AeroTech.Ancillary.Query.FlightWeightInventoryAggregate.Queries.GetFlightWeightInventoriesPaginated;
@@ -43,6 +44,7 @@ namespace AeroTech.Ancillary.Query
             services.AddScoped<IGetSuppliersPaginatedService, GetSuppliersPaginatedService>();
             services.AddScoped<IGetAncillaryServiceDefinitionByIdService, GetAncillaryServiceDefinitionByIdService>();
             services.AddScoped<IGetAncillaryServiceDefinitionsPaginatedService, GetAncillaryServiceDefinitionsPaginatedService>();
+            services.AddScoped<IGetAncillaryVariantsService, GetAncillaryVariantsService>();
             services.AddScoped<IGetAncillaryProvisionByIdService, GetAncillaryProvisionByIdService>();
             services.AddScoped<IGetAncillaryProvisionsPaginatedService, GetAncillaryProvisionsPaginatedService>();
             services.AddScoped<IGetAncillaryPricingByIdService, GetAncillaryPricingByIdService>();

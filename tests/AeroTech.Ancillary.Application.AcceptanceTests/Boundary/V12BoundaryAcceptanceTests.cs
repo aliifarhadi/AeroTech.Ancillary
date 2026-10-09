@@ -94,8 +94,9 @@ public class V12BoundaryAcceptanceTests
         Assert.Equal(
             new[]
             {
-                "DependencyInjection.cs", "NotConnectedAirportFacilityReference.cs", "NotConnectedCountingFamilyReference.cs", "NotConnectedFlightFlowDelegationReference.cs",
-                "NotConnectedFlightOccurrenceReference.cs", "NotConnectedInventoryResourceReference.cs"
+                "DependencyInjection.cs", "FlightFlowEnvelope.cs", "FlightFlowFlight.cs", "FlightFlowFlightOccurrenceReference.cs", "FlightFlowJson.cs",
+                "NotConnectedAirportFacilityReference.cs", "NotConnectedCountingFamilyReference.cs", "NotConnectedFlightFlowDelegationReference.cs",
+                "NotConnectedInventoryResourceReference.cs"
             },
             Files(Path.Combine(Source, "AeroTech.Ancillary.Providers")).Select(Path.GetFileName).OrderBy(name => name, StringComparer.Ordinal));
     }
@@ -158,11 +159,19 @@ public class V12BoundaryAcceptanceTests
             namespaces);
         var external = Files(Source).Where(path => !InFolder(path, "AeroTech.Ancillary.ReferenceData")).ToList();
 
-        Assert.Empty(Offending(external, ["HttpClient", "AirAvail", "JetPay", "AeroTech.FlightFlow", "Messages.FlightFlow", "AeroTech.Ordering", "Messages.Ordering"]));
+        Assert.Empty(Offending(external, ["AirAvail", "JetPay", "AeroTech.FlightFlow", "Messages.FlightFlow", "AeroTech.Ordering", "Messages.Ordering"]));
+        Assert.Equal(
+            new[]
+            {
+                "src/AeroTech.Ancillary.Providers/DependencyInjection.cs: HttpClient",
+                "src/AeroTech.Ancillary.Providers/FlightFlow/Services/FlightFlowFlightOccurrenceReference.cs: HttpClient"
+            },
+            Offending(external, ["HttpClient"]).OrderBy(offending => offending, StringComparer.Ordinal));
         Assert.All(
             Offending(external.Where(path => !InFolder(path, "Migrations")), ["FlightFlow"]),
             offending => Assert.True(
                 offending.Contains("Inventory", StringComparison.Ordinal)
+                || offending.Contains("AeroTech.Ancillary.Providers/FlightFlow/", StringComparison.Ordinal)
                 || offending.Contains("_Shared/Contracts/IFlightFlowDelegationReference.cs", StringComparison.Ordinal)
                 || offending.Contains("_Shared/Resources/ExceptionMessages.cs", StringComparison.Ordinal)
                 || offending.Contains("DependencyInjection.cs", StringComparison.Ordinal),
@@ -197,6 +206,7 @@ public class V12BoundaryAcceptanceTests
             "POST Backoffice/Suppliers/{supplierId:long}/Retire",
             "GET Backoffice/AncillaryServiceDefinitions/Paginated",
             "GET Backoffice/AncillaryServiceDefinitions/{serviceDefinitionId:long}",
+            "GET Backoffice/AncillaryServiceDefinitions/Variants",
             "POST Backoffice/AncillaryServiceDefinitions/{serviceDefinitionId:long}/Activate",
             "POST Backoffice/AncillaryServiceDefinitions/{serviceDefinitionId:long}/Suspend",
             "POST Backoffice/AncillaryServiceDefinitions/{serviceDefinitionId:long}/Reactivate",
@@ -294,7 +304,7 @@ public class V12BoundaryAcceptanceTests
         Assert.Equal(
             preserved.Concat(added).Concat(rows).Concat(groups).Concat(typed).Concat(inventory).OrderBy(route => route, StringComparer.Ordinal),
             routes.OrderBy(route => route, StringComparer.Ordinal));
-        Assert.Equal(112, routes.Count);
+        Assert.Equal(113, routes.Count);
         Assert.Equal(36, inventory.Length);
         Assert.DoesNotContain(routes, route => new[] { "Sell", "Reserve", "Release", "Expire" }.Any(term => route.Contains(term, StringComparison.Ordinal)));
         Assert.Equal(
