@@ -115,7 +115,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
                 AppliedUnitFeeLines = fees.Where(line => line.FeeApplicationUnit == FeeApplicationUnit.Item).ToList(),
                 UnappliedFeeLines = unapplied,
                 CompleteUnitTotal = unitTotal,
-                RequestedQuantityTotal = unitTotal is not null && quantity is > 0 ? unitTotal.Value * quantity.Value : null,
+                RequestedQuantityTotal = unitTotal is not null && unapplied.Count == 0 && quantity is > 0 ? unitTotal.Value * quantity.Value : null,
                 IsOrderLevelTotalComplete = complete && unapplied.Count == 0,
                 ReasonCodes = reasons
             };

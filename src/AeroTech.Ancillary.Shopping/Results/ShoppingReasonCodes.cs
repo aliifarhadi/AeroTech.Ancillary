@@ -142,6 +142,14 @@ namespace AeroTech.Ancillary.Shopping.Results
         public const string SelectionRequired = "SelectionRequired";
         public const string SalesDateNotDetermined = "SalesDateNotDetermined";
         public const string PointOfSaleNotAllowed = "PointOfSaleNotAllowed";
+        public const string SourceContextExpired = "SourceContextExpired";
+        public const string BaggageAllowanceConceptMismatch = "BaggageAllowanceConceptMismatch";
+        public const string BaggageRuleContradictsSpecification = "BaggageRuleContradictsSpecification";
+        public const string BaggageRuleWeightNotVerified = "BaggageRuleWeightNotVerified";
+        public const string BaggageTravelApplicationNotSupported = "BaggageTravelApplicationNotSupported";
+        public const string BaggageRuleDeferenceNotSupported = "BaggageRuleDeferenceNotSupported";
+        public const string BaggageChargeCombinationNotVerified = "BaggageChargeCombinationNotVerified";
+        public const string AppointmentOutsideConfiguredSlots = "AppointmentOutsideConfiguredSlots";
 
         public static readonly IReadOnlySet<string> All = new HashSet<string>(StringComparer.Ordinal)
         {
@@ -284,7 +292,15 @@ namespace AeroTech.Ancillary.Shopping.Results
             ProvisionChangedBySelection,
             SelectionRequired,
             SalesDateNotDetermined,
-            PointOfSaleNotAllowed
+            PointOfSaleNotAllowed,
+            SourceContextExpired,
+            BaggageAllowanceConceptMismatch,
+            BaggageRuleContradictsSpecification,
+            BaggageRuleWeightNotVerified,
+            BaggageTravelApplicationNotSupported,
+            BaggageRuleDeferenceNotSupported,
+            BaggageChargeCombinationNotVerified,
+            AppointmentOutsideConfiguredSlots
         };
     }
 }

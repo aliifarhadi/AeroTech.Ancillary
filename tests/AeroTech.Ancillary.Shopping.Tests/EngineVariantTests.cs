@@ -53,6 +53,8 @@ public class EngineVariantTests
         Assert.Contains(evaluation.FieldIssues, issue => issue.Field == field && issue.ReasonCode == reasonCode);
     }
 
+    private static ServiceSpecificationInput NoMinimumPetAge(ServiceSpecificationInput input) => input with { Pet = input.Pet! with { MinAnimalAgeWeeks = null } };
+
     private static AncillaryShoppingContext Connection(params ShoppingTraveller[] travellers)
     {
         var first = Trip.Flight("F1", 101, Trip.Thr, Trip.Ika);
@@ -83,9 +85,10 @@ public class EngineVariantTests
     [Fact]
     public async Task E_A02_a_weight_package_is_priced_per_package_never_per_kilogram()
     {
-        var shop = await ShopAsync("A02");
+        var shop = await ShopAsync("A02", Trip.Context() with { TravellerBaggageFacts = [Trip.WeightAllowance()] });
         var two = await shop.ChooseAsync(new AncillarySelection { PackageProductRef = "PACK10", Quantity = 2 });
 
+        Assert.Empty((await ShopAsync("A02")).Candidates);
         Assert.Equal((OfferReadiness.Selectable, PricingUnit.PerItem, AncillaryQuantityUnit.Each, 2), (shop.Shown.OfferReadiness, shop.Shown.Price.PricingUnit, shop.Shown.Quantity.Unit, shop.Shown.Quantity.MaxPerSelection));
         Assert.Equal((SelectionEvaluationStatus.Accepted, 200m), (two.Status, two.Candidate.Price.RequestedQuantityTotal));
         Assert.Equal(SelectionEvaluationStatus.Incomplete, (await shop.ChooseAsync(new AncillarySelection { Quantity = 1 })).Status);
@@ -108,8 +111,14 @@ public class EngineVariantTests
     [Fact]
     public async Task E_A04_an_oversize_bag_needs_dimensions_within_the_maximum_and_may_stay_subject_to_confirmation()
     {
-        var shop = await ShopAsync("A04", confirmation: ConfirmationRequirement.SubjectToConfirmation);
+        var shop = await ShopAsync(
+            "A04",
+            specification: input => input with { Baggage = input.Baggage! with { ChargeCombination = BaggageChargeCombination.Separate } },
+            confirmation: ConfirmationRequirement.SubjectToConfirmation);
+        var exclusive = await ShopAsync("A04");
 
+        Assert.Equal(OfferReadiness.NeedsVerification, exclusive.Shown.OfferReadiness);
+        Assert.Contains(ShoppingReasonCodes.BaggageChargeCombinationNotVerified, exclusive.Shown.ReasonCodes);
         Assert.Equal((OfferReadiness.NeedsSelection, ConfirmationRequirement.SubjectToConfirmation), (shop.Shown.OfferReadiness, shop.Shown.Confirmation.ConfirmationRequirement));
         Assert.Equal(SelectionEvaluationStatus.Accepted, (await shop.ChooseAsync(new AncillarySelection { Dimensions = new(60m, 110m, 30m) })).Status);
         Rejected(await shop.ChooseAsync(new AncillarySelection { Dimensions = new(130m, 40m, 20m) }), "Dimensions", ShoppingReasonCodes.BaggageDimensionsAboveMaximum);
@@ -149,7 +158,7 @@ public class EngineVariantTests
     public async Task E_A07_a_standard_seat_is_a_seat_map_selection_and_metadata_never_confirms_an_assignment()
     {
         var shop = await ShopAsync("A07");
-        var chosen = await shop.ChooseAsync(new AncillarySelection { SeatNumber = "14C", VerifiedSeatCharacteristicCodes = ["E"] });
+        var chosen = await shop.ChooseAsync(new AncillarySelection { SeatNumber = "14C" }, Trip.Context().WithSeat("14C", "E"));
 
         Assert.Equal((OfferReadiness.NeedsSelection, SelectionKind.SeatMapSelection, ServiceCoverageScope.Sector), (shop.Shown.OfferReadiness, shop.Shown.Selection.Kind, shop.Shown.Scope.CoverageScope));
         Assert.Equal((SelectionEvaluationStatus.Accepted, 100m, OfferReadiness.Selectable), (chosen.Status, chosen.Candidate.Price.CompleteUnitTotal, chosen.Candidate.OfferReadiness));
@@ -163,24 +172,25 @@ public class EngineVariantTests
         var adult = await ShopAsync("A08");
         var child = await ShopAsync("A08", Trip.Context(travellers: [Trip.Child("T1")]));
         var unverified = await ShopAsync("A08", Trip.Context(travellers: [Trip.Adult() with { VerifiedExitRowEligible = null }]));
-        var seat = new AncillarySelection { SeatNumber = "12A", VerifiedSeatCharacteristicCodes = ["E"], ExitRowTermsAccepted = true };
+        var seat = new AncillarySelection { SeatNumber = "12A", ExitRowTermsAccepted = true };
+        var exitRow = Trip.Context().WithSeat("12A", "E");
 
         Assert.Equal(OfferReadiness.NeedsSelection, adult.Shown.OfferReadiness);
         Assert.Contains(adult.Shown.Selection.Fields, field => field is { Name: "ExitRowTermsAccepted", Required: true });
         Assert.Empty(child.Candidates);
         Assert.Equal(OfferReadiness.NeedsVerification, unverified.Shown.OfferReadiness);
         Assert.Contains(ShoppingReasonCodes.ExitRowEligibilityNotVerified, unverified.Shown.ReasonCodes);
-        Assert.Equal(SelectionEvaluationStatus.Accepted, (await adult.ChooseAsync(seat)).Status);
-        Rejected(await adult.ChooseAsync(seat with { ExitRowTermsAccepted = false }), "ExitRowTermsAccepted", ShoppingReasonCodes.ExitRowTermsNotAccepted);
-        Rejected(await adult.ChooseAsync(seat with { VerifiedSeatCharacteristicCodes = ["W"] }), "SeatNumber", ShoppingReasonCodes.SeatCharacteristicNotAllowed);
-        Assert.Equal(OfferReadiness.NeedsVerification, (await adult.ChooseAsync(seat with { VerifiedSeatCharacteristicCodes = null })).Candidate.OfferReadiness);
+        Assert.Equal(SelectionEvaluationStatus.Accepted, (await adult.ChooseAsync(seat, exitRow)).Status);
+        Rejected(await adult.ChooseAsync(seat with { ExitRowTermsAccepted = false }, exitRow), "ExitRowTermsAccepted", ShoppingReasonCodes.ExitRowTermsNotAccepted);
+        Rejected(await adult.ChooseAsync(seat, Trip.Context().WithSeat("12A", "W")), "SeatNumber", ShoppingReasonCodes.SeatCharacteristicNotAllowed);
+        Assert.Equal(OfferReadiness.NeedsVerification, (await adult.ChooseAsync(seat)).Candidate.OfferReadiness);
     }
 
     [Fact]
     public async Task E_A09_an_extra_seat_is_its_own_product_with_a_purpose_and_ticket_or_exchange_routing()
     {
-        var shop = await ShopAsync("A09");
-        var seat = new AncillarySelection { SeatNumber = "14B", VerifiedSeatCharacteristicCodes = ["E"], Purpose = ExtraSeatPurpose.PassengerComfort };
+        var shop = await ShopAsync("A09", Trip.Context().WithSeat("14B", "E"));
+        var seat = new AncillarySelection { SeatNumber = "14B", Purpose = ExtraSeatPurpose.PassengerComfort };
 
         Assert.Equal(("A09", DocumentRouting.TicketOrExchange, OfferReadiness.NeedsSelection), (shop.Shown.VariantCode, shop.Shown.Document.Routing, shop.Shown.OfferReadiness));
         Assert.Contains(shop.Shown.Selection.Fields, field => field is { Name: "Purpose", Required: true });
@@ -205,7 +215,7 @@ public class EngineVariantTests
         Assert.Empty(otherFamily.Candidates);
         Assert.Equal(OfferReadiness.NeedsVerification, textFamily.Shown.OfferReadiness);
         Assert.Contains(ShoppingReasonCodes.FareFamilyNotVerified, textFamily.Shown.ReasonCodes);
-        Assert.Equal((SelectionEvaluationStatus.Accepted, OfferReadiness.NeedsQuote), (quoted.Status, quoted.Candidate.OfferReadiness));
+        Assert.Equal((SelectionEvaluationStatus.Incomplete, OfferReadiness.NeedsQuote), (quoted.Status, quoted.Candidate.OfferReadiness));
         Assert.Null(quoted.Candidate.Price.RequestedQuantityTotal);
         Rejected(await shop.ChooseAsync(new AncillarySelection { TargetCabinId = 3, QuoteRef = "Q-1" }), "TargetCabinId", ShoppingReasonCodes.UpgradeTargetCabinMismatch);
     }
@@ -254,8 +264,9 @@ public class EngineVariantTests
         var back = Trip.Flight("F3", 103, Trip.Ist, Trip.Thr, outbound.DepartureAt.AddDays(7), Trip.Istanbul);
         var bothWays = Trip.Context([outbound, onward, back], [Trip.Portion("P1", 1, outbound, onward), Trip.Portion("P2", 2, back)]);
         var rules = Rules(flights: new([], [], [], [], [1]), pet: new(null, null, 6m, ConfirmationRequirement.SubjectToConfirmation));
-        var shop = await ShopAsync("A13", bothWays, rules, arrange: (lab, definition) => lab.Policy(definition, InventoryAuthority.Supplier));
-        var otherAircraft = await ShopAsync("A13", bothWays with { Flights = [outbound, onward with { AircraftId = 4 }, back] }, rules);
+        var shop = await ShopAsync("A13", bothWays, rules, NoMinimumPetAge, arrange: (lab, definition) => lab.Policy(definition, InventoryAuthority.Supplier));
+        var aged = await ShopAsync("A13", bothWays, rules);
+        var otherAircraft = await ShopAsync("A13", bothWays with { Flights = [outbound, onward with { AircraftId = 4 }, back] }, rules, NoMinimumPetAge);
         var cat = new AncillarySelection { AnimalType = PetAnimalType.Cat, CombinedWeightKg = 5m, CarrierDimensions = new(50m, 35m, 20m), DocumentAcknowledgements = ["ENTRY_RULES_ACK"] };
         var accepted = await shop.ChooseAsync(cat);
 
@@ -264,7 +275,10 @@ public class EngineVariantTests
         Assert.Equal(new[] { "P2" }, otherAircraft.Candidates.Select(candidate => Assert.Single(candidate.PortionRefs)));
         Assert.Equal((OfferReadiness.NeedsSelection, ConfirmationRequirement.SubjectToConfirmation), (shop.Shown.OfferReadiness, shop.Shown.Confirmation.ConfirmationRequirement));
         Assert.Contains(ShoppingReasonCodes.SupplierConfirmationRequired, shop.Shown.ReasonCodes);
-        Assert.Contains(ShoppingReasonCodes.PetAgeNotVerified, shop.Shown.ReasonCodes);
+        Assert.DoesNotContain(ShoppingReasonCodes.PetAgeNotVerified, shop.Shown.ReasonCodes);
+        Assert.Equal((OfferReadiness.NeedsVerification, EligibilityStatus.InsufficientContext), (aged.Shown.OfferReadiness, aged.Shown.Eligibility.Status));
+        Assert.Contains(ShoppingReasonCodes.PetAgeNotVerified, aged.Shown.ReasonCodes);
+        Assert.Equal(SelectionEvaluationStatus.Incomplete, (await aged.ChooseAsync(cat)).Status);
         Assert.Equal((SelectionEvaluationStatus.Accepted, InventoryCapacityReadState.DelegatedCheckRequired, false), (accepted.Status, accepted.Candidate.Availability.ConfigState, accepted.Candidate.Availability.IsGuaranteed));
         Rejected(await shop.ChooseAsync(cat with { CombinedWeightKg = 7m }), "CombinedWeightKg", ShoppingReasonCodes.PetWeightAboveMaximum);
         Rejected(await shop.ChooseAsync(cat with { AnimalType = PetAnimalType.RegisteredOther, OtherAnimalCode = "RABBIT" }), "AnimalType", ShoppingReasonCodes.PetAnimalNotAllowed);
@@ -275,7 +289,7 @@ public class EngineVariantTests
     [Fact]
     public async Task E_A14_a_hold_pet_needs_the_named_size_bracket_that_contains_its_weight()
     {
-        var shop = await ShopAsync("A14");
+        var shop = await ShopAsync("A14", specification: NoMinimumPetAge);
         var dog = new AncillarySelection
         {
             AnimalType = PetAnimalType.Dog,
@@ -331,7 +345,7 @@ public class EngineVariantTests
 
         Assert.Equal((OfferReadiness.NeedsSelection, PriceAssessmentStatus.QuoteRequired), (shop.Shown.OfferReadiness, shop.Shown.Price.Status));
         Assert.Contains(ShoppingReasonCodes.MedicalApprovalRequired, shop.Shown.ReasonCodes);
-        Assert.Equal((SelectionEvaluationStatus.Accepted, OfferReadiness.NeedsQuote, ConfirmationRequirement.SubjectToConfirmation), (accepted.Status, accepted.Candidate.OfferReadiness, accepted.Candidate.Confirmation.ConfirmationRequirement));
+        Assert.Equal((SelectionEvaluationStatus.Incomplete, OfferReadiness.NeedsQuote, ConfirmationRequirement.SubjectToConfirmation), (accepted.Status, accepted.Candidate.OfferReadiness, accepted.Candidate.Confirmation.ConfirmationRequirement));
         Assert.Null(accepted.Candidate.Price.CompleteUnitTotal);
         Rejected(await shop.ChooseAsync(oxygen with { OxygenUnits = 3m }), "OxygenUnits", ShoppingReasonCodes.OxygenUnitsAboveMaximum);
         Rejected(await shop.ChooseAsync(oxygen with { EvidenceDocumentRefs = [] }), "EvidenceDocumentRefs", ShoppingReasonCodes.MedicalEvidenceMissing);
@@ -440,7 +454,7 @@ public class EngineVariantTests
 
         var fromIka = Trip.Context([Trip.Flight(origin: Trip.Ika)]);
         var appointment = new DateTimeOffset(2026, 12, 1, 5, 0, 0, TimeSpan.Zero);
-        var slot = new SlotInventorySource(facility, Trip.Ika, appointment.AddHours(-1), appointment.AddHours(1), InventoryRecordStatus.Active, false);
+        var slot = new SlotInventorySource(facility, Trip.Ika, appointment.AddHours(-1), appointment.AddHours(2), InventoryRecordStatus.Active, false);
         var shop = await ShopAsync(
             "A22",
             fromIka,
@@ -457,13 +471,14 @@ public class EngineVariantTests
         Assert.Single(shop.Candidates);
         Assert.Equal((OfferReadiness.NeedsSelection, 100m, InventoryCapacityReadState.Unknown), (shop.Shown.OfferReadiness, shop.Shown.Price.CompleteUnitTotal, shop.Shown.Availability.ConfigState));
         Assert.Contains(shop.Shown.Selection.Fields, field => field is { Name: "TimeWithOffset", Required: true });
-        Assert.Equal((SelectionEvaluationStatus.Accepted, 100m), (booked.Status, booked.Candidate.Price.CompleteUnitTotal));
+        Assert.Equal((SelectionEvaluationStatus.Incomplete, 100m), (booked.Status, booked.Candidate.Price.CompleteUnitTotal));
         Assert.Equal(
             (InventoryCapacityReadState.ConfiguredNotGuaranteed, AvailabilityCheckState.SourceUnavailable, false, OfferReadiness.NeedsVerification),
             (booked.Candidate.Availability.ConfigState, booked.Candidate.Availability.CheckedState, booked.Candidate.Availability.IsGuaranteed, booked.Candidate.OfferReadiness));
         Assert.Contains(ShoppingReasonCodes.BlockedExternalReference, booked.Candidate.ReasonCodes);
         Assert.Equal((120, 3), (booked.Candidate.Availability.ConsumptionPreview!.OccupancyMinutes, booked.Candidate.Availability.ConsumptionPreview.OccupiedPersons));
-        Assert.Equal(InventoryCapacityReadState.NotConfigured, outside.Candidate.Availability.ConfigState);
+        Assert.Equal((InventoryCapacityReadState.Unknown, AvailabilityCheckState.Unknown), (outside.Candidate.Availability.ConfigState, outside.Candidate.Availability.CheckedState));
+        Assert.Contains(ShoppingReasonCodes.AppointmentOutsideConfiguredSlots, outside.Candidate.ReasonCodes);
         Rejected(await shop.ChooseAsync(visit with { FacilityRef = 7002 }), "FacilityRef", ShoppingReasonCodes.FacilityMismatch);
         Rejected(await shop.ChooseAsync(visit with { GuestCount = 3 }), "GuestCount", ShoppingReasonCodes.GuestsAboveMaximum);
         Assert.Equal(SelectionEvaluationStatus.Incomplete, (await shop.ChooseAsync(visit with { TimeWithOffset = null })).Status);

@@ -23,24 +23,23 @@ namespace AeroTech.Ancillary.Shopping.Engine
             var reasons = new List<string>();
             var limits = new List<CumulativeLimitAssessment>();
             var quantity = unit.Selection?.Quantity;
+            var purchased = quantity ?? provision.Quantity.MinQuantity;
 
             foreach (var limit in policy is { Status: InventoryRecordStatus.Active } ? policy.PassengerUsageLimits : [])
             {
                 var verified = await references.FamilyAsync(limit.CountingFamilyCode, cancellationToken) == InventoryReferenceCheck.Verified;
                 var consumed = Consumed(limit, unit, timeline);
+                decimal? requested = limit.ConsumptionUnit == UsageConsumptionUnit.Kilogram ? purchased * limit.UnitsPerPurchase : purchased;
 
                 if (!verified)
                     reasons.Add(ShoppingReasonCodes.CountingFamilyNotVerified);
 
-                if (consumed is null)
+                if (consumed is null || requested is null)
                     reasons.Add(ShoppingReasonCodes.UsageNotVerified);
 
                 decimal? remaining = consumed is null ? null : Math.Max(limit.MaxUnits - consumed.Value, 0m);
-                var requested = quantity is null
-                    ? (decimal?)null
-                    : limit.ConsumptionUnit == UsageConsumptionUnit.Kilogram ? quantity.Value * (limit.UnitsPerPurchase ?? 1m) : quantity.Value;
 
-                if (remaining is not null && requested > remaining)
+                if (verified && requested > remaining)
                     reasons.Add(ShoppingReasonCodes.QuantityExceedsVerifiedRemaining);
 
                 limits.Add(new CumulativeLimitAssessment(

@@ -107,6 +107,17 @@ namespace AeroTech.Ancillary.Shopping.Engine
             Require(
                 context.UsageEvidence.All(evidence => evidence.UnitsConsumed >= 0 && !string.IsNullOrWhiteSpace(evidence.SourceAuthority)),
                 nameof(context.UsageEvidence));
+            Require(
+                context.SeatCharacteristicFacts.All(fact => context.Flights.Any(flight => flight.FlightRef == fact.FlightRef)
+                                                            && !string.IsNullOrWhiteSpace(fact.SeatNumber)
+                                                            && fact.CharacteristicCodes is not null
+                                                            && !string.IsNullOrWhiteSpace(fact.SourceAuthority)),
+                nameof(context.SeatCharacteristicFacts));
+            Require(
+                context.SeatCharacteristicFacts
+                    .GroupBy(fact => (fact.FlightRef, SeatNumber: fact.SeatNumber.Trim().ToUpperInvariant()))
+                    .All(group => group.Count() == 1),
+                nameof(context.SeatCharacteristicFacts));
         }
 
         private static void Filter(AncillaryShoppingContext context, ShoppingFilter filter)

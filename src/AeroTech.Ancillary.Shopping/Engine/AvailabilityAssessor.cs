@@ -1,5 +1,6 @@
 using AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate;
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Shopping.Reading;
 using AeroTech.Ancillary.Shopping.Results;
@@ -10,6 +11,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
     internal static class AvailabilityAssessor
     {
         public static async Task<AvailabilityAssessment> AssessAsync(
+            AncillaryServiceDefinition definition,
             AncillaryProvision provision,
             InventoryConfiguration? configuration,
             EvaluationUnit unit,
@@ -66,7 +68,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
                     return unsupported
                         ? Assessment(policy.Authority, InventoryCapacityReadState.UnsupportedPattern, AvailabilityCheckState.NotChecked, true, null, reasons, ShoppingReasonCodes.InventoryPatternNotSupported)
                         : policy.LocalPattern == LocalInventoryPattern.AirportSlot
-                            ? await SlotAsync(policy, configuration, unit, references, reasons, cancellationToken)
+                            ? await SlotAsync(definition, policy, configuration, unit, references, reasons, cancellationToken)
                             : await FlightAsync(policy, configuration, unit, references, reasons, cancellationToken);
             }
         }
@@ -130,6 +132,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
         }
 
         private static async Task<AvailabilityAssessment> SlotAsync(
+            AncillaryServiceDefinition definition,
             AncillaryInventoryPolicy policy,
             InventoryConfiguration configuration,
             EvaluationUnit unit,
@@ -138,19 +141,47 @@ namespace AeroTech.Ancillary.Shopping.Engine
             CancellationToken cancellationToken)
         {
             var consumption = policy.SlotConsumption!;
+            var units = definition.SelectionContract!.Fields.Any(field => field.Name == "Quantity") ? Math.Max(unit.Selection?.Quantity ?? 1, 1) : 1;
             var guests = Math.Max(unit.Selection?.GuestCount ?? 0, 0);
-            var preview = new ConsumptionPreview(null, null, null, consumption.OccupancyMinutes, consumption.PeoplePerAcceptedUnit * (1 + guests));
-            var checkedState = Checked(await references.FacilityAsync(consumption.FacilityId, cancellationToken), reasons);
+            var preview = new ConsumptionPreview(null, null, null, consumption.OccupancyMinutes, consumption.PeoplePerAcceptedUnit * (units + guests));
+            var facility = await references.FacilityAsync(consumption.FacilityId, cancellationToken);
+            var checkedState = Checked(facility.Result, reasons);
+            var airportId = definition.AirportService?.AirportId ?? (facility.Result == InventoryReferenceCheck.Verified ? facility.AirportId : null);
+
+            if (airportId is null || (facility is { Result: InventoryReferenceCheck.Verified, AirportId: { } verifiedAirport } && verifiedAirport != airportId))
+                return Assessment(policy.Authority, InventoryCapacityReadState.Unknown, AvailabilityCheckState.Unknown, true, preview, reasons, ShoppingReasonCodes.FacilityNotVerified);
 
             if (unit.Selection?.TimeWithOffset is not { } time)
                 return Assessment(policy.Authority, InventoryCapacityReadState.Unknown, checkedState, true, preview, reasons, ShoppingReasonCodes.AppointmentRequired);
 
-            var slot = configuration.SlotSources.FirstOrDefault(row => row.StartUtc <= time && time < row.EndUtc);
+            var end = time.AddMinutes(consumption.OccupancyMinutes);
+            var slots = configuration.SlotSources
+                .Where(row => row.FacilityId == consumption.FacilityId
+                              && row.AirportId == airportId
+                              && row.Status != InventoryRecordStatus.Draft
+                              && row.StartUtc < end
+                              && time < row.EndUtc)
+                .OrderBy(row => row.StartUtc)
+                .ToList();
+            var covered = time;
 
-            if (slot is null || slot.Status == InventoryRecordStatus.Draft)
-                return Assessment(policy.Authority, InventoryCapacityReadState.NotConfigured, checkedState, true, preview, reasons, ShoppingReasonCodes.InventorySourceNotConfigured);
+            foreach (var slot in slots)
+            {
+                if (slot.StartUtc <= covered && slot.EndUtc > covered)
+                    covered = slot.EndUtc;
+            }
 
-            return slot.ClosedForSale || slot.Status == InventoryRecordStatus.Suspended
+            if (covered < end)
+                return Assessment(
+                    policy.Authority,
+                    InventoryCapacityReadState.Unknown,
+                    AvailabilityCheckState.Unknown,
+                    true,
+                    preview,
+                    reasons,
+                    ShoppingReasonCodes.AppointmentOutsideConfiguredSlots);
+
+            return slots.Any(slot => slot.ClosedForSale || slot.Status == InventoryRecordStatus.Suspended)
                 ? Assessment(
                     policy.Authority,
                     InventoryCapacityReadState.ClosedForSale,

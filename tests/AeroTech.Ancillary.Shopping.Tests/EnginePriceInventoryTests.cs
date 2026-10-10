@@ -82,7 +82,8 @@ public class EnginePriceInventoryTests
 
         var two = await lab.Engine.EvaluateSelectionAsync(context, result.Candidates[0].CandidateIdentity, new AncillarySelection { MenuItemRef = "MENU_PASTA_01", Quantity = 2 });
 
-        Assert.Equal((SelectionEvaluationStatus.Accepted, 222m, 111m, 7m), (two.Status, two.Candidate.Price.RequestedQuantityTotal, two.Candidate.Price.CompleteUnitTotal, two.Candidate.Price.UnappliedFeeLines.Single().Amount));
+        Assert.Equal((111m, 7m, false), (two.Candidate.Price.CompleteUnitTotal, two.Candidate.Price.UnappliedFeeLines.Single().Amount, two.Candidate.Price.IsOrderLevelTotalComplete));
+        Assert.Null(two.Candidate.Price.RequestedQuantityTotal);
     }
 
     [Theory]
@@ -376,9 +377,11 @@ public class EnginePriceInventoryTests
 
         var policy = lab.Policy(package, InventoryAuthority.Unlimited, limits: limit);
         var key = policy.PassengerUsageLimits.Single().KeyFor(new PassengerUsageSubject("PAX-T1", null, null, null, null, "P1"));
-        var shown = (await lab.Engine.ShopAsync(Trip.Context())).One();
+        var weightConcept = Trip.Context() with { TravellerBaggageFacts = [Trip.WeightAllowance()] };
+        var shown = (await lab.Engine.ShopAsync(weightConcept)).One();
         var cumulative = shown.Quantity.CumulativeLimits.Single();
 
+        Assert.Equal(OfferReadiness.NeedsVerification, shown.OfferReadiness);
         Assert.Equal((AncillaryQuantityUnit.Each, 1, 2, true), (shown.Quantity.Unit, shown.Quantity.MinPerSelection, shown.Quantity.MaxPerSelection, shown.Quantity.ZeroIsDeselect));
         Assert.Equal(("XBAG_KG", PassengerUsageLimitScope.PerPortion, 30, UsageConsumptionUnit.Kilogram, 10m, true), (cumulative.CountingFamilyCode, cumulative.LimitScope, cumulative.MaxUnits, cumulative.ConsumptionUnit, cumulative.UnitsPerPurchase, cumulative.FamilyVerified));
         Assert.Null(cumulative.VerifiedConsumed);
@@ -389,24 +392,26 @@ public class EnginePriceInventoryTests
         VerifiedUsageEvidence Evidence(decimal consumed, bool complete = true)
             => new() { UsageSubjectKey = key, UnitsConsumed = consumed, IsCompleteForScope = complete, AsOfUtc = Now, SourceAuthority = "TEST-LEDGER" };
 
-        var context = Trip.Context() with { UsageEvidence = [Evidence(20m)] };
+        var context = weightConcept with { UsageEvidence = [Evidence(20m)] };
         var one = await lab.Engine.EvaluateSelectionAsync(context, shown.CandidateIdentity, new AncillarySelection { PackageProductRef = "PACK10", Quantity = 1 });
         var two = await lab.Engine.EvaluateSelectionAsync(context, shown.CandidateIdentity, new AncillarySelection { PackageProductRef = "PACK10", Quantity = 2 });
         var incomplete = await lab.Engine.EvaluateSelectionAsync(
-            Trip.Context() with { UsageEvidence = [Evidence(20m, false)] },
+            weightConcept with { UsageEvidence = [Evidence(20m, false)] },
             shown.CandidateIdentity,
             new AncillarySelection { PackageProductRef = "PACK10", Quantity = 2 });
 
         Assert.Equal((SelectionEvaluationStatus.Accepted, 35m, 20m, 10m), (one.Status, one.Candidate.Price.RequestedQuantityTotal, one.Candidate.Quantity.CumulativeLimits.Single().VerifiedConsumed, one.Candidate.Quantity.CumulativeLimits.Single().VerifiedRemaining));
         Assert.Equal(SelectionEvaluationStatus.Rejected, two.Status);
         Assert.Contains(ShoppingReasonCodes.QuantityExceedsVerifiedRemaining, two.Candidate.ReasonCodes);
-        Assert.Equal((SelectionEvaluationStatus.Accepted, 70m), (incomplete.Status, incomplete.Candidate.Price.RequestedQuantityTotal));
+        Assert.Equal((SelectionEvaluationStatus.Incomplete, OfferReadiness.NeedsVerification), (incomplete.Status, incomplete.Candidate.OfferReadiness));
+        Assert.Contains(ShoppingReasonCodes.UsageNotVerified, incomplete.Candidate.ReasonCodes);
         Assert.Null(incomplete.Candidate.Quantity.CumulativeLimits.Single().VerifiedRemaining);
 
         lab.Catalog.FamilyAnswer = InventoryReferenceCheck.SourceUnavailable;
 
         var unverifiedFamily = (await lab.Engine.ShopAsync(context)).One();
 
+        Assert.Equal(OfferReadiness.NeedsVerification, unverifiedFamily.OfferReadiness);
         Assert.False(unverifiedFamily.Quantity.CumulativeLimits.Single().FamilyVerified);
         Assert.Contains(ShoppingReasonCodes.CountingFamilyNotVerified, unverifiedFamily.ReasonCodes);
     }

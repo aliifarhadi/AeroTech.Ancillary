@@ -145,6 +145,30 @@ public static class Trip
             SourceCompleteness = FactEvidence.Verified
         };
 
+    public static TravellerFlightBaggageFacts WeightAllowance(string travellerRef = "T1", string flightRef = "F1", string portionRef = "P1", decimal checkedKg = 30m)
+        => new()
+        {
+            TravellerRef = travellerRef,
+            FlightRef = flightRef,
+            PortionRef = portionRef,
+            CheckedWeight = checkedKg,
+            CheckedWeightUnit = WeightUnit.Kg,
+            SourceCompleteness = FactEvidence.Verified
+        };
+
+    public static SeatCharacteristicFacts Seat(string seatNumber, string flightRef = "F1", FactEvidence evidence = FactEvidence.Verified, params string[] codes)
+        => new()
+        {
+            FlightRef = flightRef,
+            SeatNumber = seatNumber,
+            CharacteristicCodes = codes,
+            SourceCompleteness = evidence,
+            SourceAuthority = "TEST-SEAT-MAP"
+        };
+
+    public static AncillaryShoppingContext WithSeat(this AncillaryShoppingContext context, string seatNumber, params string[] codes)
+        => context with { SeatCharacteristicFacts = [.. context.SeatCharacteristicFacts, Seat(seatNumber, context.Flights[0].FlightRef, FactEvidence.Verified, codes)] };
+
     public static CanonicalAncillaryOfferCandidate One(this CanonicalAncillaryOfferResult result, string? reference = null)
         => Xunit.Assert.Single(result.Candidates, candidate => reference is null || candidate.ServiceDefinitionRef == reference);
 }

@@ -130,7 +130,11 @@ public class EngineContractTests
         foreach (var variant in V122Catalog.Cases)
             lab.Sellable(variant.Code);
 
-        var result = await lab.Engine.ShopAsync(RoundTrip(Trip.Adult("T1"), Trip.Child("T2")));
+        var trip = RoundTrip(Trip.Adult("T1"), Trip.Child("T2"));
+        var result = await lab.Engine.ShopAsync(trip with
+        {
+            TravellerBaggageFacts = trip.TravellerBaggageFacts.Select(fact => fact.FlightRef == "F2" ? Trip.WeightAllowance(fact.TravellerRef, "F2", "P2") : fact).ToList()
+        });
 
         Assert.Equal(AncillaryVariant.All.Select(variant => variant.Code).Order(), result.Candidates.Select(candidate => candidate.VariantCode).Distinct().Order());
 

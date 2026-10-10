@@ -328,28 +328,51 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
         private void BaggageApplication()
         {
-            if (_definition.Baggage is null)
+            if (_definition.Baggage is not { } specification)
                 return;
 
             var rule = _provision.BaggageApplication;
             var cabin = _definition.VariantCode == AncillaryVariant.CabinBag;
+            var concept = rule?.AllowanceConcept ?? specification.AllowanceConcept;
+            var needsPieces = _definition.VariantCode is AncillaryVariant.ExtraCheckedBag or AncillaryVariant.CabinBag || rule?.FreePieces is not null;
 
-            if (_definition.VariantCode is AncillaryVariant.ExtraCheckedBag or AncillaryVariant.CabinBag || rule?.FreePieces is not null)
+            if (needsPieces || concept is not null)
             {
                 foreach (var flight in _unit.Flights)
                 {
                     var facts = _unit.BaggageOf(flight);
                     var pieces = cabin ? facts?.CabinPieces : facts?.CheckedPieces;
+                    var weight = cabin ? facts?.CabinWeight : facts?.CheckedWeight;
+                    var field = $"TravellerBaggageFacts[{_unit.Traveller.TravellerRef},{flight.FlightRef}]";
 
-                    if (facts is not { SourceCompleteness: FactEvidence.Verified } || pieces is null)
-                        Outcome.Unknown(ShoppingReasonCodes.BaggageAllowanceNotVerified, $"TravellerBaggageFacts[{_unit.Traveller.TravellerRef},{flight.FlightRef}]");
-                    else if (rule?.FreePieces is { } free && pieces.Value != free)
+                    if (facts is not { SourceCompleteness: FactEvidence.Verified } || (pieces is null && weight is null))
+                        Outcome.Unknown(ShoppingReasonCodes.BaggageAllowanceNotVerified, field);
+                    else if (concept is { } required && required != (pieces is null ? BaggageAllowanceConcept.Weight : BaggageAllowanceConcept.Piece))
+                        Outcome.Fail(ShoppingReasonCodes.BaggageAllowanceConceptMismatch);
+                    else if (needsPieces && pieces is null)
+                        Outcome.Unknown(ShoppingReasonCodes.BaggageAllowanceNotVerified, field);
+                    else if (rule?.FreePieces is { } free && pieces != free)
                         Outcome.Fail(ShoppingReasonCodes.BaggageAllowanceMismatch);
                 }
             }
 
             if (rule is null)
                 return;
+
+            if ((rule.ChargeKind is { } chargeKind && chargeKind != specification.ChargeKind)
+                || (rule.AllowanceConcept is { } authored && specification.AllowanceConcept is { } specified && authored != specified))
+                Outcome.Unknown(ShoppingReasonCodes.BaggageRuleContradictsSpecification, "BaggageApplication.ChargeKind");
+
+            if (rule.Weight is { } ruleWeight
+                && (rule.WeightUnit != WeightUnit.Kg
+                    || ruleWeight != (specification.ChargeKind == BaggageChargeKind.WeightPackage ? specification.PackageWeightKg : specification.MaxKgPerPiece)))
+                Outcome.Unknown(ShoppingReasonCodes.BaggageRuleWeightNotVerified, "BaggageApplication.Weight");
+
+            if (rule.TravelApplication is not null)
+                Outcome.Unknown(ShoppingReasonCodes.BaggageTravelApplicationNotSupported, "BaggageApplication.TravelApplication");
+
+            if (rule.RuleDeference is not null)
+                Outcome.Unknown(ShoppingReasonCodes.BaggageRuleDeferenceNotSupported, "BaggageApplication.RuleDeference");
 
             if (rule.PurchaseApplication == BaggagePurchaseApplication.CheckIn)
                 Outcome.Fail(ShoppingReasonCodes.BaggageCheckInPurchaseOnly);
@@ -387,13 +410,19 @@ namespace AeroTech.Ancillary.Shopping.Engine
             if (rule.SeatNumbers.Count > 0 && !rule.SeatNumbers.Any(row => string.Equals(row.SeatNumber, seatNumber.Trim(), StringComparison.OrdinalIgnoreCase)))
                 Outcome.Reject("SeatNumber", ShoppingReasonCodes.SeatNumberNotAllowed);
 
-            if (rule.SeatCharacteristics.Count == 0)
-                return;
+            if (rule.SeatCharacteristics.Count > 0)
+                SeatCharacteristics(seatNumber, rule.SeatCharacteristics.Select(row => row.CharacteristicCode).ToList());
+        }
 
-            if (Selection.VerifiedSeatCharacteristicCodes is not { } characteristics)
-                Outcome.Unknown(ShoppingReasonCodes.SeatMapNotVerified, "Selection.VerifiedSeatCharacteristicCodes");
-            else if (!characteristics.Any(code => rule.SeatCharacteristics.Any(row => string.Equals(row.CharacteristicCode, code, StringComparison.OrdinalIgnoreCase))))
-                Outcome.Reject("SeatNumber", ShoppingReasonCodes.SeatCharacteristicNotAllowed);
+        private void SeatCharacteristics(string seatNumber, IReadOnlyList<string> allowed)
+        {
+            foreach (var flight in _unit.Flights)
+            {
+                if (_unit.SeatCharacteristicsOf(flight, seatNumber) is not { } characteristics)
+                    Outcome.Unknown(ShoppingReasonCodes.SeatMapNotVerified, $"SeatCharacteristicFacts[{flight.FlightRef},{seatNumber.Trim()}]");
+                else if (!characteristics.Any(code => allowed.Contains(code, StringComparer.OrdinalIgnoreCase)))
+                    Outcome.Reject("SeatNumber", ShoppingReasonCodes.SeatCharacteristicNotAllowed);
+            }
         }
     }
 }

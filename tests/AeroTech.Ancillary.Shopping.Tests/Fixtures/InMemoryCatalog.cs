@@ -32,6 +32,8 @@ public sealed class InMemoryCatalog :
 
     public InventoryReferenceCheck FacilityAnswer { get; set; } = InventoryReferenceCheck.SourceUnavailable;
 
+    public int? FacilityAirportId { get; set; }
+
     public InventoryReferenceCheck FamilyAnswer { get; set; } = InventoryReferenceCheck.SourceUnavailable;
 
     public InventoryReferenceCheck FlightFlowAnswer { get; set; } = InventoryReferenceCheck.SourceUnavailable;
@@ -98,7 +100,7 @@ public sealed class InMemoryCatalog :
         => Task.FromResult(ResourceAnswer);
 
     Task<AirportFacilityCheck> IAirportFacilityReference.CheckAsync(int ownerAirlineId, long facilityId, CancellationToken cancellationToken)
-        => Task.FromResult(new AirportFacilityCheck(FacilityAnswer, null, null));
+        => Task.FromResult(new AirportFacilityCheck(FacilityAnswer, FacilityAirportId, null));
 
     Task<InventoryReferenceCheck> ICountingFamilyReference.CheckAsync(int ownerAirlineId, string countingFamilyCode, CancellationToken cancellationToken)
         => Task.FromResult(FamilyAnswer);

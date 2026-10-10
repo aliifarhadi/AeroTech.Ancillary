@@ -372,13 +372,13 @@ public class EngineRuleTests
         Assert.Contains(ShoppingReasonCodes.ExistingServicesNotVerified, unknownPurchases.ReasonCodes);
 
         var checkInOnly = new ShoppingLab();
-        var counter = checkInOnly.Definition("A04");
+        var counter = checkInOnly.Definition("A03");
 
         checkInOnly.Price(
             counter,
             checkInOnly.Provision(
                 counter,
-                rules: Rules(baggage: new(null, null, null, null, WeightUnit.Kg, null, BaggagePurchaseApplication.CheckIn, null, BaggageChargeKind.Oversize, null))),
+                rules: Rules(baggage: new(null, null, null, null, WeightUnit.Kg, null, BaggagePurchaseApplication.CheckIn, null, BaggageChargeKind.Overweight, null))),
             Rate(70m));
 
         Assert.Empty((await checkInOnly.Engine.ShopAsync(Trip.Context())).Candidates);
@@ -401,7 +401,10 @@ public class EngineRuleTests
         Assert.Contains(ShoppingReasonCodes.SeatSelectionPending, shown.ReasonCodes);
 
         Task<CanonicalAncillarySelectionEvaluation> ChooseAsync(string number, params string[]? characteristics)
-            => lab.Engine.EvaluateSelectionAsync(Trip.Context(), shown.CandidateIdentity, new AncillarySelection { SeatNumber = number, VerifiedSeatCharacteristicCodes = characteristics });
+            => lab.Engine.EvaluateSelectionAsync(
+                characteristics is null ? Trip.Context() : Trip.Context().WithSeat(number, characteristics),
+                shown.CandidateIdentity,
+                new AncillarySelection { SeatNumber = number });
 
         var exit = await ChooseAsync("12a", "E");
         var window = await ChooseAsync("20A", "W");

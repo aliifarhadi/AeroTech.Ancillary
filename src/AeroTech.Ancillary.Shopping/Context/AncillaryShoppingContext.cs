@@ -41,6 +41,8 @@ namespace AeroTech.Ancillary.Shopping.Context
 
         public IReadOnlyList<VerifiedUsageEvidence> UsageEvidence { get; init; } = [];
 
+        public IReadOnlyList<SeatCharacteristicFacts> SeatCharacteristicFacts { get; init; } = [];
+
         public required FactCompleteness CoverageCompleteness { get; init; }
     }
 }

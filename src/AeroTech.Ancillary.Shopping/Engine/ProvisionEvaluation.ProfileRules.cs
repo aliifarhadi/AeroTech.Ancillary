@@ -72,6 +72,13 @@ namespace AeroTech.Ancillary.Shopping.Engine
             if (Selection.ChildRef is { } child && child != _unit.Traveller.TravellerRef)
                 Outcome.Reject("ChildRef", ShoppingReasonCodes.SelectionFieldNotAllowed);
 
+            if (Selection.OtherAnimalCode is not null
+                && (Selection.AnimalType != PetAnimalType.RegisteredOther || contract.Fields.All(allowed => allowed.Name != "AnimalType")))
+                Outcome.Reject("OtherAnimalCode", ShoppingReasonCodes.SelectionFieldNotAllowed);
+
+            if (Selection.AnimalAgeWeeks is not null && MinimumPetAgeWeeks() is null)
+                Outcome.Reject("AnimalAgeWeeks", ShoppingReasonCodes.SelectionFieldNotAllowed);
+
             if (Selection.Quantity is not { } quantity)
                 return;
 
@@ -134,8 +141,14 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
         private int? CabinOf(ShoppingFlight flight) => _unit.FareOf(flight)?.CabinClassId ?? flight.CabinClassId;
 
+        private int? MinimumPetAgeWeeks()
+            => _definition.Pet is { } pet && (_provision.PetRule?.MinAnimalAgeWeeksOverride ?? pet.MinAnimalAgeWeeks) is > 0 and var weeks ? weeks : null;
+
         private void Baggage(BaggageSpecification specification)
         {
+            if (specification.ChargeCombination is BaggageChargeCombination.Combined or BaggageChargeCombination.MutuallyExclusive)
+                Outcome.Unknown(ShoppingReasonCodes.BaggageChargeCombinationNotVerified, "Baggage.ChargeCombination");
+
             if (Selection is null)
                 return;
 
@@ -184,13 +197,8 @@ namespace AeroTech.Ancillary.Shopping.Engine
             if (specification.RequiresExitRowEligibility && Selection.ExitRowTermsAccepted == false)
                 Outcome.Reject("ExitRowTermsAccepted", ShoppingReasonCodes.ExitRowTermsNotAccepted);
 
-            if (Selection.SeatNumber is not null && specification.SeatCharacteristicCodes.Count > 0)
-            {
-                if (Selection.VerifiedSeatCharacteristicCodes is not { } characteristics)
-                    Outcome.Unknown(ShoppingReasonCodes.SeatMapNotVerified, "Selection.VerifiedSeatCharacteristicCodes");
-                else if (!characteristics.Any(code => specification.SeatCharacteristicCodes.Any(row => string.Equals(row.Code, code, StringComparison.OrdinalIgnoreCase))))
-                    Outcome.Reject("SeatNumber", ShoppingReasonCodes.SeatCharacteristicNotAllowed);
-            }
+            if (Selection.SeatNumber is { } seatNumber && specification.SeatCharacteristicCodes.Count > 0)
+                SeatCharacteristics(seatNumber, specification.SeatCharacteristicCodes.Select(row => row.Code).ToList());
 
             if (Selection.Purpose is { } purpose && specification.ExtraSeatPurpose is { } authored && purpose != authored)
                 Outcome.Reject("Purpose", ShoppingReasonCodes.ExtraSeatPurposeMismatch);
@@ -246,8 +254,13 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
             Outcome.Note(ShoppingReasonCodes.SupplierConfirmationRequired);
 
-            if ((rule?.MinAnimalAgeWeeksOverride ?? specification.MinAnimalAgeWeeks) is not null)
-                Outcome.Note(ShoppingReasonCodes.PetAgeNotVerified);
+            if (MinimumPetAgeWeeks() is { } minimumAge)
+            {
+                if (Selection?.AnimalAgeWeeks < minimumAge)
+                    Outcome.Reject("AnimalAgeWeeks", ShoppingReasonCodes.PetTooYoung);
+                else
+                    Outcome.Unknown(ShoppingReasonCodes.PetAgeNotVerified, "VerifiedAnimalAgeWeeks");
+            }
 
             if (Selection is null)
                 return;

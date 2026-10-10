@@ -11,6 +11,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
         private readonly IFlightFlowDelegationReference _flightFlow;
         private readonly int _ownerAirlineId;
         private readonly Dictionary<string, InventoryReferenceCheck> _answers = new(StringComparer.Ordinal);
+        private readonly Dictionary<long, AirportFacilityCheck> _facilityAnswers = [];
 
         public InventoryReferenceProbe(
             IInventoryResourceReference resources,
@@ -29,8 +30,13 @@ namespace AeroTech.Ancillary.Shopping.Engine
         public Task<InventoryReferenceCheck> ResourceAsync(InventoryResourceKind kind, long resourceId, CancellationToken cancellationToken)
             => OnceAsync($"R:{kind}:{resourceId}", () => _resources.CheckAsync(_ownerAirlineId, kind, resourceId, cancellationToken));
 
-        public Task<InventoryReferenceCheck> FacilityAsync(long facilityId, CancellationToken cancellationToken)
-            => OnceAsync($"F:{facilityId}", async () => (await _facilities.CheckAsync(_ownerAirlineId, facilityId, cancellationToken)).Result);
+        public async Task<AirportFacilityCheck> FacilityAsync(long facilityId, CancellationToken cancellationToken)
+        {
+            if (!_facilityAnswers.TryGetValue(facilityId, out var answer))
+                _facilityAnswers[facilityId] = answer = await _facilities.CheckAsync(_ownerAirlineId, facilityId, cancellationToken);
+
+            return answer;
+        }
 
         public Task<InventoryReferenceCheck> FamilyAsync(string countingFamilyCode, CancellationToken cancellationToken)
             => OnceAsync($"C:{countingFamilyCode}", () => _families.CheckAsync(_ownerAirlineId, countingFamilyCode, cancellationToken));

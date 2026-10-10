@@ -7,6 +7,7 @@ using AeroTech.Ancillary.Shopping.Context;
 using AeroTech.Ancillary.Shopping.Engine;
 using AeroTech.Ancillary.Shopping.Reading;
 using AeroTech.Ancillary.Shopping.Reading.Sql;
+using AeroTech.Ancillary.Shopping.Results;
 using AeroTech.Ancillary.Shopping.Selection;
 using AeroTech.Ancillary.Shopping.Tests.Fixtures;
 using AeroTech.Messages.Ancillary.Enums;
@@ -106,7 +107,11 @@ public class SqlShoppingReaderTests
                 SizeBracket = "MEDIUM"
             });
 
-        Assert.Equal(SelectionEvaluationStatus.Accepted, hold.Status);
+        var extraBag = await Engine(context, references).EvaluateSelectionAsync(trip, bag.CandidateIdentity, new AncillarySelection { Quantity = 1 });
+
+        Assert.Equal((SelectionEvaluationStatus.Incomplete, OfferReadiness.NeedsVerification), (hold.Status, hold.Candidate.OfferReadiness));
+        Assert.Contains(ShoppingReasonCodes.PetAgeNotVerified, hold.Candidate.ReasonCodes);
+        Assert.Equal((SelectionEvaluationStatus.Accepted, 100m), (extraBag.Status, extraBag.Candidate.Price.RequestedQuantityTotal));
         Assert.Empty((await Engine(context, references).ShopAsync(trip with { PointOfSaleId = V122Catalog.OtherPointOfSale })).Candidates);
         Assert.Empty((await Engine(context, references).ShopAsync(trip with { OwnerAirlineId = _database.NextAirlineId() })).Candidates);
     }

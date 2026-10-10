@@ -99,6 +99,15 @@ namespace AeroTech.Ancillary.Shopping.Engine
                 }
             }
 
+            if (Expired(context))
+                diagnostics.Add(new ShoppingDiagnostic(
+                    ShoppingReasonCodes.SourceContextExpired,
+                    ShoppingDiagnosticSeverity.Blocker,
+                    null,
+                    [nameof(SourceIdentityContext.ValidUntilUtc)],
+                    null,
+                    ShoppingEvidenceKind.Source));
+
             return new CanonicalAncillaryOfferResult(
                 context.ContextSchemaVersion,
                 context.EvaluatedAtUtc,
@@ -131,12 +140,9 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
             var decision = (await DecideAsync(catalog, definition, provisions, unit with { Selection = selection }, candidate.ProvisionId, cancellationToken))!;
             var changed = decision.Candidate.ProvisionId != candidate.ProvisionId;
-            var status = decision.Candidate.OfferReadiness == OfferReadiness.NotEligible
-                ? SelectionEvaluationStatus.Rejected
-                : decision.Outcome.OnlySelectionPending ? SelectionEvaluationStatus.Incomplete : SelectionEvaluationStatus.Accepted;
 
             return new CanonicalAncillarySelectionEvaluation(
-                status,
+                Status(decision.Candidate.OfferReadiness),
                 changed
                     ? decision.Candidate with { ReasonCodes = decision.Candidate.ReasonCodes.Append(ShoppingReasonCodes.ProvisionChangedBySelection).ToList() }
                     : decision.Candidate,
@@ -170,6 +176,15 @@ namespace AeroTech.Ancillary.Shopping.Engine
                     yield return new ShoppingDiagnostic(code, ShoppingDiagnosticSeverity.Blocker, candidate.CandidateIdentity, [], nameof(ICurrencyReference), ShoppingEvidenceKind.Source);
             }
 
+            if (candidate.Quantity.ReasonCodes.Contains(ShoppingReasonCodes.UsageNotVerified))
+                yield return new ShoppingDiagnostic(
+                    ShoppingReasonCodes.UsageNotVerified,
+                    candidate.OfferReadiness == OfferReadiness.NeedsVerification ? ShoppingDiagnosticSeverity.Blocker : ShoppingDiagnosticSeverity.Warning,
+                    candidate.CandidateIdentity,
+                    [nameof(AncillaryShoppingContext.UsageEvidence)],
+                    null,
+                    ShoppingEvidenceKind.Source);
+
             if (candidate.Availability.ReasonCodes.Contains(ShoppingReasonCodes.BlockedExternalReference)
                 || candidate.Quantity.ReasonCodes.Contains(ShoppingReasonCodes.CountingFamilyNotVerified))
                 yield return new ShoppingDiagnostic(
@@ -181,12 +196,24 @@ namespace AeroTech.Ancillary.Shopping.Engine
                     ShoppingEvidenceKind.Blocked);
         }
 
+        private static SelectionEvaluationStatus Status(OfferReadiness readiness)
+            => readiness switch
+            {
+                OfferReadiness.Selectable => SelectionEvaluationStatus.Accepted,
+                OfferReadiness.NotEligible or OfferReadiness.Unavailable => SelectionEvaluationStatus.Rejected,
+                _ => SelectionEvaluationStatus.Incomplete
+            };
+
+        private static bool Expired(AncillaryShoppingContext context)
+            => context.SourceIdentity.ValidUntilUtc is { } validUntil && validUntil <= context.EvaluatedAtUtc;
+
         private static OfferReadiness Readiness(
             AncillaryProvision provision,
             RuleOutcome outcome,
             PriceAssessment price,
             AvailabilityAssessment availability,
-            QuantityAssessment quantity)
+            QuantityAssessment quantity,
+            bool expired)
         {
             if (outcome.Verdict == RuleVerdict.NoMatch || quantity.ReasonCodes.Contains(ShoppingReasonCodes.QuantityExceedsVerifiedRemaining))
                 return OfferReadiness.NotEligible;
@@ -196,7 +223,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
                 || availability.ConfigState == InventoryCapacityReadState.ClosedForSale)
                 return OfferReadiness.Unavailable;
 
-            if ((outcome.Verdict == RuleVerdict.Insufficient && !outcome.OnlySelectionPending) || price.Status == PriceAssessmentStatus.Incomplete)
+            if (expired || (outcome.Verdict == RuleVerdict.Insufficient && !outcome.OnlySelectionPending) || price.Status == PriceAssessmentStatus.Incomplete)
                 return OfferReadiness.NeedsVerification;
 
             if (outcome.OnlySelectionPending)
@@ -206,6 +233,8 @@ namespace AeroTech.Ancillary.Shopping.Engine
                 return OfferReadiness.NeedsQuote;
 
             var unverifiable = availability.CheckedState is AvailabilityCheckState.SourceUnavailable or AvailabilityCheckState.Unknown
+                               || quantity.ReasonCodes.Contains(ShoppingReasonCodes.UsageNotVerified)
+                               || quantity.ReasonCodes.Contains(ShoppingReasonCodes.CountingFamilyNotVerified)
                                || (provision.Availability.MustCheckAvailability
                                    && availability.ConfigState is InventoryCapacityReadState.NotConfigured
                                        or InventoryCapacityReadState.Unknown
@@ -286,9 +315,10 @@ namespace AeroTech.Ancillary.Shopping.Engine
             CancellationToken cancellationToken)
         {
             var outcome = evaluation.Outcome;
+            var expired = Expired(unit.Context);
             var configuration = catalog.InventoryOf(definition.ServiceDefinitionRef);
             var price = PriceAssessor.Assess(provision, catalog.PricingOf(provision.Id), unit, evaluation.Timeline, catalog.CurrencyDecimalPlaces);
-            var availability = await AvailabilityAssessor.AssessAsync(provision, configuration, unit, catalog.References, cancellationToken);
+            var availability = await AvailabilityAssessor.AssessAsync(definition, provision, configuration, unit, catalog.References, cancellationToken);
             var quantity = await QuantityAssessor.AssessAsync(definition, provision, configuration?.Policy, unit, evaluation.Timeline, catalog.References, cancellationToken);
             var identity = new CandidateIdentity(definition.Id, provision.Id, unit.Scope, unit.Traveller.TravellerRef, unit.CoverageRef, price.PricingRevisionId);
             var eligibility = new EligibilityAssessment(
@@ -339,12 +369,13 @@ namespace AeroTech.Ancillary.Shopping.Engine
                     provision.PetRule?.AcceptanceMode ?? definition.Booking.ConfirmationRequirement,
                     provision.Fulfillment.FulfillmentProviderKey,
                     ProviderConfirmationStatus.NotRequested),
-                OfferReadiness = Readiness(provision, outcome, price, availability, quantity),
+                OfferReadiness = Readiness(provision, outcome, price, availability, quantity, expired),
                 ExpiresAtUtc = unit.Context.SourceIdentity.ValidUntilUtc,
                 ReasonCodes = outcome.ReasonCodes
                     .Concat(price.ReasonCodes)
                     .Concat(availability.ReasonCodes)
                     .Concat(quantity.ReasonCodes)
+                    .Concat(expired ? [ShoppingReasonCodes.SourceContextExpired] : [])
                     .Distinct(StringComparer.Ordinal)
                     .ToList()
             };

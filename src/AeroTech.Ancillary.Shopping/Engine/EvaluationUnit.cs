@@ -19,6 +19,13 @@ namespace AeroTech.Ancillary.Shopping.Engine
         public TravellerFlightBaggageFacts? BaggageOf(ShoppingFlight flight)
             => Context.TravellerBaggageFacts.FirstOrDefault(fact => fact.TravellerRef == Traveller.TravellerRef && fact.FlightRef == flight.FlightRef);
 
+        public IReadOnlyList<string>? SeatCharacteristicsOf(ShoppingFlight flight, string seatNumber)
+            => Context.SeatCharacteristicFacts
+                .FirstOrDefault(fact => fact.FlightRef == flight.FlightRef
+                                        && fact.SourceCompleteness == FactEvidence.Verified
+                                        && string.Equals(fact.SeatNumber.Trim(), seatNumber.Trim(), StringComparison.OrdinalIgnoreCase))
+                ?.CharacteristicCodes;
+
         public IEnumerable<ExistingAncillaryServiceFacts> ActiveServices()
             => Context.ExistingServiceFacts.Where(service => service.TravellerRef == Traveller.TravellerRef
                                                              && service.CommercialState == ExistingServiceCommercialState.Active
