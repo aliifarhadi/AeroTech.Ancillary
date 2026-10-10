@@ -297,5 +297,11 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
 
         public static BusinessException InventoryFacilityBusy(params object?[] args) =>
             new(16619, ExceptionMessages.InventoryFacilityBusy, args) { HttpStatus = 409 };
+
+        public static BusinessException ShoppingContextIsInvalid(params object?[] args) =>
+            new(16801, ExceptionMessages.ShoppingContextIsInvalid, args) { HttpStatus = 422 };
+
+        public static BusinessException ShoppingCandidateNotFound(params object?[] args) =>
+            new(16802, ExceptionMessages.ShoppingCandidateNotFound, args) { HttpStatus = 404 };
     }
 }

@@ -6,6 +6,7 @@
     <ProjectReference Include="..\AeroTech.Ancillary.Providers\AeroTech.Ancillary.Providers.csproj" />
     <ProjectReference Include="..\AeroTech.Ancillary.Query\AeroTech.Ancillary.Query.csproj" />
     <ProjectReference Include="..\AeroTech.Ancillary.ReferenceData\AeroTech.Ancillary.ReferenceData.csproj" />
+    <ProjectReference Include="..\AeroTech.Ancillary.Shopping\AeroTech.Ancillary.Shopping.csproj" />
     <ProjectReference Include="..\AeroTech.Ancillary.RestApi\AeroTech.Ancillary.RestApi.csproj" />
   </ItemGroup>
 

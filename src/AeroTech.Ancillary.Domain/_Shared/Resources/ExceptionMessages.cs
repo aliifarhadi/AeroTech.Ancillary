@@ -100,5 +100,7 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public const string InventoryPolicyServiceDefinitionMismatch = "The service definition does not belong to the policy identity.";
         public const string InventoryUnitMismatch = "The inventory unit does not match: {0}.";
         public const string InventoryFacilityBusy = "Another slot of this facility is being written; try again.";
+        public const string ShoppingContextIsInvalid = "The ancillary shopping context is not valid: {0}.";
+        public const string ShoppingCandidateNotFound = "The ancillary shopping candidate does not exist in this context.";
     }
 }

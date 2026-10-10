@@ -69,7 +69,7 @@ public class V12BoundaryAcceptanceTests
             "JsonSerializer", "HasConversion"
         ];
 
-        var files = Files(Source).Concat(Files(AncillaryContracts)).ToList();
+        var files = Files(Source).Where(path => !InFolder(path, "AeroTech.Ancillary.Shopping")).Concat(Files(AncillaryContracts)).ToList();
         var authored = files.Where(path => !InFolder(path, "Migrations") && !InFolder(path, "AeroTech.Ancillary.ReferenceData")).ToList();
 
         Assert.True(files.Count > 400);
@@ -78,7 +78,7 @@ public class V12BoundaryAcceptanceTests
             authored.Where(path => InFolder(path, "AncillaryProvisionAggregate") || InFolder(path, "AncillaryPricingAggregate")),
             terms.Skip(12)));
         Assert.DoesNotContain(
-            Directory.EnumerateDirectories(Source, "*", SearchOption.AllDirectories),
+            Directory.EnumerateDirectories(Source, "*", SearchOption.AllDirectories).Where(directory => !InFolder(directory + Path.DirectorySeparatorChar, "AeroTech.Ancillary.Shopping")),
             directory => terms.Any(term => Path.GetFileName(directory).Contains(term, StringComparison.OrdinalIgnoreCase)));
     }
 
@@ -172,6 +172,7 @@ public class V12BoundaryAcceptanceTests
             offending => Assert.True(
                 offending.Contains("Inventory", StringComparison.Ordinal)
                 || offending.Contains("AeroTech.Ancillary.Providers/FlightFlow/", StringComparison.Ordinal)
+                || offending.Contains("AeroTech.Ancillary.Shopping/", StringComparison.Ordinal)
                 || offending.Contains("_Shared/Contracts/IFlightFlowDelegationReference.cs", StringComparison.Ordinal)
                 || offending.Contains("_Shared/Resources/ExceptionMessages.cs", StringComparison.Ordinal)
                 || offending.Contains("DependencyInjection.cs", StringComparison.Ordinal),

@@ -12,6 +12,7 @@ using AeroTech.Ancillary.RestApi;
 using AeroTech.Ancillary.RestApi.V1._Shared;
 using AeroTech.Ancillary.ServiceHost.CallerContext;
 using AeroTech.Ancillary.ServiceHost.ReferenceData;
+using AeroTech.Ancillary.Shopping;
 using AeroTech.Ancillary.Synchronizer;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Serilog;
@@ -30,6 +31,7 @@ builder.Services
     .AddConsumers(builder.Configuration)
     .AddApplication(builder.Configuration)
     .AddReferenceData(builder.Configuration)
+    .AddAncillaryShopping()
     .AddPresentation(builder.Configuration, typeof(RestApiAssembly).Assembly, typeof(ReferenceDataAssembly).Assembly)
     .AddSurfaceAuthorization();
 
