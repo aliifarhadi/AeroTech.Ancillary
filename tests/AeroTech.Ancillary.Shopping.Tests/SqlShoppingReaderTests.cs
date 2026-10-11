@@ -3,14 +3,18 @@ using AeroTech.Ancillary.Application.AcceptanceTests.Fixtures;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.DefineAncillaryProvision;
 using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Persistence;
+using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers;
+using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
 using AeroTech.Ancillary.Shopping.Context;
 using AeroTech.Ancillary.Shopping.Engine;
+using AeroTech.Ancillary.Shopping.FlightOffers;
 using AeroTech.Ancillary.Shopping.Reading;
 using AeroTech.Ancillary.Shopping.Reading.Sql;
 using AeroTech.Ancillary.Shopping.Results;
 using AeroTech.Ancillary.Shopping.Selection;
 using AeroTech.Ancillary.Shopping.Tests.Fixtures;
 using AeroTech.Messages.Ancillary.Enums;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -172,5 +176,50 @@ public class SqlShoppingReaderTests
         Assert.IsType<SqlActiveAncillaryProvisionReader>(scope.ServiceProvider.GetRequiredService<IActiveAncillaryProvisionReader>());
         Assert.IsType<SqlActiveAncillaryPricingReader>(scope.ServiceProvider.GetRequiredService<IActiveAncillaryPricingReader>());
         Assert.IsType<SqlInventoryConfigurationReader>(scope.ServiceProvider.GetRequiredService<IInventoryConfigurationReader>());
+    }
+
+    [Fact]
+    public async Task SQL_04_CT_24_CT_25_the_offer_id_flow_reads_the_sql_catalog_through_the_provider_wire_and_changes_nothing()
+    {
+        var airlineId = await PublishedCatalogAsync("A01", "A07", "A24");
+
+        await using var context = _database.NewContext(_clock);
+
+        var handler = OfferWire.StubHandler.Json(System.Net.HttpStatusCode.OK, OfferWire.Captured());
+        var service = new GetAncillaryOffersService(OfferWire.Provider(handler), new TestOnlyAirportReference(), Engine(context, new InMemoryCatalog()));
+        var provisionsBefore = await context.AncillaryProvisions.AsNoTracking().CountAsync();
+        var commandsBefore = _database.Sql.Count;
+        var response = await service.ExecuteAsync(
+            new BackofficeGetAncillaryOffersQuery { OfferId = OfferWire.OfferId },
+            new FlightOfferSalesScope(airlineId, V122Catalog.PointOfSale, null, ShoppingLab.Eur, _clock.Now));
+        var candidates = response.Offers.Concat(response.BlockedOffers).ToList();
+
+        Assert.Equal(1, handler.Calls);
+        Assert.True(_database.Sql.Count > commandsBefore);
+        Assert.Equal((airlineId, V122Catalog.PointOfSale), (response.Scope.OwnerAirlineId, response.Scope.PointOfSaleId));
+        Assert.Equal(new[] { "B1", "B2" }, response.Journey.Portions.Select(portion => portion.PortionRef));
+        Assert.NotEmpty(candidates);
+        Assert.Subset(new HashSet<string> { "A01", "A07", "A24" }, candidates.Select(offer => offer.Service.VariantCode).ToHashSet());
+        Assert.All(candidates, offer =>
+        {
+            Assert.False(offer.CanPurchase);
+            Assert.False(offer.Availability.IsGuaranteed);
+            Assert.Contains(offer.CandidateIdentity.TravellerRef, new[] { "ADT-1", "CHD-1" });
+        });
+        Assert.Empty(context.ChangeTracker.Entries());
+        Assert.Equal(provisionsBefore, await context.AncillaryProvisions.AsNoTracking().CountAsync());
+
+        var foreign = await service.ExecuteAsync(
+            new BackofficeGetAncillaryOffersQuery { OfferId = OfferWire.OfferId },
+            new FlightOfferSalesScope(_database.NextAirlineId(), V122Catalog.PointOfSale, null, ShoppingLab.Eur, _clock.Now));
+        var otherPointOfSale = await service.ExecuteAsync(
+            new BackofficeGetAncillaryOffersQuery { OfferId = OfferWire.OfferId },
+            new FlightOfferSalesScope(airlineId, V122Catalog.OtherPointOfSale, null, ShoppingLab.Eur, _clock.Now));
+
+        Assert.All(new[] { foreign, otherPointOfSale }, empty =>
+        {
+            Assert.Empty(empty.Offers.Concat(empty.BlockedOffers));
+            Assert.Equal(AncillaryOffersMapper.NoApplicableProduct, Assert.Single(empty.Diagnostics).Code);
+        });
     }
 }

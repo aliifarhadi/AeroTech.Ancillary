@@ -89,6 +89,9 @@ public sealed class InventoryFixture
 
     public Task<bool> ExistsAsync(int airportId, CancellationToken cancellationToken = default) => Task.FromResult(Airports.Contains(airportId));
 
+    public Task<IReadOnlyDictionary<int, int>> FindCountryIdsAsync(IReadOnlyCollection<int> airportIds, CancellationToken cancellationToken = default)
+        => Task.FromResult<IReadOnlyDictionary<int, int>>(new Dictionary<int, int>());
+
     private static InventoryReferenceCheck Check<TValue>(HashSet<TValue>? known, TValue value)
         => known is null
             ? InventoryReferenceCheck.SourceUnavailable

@@ -2,6 +2,8 @@ using AeroTech.Framework.Infrastructure.HealthChecks;
 using AeroTech.Ancillary.Query.AirportSlotInventoryAggregate.Queries.GetAirportSlotInventoriesPaginated;
 using AeroTech.Ancillary.Query.AirportSlotInventoryAggregate.Queries.GetAirportSlotInventoryById;
 using AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Queries.GetInventoryConfigurationSnapshot;
+using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers;
+using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
 using AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Queries.GetInventoryPoliciesPaginated;
 using AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Queries.GetInventoryPolicyById;
 using AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Queries.GetInventoryPolicyByServiceIdentity;
@@ -45,6 +47,8 @@ namespace AeroTech.Ancillary.Query
             services.AddScoped<IGetAncillaryServiceDefinitionByIdService, GetAncillaryServiceDefinitionByIdService>();
             services.AddScoped<IGetAncillaryServiceDefinitionsPaginatedService, GetAncillaryServiceDefinitionsPaginatedService>();
             services.AddScoped<IGetAncillaryVariantsService, GetAncillaryVariantsService>();
+            services.AddScoped<IGetAncillaryOffersService, GetAncillaryOffersService>();
+            services.AddScoped<IBackofficeSalesScopeResolver, BackofficeSalesScopeResolver>();
             services.AddScoped<IGetAncillaryProvisionByIdService, GetAncillaryProvisionByIdService>();
             services.AddScoped<IGetAncillaryProvisionsPaginatedService, GetAncillaryProvisionsPaginatedService>();
             services.AddScoped<IGetAncillaryPricingByIdService, GetAncillaryPricingByIdService>();

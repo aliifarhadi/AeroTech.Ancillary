@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AeroTech.Ancillary.Domain\AeroTech.Ancillary.Domain.csproj" />
+    <ProjectReference Include="..\AeroTech.Ancillary.Shopping\AeroTech.Ancillary.Shopping.csproj" />
     <ProjectReference Include="..\..\Contracts\AeroTech.Messages\AeroTech.Messages.csproj" />
   </ItemGroup>
 

@@ -1,0 +1,16 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build-servicehost",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/src/AeroTech.Ancillary.ServiceHost/AeroTech.Ancillary.ServiceHost.csproj",
+        "-c", "Debug"
+      ],
+      "problemMatcher": "$msCompile"
+    }
+  ]
+}

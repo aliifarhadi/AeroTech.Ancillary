@@ -69,7 +69,10 @@ public class V12BoundaryAcceptanceTests
             "JsonSerializer", "HasConversion"
         ];
 
-        var files = Files(Source).Where(path => !InFolder(path, "AeroTech.Ancillary.Shopping")).Concat(Files(AncillaryContracts)).ToList();
+        var files = Files(Source)
+            .Where(path => !InFolder(path, "AeroTech.Ancillary.Shopping") && !InFolder(path, Path.Combine("AeroTech.Ancillary.Query", "AncillaryOffers")))
+            .Concat(Files(AncillaryContracts))
+            .ToList();
         var authored = files.Where(path => !InFolder(path, "Migrations") && !InFolder(path, "AeroTech.Ancillary.ReferenceData")).ToList();
 
         Assert.True(files.Count > 400);
@@ -95,8 +98,9 @@ public class V12BoundaryAcceptanceTests
             new[]
             {
                 "DependencyInjection.cs", "FlightFlowEnvelope.cs", "FlightFlowFlight.cs", "FlightFlowFlightOccurrenceReference.cs", "FlightFlowJson.cs",
+                "FlightOfferDetailResponse.cs", "FlightOfferProvider.cs", "FlightOfferResponseMapper.cs",
                 "NotConnectedAirportFacilityReference.cs", "NotConnectedCountingFamilyReference.cs", "NotConnectedFlightFlowDelegationReference.cs",
-                "NotConnectedInventoryResourceReference.cs"
+                "NotConnectedInventoryResourceReference.cs", "NotConnectedPointOfSaleEligibilityReference.cs", "OfferJson.cs"
             },
             Files(Path.Combine(Source, "AeroTech.Ancillary.Providers")).Select(Path.GetFileName).OrderBy(name => name, StringComparer.Ordinal));
     }
@@ -164,7 +168,8 @@ public class V12BoundaryAcceptanceTests
             new[]
             {
                 "src/AeroTech.Ancillary.Providers/DependencyInjection.cs: HttpClient",
-                "src/AeroTech.Ancillary.Providers/FlightFlow/Services/FlightFlowFlightOccurrenceReference.cs: HttpClient"
+                "src/AeroTech.Ancillary.Providers/FlightFlow/Services/FlightFlowFlightOccurrenceReference.cs: HttpClient",
+                "src/AeroTech.Ancillary.Providers/Offer/Services/FlightOfferProvider.cs: HttpClient"
             },
             Offending(external, ["HttpClient"]).OrderBy(offending => offending, StringComparer.Ordinal));
         Assert.All(
@@ -232,6 +237,7 @@ public class V12BoundaryAcceptanceTests
             "POST Backoffice/AncillaryServiceDefinitions/{serviceDefinitionId:long}/AssignServiceDateBasis",
             "POST Backoffice/AncillaryProvisions/{provisionId:long}/Publish",
             "POST Backoffice/AncillaryProvisions/{provisionId:long}/SwitchActivePricing",
+            "POST Backoffice/AncillaryOffers",
             "POST Backoffice/AncillaryPricings",
             "GET Backoffice/AncillaryPricings/Paginated",
             "GET Backoffice/AncillaryPricings/{pricingId:long}",
@@ -305,7 +311,7 @@ public class V12BoundaryAcceptanceTests
         Assert.Equal(
             preserved.Concat(added).Concat(rows).Concat(groups).Concat(typed).Concat(inventory).OrderBy(route => route, StringComparer.Ordinal),
             routes.OrderBy(route => route, StringComparer.Ordinal));
-        Assert.Equal(113, routes.Count);
+        Assert.Equal(114, routes.Count);
         Assert.Equal(36, inventory.Length);
         Assert.DoesNotContain(routes, route => new[] { "Sell", "Reserve", "Release", "Expire" }.Any(term => route.Contains(term, StringComparison.Ordinal)));
         Assert.Equal(

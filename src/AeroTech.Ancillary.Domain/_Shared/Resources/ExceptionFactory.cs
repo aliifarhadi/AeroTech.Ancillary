@@ -303,5 +303,26 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
 
         public static BusinessException ShoppingCandidateNotFound(params object?[] args) =>
             new(16802, ExceptionMessages.ShoppingCandidateNotFound, args) { HttpStatus = 404 };
+
+        public static BusinessException FlightOfferIdIsRequired(params object?[] args) =>
+            new(16803, ExceptionMessages.FlightOfferIdIsRequired, args) { HttpStatus = 422 };
+
+        public static BusinessException FlightOfferWasRefused(params object?[] args) =>
+            new(16804, ExceptionMessages.FlightOfferWasRefused, args) { HttpStatus = 422 };
+
+        public static BusinessException FlightOfferNotFound(params object?[] args) =>
+            new(16805, ExceptionMessages.FlightOfferNotFound, args) { HttpStatus = 404 };
+
+        public static BusinessException FlightOfferCouldNotBeRetrieved(params object?[] args) =>
+            new(16806, ExceptionMessages.FlightOfferCouldNotBeRetrieved, args) { HttpStatus = 502 };
+
+        public static BusinessException FlightOfferIsInconsistent(params object?[] args) =>
+            new(16807, ExceptionMessages.FlightOfferIsInconsistent, args) { HttpStatus = 502 };
+
+        public static BusinessException PointOfSaleContextUnresolved(params object?[] args) =>
+            new(16808, ExceptionMessages.PointOfSaleContextUnresolved, args) { HttpStatus = 409 };
+
+        public static BusinessException ShoppingCallerNotAuthorized(params object?[] args) =>
+            new(16809, ExceptionMessages.ShoppingCallerNotAuthorized, args) { HttpStatus = 403 };
     }
 }

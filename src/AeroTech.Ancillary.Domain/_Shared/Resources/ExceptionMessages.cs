@@ -102,5 +102,12 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public const string InventoryFacilityBusy = "Another slot of this facility is being written; try again.";
         public const string ShoppingContextIsInvalid = "The ancillary shopping context is not valid: {0}.";
         public const string ShoppingCandidateNotFound = "The ancillary shopping candidate does not exist in this context.";
+        public const string FlightOfferIdIsRequired = "A priced flight offer id is required.";
+        public const string FlightOfferWasRefused = "The flight offer was refused by its provider: {0}.";
+        public const string FlightOfferNotFound = "The flight offer has no journey for this offer id.";
+        public const string FlightOfferCouldNotBeRetrieved = "The flight offer could not be retrieved from its provider: {0}.";
+        public const string FlightOfferIsInconsistent = "The flight offer returned by its provider is not consistent: {0}.";
+        public const string PointOfSaleContextUnresolved = "POS_CONTEXT_UNRESOLVED: the point of sale of this sale could not be resolved ({0}).";
+        public const string ShoppingCallerNotAuthorized = "The caller is not allowed to shop ancillary offers on this surface.";
     }
 }

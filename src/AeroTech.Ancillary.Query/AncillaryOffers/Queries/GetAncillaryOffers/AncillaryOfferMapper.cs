@@ -1,0 +1,127 @@
+using AeroTech.Ancillary.Query.AncillaryOffers.Dto;
+using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto;
+using AeroTech.Ancillary.Query._Shared.Enums;
+using AeroTech.Ancillary.Shopping.Results;
+using AeroTech.Messages.Ancillary.Enums;
+
+namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers
+{
+    public static class AncillaryOfferMapper
+    {
+        public static AncillaryOfferDisplayState DisplayStateOf(OfferReadiness readiness)
+            => readiness switch
+            {
+                OfferReadiness.Selectable => AncillaryOfferDisplayState.AvailableForSelection,
+                OfferReadiness.NeedsSelection => AncillaryOfferDisplayState.NeedsInput,
+                OfferReadiness.NeedsQuote => AncillaryOfferDisplayState.QuoteRequired,
+                OfferReadiness.NeedsVerification => AncillaryOfferDisplayState.NeedsVerification,
+                OfferReadiness.Unavailable => AncillaryOfferDisplayState.Unavailable,
+                OfferReadiness.NotEligible => AncillaryOfferDisplayState.NotEligible,
+                _ => throw new ArgumentOutOfRangeException(nameof(readiness), readiness, null)
+            };
+
+        public static bool IsDiscoverable(OfferReadiness readiness)
+            => readiness is OfferReadiness.Selectable or OfferReadiness.NeedsSelection or OfferReadiness.NeedsQuote;
+
+        public static AncillaryOfferDto Map(CanonicalAncillaryOfferCandidate candidate)
+            => new(
+                new OfferCandidateIdentityDto(
+                    candidate.CandidateIdentity.DefinitionVersionId,
+                    candidate.CandidateIdentity.ProvisionId,
+                    EnumValueDto.Of(candidate.CandidateIdentity.CoverageScope),
+                    candidate.CandidateIdentity.TravellerRef,
+                    candidate.CandidateIdentity.CoverageRef,
+                    candidate.CandidateIdentity.PricingRevisionId),
+                new OfferServiceDto(
+                    candidate.ServiceDefinitionRef,
+                    candidate.DefinitionVersion,
+                    EnumValueDto.Of(candidate.Profile),
+                    candidate.VariantCode,
+                    candidate.CommercialName,
+                    candidate.Description,
+                    candidate.ServiceTypeCode,
+                    candidate.ServiceSubCode,
+                    candidate.Document.Rfic,
+                    candidate.Document.Rfisc),
+                new OfferCoverageDto(
+                    EnumValueDto.Of(candidate.Scope.CoverageScope),
+                    candidate.Scope.TravellerRefs,
+                    candidate.Scope.FlightRefs,
+                    candidate.Scope.PortionRefs),
+                new OfferEligibilityDto(EnumValueDto.Of(candidate.Eligibility.Status), candidate.Eligibility.ReasonCodes, candidate.Eligibility.MissingContextFields),
+                new CustomerSelectionContractDto(
+                    EnumValueDto.Of(candidate.Selection.Kind),
+                    candidate.Selection.ZeroQuantityMeansNoSelection,
+                    candidate.Selection.Fields.Select(field => new CustomerSelectionFieldDto(field.Name, EnumValueDto.Of(field.Type), field.Required)).ToList()),
+                Quantity(candidate.Quantity),
+                Pricing(candidate.Price),
+                Availability(candidate.Availability),
+                new OfferConfirmationDto(
+                    EnumValueDto.Of(candidate.Confirmation.BookingMethod),
+                    EnumValueDto.Of(candidate.Confirmation.ConfirmationRequirement),
+                    EnumValueDto.Of(candidate.Confirmation.ProviderConfirmationStatus)),
+                new OfferDocumentDto(
+                    EnumValueDto.Of(candidate.Document.Routing),
+                    EnumValueDto.Of(candidate.Document.DocumentType),
+                    candidate.Document.Rfic,
+                    candidate.Document.Rfisc,
+                    candidate.Document.DocumentRequired),
+                EnumValueDto.Of(candidate.OfferReadiness),
+                EnumValueDto.Of(DisplayStateOf(candidate.OfferReadiness)),
+                false,
+                candidate.ReasonCodes);
+
+        private static OfferQuantityDto Quantity(QuantityAssessment quantity)
+            => new(
+                EnumValueDto.Of(quantity.Unit),
+                quantity.MinPerSelection,
+                quantity.MaxPerSelection,
+                quantity.CumulativeLimits
+                    .Select(limit => new OfferCumulativeLimitDto(
+                        limit.CountingFamilyCode,
+                        EnumValueDto.Of(limit.LimitScope),
+                        limit.MaxUnits,
+                        EnumValueDto.Of(limit.ConsumptionUnit),
+                        limit.UnitsPerPurchase,
+                        limit.FamilyVerified,
+                        limit.VerifiedConsumed,
+                        limit.VerifiedRemaining))
+                    .ToList());
+
+        private static OfferPricingDto Pricing(PriceAssessment price)
+            => new(
+                EnumValueDto.Of(price.Origin),
+                EnumValueDto.Of(price.Status),
+                price.CurrencyId,
+                EnumValueDto.OfNullable(price.PricingUnit),
+                price.BaseAmount,
+                price.CompleteUnitTotal,
+                price.AddedTaxLines.Select(Line).ToList(),
+                price.IncludedTaxLines.Select(Line).ToList(),
+                price.AppliedUnitFeeLines.Select(Line).ToList(),
+                price.UnappliedFeeLines.Select(Line).ToList(),
+                price.IsOrderLevelTotalComplete,
+                price.QuoteProviderKey,
+                price.ReasonCodes);
+
+        private static OfferPriceLineDto Line(PriceComponentLine line)
+            => new(line.Code, line.Amount, line.CurrencyId, line.CountryId, line.StationAirportId, EnumValueDto.OfNullable(line.FeeApplicationUnit));
+
+        private static OfferAvailabilityDto Availability(AvailabilityAssessment availability)
+            => new(
+                EnumValueDto.OfNullable(availability.InventoryAuthority),
+                EnumValueDto.Of(availability.ConfigState),
+                EnumValueDto.Of(availability.CheckedState),
+                availability.IsGuaranteed,
+                availability.RequiresCheckAtReserve,
+                availability.ConsumptionPreview is { } preview
+                    ? new OfferConsumptionPreviewDto(
+                        preview.CountUnits,
+                        EnumValueDto.OfNullable(preview.CountUnit),
+                        preview.WeightKg,
+                        preview.OccupancyMinutes,
+                        preview.OccupiedPersons)
+                    : null,
+                availability.ReasonCodes);
+    }
+}
