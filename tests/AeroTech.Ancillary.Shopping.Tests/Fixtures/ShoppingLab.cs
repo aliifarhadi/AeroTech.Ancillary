@@ -109,7 +109,8 @@ public sealed class ShoppingLab
         int? maxQuantity = null,
         bool mustCheck = false,
         long pos = Pos,
-        bool activate = true)
+        bool activate = true,
+        AncillaryQuantityUnit? quantityUnit = null)
     {
         var variant = V122Catalog.Case(definition.VariantCode!);
         var outcome = disposition ?? variant.Disposition;
@@ -146,7 +147,7 @@ public sealed class ShoppingLab
             stage ?? (definition.Connectivity is { DeliveryStage: PurchaseStage.OnBoard } ? PurchaseStage.OnBoard : PurchaseStage.Both),
             priceOrigin,
             priceOrigin == PriceOrigin.ExternalQuote ? Quote : null,
-            QuantityRule.Create(variant.QuantityUnit, 1, maxQuantity ?? variant.MaxQuantity),
+            QuantityRule.Create(quantityUnit ?? variant.QuantityUnit, 1, maxQuantity ?? variant.MaxQuantity),
             variant.ApplicationType,
             CommercialOutcome.Create(outcome, outcome == CommercialDisposition.Paid && definition.Document.Type != AncillaryDocumentType.None, false),
             SettlementDefinition.Create(ReissueRefundPolicy.NonRefundable, null, false, false),

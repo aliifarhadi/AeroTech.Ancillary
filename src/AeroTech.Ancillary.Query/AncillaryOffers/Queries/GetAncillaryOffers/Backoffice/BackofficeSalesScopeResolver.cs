@@ -39,8 +39,8 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Ba
             return new FlightOfferSalesScope(
                 (int)homeAirlineId.Value,
                 options?.PointOfSaleId ?? await EligiblePointOfSaleIdAsync(options?.CountryId, _caller.AirlineOfficeId.Value, cancellationToken),
-                long.TryParse(options?.CustomerId, NumberStyles.None, CultureInfo.InvariantCulture, out var customerId) ? customerId : null,
-                options?.PreferredCurrencyId,
+                long.TryParse(options?.CustomerId, NumberStyles.Integer, CultureInfo.InvariantCulture, out var customerId) ? customerId : null,
+                options?.PreferredCurrencyId is 0 ? null : options?.PreferredCurrencyId,
                 (options?.SalesDate ?? _clock.GetDateTime()).ToUniversalTime());
         }
 

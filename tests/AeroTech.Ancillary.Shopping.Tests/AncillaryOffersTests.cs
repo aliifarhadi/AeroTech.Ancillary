@@ -14,80 +14,13 @@ using AeroTech.Messages.AirPrice.Enums;
 using AeroTech.Messages.Ancillary.Enums;
 using AeroTech.Messages.Core.Enums;
 using Xunit;
+using static AeroTech.Ancillary.Shopping.Tests.Fixtures.BackofficeDesk;
 using static AeroTech.Ancillary.Shopping.Tests.Fixtures.ShoppingLab;
 
 namespace AeroTech.Ancillary.Shopping.Tests;
 
 public class AncillaryOffersTests
 {
-    private sealed record Query(string? OfferId) : IAncillaryOffersQuery;
-
-    private sealed class FixedOffers : IFlightOfferProvider
-    {
-        private readonly FlightOffer _offer;
-
-        public FixedOffers(FlightOffer offer) => _offer = offer;
-
-        public Task<FlightOffer> GetByOfferIdAsync(string offerId, CancellationToken cancellationToken = default) => Task.FromResult(_offer);
-    }
-
-    private sealed class Caller : ICallerContext
-    {
-        public CallerContextType ContextType { get; init; } = CallerContextType.Airline;
-
-        public CallerPrincipalType PrincipalType { get; init; } = CallerPrincipalType.Human;
-
-        public long? AirlineUserId { get; init; } = 7001;
-
-        public long? AirlineOfficeId { get; init; } = 9200;
-
-        public long? TravelAgencyUserId { get; init; }
-
-        public long? TravelAgencyId { get; init; }
-
-        public IReadOnlyCollection<long> TravelAgencyOfficeIds { get; init; } = [];
-
-        public long? IndividualId { get; init; }
-
-        public long? PartnerApiAccessProfileId { get; init; }
-
-        public long? CustomerId { get; init; }
-
-        public long ActorId => AirlineUserId ?? 0;
-    }
-
-    private sealed class HomeAirline : IOperatorAirlineResolver
-    {
-        public long? AirlineId { get; init; } = Airline;
-
-        public Task<long?> FindHomeAirlineIdAsync(CancellationToken cancellationToken = default) => Task.FromResult(AirlineId);
-    }
-
-    private sealed class Eligibility : IPointOfSaleEligibilityReference
-    {
-        public InventoryReferenceCheck Result { get; init; } = InventoryReferenceCheck.SourceUnavailable;
-
-        public long[] Allowed { get; init; } = [];
-
-        public PointOfSaleEligibilityQuery? Asked { get; private set; }
-
-        public Task<PointOfSaleEligibility> ResolveAsync(PointOfSaleEligibilityQuery query, CancellationToken cancellationToken = default)
-        {
-            Asked = query;
-
-            return Task.FromResult(new PointOfSaleEligibility(Result, Allowed));
-        }
-    }
-
-    private static readonly FlightOfferSalesScope Sale = new(Airline, Pos, null, Eur, Now);
-
-    private static async Task<AncillaryOffersDto> ShopAsync(ShoppingLab lab, string? wire = null, TestOnlyAirportReference? airports = null)
-        => await new GetAncillaryOffersService(new FixedOffers(await OfferWire.ReadAsync(wire ?? OfferWire.Captured())), airports ?? new TestOnlyAirportReference(), lab.Engine)
-            .ExecuteAsync(new Query(OfferWire.OfferId), Sale);
-
-    private static BackofficeSalesScopeResolver Resolver(Caller? caller = null, HomeAirline? home = null, Eligibility? eligibility = null, FixedClock? clock = null)
-        => new(caller ?? new Caller(), home ?? new HomeAirline(), eligibility ?? new Eligibility(), clock ?? new FixedClock());
-
     [Fact]
     public async Task CT_05_CT_06_CT_08_the_context_keeps_every_traveller_coupon_and_bound_join_and_invents_no_fact()
     {
@@ -423,7 +356,7 @@ public class AncillaryOffersTests
     public async Task CT_22_an_empty_offer_id_is_refused_before_the_provider_is_called()
     {
         var failure = await Assert.ThrowsAsync<BusinessException>(
-            () => new GetAncillaryOffersService(new FixedOffers(null!), new TestOnlyAirportReference(), new ShoppingLab().Engine).ExecuteAsync(new Query(" "), Sale));
+            () => new GetAncillaryOffersService(new FixedOffers(null!), new TestOnlyAirportReference(), new ShoppingLab().Engine).ExecuteAsync(new OfferQuery(" "), Sale));
 
         Assert.Equal((16803, 422), (failure.Code, failure.HttpStatus));
         Assert.Equal(new[] { "OfferId", "Options" }, typeof(BackofficeGetAncillaryOffersQuery).GetProperties().Select(property => property.Name).Order());
