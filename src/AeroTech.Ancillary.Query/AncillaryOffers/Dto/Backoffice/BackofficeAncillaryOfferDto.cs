@@ -1,9 +1,11 @@
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto;
 using AeroTech.Ancillary.Query._Shared.Enums;
 
-namespace AeroTech.Ancillary.Query.AncillaryOffers.Dto
+namespace AeroTech.Ancillary.Query.AncillaryOffers.Dto.Backoffice
 {
-    public sealed record AncillaryOfferDto(
+    public sealed record BackofficeAncillaryOfferDto(
+        string OfferItemRef,
+        long PointOfSaleId,
         OfferCandidateIdentityDto CandidateIdentity,
         OfferServiceDto Service,
         OfferCoverageDto Coverage,

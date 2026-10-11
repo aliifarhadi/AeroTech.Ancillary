@@ -1,9 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using AeroTech.Ancillary.Application.FlightOffers;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Ancillary.Providers.Offer.Wire;
-using AeroTech.Ancillary.Shopping.FlightOffers;
 
 namespace AeroTech.Ancillary.Providers.Offer.Services
 {

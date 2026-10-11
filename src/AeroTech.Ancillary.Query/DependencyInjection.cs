@@ -4,6 +4,11 @@ using AeroTech.Ancillary.Query.AirportSlotInventoryAggregate.Queries.GetAirportS
 using AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Queries.GetInventoryConfigurationSnapshot;
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers;
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
+using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetSeatMap;
+using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.OtaPanel;
+using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Api;
+using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOfferDetail;
+using AeroTech.Ancillary.Query.AncillaryOffers.Queries.EvaluateSelection;
 using AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Queries.GetInventoryPoliciesPaginated;
 using AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Queries.GetInventoryPolicyById;
 using AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Queries.GetInventoryPolicyByServiceIdentity;
@@ -48,7 +53,13 @@ namespace AeroTech.Ancillary.Query
             services.AddScoped<IGetAncillaryServiceDefinitionsPaginatedService, GetAncillaryServiceDefinitionsPaginatedService>();
             services.AddScoped<IGetAncillaryVariantsService, GetAncillaryVariantsService>();
             services.AddScoped<IGetAncillaryOffersService, GetAncillaryOffersService>();
+            services.AddScoped<IGetAncillaryOfferDetailService, GetAncillaryOfferDetailService>();
+            services.AddScoped<IEvaluateSelectionService, EvaluateSelectionService>();
+            services.AddScoped<IGetSeatMapService, GetSeatMapService>();
+            services.AddScoped<IAgencySalesScopeService, AgencySalesScopeService>();
             services.AddScoped<IBackofficeSalesScopeResolver, BackofficeSalesScopeResolver>();
+            services.AddScoped<IApiSalesScopeResolver, ApiSalesScopeResolver>();
+            services.AddScoped<IOtaPanelSalesScopeResolver, OtaPanelSalesScopeResolver>();
             services.AddScoped<IGetAncillaryProvisionByIdService, GetAncillaryProvisionByIdService>();
             services.AddScoped<IGetAncillaryProvisionsPaginatedService, GetAncillaryProvisionsPaginatedService>();
             services.AddScoped<IGetAncillaryPricingByIdService, GetAncillaryPricingByIdService>();

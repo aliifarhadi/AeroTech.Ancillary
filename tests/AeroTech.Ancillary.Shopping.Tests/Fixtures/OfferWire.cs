@@ -2,7 +2,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json.Nodes;
 using AeroTech.Ancillary.Providers.Offer.Services;
-using AeroTech.Ancillary.Shopping.FlightOffers;
+using AeroTech.Ancillary.Application.FlightOffers;
 
 namespace AeroTech.Ancillary.Shopping.Tests.Fixtures;
 

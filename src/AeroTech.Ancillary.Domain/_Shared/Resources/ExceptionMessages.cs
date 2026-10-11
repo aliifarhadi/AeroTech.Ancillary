@@ -109,5 +109,8 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public const string FlightOfferIsInconsistent = "The flight offer returned by its provider is not consistent: {0}.";
         public const string PointOfSaleContextUnresolved = "POS_CONTEXT_UNRESOLVED: the point of sale of this sale could not be resolved ({0}).";
         public const string ShoppingCallerNotAuthorized = "The caller is not allowed to shop ancillary offers on this surface.";
+        public const string OfferItemRefIsRequired = "An offer item reference of a previous ancillary offers answer is required.";
+        public const string OfferItemWasNotFound = "OFFER_ITEM_NOT_FOUND: the offer item does not exist for this flight offer and sales scope any more; ask for the ancillary offers again.";
+        public const string SeatMapSourceUnavailable = "SEAT_MAP_SOURCE_UNAVAILABLE: no trusted seat map source is connected ({0}).";
     }
 }

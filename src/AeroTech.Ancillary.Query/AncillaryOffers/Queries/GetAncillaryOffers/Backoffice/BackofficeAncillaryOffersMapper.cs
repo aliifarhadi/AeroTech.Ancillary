@@ -1,34 +1,46 @@
-using AeroTech.Ancillary.Query.AncillaryOffers.Dto;
+using AeroTech.Ancillary.Application.FlightOffers;
+using AeroTech.Ancillary.Query.AncillaryOffers.Dto.Backoffice;
+using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
 using AeroTech.Ancillary.Query._Shared.Enums;
 using AeroTech.Ancillary.Shopping.Context;
-using AeroTech.Ancillary.Shopping.FlightOffers;
 using AeroTech.Ancillary.Shopping.Results;
 using AeroTech.Messages.Ancillary.Enums;
 
-namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers
+namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice
 {
-    public static class AncillaryOffersMapper
+    public static class BackofficeAncillaryOffersMapper
     {
         public const string NoApplicableProduct = "NO_APPLICABLE_PRODUCT";
+        public const string NoAuthorizedPointOfSale = "NO_AUTHORIZED_POINT_OF_SALE";
 
-        public static AncillaryOffersDto Map(FlightOffer offer, AncillaryShoppingContext context, CanonicalAncillaryOfferResult result)
+        public static BackofficeAncillaryOffersDto Map(AncillaryShoppingSnapshot snapshot)
         {
-            var offers = result.Candidates.Where(candidate => AncillaryOfferMapper.IsDiscoverable(candidate.OfferReadiness)).ToList();
-            var blocked = result.Candidates.Where(candidate => !AncillaryOfferMapper.IsDiscoverable(candidate.OfferReadiness)).ToList();
+            var offer = snapshot.Offer;
+            var scope = snapshot.Scope;
+            var offers = snapshot.Items.Where(item => BackofficeAncillaryOfferMapper.IsDiscoverable(item.Candidate.OfferReadiness)).ToList();
+            var blocked = snapshot.Items.Where(item => !BackofficeAncillaryOfferMapper.IsDiscoverable(item.Candidate.OfferReadiness)).ToList();
 
-            return new AncillaryOffersDto(
+            return new BackofficeAncillaryOffersDto(
                 offer.OfferId,
-                result.EvaluatedAtUtc,
-                new OfferCurrencyDto(context.CurrencyId, context.CurrencyId == offer.CurrencyId ? offer.CurrencyCode : null),
+                scope.SalesInstantUtc,
+                new OfferCurrencyDto(snapshot.CurrencyId, snapshot.CurrencyId == offer.CurrencyId ? offer.CurrencyCode : null),
                 new FlightOfferSummaryDto(offer.LastTicketingDate, offer.PricedAt, offer.CurrencyId, offer.BaseAmount, offer.ChargeAmount, offer.TotalAmount),
-                new OfferScopeDto(result.OwnerAirlineId, result.PointOfSaleId, EnumValueDto.Of(context.ShoppingStage)),
+                new OfferScopeDto(
+                    scope.OwnerAirlineId,
+                    snapshot.PointsOfSale.Count == 1 ? snapshot.PointsOfSale[0].PointOfSaleId : null,
+                    snapshot.PointsOfSale.Select(pointOfSale => pointOfSale.PointOfSaleId).ToList(),
+                    EnumValueDto.Of(FlightOfferShoppingContextMapper.Stage)),
                 new OfferJourneyDto(offer.Bounds.Select(Portion).ToList()),
-                offer.Tickets.Select(ticket => Traveller(ticket, context)).ToList(),
-                Categories(offers),
-                offers.Select(AncillaryOfferMapper.Map).ToList(),
-                blocked.Select(AncillaryOfferMapper.Map).ToList(),
-                Diagnostics(result),
-                new OfferCompletenessDto(true, IsComplete(context), blocked.Count > 0, false));
+                offer.Tickets.Select(ticket => Traveller(ticket, snapshot.Facts)).ToList(),
+                Categories(offers.Select(item => item.Candidate).ToList()),
+                offers.Select(BackofficeAncillaryOfferMapper.Map).ToList(),
+                blocked.Select(BackofficeAncillaryOfferMapper.Map).ToList(),
+                Diagnostics(snapshot),
+                new OfferCompletenessDto(
+                    true,
+                    snapshot.PointsOfSale.Count > 0 && snapshot.PointsOfSale.All(pointOfSale => IsComplete(pointOfSale.Context)),
+                    blocked.Count > 0,
+                    false));
         }
 
         private static OfferPortionDto Portion(FlightOfferBound bound)
@@ -58,12 +70,12 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers
                             .ToList()))
                     .ToList());
 
-        private static OfferTravellerDto Traveller(FlightOfferTicket ticket, AncillaryShoppingContext context)
+        private static OfferTravellerDto Traveller(FlightOfferTicket ticket, FlightOfferFacts facts)
             => new(
                 ticket.TravellerRef,
                 ticket.TravellerIndex,
                 EnumValueDto.Of(ticket.PassengerTypeCode),
-                context.TravellerBaggageFacts
+                facts.Baggage
                     .Where(fact => fact.TravellerRef == ticket.TravellerRef)
                     .Select(fact => new OfferIncludedBaggageDto(
                         fact.FlightRef,
@@ -74,7 +86,7 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers
                         fact.CabinWeight,
                         EnumValueDto.OfNullable(fact.CabinWeightUnit)))
                     .ToList(),
-                context.TravellerFareFacts
+                facts.Fares
                     .Where(fact => fact.TravellerRef == ticket.TravellerRef)
                     .Select(fact => new OfferFareDto(
                         fact.FlightRef,
@@ -93,9 +105,11 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers
                 .Select(group => new OfferCategoryDto(EnumValueDto.Of(group.Key), EnumValueDto.Of(group.Key).Title, group.Count()))
                 .ToList();
 
-        private static IReadOnlyList<OfferDiagnosticDto> Diagnostics(CanonicalAncillaryOfferResult result)
+        private static IReadOnlyList<OfferDiagnosticDto> Diagnostics(AncillaryShoppingSnapshot snapshot)
         {
-            var diagnostics = result.Diagnostics
+            var diagnostics = snapshot.PointsOfSale
+                .SelectMany(pointOfSale => pointOfSale.Result.Diagnostics)
+                .DistinctBy(diagnostic => (diagnostic.Code, diagnostic.Severity, string.Join('|', diagnostic.MissingContextFields), diagnostic.SourceAuthority))
                 .Select(diagnostic => new OfferDiagnosticDto(
                     diagnostic.Code,
                     EnumValueDto.Of(diagnostic.Severity),
@@ -103,7 +117,9 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers
                     diagnostic.SourceAuthority))
                 .ToList();
 
-            if (result.Candidates.Count == 0)
+            if (snapshot.PointsOfSale.Count == 0)
+                diagnostics.Add(new OfferDiagnosticDto(NoAuthorizedPointOfSale, EnumValueDto.Of(ShoppingDiagnosticSeverity.Info), [], null));
+            else if (!snapshot.Items.Any())
                 diagnostics.Add(new OfferDiagnosticDto(NoApplicableProduct, EnumValueDto.Of(ShoppingDiagnosticSeverity.Info), [], null));
 
             return diagnostics;

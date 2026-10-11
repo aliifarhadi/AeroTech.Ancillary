@@ -1,15 +1,20 @@
+using AeroTech.Ancillary.Application.FlightOffers;
 using AeroTech.Ancillary.Shopping.Context;
 using AeroTech.Messages.Ancillary.Enums;
 
-namespace AeroTech.Ancillary.Shopping.FlightOffers
+namespace AeroTech.Ancillary.Query.AncillaryOffers.Snapshots
 {
     public static class FlightOfferShoppingContextMapper
     {
         public const string Provenance = "FlightOffers/Details";
 
+        public const ShoppingStage Stage = ShoppingStage.PreOrder;
+
         public static string FlightRef(FlightOfferBound bound, FlightOfferFlight flight) => $"{bound.BoundId}:F{flight.Sequence}";
 
-        public static AncillaryShoppingContext Map(FlightOffer offer, FlightOfferSalesScope scope, IReadOnlyDictionary<int, int> airportCountryIds)
+        public static int CurrencyOf(FlightOffer offer, AncillarySalesScope scope) => scope.PreferredCurrencyId ?? offer.CurrencyId;
+
+        public static FlightOfferFacts Facts(FlightOffer offer)
         {
             var coupons = offer.Tickets
                 .SelectMany(ticket => ticket.Coupons.Select(coupon => (Ticket: ticket, Coupon: coupon, Flight: FlightOf(offer, coupon))))
@@ -17,23 +22,10 @@ namespace AeroTech.Ancillary.Shopping.FlightOffers
             var fareFacts = coupons.Select(row => FareFacts(offer, row.Ticket, row.Coupon, row.Flight)).ToList();
             var baggageFacts = coupons.Select(row => BaggageFacts(row.Ticket, row.Coupon, row.Flight)).ToList();
 
-            return new AncillaryShoppingContext
-            {
-                OwnerAirlineId = scope.OwnerAirlineId,
-                PointOfSaleId = scope.PointOfSaleId,
-                CustomerId = scope.CustomerId,
-                ShoppingStage = ShoppingStage.PreOrder,
-                EvaluatedAtUtc = scope.EvaluatedAtUtc,
-                CurrencyId = scope.PreferredCurrencyId ?? offer.CurrencyId,
-                SourceIdentity = new SourceIdentityContext { SourceKind = ShoppingSourceKind.Offer, TrustedSourceReference = offer.OfferId },
-                Travellers = offer.Tickets
-                    .Select(ticket => new ShoppingTraveller { TravellerRef = ticket.TravellerRef, PassengerTypeCode = ticket.PassengerTypeCode })
-                    .ToList(),
-                Portions = offer.Bounds.Select(Portion).ToList(),
-                Flights = offer.Bounds.SelectMany(bound => bound.Flights.Select(flight => Flight(bound, flight, airportCountryIds))).ToList(),
-                TravellerFareFacts = fareFacts.OfType<TravellerFareFacts>().ToList(),
-                TravellerBaggageFacts = baggageFacts.OfType<TravellerFlightBaggageFacts>().ToList(),
-                CoverageCompleteness = new FactCompleteness
+            return new FlightOfferFacts(
+                fareFacts.OfType<TravellerFareFacts>().ToList(),
+                baggageFacts.OfType<TravellerFlightBaggageFacts>().ToList(),
+                new FactCompleteness
                 {
                     TravellersComplete = true,
                     ItineraryComplete = true,
@@ -42,9 +34,33 @@ namespace AeroTech.Ancillary.Shopping.FlightOffers
                     FareBenefitsComplete = false,
                     ExistingServicesComplete = false,
                     Provenance = Provenance
-                }
-            };
+                });
         }
+
+        public static AncillaryShoppingContext Map(
+            FlightOffer offer,
+            FlightOfferFacts facts,
+            AncillarySalesScope scope,
+            long pointOfSaleId,
+            IReadOnlyDictionary<int, int> airportCountryIds)
+            => new()
+            {
+                OwnerAirlineId = scope.OwnerAirlineId,
+                PointOfSaleId = pointOfSaleId,
+                CustomerId = scope.CustomerId,
+                ShoppingStage = Stage,
+                EvaluatedAtUtc = scope.SalesInstantUtc,
+                CurrencyId = CurrencyOf(offer, scope),
+                SourceIdentity = new SourceIdentityContext { SourceKind = ShoppingSourceKind.Offer, TrustedSourceReference = offer.OfferId },
+                Travellers = offer.Tickets
+                    .Select(ticket => new ShoppingTraveller { TravellerRef = ticket.TravellerRef, PassengerTypeCode = ticket.PassengerTypeCode })
+                    .ToList(),
+                Portions = offer.Bounds.Select(Portion).ToList(),
+                Flights = offer.Bounds.SelectMany(bound => bound.Flights.Select(flight => Flight(bound, flight, airportCountryIds))).ToList(),
+                TravellerFareFacts = facts.Fares,
+                TravellerBaggageFacts = facts.Baggage,
+                CoverageCompleteness = facts.Completeness
+            };
 
         private static (FlightOfferBound Bound, FlightOfferFlight Flight) FlightOf(FlightOffer offer, FlightOfferCoupon coupon)
         {

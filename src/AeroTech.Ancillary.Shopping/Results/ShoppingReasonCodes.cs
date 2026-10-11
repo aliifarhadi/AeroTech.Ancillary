@@ -124,6 +124,7 @@ namespace AeroTech.Ancillary.Shopping.Results
         public const string AmountScaleNotAllowed = "AmountScaleNotAllowed";
         public const string FeeUnitNotSupported = "FeeUnitNotSupported";
         public const string FeeNotAppliedAtUnitLevel = "FeeNotAppliedAtUnitLevel";
+        public const string ChargeableWeightNotDetermined = "ChargeableWeightNotDetermined";
         public const string TaxTreatmentUnknown = "TaxTreatmentUnknown";
         public const string PricingUnitNotAssigned = "PricingUnitNotAssigned";
         public const string PriceOriginNotSupported = "PriceOriginNotSupported";
@@ -275,6 +276,7 @@ namespace AeroTech.Ancillary.Shopping.Results
             AmountScaleNotAllowed,
             FeeUnitNotSupported,
             FeeNotAppliedAtUnitLevel,
+            ChargeableWeightNotDetermined,
             TaxTreatmentUnknown,
             PricingUnitNotAssigned,
             PriceOriginNotSupported,

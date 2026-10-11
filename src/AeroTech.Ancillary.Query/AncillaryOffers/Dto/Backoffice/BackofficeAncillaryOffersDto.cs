@@ -1,8 +1,8 @@
 using AeroTech.Ancillary.Query._Shared.Enums;
 
-namespace AeroTech.Ancillary.Query.AncillaryOffers.Dto
+namespace AeroTech.Ancillary.Query.AncillaryOffers.Dto.Backoffice
 {
-    public sealed record AncillaryOffersDto(
+    public sealed record BackofficeAncillaryOffersDto(
         string OfferId,
         DateTimeOffset EvaluatedAtUtc,
         OfferCurrencyDto Currency,
@@ -11,8 +11,8 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Dto
         OfferJourneyDto Journey,
         IReadOnlyList<OfferTravellerDto> Travellers,
         IReadOnlyList<OfferCategoryDto> Categories,
-        IReadOnlyList<AncillaryOfferDto> Offers,
-        IReadOnlyList<AncillaryOfferDto> BlockedOffers,
+        IReadOnlyList<BackofficeAncillaryOfferDto> Offers,
+        IReadOnlyList<BackofficeAncillaryOfferDto> BlockedOffers,
         IReadOnlyList<OfferDiagnosticDto> Diagnostics,
         OfferCompletenessDto Completeness);
 
@@ -26,7 +26,7 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Dto
         decimal ChargeAmount,
         decimal TotalAmount);
 
-    public sealed record OfferScopeDto(int OwnerAirlineId, long PointOfSaleId, EnumValueDto ShoppingStage);
+    public sealed record OfferScopeDto(int OwnerAirlineId, long? PointOfSaleId, IReadOnlyList<long> PointOfSaleIds, EnumValueDto ShoppingStage);
 
     public sealed record OfferCategoryDto(EnumValueDto Code, string Label, int OfferCount);
 

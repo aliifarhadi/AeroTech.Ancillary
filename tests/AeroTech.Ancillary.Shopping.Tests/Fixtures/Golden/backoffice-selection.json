@@ -1,0 +1,221 @@
+{
+  "data": {
+    "offerId": "1|1|0;9000000000000000001~9000000000000000101_9000000000000000002~9000000000000000102;3|9000000000000000900||70|1791706372",
+    "status": {
+      "value": 1,
+      "name": "Accepted",
+      "title": "Accepted"
+    },
+    "offerItemRef": "9OPDGs5Gfvgl8jxzZWDa4Dmm57xVrL88x5nwpQi1RPk",
+    "currentOfferItemRef": "9OPDGs5Gfvgl8jxzZWDa4Dmm57xVrL88x5nwpQi1RPk",
+    "provisionChangedBySelection": false,
+    "offer": {
+      "offerItemRef": "9OPDGs5Gfvgl8jxzZWDa4Dmm57xVrL88x5nwpQi1RPk",
+      "pointOfSaleId": "9001",
+      "candidateIdentity": {
+        "definitionVersionId": "1002",
+        "provisionId": "1007",
+        "coverageScope": {
+          "value": 2,
+          "name": "Portion",
+          "title": "Portion"
+        },
+        "travellerRef": "ADT-1",
+        "coverageRef": "B1",
+        "pricingRevisionId": "1011"
+      },
+      "service": {
+        "serviceDefinitionRef": "EXTRA_BAG",
+        "definitionVersion": 1,
+        "profile": {
+          "value": 1,
+          "name": "Baggage",
+          "title": "Baggage"
+        },
+        "variantCode": "A01",
+        "commercialName": "Extra checked bag",
+        "description": null,
+        "serviceTypeCode": "F",
+        "serviceSubCode": "XB1",
+        "rfic": "C",
+        "rfisc": "XB1"
+      },
+      "coverage": {
+        "scope": {
+          "value": 2,
+          "name": "Portion",
+          "title": "Portion"
+        },
+        "travellerRefs": [
+          "ADT-1"
+        ],
+        "flightRefs": [
+          "B1:F1"
+        ],
+        "portionRefs": [
+          "B1"
+        ]
+      },
+      "eligibility": {
+        "status": {
+          "value": 1,
+          "name": "Eligible",
+          "title": "Eligible"
+        },
+        "reasonCodes": [],
+        "missingContextFields": []
+      },
+      "selection": {
+        "kind": {
+          "value": 2,
+          "name": "QuantityChoice",
+          "title": "Quantity Choice"
+        },
+        "zeroQuantityMeansNoSelection": true,
+        "fields": [
+          {
+            "name": "Quantity",
+            "type": {
+              "value": 1,
+              "name": "Integer",
+              "title": "Integer"
+            },
+            "required": true
+          },
+          {
+            "name": "TravellerRef",
+            "type": {
+              "value": 7,
+              "name": "Reference",
+              "title": "Reference"
+            },
+            "required": true
+          },
+          {
+            "name": "BoundRef",
+            "type": {
+              "value": 7,
+              "name": "Reference",
+              "title": "Reference"
+            },
+            "required": true
+          }
+        ]
+      },
+      "quantity": {
+        "unit": {
+          "value": 2,
+          "name": "Piece",
+          "title": "Piece"
+        },
+        "minPerSelection": 1,
+        "maxPerSelection": 6,
+        "cumulativeLimits": []
+      },
+      "pricing": {
+        "origin": {
+          "value": 1,
+          "name": "Filed",
+          "title": "Filed"
+        },
+        "status": {
+          "value": 1,
+          "name": "Complete",
+          "title": "Complete"
+        },
+        "currencyId": 70,
+        "pricingUnit": {
+          "value": 6,
+          "name": "PerPiece",
+          "title": "Per Piece"
+        },
+        "baseAmount": 5000000,
+        "completeUnitTotal": 5450000,
+        "addedTaxes": [
+          {
+            "code": "VAT",
+            "amount": 450000,
+            "currencyId": 70,
+            "countryId": null,
+            "stationAirportId": null,
+            "feeApplicationUnit": null
+          }
+        ],
+        "includedTaxes": [],
+        "appliedUnitFees": [],
+        "unappliedFees": [],
+        "isOrderLevelTotalComplete": true,
+        "quoteProviderKey": null,
+        "reasonCodes": []
+      },
+      "availability": {
+        "authority": null,
+        "configState": {
+          "value": 1,
+          "name": "NotConfigured",
+          "title": "Not Configured"
+        },
+        "checkedState": {
+          "value": 1,
+          "name": "NotChecked",
+          "title": "Not Checked"
+        },
+        "isGuaranteed": false,
+        "requiresCheckAtReserve": false,
+        "consumptionPreview": null,
+        "reasonCodes": [
+          "InventoryNotConfigured"
+        ]
+      },
+      "confirmation": {
+        "bookingMethod": {
+          "value": 1,
+          "name": "Ssr",
+          "title": "SSR"
+        },
+        "confirmationRequirement": {
+          "value": 1,
+          "name": "Immediate",
+          "title": "Immediate"
+        },
+        "providerConfirmationStatus": {
+          "value": 1,
+          "name": "NotRequested",
+          "title": "Not Requested"
+        }
+      },
+      "document": {
+        "routing": {
+          "value": 2,
+          "name": "Emd",
+          "title": "Emd"
+        },
+        "documentType": {
+          "value": 2,
+          "name": "EmdAssociated",
+          "title": "EMD Associated"
+        },
+        "rfic": "C",
+        "rfisc": "XB1",
+        "documentRequired": true
+      },
+      "offerReadiness": {
+        "value": 5,
+        "name": "Selectable",
+        "title": "Selectable"
+      },
+      "displayState": {
+        "value": 1,
+        "name": "AvailableForSelection",
+        "title": "Available For Selection"
+      },
+      "canPurchase": false,
+      "reasonCodes": [
+        "InventoryNotConfigured"
+      ]
+    },
+    "selectedQuantityTotal": 10900000,
+    "fieldIssues": [],
+    "canPurchase": false
+  }
+}

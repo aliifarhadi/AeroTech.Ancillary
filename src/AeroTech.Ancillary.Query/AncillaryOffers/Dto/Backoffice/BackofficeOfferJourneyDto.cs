@@ -1,6 +1,6 @@
 using AeroTech.Ancillary.Query._Shared.Enums;
 
-namespace AeroTech.Ancillary.Query.AncillaryOffers.Dto
+namespace AeroTech.Ancillary.Query.AncillaryOffers.Dto.Backoffice
 {
     public sealed record OfferJourneyDto(IReadOnlyList<OfferPortionDto> Portions);
 

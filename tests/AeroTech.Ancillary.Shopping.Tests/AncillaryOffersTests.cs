@@ -3,10 +3,11 @@ using AeroTech.Ancillary.Application.AcceptanceTests.Fakes;
 using AeroTech.Ancillary.Application.AcceptanceTests.Fixtures;
 using AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.Arguments;
 using AeroTech.Ancillary.Domain._Shared.Contracts;
-using AeroTech.Ancillary.Query.AncillaryOffers.Dto;
+using AeroTech.Ancillary.Query.AncillaryOffers.Dto.Backoffice;
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers;
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
-using AeroTech.Ancillary.Shopping.FlightOffers;
+using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
+using AeroTech.Ancillary.Application.FlightOffers;
 using AeroTech.Ancillary.Shopping.Results;
 using AeroTech.Ancillary.Shopping.Tests.Fixtures;
 using AeroTech.Framework.Core.Domain.Exceptions;
@@ -70,7 +71,7 @@ public class AncillaryOffersTests
                 new FlightOfferTicket("CHD-1", 2, PassengerTypeCode.CHD, [Coupon("B1", 501, true, 9002), Coupon("B1", 502, true, 9002), Coupon("B2", 503, true, 9003)]),
                 new FlightOfferTicket("INF-1", 3, PassengerTypeCode.INF, [Coupon("B1", 501, false, 9001, 9002), Coupon("B1", 502, false, 9003), Coupon("B2", 503, false)])
             ]);
-        var context = FlightOfferShoppingContextMapper.Map(offer, Sale with { PreferredCurrencyId = null }, new Dictionary<int, int> { [Trip.Thr] = 100, [Trip.Ist] = 200 });
+        var context = ContextOf(offer, Sale with { PreferredCurrencyId = null }, new Dictionary<int, int> { [Trip.Thr] = 100, [Trip.Ist] = 200 });
 
         Assert.Equal(new[] { ("B1", "B1:F1,B1:F2", Trip.Ika), ("B2", "B2:F1", 0) }, context.Portions.Select(portion => (portion.PortionRef, string.Join(',', portion.FlightRefs), portion.ViaAirportIds!.SingleOrDefault())));
         Assert.Equal(new[] { 501L, 502L, 503L }, context.Flights.Select(flight => flight.FlightId));
@@ -117,14 +118,14 @@ public class AncillaryOffersTests
         Assert.Null(response.Currency.CurrencyCode);
         Assert.Equal((70, 480000000m, 528010024m), (response.FlightOffer.CurrencyId, response.FlightOffer.BaseAmount, response.FlightOffer.TotalAmount));
         Assert.Null(response.FlightOffer.LastTicketingDate);
-        Assert.Equal((Airline, Pos, "PreOrder"), (response.Scope.OwnerAirlineId, response.Scope.PointOfSaleId, response.Scope.ShoppingStage.Name));
+        Assert.Equal((Airline, Pos, "PreOrder"), (response.Scope.OwnerAirlineId, response.Scope.PointOfSaleId!.Value, response.Scope.ShoppingStage.Name));
         Assert.Equal(new[] { ("B1", "Outbound", "B1:F1"), ("B2", "Inbound", "B2:F1") }, response.Journey.Portions.Select(portion => (portion.PortionRef, portion.Direction!.Name, portion.Flights.Single().FlightRef)));
         Assert.Equal(new[] { ("ADT-1", "ADT"), ("CHD-1", "CHD") }, response.Travellers.Select(traveller => (traveller.TravellerRef, traveller.PassengerTypeCode.Name)));
         Assert.All(response.Travellers, traveller => Assert.Equal(new[] { "B1:F1", "B2:F1" }, traveller.FareByFlight.Select(fare => fare.FlightRef)));
         Assert.Empty(response.Offers);
         Assert.Empty(response.BlockedOffers);
         Assert.Empty(response.Categories);
-        Assert.Equal(AncillaryOffersMapper.NoApplicableProduct, Assert.Single(response.Diagnostics).Code);
+        Assert.Equal(BackofficeAncillaryOffersMapper.NoApplicableProduct, Assert.Single(response.Diagnostics).Code);
         Assert.Equal((true, false, false, false), (response.Completeness.FlightOfferVerified, response.Completeness.ShoppingContextComplete, response.Completeness.HasBlockedProducts, response.Completeness.LiveSupplierAvailabilityChecked));
     }
 
@@ -169,7 +170,7 @@ public class AncillaryOffersTests
 
         var response = await ShopAsync(lab);
 
-        IReadOnlyList<AncillaryOfferDto> Of(IReadOnlyList<AncillaryOfferDto> offers, string reference) => offers.Where(offer => offer.Service.ServiceDefinitionRef == reference).ToList();
+        IReadOnlyList<BackofficeAncillaryOfferDto> Of(IReadOnlyList<BackofficeAncillaryOfferDto> offers, string reference) => offers.Where(offer => offer.Service.ServiceDefinitionRef == reference).ToList();
 
         var seat = Of(response.Offers, lab.Catalog.Definitions.Single(definition => definition.VariantCode == "A07").ServiceDefinitionRef);
         var upgrade = Of(response.BlockedOffers, lab.Catalog.Definitions.Single(definition => definition.VariantCode == "A10").ServiceDefinitionRef);
@@ -270,7 +271,7 @@ public class AncillaryOffersTests
         {
             TravellerBaggageFacts = trip.TravellerBaggageFacts.Select(fact => fact.FlightRef == "F2" ? Trip.WeightAllowance(fact.TravellerRef, "F2", "P2") : fact).ToList()
         });
-        var projected = result.Candidates.Select(candidate => (Candidate: candidate, Offer: AncillaryOfferMapper.Map(candidate))).ToList();
+        var projected = result.Candidates.Select(candidate => (Candidate: candidate, Offer: BackofficeAncillaryOfferMapper.Map("item", Pos, candidate))).ToList();
 
         Assert.Equal(V122Catalog.Cases.Select(variant => variant.Code).Order(), projected.Select(row => row.Offer.Service.VariantCode).Distinct().Order());
         Assert.All(projected, row =>
@@ -279,7 +280,7 @@ public class AncillaryOffersTests
 
             Assert.Equal(expected.Kind.ToString(), row.Offer.Selection.Kind.Name);
             Assert.Equal(expected.Fields, row.Offer.Selection.Fields.Select(field => field.Name));
-            Assert.Equal(AncillaryOfferMapper.DisplayStateOf(row.Candidate.OfferReadiness).ToString(), row.Offer.DisplayState.Name);
+            Assert.Equal(BackofficeAncillaryOfferMapper.DisplayStateOf(row.Candidate.OfferReadiness).ToString(), row.Offer.DisplayState.Name);
             Assert.Equal(row.Candidate.Price.CompleteUnitTotal, row.Offer.Pricing.CompleteUnitTotal);
             Assert.Equal(row.Candidate.Quantity.Unit.ToString(), row.Offer.Quantity.Unit.Name);
             Assert.False(row.Offer.CanPurchase);
@@ -296,38 +297,38 @@ public class AncillaryOffersTests
     [InlineData(OfferReadiness.NotEligible, AncillaryOfferDisplayState.NotEligible, false)]
     public void CT_20_the_display_state_is_one_translation_of_the_readiness(OfferReadiness readiness, AncillaryOfferDisplayState state, bool discoverable)
     {
-        Assert.Equal((state, discoverable), (AncillaryOfferMapper.DisplayStateOf(readiness), AncillaryOfferMapper.IsDiscoverable(readiness)));
+        Assert.Equal((state, discoverable), (BackofficeAncillaryOfferMapper.DisplayStateOf(readiness), BackofficeAncillaryOfferMapper.IsDiscoverable(readiness)));
         Assert.Equal(6, Enum.GetValues<OfferReadiness>().Length);
-        Assert.Equal(Enum.GetValues<OfferReadiness>().Length, Enum.GetValues<OfferReadiness>().Select(AncillaryOfferMapper.DisplayStateOf).Distinct().Count());
-        Assert.Throws<ArgumentOutOfRangeException>(() => AncillaryOfferMapper.DisplayStateOf((OfferReadiness)99));
+        Assert.Equal(Enum.GetValues<OfferReadiness>().Length, Enum.GetValues<OfferReadiness>().Select(BackofficeAncillaryOfferMapper.DisplayStateOf).Distinct().Count());
+        Assert.Throws<ArgumentOutOfRangeException>(() => BackofficeAncillaryOfferMapper.DisplayStateOf((OfferReadiness)99));
     }
 
     [Fact]
-    public async Task CT_04_the_point_of_sale_is_the_named_one_or_the_single_eligible_one_and_never_a_default()
+    public async Task CT_04_the_points_of_sale_are_the_named_one_or_the_whole_eligible_set_and_never_a_default()
     {
         var named = new Eligibility();
         var explicitScope = await Resolver(eligibility: named).ResolveAsync(new BackofficeAncillaryOfferOptions { PointOfSaleId = 77, CustomerId = "501", PreferredCurrencyId = Eur, SalesDate = new DateTimeOffset(2026, 11, 1, 12, 0, 0, TimeSpan.FromHours(2)) });
         var single = new Eligibility { Result = InventoryReferenceCheck.Verified, Allowed = [88] };
         var resolvedScope = await Resolver(eligibility: single).ResolveAsync(new BackofficeAncillaryOfferOptions { CountryId = 5, CustomerId = "not-a-number" });
 
-        Assert.Equal(new FlightOfferSalesScope(Airline, 77, 501, Eur, new DateTimeOffset(2026, 11, 1, 10, 0, 0, TimeSpan.Zero)), explicitScope);
-        Assert.Equal(TimeSpan.Zero, explicitScope.EvaluatedAtUtc.Offset);
+        Assert.Equal(new DeskScope(Airline, 77, 501, Eur, new DateTimeOffset(2026, 11, 1, 10, 0, 0, TimeSpan.Zero)), DeskScope.Of(explicitScope));
+        Assert.Equal((TimeSpan.Zero, Channel.BackOffice), (explicitScope.SalesInstantUtc.Offset, explicitScope.Channel));
         Assert.Null(named.Asked);
-        Assert.Equal(new FlightOfferSalesScope(Airline, 88, null, null, new FixedClock().Now), resolvedScope);
+        Assert.Equal(new DeskScope(Airline, 88, null, null, new FixedClock().Now), DeskScope.Of(resolvedScope));
         Assert.Equal((Channel.BackOffice, 5L, 9200L, (long?)null), (single.Asked!.Channel, single.Asked.CountryId, single.Asked.AirlineOfficeIds.Single(), single.Asked.TravelAgencyOfficeId));
 
-        foreach (var unresolved in new[]
-                 {
-                     new Eligibility(),
-                     new Eligibility { Result = InventoryReferenceCheck.Verified },
-                     new Eligibility { Result = InventoryReferenceCheck.Verified, Allowed = [1, 2] },
-                     new Eligibility { Result = InventoryReferenceCheck.NotFound, Allowed = [1] }
-                 })
+        Assert.Empty((await Resolver(eligibility: new Eligibility { Result = InventoryReferenceCheck.Verified }).ResolveAsync(null)).PointOfSaleIds);
+        Assert.Equal(
+            new long[] { 1, 2 },
+            (await Resolver(eligibility: new Eligibility { Result = InventoryReferenceCheck.Verified, Allowed = [2, 1, 2] }).ResolveAsync(null)).PointOfSaleIds);
+
+        foreach (var unresolved in new[] { new Eligibility(), new Eligibility { Result = InventoryReferenceCheck.NotFound, Allowed = [1] } })
         {
             var failure = await Assert.ThrowsAsync<BusinessException>(() => Resolver(eligibility: unresolved).ResolveAsync(null));
 
             Assert.Equal((16808, 409), (failure.Code, failure.HttpStatus));
             Assert.StartsWith("POS_CONTEXT_UNRESOLVED", failure.Message, StringComparison.Ordinal);
+            Assert.Contains(AuthorizedPointsOfSale.BlockedExternalReference, failure.Message, StringComparison.Ordinal);
         }
     }
 

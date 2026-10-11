@@ -7,7 +7,7 @@ using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers;
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
 using AeroTech.Ancillary.Shopping.Context;
 using AeroTech.Ancillary.Shopping.Engine;
-using AeroTech.Ancillary.Shopping.FlightOffers;
+using AeroTech.Ancillary.Application.FlightOffers;
 using AeroTech.Ancillary.Shopping.Reading;
 using AeroTech.Ancillary.Shopping.Reading.Sql;
 using AeroTech.Ancillary.Shopping.Results;
@@ -189,14 +189,14 @@ public class SqlShoppingReaderTests
         var service = new GetAncillaryOffersService(OfferWire.Provider(handler), new TestOnlyAirportReference(), Engine(context, new InMemoryCatalog()));
         var provisionsBefore = await context.AncillaryProvisions.AsNoTracking().CountAsync();
         var commandsBefore = _database.Sql.Count;
-        var response = await service.ExecuteAsync(
+        var response = BackofficeAncillaryOffersMapper.Map(await service.ExecuteAsync(
             new BackofficeGetAncillaryOffersQuery { OfferId = OfferWire.OfferId },
-            new FlightOfferSalesScope(airlineId, V122Catalog.PointOfSale, null, ShoppingLab.Eur, _clock.Now));
+            new BackofficeDesk.DeskScope(airlineId, V122Catalog.PointOfSale, null, ShoppingLab.Eur, _clock.Now)));
         var candidates = response.Offers.Concat(response.BlockedOffers).ToList();
 
         Assert.Equal(1, handler.Calls);
         Assert.True(_database.Sql.Count > commandsBefore);
-        Assert.Equal((airlineId, V122Catalog.PointOfSale), (response.Scope.OwnerAirlineId, response.Scope.PointOfSaleId));
+        Assert.Equal((airlineId, V122Catalog.PointOfSale), (response.Scope.OwnerAirlineId, response.Scope.PointOfSaleId!.Value));
         Assert.Equal(new[] { "B1", "B2" }, response.Journey.Portions.Select(portion => portion.PortionRef));
         Assert.NotEmpty(candidates);
         Assert.Subset(new HashSet<string> { "A01", "A07", "A24" }, candidates.Select(offer => offer.Service.VariantCode).ToHashSet());
@@ -209,17 +209,17 @@ public class SqlShoppingReaderTests
         Assert.Empty(context.ChangeTracker.Entries());
         Assert.Equal(provisionsBefore, await context.AncillaryProvisions.AsNoTracking().CountAsync());
 
-        var foreign = await service.ExecuteAsync(
+        var foreign = BackofficeAncillaryOffersMapper.Map(await service.ExecuteAsync(
             new BackofficeGetAncillaryOffersQuery { OfferId = OfferWire.OfferId },
-            new FlightOfferSalesScope(_database.NextAirlineId(), V122Catalog.PointOfSale, null, ShoppingLab.Eur, _clock.Now));
-        var otherPointOfSale = await service.ExecuteAsync(
+            new BackofficeDesk.DeskScope(_database.NextAirlineId(), V122Catalog.PointOfSale, null, ShoppingLab.Eur, _clock.Now)));
+        var otherPointOfSale = BackofficeAncillaryOffersMapper.Map(await service.ExecuteAsync(
             new BackofficeGetAncillaryOffersQuery { OfferId = OfferWire.OfferId },
-            new FlightOfferSalesScope(airlineId, V122Catalog.OtherPointOfSale, null, ShoppingLab.Eur, _clock.Now));
+            new BackofficeDesk.DeskScope(airlineId, V122Catalog.OtherPointOfSale, null, ShoppingLab.Eur, _clock.Now)));
 
         Assert.All(new[] { foreign, otherPointOfSale }, empty =>
         {
             Assert.Empty(empty.Offers.Concat(empty.BlockedOffers));
-            Assert.Equal(AncillaryOffersMapper.NoApplicableProduct, Assert.Single(empty.Diagnostics).Code);
+            Assert.Equal(BackofficeAncillaryOffersMapper.NoApplicableProduct, Assert.Single(empty.Diagnostics).Code);
         });
     }
 }

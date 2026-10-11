@@ -1,12 +1,13 @@
-using AeroTech.Ancillary.Query.AncillaryOffers.Dto;
+using AeroTech.Ancillary.Query.AncillaryOffers.Dto.Backoffice;
+using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto;
 using AeroTech.Ancillary.Query._Shared.Enums;
 using AeroTech.Ancillary.Shopping.Results;
 using AeroTech.Messages.Ancillary.Enums;
 
-namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers
+namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice
 {
-    public static class AncillaryOfferMapper
+    public static class BackofficeAncillaryOfferMapper
     {
         public static AncillaryOfferDisplayState DisplayStateOf(OfferReadiness readiness)
             => readiness switch
@@ -23,8 +24,12 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers
         public static bool IsDiscoverable(OfferReadiness readiness)
             => readiness is OfferReadiness.Selectable or OfferReadiness.NeedsSelection or OfferReadiness.NeedsQuote;
 
-        public static AncillaryOfferDto Map(CanonicalAncillaryOfferCandidate candidate)
+        public static BackofficeAncillaryOfferDto Map(AncillaryOfferItem item) => Map(item.OfferItemRef, item.PointOfSaleId, item.Candidate);
+
+        public static BackofficeAncillaryOfferDto Map(string offerItemRef, long pointOfSaleId, CanonicalAncillaryOfferCandidate candidate)
             => new(
+                offerItemRef,
+                pointOfSaleId,
                 new OfferCandidateIdentityDto(
                     candidate.CandidateIdentity.DefinitionVersionId,
                     candidate.CandidateIdentity.ProvisionId,

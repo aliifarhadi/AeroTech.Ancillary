@@ -1,10 +1,14 @@
-using AeroTech.Ancillary.Query.AncillaryOffers.Dto;
-using AeroTech.Ancillary.Shopping.FlightOffers;
+using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
 
 namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers
 {
     public interface IGetAncillaryOffersService
     {
-        Task<AncillaryOffersDto> ExecuteAsync(IAncillaryOffersQuery query, FlightOfferSalesScope scope, CancellationToken cancellationToken = default);
+        Task<AncillaryShoppingSnapshot> ExecuteAsync(IAncillaryOffersQuery query, AncillarySalesScope scope, CancellationToken cancellationToken = default);
+
+        Task<(AncillaryShoppingSnapshot Shopping, AncillaryOfferItem Item)> FindItemAsync(
+            IAncillaryOfferItemQuery query,
+            AncillarySalesScope scope,
+            CancellationToken cancellationToken = default);
     }
 }

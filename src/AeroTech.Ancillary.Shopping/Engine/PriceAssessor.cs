@@ -82,6 +82,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
             var taxes = lines.Where(line => line.Category == AncillaryPriceLineCategory.Tax).ToList();
             var fees = lines.Where(line => line.Category == AncillaryPriceLineCategory.Fee).ToList();
             var unapplied = fees.Where(line => line.FeeApplicationUnit != FeeApplicationUnit.Item).ToList();
+            var weightBased = pricing.PricingUnit == PricingUnit.PerKilogram;
 
             if (!currencyDecimalPlaces.TryGetValue(rate.CurrencyId, out var decimals))
                 reasons.Add(ShoppingReasonCodes.CurrencyScaleUnknown);
@@ -99,6 +100,9 @@ namespace AeroTech.Ancillary.Shopping.Engine
             if (complete && unapplied.Count > 0)
                 reasons.Add(ShoppingReasonCodes.FeeNotAppliedAtUnitLevel);
 
+            if (complete && weightBased)
+                reasons.Add(ShoppingReasonCodes.ChargeableWeightNotDetermined);
+
             decimal? unitTotal = complete ? rate.UnitTotal.Amount : null;
 
             return new PriceAssessment
@@ -115,8 +119,8 @@ namespace AeroTech.Ancillary.Shopping.Engine
                 AppliedUnitFeeLines = fees.Where(line => line.FeeApplicationUnit == FeeApplicationUnit.Item).ToList(),
                 UnappliedFeeLines = unapplied,
                 CompleteUnitTotal = unitTotal,
-                RequestedQuantityTotal = unitTotal is not null && unapplied.Count == 0 && quantity is > 0 ? unitTotal.Value * quantity.Value : null,
-                IsOrderLevelTotalComplete = complete && unapplied.Count == 0,
+                RequestedQuantityTotal = unitTotal is not null && unapplied.Count == 0 && !weightBased && quantity is > 0 ? unitTotal.Value * quantity.Value : null,
+                IsOrderLevelTotalComplete = complete && unapplied.Count == 0 && !weightBased,
                 ReasonCodes = reasons
             };
         }

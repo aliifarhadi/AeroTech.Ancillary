@@ -1,7 +1,7 @@
 using System.Globalization;
+using AeroTech.Ancillary.Application.FlightOffers;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Ancillary.Providers.Offer.Wire;
-using AeroTech.Ancillary.Shopping.FlightOffers;
 using AeroTech.Messages.AirPrice.Enums;
 
 namespace AeroTech.Ancillary.Providers.Offer.Services

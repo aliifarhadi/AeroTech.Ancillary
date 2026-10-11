@@ -1,9 +1,9 @@
-using AeroTech.Ancillary.Shopping.FlightOffers;
+using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
 
 namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice
 {
     public interface IBackofficeSalesScopeResolver
     {
-        Task<FlightOfferSalesScope> ResolveAsync(BackofficeAncillaryOfferOptions? options, CancellationToken cancellationToken = default);
+        Task<AncillarySalesScope> ResolveAsync(BackofficeAncillaryOfferOptions? options, CancellationToken cancellationToken = default);
     }
 }

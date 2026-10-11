@@ -1,10 +1,11 @@
 using AeroTech.Ancillary.Application.AcceptanceTests.Fakes;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments;
 using AeroTech.Ancillary.Domain._Shared.Contracts;
-using AeroTech.Ancillary.Query.AncillaryOffers.Dto;
+using AeroTech.Ancillary.Query.AncillaryOffers.Dto.Backoffice;
+using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
 using AeroTech.Ancillary.Shopping.Context;
-using AeroTech.Ancillary.Shopping.FlightOffers;
+using AeroTech.Ancillary.Application.FlightOffers;
 using AeroTech.Ancillary.Shopping.Results;
 using AeroTech.Ancillary.Shopping.Selection;
 using AeroTech.Ancillary.Shopping.Tests.Fixtures;
@@ -23,7 +24,7 @@ public class BackofficeSurfaceParityTests
     private const int Irr = 70;
     private const long EmbeddedSalesDate = 1791706372;
 
-    private static readonly FlightOfferSalesScope Desk = new(Airline, Pos, null, null, Now);
+    private static readonly DeskScope Desk = new(Airline, Pos, null, null, Now);
 
     private static ShoppingLab IrrLab()
     {
@@ -37,7 +38,7 @@ public class BackofficeSurfaceParityTests
     private static (string Name, Type Type)[] Members(Type type)
         => type.GetProperties().Select(property => (property.Name, property.PropertyType)).OrderBy(member => member.Name, StringComparer.Ordinal).ToArray();
 
-    private static IEnumerable<AncillaryOfferDto> Of(AncillaryOffersDto response, string reference)
+    private static IEnumerable<BackofficeAncillaryOfferDto> Of(BackofficeAncillaryOffersDto response, string reference)
         => response.Offers.Concat(response.BlockedOffers).Where(offer => offer.Service.ServiceDefinitionRef == reference);
 
     [Fact]
@@ -89,9 +90,9 @@ public class BackofficeSurfaceParityTests
 
         await Resolver(eligibility: anyCountry).ResolveAsync(new BackofficeAncillaryOfferOptions());
 
-        Assert.Equal(77, named.PointOfSaleId);
+        Assert.Equal(77, named.PointOfSaleIds.Single());
         Assert.Null(unused.Asked);
-        Assert.Equal(88, eligible.PointOfSaleId);
+        Assert.Equal(88, eligible.PointOfSaleIds.Single());
         Assert.Equal((Channel.BackOffice, 5L), (asked.Asked!.Channel, asked.Asked.CountryId));
         Assert.Null(anyCountry.Asked!.CountryId);
 
@@ -105,8 +106,8 @@ public class BackofficeSurfaceParityTests
         var offer = await OfferWire.ReadAsync(OfferWire.Captured());
 
         Assert.Equal(Irr, offer.CurrencyId);
-        Assert.Equal(Irr, FlightOfferShoppingContextMapper.Map(offer, Desk, new Dictionary<int, int>()).CurrencyId);
-        Assert.Equal(Eur, FlightOfferShoppingContextMapper.Map(offer, Desk with { PreferredCurrencyId = Eur }, new Dictionary<int, int>()).CurrencyId);
+        Assert.Equal(Irr, ContextOf(offer, Desk, new Dictionary<int, int>()).CurrencyId);
+        Assert.Equal(Eur, ContextOf(offer, Desk with { PreferredCurrencyId = Eur }, new Dictionary<int, int>()).CurrencyId);
     }
 
     [Fact]
@@ -134,11 +135,11 @@ public class BackofficeSurfaceParityTests
         var requested = await Resolver(foreignFacts, eligibility: new Eligibility()).ResolveAsync(
             new BackofficeAncillaryOfferOptions { PointOfSaleId = 77, CustomerId = "501", PreferredCurrencyId = Irr, SalesDate = clock.Now.AddDays(3) });
 
-        Assert.Equal(new FlightOfferSalesScope(Airline, 88, null, null, clock.Now), defaults);
+        Assert.Equal(new DeskScope(Airline, 88, null, null, clock.Now), DeskScope.Of(defaults));
         Assert.Equal(
             (Channel.BackOffice, (long?)null, 9200L, (long?)null),
             (eligibility.Asked!.Channel, eligibility.Asked.CountryId, eligibility.Asked.AirlineOfficeIds.Single(), eligibility.Asked.TravelAgencyOfficeId));
-        Assert.Equal(new FlightOfferSalesScope(Airline, 77, 501, Irr, clock.Now.AddDays(3)), requested);
+        Assert.Equal(new DeskScope(Airline, 77, 501, Irr, clock.Now.AddDays(3)), DeskScope.Of(requested));
         Assert.Equal(
             new[] { typeof(ICallerContext), typeof(IOperatorAirlineResolver), typeof(IPointOfSaleEligibilityReference), typeof(IClock) },
             typeof(BackofficeSalesScopeResolver).GetConstructors().Single().GetParameters().Select(parameter => parameter.ParameterType));
@@ -169,13 +170,13 @@ public class BackofficeSurfaceParityTests
         lab.Price(wifi, lab.Provision(wifi), Rate(900_000m, Irr));
 
         var offer = await OfferWire.ReadAsync(OfferWire.Captured());
-        var context = FlightOfferShoppingContextMapper.Map(offer, Desk, new Dictionary<int, int>());
+        var context = ContextOf(offer, Desk, new Dictionary<int, int>());
         var response = await ShopAsync(lab, scope: Desk);
 
         Assert.Equal((Pos, (long?)null, Irr, Now), (context.PointOfSaleId, context.CustomerId, context.CurrencyId, context.EvaluatedAtUtc));
         Assert.Equal(OfferWire.OfferId, context.SourceIdentity.TrustedSourceReference);
         Assert.Equal((4, 0), (response.Offers.Count, response.BlockedOffers.Count));
-        Assert.Equal((Airline, Pos, Now), (response.Scope.OwnerAirlineId, response.Scope.PointOfSaleId, response.EvaluatedAtUtc));
+        Assert.Equal((Airline, Pos, Now), (response.Scope.OwnerAirlineId, response.Scope.PointOfSaleId!.Value, response.EvaluatedAtUtc));
         Assert.Equal(
             (DateTimeOffset.FromUnixTimeSeconds(EmbeddedSalesDate), Irr, 528010024m),
             (response.FlightOffer.SourcePricedAt!.Value, response.FlightOffer.CurrencyId, response.FlightOffer.TotalAmount));
@@ -189,13 +190,13 @@ public class BackofficeSurfaceParityTests
         var clock = new FixedClock();
         var tehran = new DateTimeOffset(2026, 9, 1, 13, 30, 0, TimeSpan.FromHours(3.5));
 
-        Assert.Equal(clock.Now, (await Resolver(clock: clock).ResolveAsync(new BackofficeAncillaryOfferOptions { PointOfSaleId = 77 })).EvaluatedAtUtc);
+        Assert.Equal(clock.Now, (await Resolver(clock: clock).ResolveAsync(new BackofficeAncillaryOfferOptions { PointOfSaleId = 77 })).SalesInstantUtc);
 
         foreach (var given in new[] { clock.Now.AddDays(-30), clock.Now.AddDays(30), tehran })
         {
             var scope = await Resolver(clock: clock).ResolveAsync(new BackofficeAncillaryOfferOptions { PointOfSaleId = 77, SalesDate = given });
 
-            Assert.Equal((given.UtcDateTime, TimeSpan.Zero), (scope.EvaluatedAtUtc.UtcDateTime, scope.EvaluatedAtUtc.Offset));
+            Assert.Equal((given.UtcDateTime, TimeSpan.Zero), (scope.SalesInstantUtc.UtcDateTime, scope.SalesInstantUtc.Offset));
         }
 
         var lab = IrrLab();
@@ -214,7 +215,7 @@ public class BackofficeSurfaceParityTests
         Assert.Equal((0, Now.AddDays(-30)), (before.Offers.Count, before.EvaluatedAtUtc));
         Assert.Equal((0, Now.AddDays(30)), (after.Offers.Count, after.EvaluatedAtUtc));
         Assert.All(new[] { open, before, after }, response => Assert.Equal(DateTimeOffset.FromUnixTimeSeconds(EmbeddedSalesDate), response.FlightOffer.SourcePricedAt));
-        Assert.Null(FlightOfferShoppingContextMapper.Map(await OfferWire.ReadAsync(OfferWire.Captured()), Desk, new Dictionary<int, int>()).SourceIdentity.ValidUntilUtc);
+        Assert.Null(ContextOf(await OfferWire.ReadAsync(OfferWire.Captured()), Desk, new Dictionary<int, int>()).SourceIdentity.ValidUntilUtc);
     }
 
     [Fact]
@@ -310,7 +311,7 @@ public class BackofficeSurfaceParityTests
 
         var response = await ShopAsync(lab, scope: Desk);
         var shown = Of(response, overweight.ServiceDefinitionRef).ToList();
-        var context = FlightOfferShoppingContextMapper.Map(await OfferWire.ReadAsync(OfferWire.Captured()), Desk, new Dictionary<int, int>());
+        var context = ContextOf(await OfferWire.ReadAsync(OfferWire.Captured()), Desk, new Dictionary<int, int>());
         var candidate = (await lab.Engine.ShopAsync(context, new ShoppingFilter { IncludeNonSellable = true })).Candidates[0];
         var measured = await lab.Engine.EvaluateSelectionAsync(context, candidate.CandidateIdentity, new AncillarySelection { BagRef = "BAG-1", MeasuredWeightKg = 27m });
 

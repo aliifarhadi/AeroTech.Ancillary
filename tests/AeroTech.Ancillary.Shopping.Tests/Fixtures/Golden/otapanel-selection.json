@@ -1,0 +1,44 @@
+{
+  "data": {
+    "offerId": "1|1|0;9000000000000000001~9000000000000000101_9000000000000000002~9000000000000000102;3|9000000000000000900||70|1791706372",
+    "status": "Accepted",
+    "offerItemRef": "cwzds73NV6kKIt_ultY6ogR3jKuDsxMFLeFqPlkZQo4",
+    "currentOfferItemRef": "cwzds73NV6kKIt_ultY6ogR3jKuDsxMFLeFqPlkZQo4",
+    "serviceChanged": false,
+    "service": {
+      "offerItemRef": "cwzds73NV6kKIt_ultY6ogR3jKuDsxMFLeFqPlkZQo4",
+      "category": "Baggage",
+      "variantCode": "A01",
+      "title": "Extra checked bag",
+      "description": null,
+      "coverageScope": "Portion",
+      "coveredFlightRefs": [
+        "B1:F1"
+      ],
+      "priceStatus": "Complete",
+      "priceUnit": "PerPiece",
+      "unitPrice": {
+        "amount": 5450000,
+        "currencyId": 70
+      },
+      "orderLevelFees": [],
+      "quantityUnit": "Piece",
+      "minQuantity": 1,
+      "maxQuantity": 6,
+      "requiredInputs": [
+        "Quantity",
+        "TravellerRef",
+        "BoundRef"
+      ],
+      "displayStatus": "AvailableForSelection",
+      "requiresRecheck": true,
+      "canPurchase": false
+    },
+    "selectedAmount": {
+      "amount": 10900000,
+      "currencyId": 70
+    },
+    "inputIssues": [],
+    "canPurchase": false
+  }
+}

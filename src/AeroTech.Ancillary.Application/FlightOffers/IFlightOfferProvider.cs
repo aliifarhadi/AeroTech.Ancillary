@@ -1,4 +1,4 @@
-namespace AeroTech.Ancillary.Shopping.FlightOffers
+namespace AeroTech.Ancillary.Application.FlightOffers
 {
     public interface IFlightOfferProvider
     {

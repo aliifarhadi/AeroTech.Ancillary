@@ -1,7 +1,7 @@
 using System.Globalization;
 using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Domain._Shared.Resources;
-using AeroTech.Ancillary.Shopping.FlightOffers;
+using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
 using AeroTech.Framework.Core.ServiceContracts;
 using AeroTech.Messages.Core.Enums;
 
@@ -26,7 +26,7 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Ba
             _clock = clock;
         }
 
-        public async Task<FlightOfferSalesScope> ResolveAsync(BackofficeAncillaryOfferOptions? options, CancellationToken cancellationToken = default)
+        public async Task<AncillarySalesScope> ResolveAsync(BackofficeAncillaryOfferOptions? options, CancellationToken cancellationToken = default)
         {
             if (_caller is not { ContextType: CallerContextType.Airline, AirlineUserId: > 0, AirlineOfficeId: > 0 })
                 throw ExceptionFactory.ShoppingCallerNotAuthorized();
@@ -36,27 +36,18 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Ba
             if (homeAirlineId is not (> 0 and <= int.MaxValue))
                 throw ExceptionFactory.ShoppingCallerNotAuthorized();
 
-            return new FlightOfferSalesScope(
+            return new AncillarySalesScope(
                 (int)homeAirlineId.Value,
-                options?.PointOfSaleId ?? await EligiblePointOfSaleIdAsync(options?.CountryId, _caller.AirlineOfficeId.Value, cancellationToken),
+                Channel.BackOffice,
+                options?.PointOfSaleId is { } named
+                    ? [named]
+                    : await AuthorizedPointsOfSale.ResolveAsync(
+                        _pointsOfSale,
+                        new PointOfSaleEligibilityQuery(Channel.BackOffice, options?.CountryId, [_caller.AirlineOfficeId.Value], null),
+                        cancellationToken),
                 long.TryParse(options?.CustomerId, NumberStyles.Integer, CultureInfo.InvariantCulture, out var customerId) ? customerId : null,
                 options?.PreferredCurrencyId is 0 ? null : options?.PreferredCurrencyId,
                 (options?.SalesDate ?? _clock.GetDateTime()).ToUniversalTime());
-        }
-
-        private async Task<long> EligiblePointOfSaleIdAsync(long? countryId, long airlineOfficeId, CancellationToken cancellationToken)
-        {
-            var eligibility = await _pointsOfSale.ResolveAsync(
-                new PointOfSaleEligibilityQuery(Channel.BackOffice, countryId, [airlineOfficeId], null),
-                cancellationToken);
-
-            if (eligibility.Result != InventoryReferenceCheck.Verified)
-                throw ExceptionFactory.PointOfSaleContextUnresolved("the point-of-sale reference is not connected and options.pointOfSaleId was not given");
-
-            return eligibility.AllowedPointOfSaleIds.Count == 1
-                ? eligibility.AllowedPointOfSaleIds.Single()
-                : throw ExceptionFactory.PointOfSaleContextUnresolved(
-                    $"{eligibility.AllowedPointOfSaleIds.Count} points of sale are allowed for this office and options.pointOfSaleId was not given");
         }
     }
 }

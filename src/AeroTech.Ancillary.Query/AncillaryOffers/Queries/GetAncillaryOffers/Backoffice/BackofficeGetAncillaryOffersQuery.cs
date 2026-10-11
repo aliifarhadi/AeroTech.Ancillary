@@ -1,9 +1,9 @@
-using AeroTech.Ancillary.Query.AncillaryOffers.Dto;
+using AeroTech.Ancillary.Query.AncillaryOffers.Dto.Backoffice;
 using MediatR;
 
 namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice
 {
-    public sealed class BackofficeGetAncillaryOffersQuery : IRequest<AncillaryOffersDto>, IAncillaryOffersQuery
+    public sealed class BackofficeGetAncillaryOffersQuery : IRequest<BackofficeAncillaryOffersDto>, IAncillaryOffersQuery
     {
         public string? OfferId { get; set; }
 

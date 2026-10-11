@@ -1,4 +1,7 @@
+using AeroTech.Ancillary.Query.AncillaryOffers.Queries.EvaluateSelection.Backoffice;
+using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOfferDetail.Backoffice;
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
+using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetSeatMap.Backoffice;
 using AeroTech.Ancillary.RestApi.V1._Shared;
 using Asp.Versioning;
 using MediatR;
@@ -22,5 +25,21 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryOffers.Controllers
         [HttpPost]
         public async Task<IActionResult> GetByOfferId([FromBody] BackofficeGetAncillaryOffersQuery query, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(query, cancellationToken));
+
+        [HttpPost("Details")]
+        public async Task<IActionResult> GetDetail([FromBody] BackofficeGetAncillaryOfferDetailQuery query, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(query, cancellationToken));
+
+        [HttpPost("Selections/Evaluate")]
+        public async Task<IActionResult> EvaluateSelection([FromBody] BackofficeEvaluateSelectionQuery query, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(query, cancellationToken));
+
+        [HttpPost("SeatMaps")]
+        public async Task<IActionResult> GetSeatMap([FromBody] BackofficeGetSeatMapQuery query, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(query, cancellationToken);
+
+            return NoContent();
+        }
     }
 }

@@ -36,6 +36,7 @@ builder.Services
     .AddSurfaceAuthorization();
 
 builder.Services.AddScoped<ICallerContext, ClaimsCallerContext>();
+builder.Services.AddScoped<IRequestCountry, HeaderRequestCountry>();
 builder.Services.AddScoped<ICountryCodeResolver, ReferenceDataCountryCodeResolver>();
 builder.Services.AddScoped<IAirlineOfficeTimeZoneResolver, ReferenceDataAirlineOfficeTimeZoneResolver>();
 builder.Services.AddScoped<IOperatorAirlineResolver, ReferenceDataOperatorAirlineResolver>();

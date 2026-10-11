@@ -1,6 +1,6 @@
 using AeroTech.Messages.AirPrice.Enums;
 
-namespace AeroTech.Ancillary.Shopping.FlightOffers
+namespace AeroTech.Ancillary.Application.FlightOffers
 {
     public sealed record FlightOffer(
         string OfferId,

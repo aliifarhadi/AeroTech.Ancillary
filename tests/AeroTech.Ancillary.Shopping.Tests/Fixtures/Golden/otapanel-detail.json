@@ -1,0 +1,131 @@
+{
+  "data": {
+    "offerId": "1|1|0;9000000000000000001~9000000000000000101_9000000000000000002~9000000000000000102;3|9000000000000000900||70|1791706372",
+    "travellerRef": "ADT-1",
+    "service": {
+      "offerItemRef": "cwzds73NV6kKIt_ultY6ogR3jKuDsxMFLeFqPlkZQo4",
+      "category": "Baggage",
+      "variantCode": "A01",
+      "title": "Extra checked bag",
+      "description": null,
+      "coverageScope": "Portion",
+      "coveredFlightRefs": [
+        "B1:F1"
+      ],
+      "priceStatus": "Complete",
+      "priceUnit": "PerPiece",
+      "unitPrice": {
+        "amount": 5450000,
+        "currencyId": 70
+      },
+      "orderLevelFees": [],
+      "quantityUnit": "Piece",
+      "minQuantity": 1,
+      "maxQuantity": 6,
+      "requiredInputs": [
+        "Quantity",
+        "TravellerRef",
+        "BoundRef"
+      ],
+      "displayStatus": "AvailableForSelection",
+      "requiresRecheck": true,
+      "canPurchase": false
+    },
+    "priceBreakdown": {
+      "base": {
+        "amount": 5000000,
+        "currencyId": 70
+      },
+      "addedTaxes": [
+        {
+          "code": "VAT",
+          "amount": 450000,
+          "currencyId": 70,
+          "appliesPer": null
+        }
+      ],
+      "includedTaxes": [],
+      "unitFees": [],
+      "orderLevelFees": [],
+      "unitPrice": {
+        "amount": 5450000,
+        "currencyId": 70
+      }
+    },
+    "specification": {
+      "baggage": {
+        "chargeKind": "ExtraPiece",
+        "allowanceConcept": "Piece",
+        "packageWeightKg": null,
+        "maxKgPerPiece": 23,
+        "weightFromExclusiveKg": null,
+        "weightToInclusiveKg": null,
+        "maxSize": null,
+        "maxLinearSumCm": null,
+        "equipmentKind": null,
+        "chargeCombination": null
+      },
+      "seat": null,
+      "upgrade": null,
+      "meal": null,
+      "pet": null,
+      "assistedTravel": null,
+      "airportService": null,
+      "priority": null,
+      "connectivity": null
+    },
+    "includedAllowance": [
+      {
+        "travellerRef": "ADT-1",
+        "flightRef": "B1:F1",
+        "checkedPieces": 1,
+        "checkedWeight": 25,
+        "checkedWeightUnit": "Kg",
+        "cabinPieces": 1,
+        "cabinWeight": 20,
+        "cabinWeightUnit": "Kg",
+        "verified": true
+      }
+    ],
+    "baggageRule": {
+      "freePieces": null,
+      "firstExcessPiece": null,
+      "lastExcessPiece": null,
+      "weight": null,
+      "weightUnit": "Kg",
+      "purchaseApplication": "Prepaid",
+      "chargeKind": "ExtraPiece",
+      "allowanceConcept": "Piece"
+    },
+    "seatRule": null,
+    "restrictions": {
+      "passengerTypes": [],
+      "salesFrom": null,
+      "salesUntil": null,
+      "serviceSalesFrom": null,
+      "serviceSalesUntil": null,
+      "permittedTravelPeriods": [],
+      "blackoutPeriods": [],
+      "advancePurchase": null,
+      "purchaseStage": "Both"
+    },
+    "terms": {
+      "disposition": "Paid",
+      "reissueRefund": "NonRefundable",
+      "formOfRefund": null,
+      "confirmationRequirement": "Immediate"
+    },
+    "priceRows": [
+      {
+        "passengerTypeCode": null,
+        "ageFromInclusive": null,
+        "ageToExclusive": null,
+        "currencyId": 70,
+        "baseAmount": 5000000,
+        "unitTotal": 5450000,
+        "unitTotalComplete": true,
+        "applied": true
+      }
+    ]
+  }
+}

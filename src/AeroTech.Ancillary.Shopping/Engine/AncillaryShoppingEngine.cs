@@ -140,12 +140,16 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
             var decision = (await DecideAsync(catalog, definition, provisions, unit with { Selection = selection }, candidate.ProvisionId, cancellationToken))!;
             var changed = decision.Candidate.ProvisionId != candidate.ProvisionId;
+            var status = Status(decision.Candidate.OfferReadiness);
+            var evaluated = status == SelectionEvaluationStatus.Accepted
+                ? decision.Candidate
+                : decision.Candidate with { Price = decision.Candidate.Price with { RequestedQuantityTotal = null } };
 
             return new CanonicalAncillarySelectionEvaluation(
-                Status(decision.Candidate.OfferReadiness),
+                status,
                 changed
-                    ? decision.Candidate with { ReasonCodes = decision.Candidate.ReasonCodes.Append(ShoppingReasonCodes.ProvisionChangedBySelection).ToList() }
-                    : decision.Candidate,
+                    ? evaluated with { ReasonCodes = evaluated.ReasonCodes.Append(ShoppingReasonCodes.ProvisionChangedBySelection).ToList() }
+                    : evaluated,
                 changed,
                 decision.Outcome.FieldIssues);
         }

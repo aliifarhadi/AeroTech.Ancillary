@@ -100,7 +100,8 @@ public class V12BoundaryAcceptanceTests
                 "DependencyInjection.cs", "FlightFlowEnvelope.cs", "FlightFlowFlight.cs", "FlightFlowFlightOccurrenceReference.cs", "FlightFlowJson.cs",
                 "FlightOfferDetailResponse.cs", "FlightOfferProvider.cs", "FlightOfferResponseMapper.cs",
                 "NotConnectedAirportFacilityReference.cs", "NotConnectedCountingFamilyReference.cs", "NotConnectedFlightFlowDelegationReference.cs",
-                "NotConnectedInventoryResourceReference.cs", "NotConnectedPointOfSaleEligibilityReference.cs", "OfferJson.cs"
+                "NotConnectedFlightSeatMapReference.cs", "NotConnectedInventoryResourceReference.cs", "NotConnectedPointOfSaleEligibilityReference.cs",
+                "OfferJson.cs"
             },
             Files(Path.Combine(Source, "AeroTech.Ancillary.Providers")).Select(Path.GetFileName).OrderBy(name => name, StringComparer.Ordinal));
     }
@@ -238,6 +239,17 @@ public class V12BoundaryAcceptanceTests
             "POST Backoffice/AncillaryProvisions/{provisionId:long}/Publish",
             "POST Backoffice/AncillaryProvisions/{provisionId:long}/SwitchActivePricing",
             "POST Backoffice/AncillaryOffers",
+            "POST Backoffice/AncillaryOffers/Details",
+            "POST Backoffice/AncillaryOffers/Selections/Evaluate",
+            "POST Backoffice/AncillaryOffers/SeatMaps",
+            "POST Api/AncillaryOffers",
+            "POST Api/AncillaryOffers/Details",
+            "POST Api/AncillaryOffers/Selections/Evaluate",
+            "POST Api/AncillaryOffers/SeatMaps",
+            "POST OtaPanel/AncillaryOffers",
+            "POST OtaPanel/AncillaryOffers/Details",
+            "POST OtaPanel/AncillaryOffers/Selections/Evaluate",
+            "POST OtaPanel/AncillaryOffers/SeatMaps",
             "POST Backoffice/AncillaryPricings",
             "GET Backoffice/AncillaryPricings/Paginated",
             "GET Backoffice/AncillaryPricings/{pricingId:long}",
@@ -311,7 +323,7 @@ public class V12BoundaryAcceptanceTests
         Assert.Equal(
             preserved.Concat(added).Concat(rows).Concat(groups).Concat(typed).Concat(inventory).OrderBy(route => route, StringComparer.Ordinal),
             routes.OrderBy(route => route, StringComparer.Ordinal));
-        Assert.Equal(114, routes.Count);
+        Assert.Equal(125, routes.Count);
         Assert.Equal(36, inventory.Length);
         Assert.DoesNotContain(routes, route => new[] { "Sell", "Reserve", "Release", "Expire" }.Any(term => route.Contains(term, StringComparison.Ordinal)));
         Assert.Equal(

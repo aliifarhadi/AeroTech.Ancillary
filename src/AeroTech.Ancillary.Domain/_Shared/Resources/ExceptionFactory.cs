@@ -324,5 +324,14 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
 
         public static BusinessException ShoppingCallerNotAuthorized(params object?[] args) =>
             new(16809, ExceptionMessages.ShoppingCallerNotAuthorized, args) { HttpStatus = 403 };
+
+        public static BusinessException OfferItemRefIsRequired(params object?[] args) =>
+            new(16810, ExceptionMessages.OfferItemRefIsRequired, args) { HttpStatus = 422 };
+
+        public static BusinessException OfferItemWasNotFound(params object?[] args) =>
+            new(16811, ExceptionMessages.OfferItemWasNotFound, args) { HttpStatus = 404 };
+
+        public static BusinessException SeatMapSourceUnavailable(params object?[] args) =>
+            new(16812, ExceptionMessages.SeatMapSourceUnavailable, args) { HttpStatus = 503 };
     }
 }
