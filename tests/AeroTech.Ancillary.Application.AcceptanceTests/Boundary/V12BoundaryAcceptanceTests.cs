@@ -100,7 +100,7 @@ public class V12BoundaryAcceptanceTests
                 "DependencyInjection.cs", "FlightFlowEnvelope.cs", "FlightFlowFlight.cs", "FlightFlowFlightOccurrenceReference.cs", "FlightFlowJson.cs",
                 "FlightOfferDetailResponse.cs", "FlightOfferProvider.cs", "FlightOfferResponseMapper.cs",
                 "NotConnectedAirportFacilityReference.cs", "NotConnectedCountingFamilyReference.cs", "NotConnectedFlightFlowDelegationReference.cs",
-                "NotConnectedFlightSeatMapReference.cs", "NotConnectedInventoryResourceReference.cs", "NotConnectedPointOfSaleEligibilityReference.cs",
+                "NotConnectedFlightSeatMapReference.cs", "NotConnectedInventoryResourceReference.cs",
                 "OfferJson.cs"
             },
             Files(Path.Combine(Source, "AeroTech.Ancillary.Providers")).Select(Path.GetFileName).OrderBy(name => name, StringComparer.Ordinal));

@@ -3,7 +3,6 @@ using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Providers.FlightFlow.Services;
 using AeroTech.Ancillary.Providers.InventoryReferences;
 using AeroTech.Ancillary.Providers.Offer.Services;
-using AeroTech.Ancillary.Providers.PointOfSale;
 using AeroTech.Ancillary.Providers.SeatMap;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,7 +33,6 @@ namespace AeroTech.Ancillary.Providers
                     client.Timeout = TimeSpan.FromSeconds(seconds);
             });
 
-            services.AddScoped<IPointOfSaleEligibilityReference, NotConnectedPointOfSaleEligibilityReference>();
             services.AddScoped<IFlightSeatMapReference, NotConnectedFlightSeatMapReference>();
             services.AddScoped<IInventoryResourceReference, NotConnectedInventoryResourceReference>();
             services.AddScoped<IAirportFacilityReference, NotConnectedAirportFacilityReference>();
