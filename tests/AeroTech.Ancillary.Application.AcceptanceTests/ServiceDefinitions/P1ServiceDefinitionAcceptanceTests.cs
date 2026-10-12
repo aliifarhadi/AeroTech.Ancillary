@@ -4,6 +4,7 @@ using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Command
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.DefineAncillaryServiceDefinition;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.GetAncillaryServiceDefinitionsPaginated.Backoffice;
+using AeroTech.Framework.Core.Domain.Exceptions;
 using AeroTech.Messages.Ancillary.Enums;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -220,6 +221,41 @@ public class P1ServiceDefinitionAcceptanceTests
         Assert.Equal(new[] { third.Id.ToString(), second.Id.ToString(), first.Id.ToString() }, versions.Results.Select(row => row.Id));
         Assert.Equal(new[] { 3, 2, 1 }, versions.Results.Select(row => row.Version));
         Assert.Equal(new[] { "Draft", "Active", "Retired" }, versions.Results.Select(row => row.Status.Name));
+    }
+
+    [Fact]
+    public async Task P1_C06_parallel_definitions_of_one_reference_become_distinct_versions_or_a_409_and_never_a_raw_database_error()
+    {
+        var airlineId = _database.NextAirlineId();
+        await using var setup = new AncillaryScope(_database, _clock);
+        var supplier = await setup.RegisterSupplier.RegisterAsync(M1Commands.LocalSupplier(airlineId));
+        var command = Meal(airlineId, supplier.Id, "MEAL_PARALLEL");
+
+        async Task<(int? Version, Exception? Failure)> DefineAsync()
+        {
+            await using var scope = new AncillaryScope(_database, _clock);
+
+            try
+            {
+                return ((await scope.DefineServiceDefinition.DefineAsync(command)).Version, null);
+            }
+            catch (Exception exception)
+            {
+                return (null, exception);
+            }
+        }
+
+        var outcomes = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => Task.Run(DefineAsync)));
+        var versions = outcomes.Where(outcome => outcome.Version is not null).Select(outcome => outcome.Version!.Value).ToList();
+
+        Assert.NotEmpty(versions);
+        Assert.Equal(versions.Count, versions.Distinct().Count());
+        Assert.All(outcomes.Where(outcome => outcome.Failure is not null), outcome =>
+        {
+            var conflict = Assert.IsType<BusinessException>(outcome.Failure);
+
+            Assert.Equal((16005, 409), (conflict.Code, conflict.HttpStatus));
+        });
     }
 
     [Fact]

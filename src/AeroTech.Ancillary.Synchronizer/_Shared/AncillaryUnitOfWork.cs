@@ -102,6 +102,9 @@ namespace AeroTech.Ancillary.Synchronizer._Shared
                 return ExceptionFactory.ServiceDefinitionRefAlreadyActive(
                     exception.Entries.Select(entry => entry.Entity).OfType<AncillaryServiceDefinition>().Select(definition => definition.ServiceDefinitionRef).FirstOrDefault());
 
+            if (duplicate.Message.Contains("IX_AncillaryServiceDefinitions_OwnerAirlineId_ServiceDefinitionRef_Version", StringComparison.Ordinal))
+                return ExceptionFactory.ConcurrentChangeDetected();
+
             if (duplicate.Message.Contains("unique index 'IX_Provision", StringComparison.Ordinal))
                 return ExceptionFactory.ProvisionConditionAlreadyExists();
 
