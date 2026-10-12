@@ -186,7 +186,7 @@ public class SqlShoppingReaderTests
         await using var context = _database.NewContext(_clock);
 
         var handler = OfferWire.StubHandler.Json(System.Net.HttpStatusCode.OK, OfferWire.Captured());
-        var service = new GetAncillaryOffersService(OfferWire.Provider(handler), new TestOnlyAirportReference(), Engine(context, new InMemoryCatalog()));
+        var service = new GetAncillaryOffersService(OfferWire.Provider(handler), new TestOnlyAirportReference(), new TestOnlyAirFareReference(), Engine(context, new InMemoryCatalog()));
         var provisionsBefore = await context.AncillaryProvisions.AsNoTracking().CountAsync();
         var commandsBefore = _database.Sql.Count;
         var response = BackofficeAncillaryOffersMapper.Map(await service.ExecuteAsync(

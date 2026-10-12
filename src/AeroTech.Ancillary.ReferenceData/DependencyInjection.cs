@@ -1,4 +1,5 @@
 using AeroTech.Ancillary.ReferenceData.AirInfo;
+using AeroTech.Ancillary.ReferenceData.AirPrice;
 using AeroTech.Ancillary.ReferenceData.Configuration;
 using AeroTech.Ancillary.ReferenceData.Core;
 using AeroTech.Ancillary.ReferenceData.Persistence;
@@ -38,6 +39,13 @@ namespace AeroTech.Ancillary.ReferenceData
                     client.BaseAddress = new Uri(coreBaseUrl);
             });
 
+            var airPriceBaseUrl = configuration["Pricing:BaseUrl"];
+            services.AddHttpClient<IAirPriceClient, AirPriceClient>(client =>
+            {
+                if (!string.IsNullOrWhiteSpace(airPriceBaseUrl))
+                    client.BaseAddress = new Uri(airPriceBaseUrl);
+            });
+
             services.TryAddSingleton(TimeProvider.System);
 
             services.AddScoped<CurrencySyncer>();
@@ -50,6 +58,8 @@ namespace AeroTech.Ancillary.ReferenceData
             services.AddScoped<AirlineOfficeSyncer>();
             services.AddScoped<TravelAgencySyncer>();
             services.AddScoped<TravelAgencyOfficeSyncer>();
+            services.AddScoped<AirFareSyncer>();
+            services.AddScoped<PointOfSaleSyncer>();
 
             return services;
         }

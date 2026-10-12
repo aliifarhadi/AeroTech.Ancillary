@@ -10,12 +10,18 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers
     {
         private readonly IFlightOfferProvider _flightOffers;
         private readonly IAirportReference _airports;
+        private readonly IAirFareReference _airFares;
         private readonly IAncillaryShoppingEngine _engine;
 
-        public GetAncillaryOffersService(IFlightOfferProvider flightOffers, IAirportReference airports, IAncillaryShoppingEngine engine)
+        public GetAncillaryOffersService(
+            IFlightOfferProvider flightOffers,
+            IAirportReference airports,
+            IAirFareReference airFares,
+            IAncillaryShoppingEngine engine)
         {
             _flightOffers = flightOffers;
             _airports = airports;
+            _airFares = airFares;
             _engine = engine;
         }
 
@@ -25,7 +31,9 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers
                 throw ExceptionFactory.FlightOfferIdIsRequired();
 
             var offer = await _flightOffers.GetByOfferIdAsync(query.OfferId, cancellationToken);
-            var facts = FlightOfferShoppingContextMapper.Facts(offer);
+            var airFareIds = offer.FareComponents.Select(component => component.AirFareId).Distinct().ToList();
+            var fareFamilyIds = await _airFares.FindFareFamilyIdsAsync(airFareIds, cancellationToken);
+            var facts = FlightOfferShoppingContextMapper.Facts(offer, fareFamilyIds);
             var airportIds = offer.Bounds
                 .SelectMany(bound => bound.Flights)
                 .SelectMany(flight => new[] { flight.OriginAirportId, flight.DestinationAirportId })

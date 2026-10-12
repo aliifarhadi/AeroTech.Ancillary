@@ -24,6 +24,9 @@ namespace AeroTech.Ancillary.ReferenceData.Persistence
         public DbSet<AirlineOfficeReadModel> AirlineOffices => Set<AirlineOfficeReadModel>();
         public DbSet<TravelAgencyReadModel> TravelAgencies => Set<TravelAgencyReadModel>();
         public DbSet<TravelAgencyOfficeReadModel> TravelAgencyOffices => Set<TravelAgencyOfficeReadModel>();
+        public DbSet<AirFareReadModel> AirFares => Set<AirFareReadModel>();
+        public DbSet<PointOfSaleReadModel> PointOfSales => Set<PointOfSaleReadModel>();
+        public DbSet<PointOfSaleConditionReadModel> PointOfSaleConditions => Set<PointOfSaleConditionReadModel>();
         public DbSet<ReferenceSyncState> SyncStates => Set<ReferenceSyncState>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -157,6 +160,30 @@ namespace AeroTech.Ancillary.ReferenceData.Persistence
                 entity.HasIndex(office => office.Code);
                 entity.HasIndex(office => office.TravelAgencyId);
                 entity.HasIndex(office => office.ParentOfficeId);
+            });
+
+            modelBuilder.Entity<AirFareReadModel>(entity =>
+            {
+                entity.ToTable("AirFares");
+                entity.HasKey(fare => fare.Id);
+                entity.Property(fare => fare.Id).ValueGeneratedNever();
+                entity.HasIndex(fare => fare.FareFamilyId);
+            });
+
+            modelBuilder.Entity<PointOfSaleReadModel>(entity =>
+            {
+                entity.ToTable("PointOfSales");
+                entity.HasKey(pointOfSale => pointOfSale.Id);
+                entity.Property(pointOfSale => pointOfSale.Id).ValueGeneratedNever();
+                entity.Property(pointOfSale => pointOfSale.Title).IsRequired();
+            });
+
+            modelBuilder.Entity<PointOfSaleConditionReadModel>(entity =>
+            {
+                entity.ToTable("PointOfSaleConditions");
+                entity.HasKey(condition => condition.Id);
+                entity.Property(condition => condition.Id).ValueGeneratedNever();
+                entity.HasIndex(condition => condition.PointOfSaleId);
             });
 
             modelBuilder.Entity<ReferenceSyncState>(entity =>

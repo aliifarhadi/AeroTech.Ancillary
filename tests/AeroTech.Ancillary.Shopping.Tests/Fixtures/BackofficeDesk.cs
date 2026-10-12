@@ -15,25 +15,35 @@ public static class BackofficeDesk
 {
     public static readonly DeskScope Sale = new(Airline, Pos, null, Eur, Now);
 
-    public static async Task<GetAncillaryOffersService> ServiceAsync(ShoppingLab lab, string? wire = null, TestOnlyAirportReference? airports = null)
-        => new(new FixedOffers(await OfferWire.ReadAsync(wire ?? OfferWire.Captured())), airports ?? new TestOnlyAirportReference(), lab.Engine);
+    public static async Task<GetAncillaryOffersService> ServiceAsync(
+        ShoppingLab lab,
+        string? wire = null,
+        TestOnlyAirportReference? airports = null,
+        TestOnlyAirFareReference? airFares = null)
+        => new(
+            new FixedOffers(await OfferWire.ReadAsync(wire ?? OfferWire.Captured())),
+            airports ?? new TestOnlyAirportReference(),
+            airFares ?? new TestOnlyAirFareReference(),
+            lab.Engine);
 
     public static async Task<AncillaryShoppingSnapshot> SnapshotAsync(
         ShoppingLab lab,
         string? wire = null,
         TestOnlyAirportReference? airports = null,
-        AncillarySalesScope? scope = null)
-        => await (await ServiceAsync(lab, wire, airports)).ExecuteAsync(new OfferQuery(OfferWire.OfferId), scope ?? (AncillarySalesScope)Sale);
+        AncillarySalesScope? scope = null,
+        TestOnlyAirFareReference? airFares = null)
+        => await (await ServiceAsync(lab, wire, airports, airFares)).ExecuteAsync(new OfferQuery(OfferWire.OfferId), scope ?? (AncillarySalesScope)Sale);
 
     public static async Task<BackofficeAncillaryOffersDto> ShopAsync(
         ShoppingLab lab,
         string? wire = null,
         TestOnlyAirportReference? airports = null,
-        DeskScope? scope = null)
-        => BackofficeAncillaryOffersMapper.Map(await SnapshotAsync(lab, wire, airports, scope ?? Sale));
+        DeskScope? scope = null,
+        TestOnlyAirFareReference? airFares = null)
+        => BackofficeAncillaryOffersMapper.Map(await SnapshotAsync(lab, wire, airports, scope ?? Sale, airFares));
 
     public static AncillaryShoppingContext ContextOf(FlightOffer offer, DeskScope scope, IReadOnlyDictionary<int, int> airportCountryIds)
-        => FlightOfferShoppingContextMapper.Map(offer, FlightOfferShoppingContextMapper.Facts(offer), scope, scope.PointOfSaleId, airportCountryIds);
+        => FlightOfferShoppingContextMapper.Map(offer, FlightOfferShoppingContextMapper.Facts(offer, new Dictionary<long, long>()), scope, scope.PointOfSaleId, airportCountryIds);
 
     public static BackofficeSalesScopeResolver Resolver(Caller? caller = null, HomeAirline? home = null, Eligibility? eligibility = null, FixedClock? clock = null)
         => new(caller ?? new Caller(), home ?? new HomeAirline(), eligibility ?? new Eligibility(), clock ?? new FixedClock());

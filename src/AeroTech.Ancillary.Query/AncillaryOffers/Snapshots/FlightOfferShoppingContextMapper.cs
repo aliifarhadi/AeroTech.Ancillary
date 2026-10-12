@@ -14,12 +14,12 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Snapshots
 
         public static int CurrencyOf(FlightOffer offer, AncillarySalesScope scope) => scope.PreferredCurrencyId ?? offer.CurrencyId;
 
-        public static FlightOfferFacts Facts(FlightOffer offer)
+        public static FlightOfferFacts Facts(FlightOffer offer, IReadOnlyDictionary<long, long> fareFamilyIds)
         {
             var coupons = offer.Tickets
                 .SelectMany(ticket => ticket.Coupons.Select(coupon => (Ticket: ticket, Coupon: coupon, Flight: FlightOf(offer, coupon))))
                 .ToList();
-            var fareFacts = coupons.Select(row => FareFacts(offer, row.Ticket, row.Coupon, row.Flight)).ToList();
+            var fareFacts = coupons.Select(row => FareFacts(offer, row.Ticket, row.Coupon, row.Flight, fareFamilyIds)).ToList();
             var baggageFacts = coupons.Select(row => BaggageFacts(row.Ticket, row.Coupon, row.Flight)).ToList();
 
             return new FlightOfferFacts(
@@ -107,7 +107,8 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Snapshots
             FlightOffer offer,
             FlightOfferTicket ticket,
             FlightOfferCoupon coupon,
-            (FlightOfferBound Bound, FlightOfferFlight Flight) sold)
+            (FlightOfferBound Bound, FlightOfferFlight Flight) sold,
+            IReadOnlyDictionary<long, long> fareFamilyIds)
         {
             var fares = offer.FareComponents
                 .Where(component => component.BoundId == coupon.BoundId && coupon.AirFareIds.Contains(component.AirFareId))
@@ -123,6 +124,7 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Snapshots
                 PortionRef = coupon.BoundId,
                 AirFareId = fares[0].AirFareId,
                 AirFareType = fares[0].FareType,
+                FareFamilyId = fareFamilyIds.TryGetValue(fares[0].AirFareId, out var fareFamilyId) ? fareFamilyId : null,
                 FareFamilyCodeOrName = fares[0].FareFamily,
                 FareBasisCode = fares[0].FareBasis,
                 CabinClassId = fares[0].CabinClassId,

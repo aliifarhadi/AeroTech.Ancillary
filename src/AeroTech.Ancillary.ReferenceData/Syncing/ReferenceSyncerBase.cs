@@ -1,5 +1,6 @@
 using AeroTech.Ancillary.ReferenceData.Persistence;
 using AeroTech.Ancillary.ReferenceData.ReadModels;
+using Microsoft.EntityFrameworkCore;
 
 namespace AeroTech.Ancillary.ReferenceData.Syncing
 {
@@ -27,6 +28,10 @@ namespace AeroTech.Ancillary.ReferenceData.Syncing
         protected abstract void ApplyChanges(TDto dto, TReadModel model);
 
         protected virtual Task SyncChildrenAsync(TDto dto, CancellationToken cancellationToken) => Task.CompletedTask;
+
+        protected virtual bool FetchesCompleteSet => false;
+
+        protected virtual Task RemoveChildrenAsync(TKey id, CancellationToken cancellationToken) => Task.CompletedTask;
 
         public async Task SyncAsync(CancellationToken cancellationToken = default)
         {
@@ -56,8 +61,23 @@ namespace AeroTech.Ancillary.ReferenceData.Syncing
                 await SyncChildrenAsync(dto, cancellationToken);
             }
 
+            if (FetchesCompleteSet)
+                await RemoveAbsentAsync(set, dtos, cancellationToken);
+
             await StampLastSyncAsync(cancellationToken);
             await Db.SaveChangesAsync(cancellationToken);
+        }
+
+        private async Task RemoveAbsentAsync(DbSet<TReadModel> set, List<TDto> dtos, CancellationToken cancellationToken)
+        {
+            var sourceIds = dtos.Select(dto => dto.Id).ToHashSet();
+            var stored = await set.ToListAsync(cancellationToken);
+
+            foreach (var model in stored.Where(model => !sourceIds.Contains(model.Id)))
+            {
+                await RemoveChildrenAsync(model.Id, cancellationToken);
+                set.Remove(model);
+            }
         }
 
         private async Task<DateTimeOffset?> GetLastSyncAsync(CancellationToken cancellationToken)

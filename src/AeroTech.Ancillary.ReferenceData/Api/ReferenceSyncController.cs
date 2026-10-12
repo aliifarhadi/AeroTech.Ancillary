@@ -19,6 +19,8 @@ namespace AeroTech.Ancillary.ReferenceData.Api
         private readonly AirlineOfficeSyncer _airlineOfficeSyncer;
         private readonly TravelAgencySyncer _travelAgencySyncer;
         private readonly TravelAgencyOfficeSyncer _travelAgencyOfficeSyncer;
+        private readonly AirFareSyncer _airFareSyncer;
+        private readonly PointOfSaleSyncer _pointOfSaleSyncer;
 
         public ReferenceSyncController(
             CurrencySyncer currencySyncer,
@@ -30,7 +32,9 @@ namespace AeroTech.Ancillary.ReferenceData.Api
             OperatorSettingsSyncer operatorSettingsSyncer,
             AirlineOfficeSyncer airlineOfficeSyncer,
             TravelAgencySyncer travelAgencySyncer,
-            TravelAgencyOfficeSyncer travelAgencyOfficeSyncer)
+            TravelAgencyOfficeSyncer travelAgencyOfficeSyncer,
+            AirFareSyncer airFareSyncer,
+            PointOfSaleSyncer pointOfSaleSyncer)
         {
             _currencySyncer = currencySyncer;
             _airlineSyncer = airlineSyncer;
@@ -42,6 +46,8 @@ namespace AeroTech.Ancillary.ReferenceData.Api
             _airlineOfficeSyncer = airlineOfficeSyncer;
             _travelAgencySyncer = travelAgencySyncer;
             _travelAgencyOfficeSyncer = travelAgencyOfficeSyncer;
+            _airFareSyncer = airFareSyncer;
+            _pointOfSaleSyncer = pointOfSaleSyncer;
         }
 
         [HttpPost("Currencies")]
@@ -111,6 +117,20 @@ namespace AeroTech.Ancillary.ReferenceData.Api
         public async Task<IActionResult> SyncTravelAgencyOffices(CancellationToken cancellationToken)
         {
             await _travelAgencyOfficeSyncer.SyncAsync(cancellationToken);
+            return Ok();
+        }
+
+        [HttpPost("AirFares")]
+        public async Task<IActionResult> SyncAirFares(CancellationToken cancellationToken)
+        {
+            await _airFareSyncer.SyncAsync(cancellationToken);
+            return Ok();
+        }
+
+        [HttpPost("PointOfSales")]
+        public async Task<IActionResult> SyncPointOfSales(CancellationToken cancellationToken)
+        {
+            await _pointOfSaleSyncer.SyncAsync(cancellationToken);
             return Ok();
         }
     }

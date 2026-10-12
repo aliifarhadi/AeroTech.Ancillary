@@ -23,6 +23,41 @@ namespace AeroTech.Ancillary.ReferenceData.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("AeroTech.Ancillary.ReferenceData.ReadModels.AirFareReadModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("CabinClassId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FareBasis")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<long?>("FareFamilyId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("FareFamilyTitle")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<long>("FareNumber")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("RbdId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FareFamilyId");
+
+                    b.ToTable("AirFares", "ReferenceData");
+                });
+
             modelBuilder.Entity("AeroTech.Ancillary.ReferenceData.ReadModels.AirlineOfficeReadModel", b =>
                 {
                     b.Property<long>("Id")
@@ -389,6 +424,70 @@ namespace AeroTech.Ancillary.ReferenceData.Migrations
                         .IsUnique();
 
                     b.ToTable("OperatorSettings", "ReferenceData");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.ReferenceData.ReadModels.PointOfSaleConditionReadModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.PrimitiveCollection<string>("AirlineOfficeIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("AirlineOfficeIsInclude")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("ChannelIsInclude")
+                        .HasColumnType("bit");
+
+                    b.PrimitiveCollection<string>("Channels")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.PrimitiveCollection<string>("CountryIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("CountryIsInclude")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("PointOfSaleId")
+                        .HasColumnType("bigint");
+
+                    b.PrimitiveCollection<string>("TravelAgencyOfficeIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("TravelAgencyOfficeIsInclude")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PointOfSaleId");
+
+                    b.ToTable("PointOfSaleConditions", "ReferenceData");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.ReferenceData.ReadModels.PointOfSaleReadModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("Number")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PointOfSales", "ReferenceData");
                 });
 
             modelBuilder.Entity("AeroTech.Ancillary.ReferenceData.ReadModels.ReferenceSyncState", b =>

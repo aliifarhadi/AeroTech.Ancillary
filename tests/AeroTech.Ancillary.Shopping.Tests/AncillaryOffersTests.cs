@@ -206,6 +206,27 @@ public class AncillaryOffersTests
     }
 
     [Fact]
+    public async Task CT_09_the_fare_family_id_is_read_from_the_air_fare_reference_and_never_from_the_fare_family_text()
+    {
+        var lab = new ShoppingLab();
+        var airFares = new TestOnlyAirFareReference();
+
+        lab.Sellable("A10");
+
+        foreach (var component in (await OfferWire.ReadAsync(OfferWire.Captured())).FareComponents)
+            airFares.FareFamilies[component.AirFareId] = 77;
+
+        var unverified = await ShopAsync(lab);
+        var verified = await ShopAsync(lab, airFares: airFares);
+
+        Assert.All(unverified.Travellers.SelectMany(traveller => traveller.FareByFlight), fare => Assert.Null(fare.FareFamilyId));
+        Assert.All(unverified.BlockedOffers, offer => Assert.Contains(ShoppingReasonCodes.FareFamilyNotVerified, offer.ReasonCodes));
+        Assert.NotEmpty(unverified.BlockedOffers);
+        Assert.All(verified.Travellers.SelectMany(traveller => traveller.FareByFlight), fare => Assert.Equal(("Flex", (long?)77), (fare.FareFamilyText, fare.FareFamilyId)));
+        Assert.All(verified.Offers.Concat(verified.BlockedOffers), offer => Assert.DoesNotContain(ShoppingReasonCodes.FareFamilyNotVerified, offer.ReasonCodes));
+    }
+
+    [Fact]
     public async Task CT_10_CT_15_CT_16_an_unknown_allowance_scale_or_usage_is_shown_as_blocked_not_as_sellable()
     {
         JsonObject Coupon(JsonObject data, int ticket, int coupon) => data["tickets"]![ticket]!["coupons"]![coupon]!.AsObject();
@@ -357,7 +378,7 @@ public class AncillaryOffersTests
     public async Task CT_22_an_empty_offer_id_is_refused_before_the_provider_is_called()
     {
         var failure = await Assert.ThrowsAsync<BusinessException>(
-            () => new GetAncillaryOffersService(new FixedOffers(null!), new TestOnlyAirportReference(), new ShoppingLab().Engine).ExecuteAsync(new OfferQuery(" "), Sale));
+            () => new GetAncillaryOffersService(new FixedOffers(null!), new TestOnlyAirportReference(), new TestOnlyAirFareReference(), new ShoppingLab().Engine).ExecuteAsync(new OfferQuery(" "), Sale));
 
         Assert.Equal((16803, 422), (failure.Code, failure.HttpStatus));
         Assert.Equal(new[] { "OfferId", "Options" }, typeof(BackofficeGetAncillaryOffersQuery).GetProperties().Select(property => property.Name).Order());
