@@ -1,0 +1,170 @@
+{
+  "createRequest": {
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "SEAT_PREFERRED",
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "ST2",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "SA",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerSeat",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A08",
+    "documentRouting": "Emd",
+    "specification": {
+      "seatCharacteristicCodes": [
+        "E",
+        "L"
+      ],
+      "applicableCabinIds": [
+        1
+      ],
+      "requiresExitRowEligibility": true
+    },
+    "commercialName": "Extra legroom seat",
+    "description": null,
+    "document": {
+      "type": "EmdAssociated",
+      "rfic": "A",
+      "rfisc": "ST2"
+    },
+    "booking": {
+      "method": "Ssr",
+      "ssrCode": "RQST",
+      "ssimCode": null
+    },
+    "salesEffectiveFrom": "2026-11-01",
+    "salesDiscontinueOn": null
+  },
+  "createResponse": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "supplierId": "{supplierId}",
+    "serviceDefinitionRef": "SEAT_PREFERRED",
+    "version": 1,
+    "serviceTypeCode": "F",
+    "serviceSubCode": "ST2",
+    "subCodeSource": "CarrierDefined",
+    "groupCode": "SA",
+    "pricingUnit": "PerSeat",
+    "serviceDateBasis": "FlightDeparture",
+    "status": "Draft"
+  },
+  "read": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "SEAT_PREFERRED",
+    "version": 1,
+    "status": {
+      "value": 1,
+      "name": "Draft",
+      "title": "Draft"
+    },
+    "profile": {
+      "value": 2,
+      "name": "Seat",
+      "title": "Seat"
+    },
+    "variantName": "Preferred seat",
+    "supplierName": "Dot Air",
+    "createdAt": "2026-10-01T10:00:00\u002B00:00",
+    "activatedAt": null,
+    "suspendedAt": null,
+    "retiredAt": null,
+    "form": {
+      "supplierId": "{supplierId}",
+      "serviceSubCode": "ST2",
+      "subCodeSource": "CarrierDefined",
+      "serviceTypeCode": "F",
+      "groupCode": "SA",
+      "subGroupCode": null,
+      "description1Code": null,
+      "description2Code": null,
+      "pricingUnit": "PerSeat",
+      "serviceDateBasis": "FlightDeparture",
+      "variantCode": "A08",
+      "documentRouting": "Emd",
+      "specification": {
+        "seatCharacteristicCodes": [
+          "E",
+          "L"
+        ],
+        "applicableCabinIds": [
+          1
+        ],
+        "requiresExitRowEligibility": true
+      },
+      "commercialName": "Extra legroom seat",
+      "description": null,
+      "document": {
+        "type": "EmdAssociated",
+        "rfic": "A",
+        "rfisc": "ST2"
+      },
+      "booking": {
+        "method": "Ssr",
+        "ssrCode": "RQST",
+        "ssimCode": null,
+        "confirmationRequirement": "Immediate"
+      },
+      "salesEffectiveFrom": "2026-11-01",
+      "salesDiscontinueOn": null
+    }
+  },
+  "editRequest": {
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "ST2",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "SA",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerSeat",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A08",
+    "documentRouting": "Emd",
+    "specification": {
+      "seatCharacteristicCodes": [
+        "E",
+        "L"
+      ],
+      "applicableCabinIds": [
+        1
+      ],
+      "requiresExitRowEligibility": true
+    },
+    "commercialName": "Extra legroom seat",
+    "description": null,
+    "document": {
+      "type": "EmdAssociated",
+      "rfic": "A",
+      "rfisc": "ST2"
+    },
+    "booking": {
+      "method": "Ssr",
+      "ssrCode": "RQST",
+      "ssimCode": null,
+      "confirmationRequirement": "Immediate"
+    },
+    "salesEffectiveFrom": "2026-11-01",
+    "salesDiscontinueOn": null
+  },
+  "editResponse": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "supplierId": "{supplierId}",
+    "serviceDefinitionRef": "SEAT_PREFERRED",
+    "version": 1,
+    "serviceTypeCode": "F",
+    "serviceSubCode": "ST2",
+    "subCodeSource": "CarrierDefined",
+    "groupCode": "SA",
+    "pricingUnit": "PerSeat",
+    "serviceDateBasis": "FlightDeparture",
+    "status": "Draft"
+  }
+}

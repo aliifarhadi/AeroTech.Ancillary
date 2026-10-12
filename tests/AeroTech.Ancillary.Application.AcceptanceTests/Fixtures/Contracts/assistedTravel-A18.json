@@ -1,0 +1,154 @@
+{
+  "createRequest": {
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "BASSINET",
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "BS1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "SP",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerPassenger",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A18",
+    "documentRouting": "NoAncillaryDocument",
+    "specification": {
+      "bassinet": {
+        "maxInfantWeightKg": 11.000,
+        "maxInfantAgeMonths": 8,
+        "compatibleSeatGroups": [
+          "BULKHEAD"
+        ]
+      }
+    },
+    "commercialName": "Bassinet",
+    "description": null,
+    "document": {
+      "type": "None",
+      "rfic": null,
+      "rfisc": null
+    },
+    "booking": {
+      "method": "Ssr",
+      "ssrCode": "BSCT",
+      "ssimCode": null,
+      "confirmationRequirement": "SubjectToConfirmation"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  },
+  "createResponse": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "supplierId": "{supplierId}",
+    "serviceDefinitionRef": "BASSINET",
+    "version": 1,
+    "serviceTypeCode": "F",
+    "serviceSubCode": "BS1",
+    "subCodeSource": "CarrierDefined",
+    "groupCode": "SP",
+    "pricingUnit": "PerPassenger",
+    "serviceDateBasis": "FlightDeparture",
+    "status": "Draft"
+  },
+  "read": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "BASSINET",
+    "version": 1,
+    "status": {
+      "value": 1,
+      "name": "Draft",
+      "title": "Draft"
+    },
+    "profile": {
+      "value": 6,
+      "name": "AssistedTravel",
+      "title": "Assisted Travel"
+    },
+    "variantName": "Bassinet",
+    "supplierName": "Dot Air",
+    "createdAt": "2026-10-01T10:00:00\u002B00:00",
+    "activatedAt": null,
+    "suspendedAt": null,
+    "retiredAt": null,
+    "form": {
+      "supplierId": "{supplierId}",
+      "serviceSubCode": "BS1",
+      "subCodeSource": "CarrierDefined",
+      "serviceTypeCode": "F",
+      "groupCode": "SP",
+      "subGroupCode": null,
+      "description1Code": null,
+      "description2Code": null,
+      "pricingUnit": "PerPassenger",
+      "serviceDateBasis": "FlightDeparture",
+      "variantCode": "A18",
+      "documentRouting": "NoAncillaryDocument",
+      "specification": {
+        "bassinet": {
+          "maxInfantWeightKg": 11.000,
+          "maxInfantAgeMonths": 8,
+          "compatibleSeatGroups": [
+            "BULKHEAD"
+          ]
+        }
+      },
+      "commercialName": "Bassinet",
+      "description": null,
+      "document": {
+        "type": "None",
+        "rfic": null,
+        "rfisc": null
+      },
+      "booking": {
+        "method": "Ssr",
+        "ssrCode": "BSCT",
+        "ssimCode": null,
+        "confirmationRequirement": "SubjectToConfirmation"
+      },
+      "salesEffectiveFrom": null,
+      "salesDiscontinueOn": null
+    }
+  },
+  "editRequest": {
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "BS1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "SP",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerPassenger",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A18",
+    "documentRouting": "NoAncillaryDocument",
+    "specification": {
+      "bassinet": {
+        "maxInfantWeightKg": 11.000,
+        "maxInfantAgeMonths": 8,
+        "compatibleSeatGroups": [
+          "BULKHEAD"
+        ]
+      }
+    },
+    "commercialName": "Bassinet",
+    "description": null,
+    "document": {
+      "type": "None",
+      "rfic": null,
+      "rfisc": null
+    },
+    "booking": {
+      "method": "Ssr",
+      "ssrCode": "BSCT",
+      "ssimCode": null,
+      "confirmationRequirement": "SubjectToConfirmation"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  }
+}

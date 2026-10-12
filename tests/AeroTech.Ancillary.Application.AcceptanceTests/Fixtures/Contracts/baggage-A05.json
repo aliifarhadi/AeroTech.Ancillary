@@ -1,0 +1,154 @@
+{
+  "createRequest": {
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "CABIN_BAG",
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "XC1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "BG",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerPiece",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A05",
+    "documentRouting": "Emd",
+    "specification": {
+      "allowanceConcept": "Piece",
+      "maxKgPerPiece": 8.000,
+      "maxSize": {
+        "lengthCm": 55.000,
+        "widthCm": 40.000,
+        "heightCm": 23.000
+      }
+    },
+    "commercialName": "Extra cabin bag",
+    "description": null,
+    "document": {
+      "type": "EmdAssociated",
+      "rfic": "C",
+      "rfisc": "XC1"
+    },
+    "booking": {
+      "method": "NoBookingProcessRequired",
+      "ssrCode": null,
+      "ssimCode": null,
+      "confirmationRequirement": "Immediate"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  },
+  "createResponse": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "supplierId": "{supplierId}",
+    "serviceDefinitionRef": "CABIN_BAG",
+    "version": 1,
+    "serviceTypeCode": "F",
+    "serviceSubCode": "XC1",
+    "subCodeSource": "CarrierDefined",
+    "groupCode": "BG",
+    "pricingUnit": "PerPiece",
+    "serviceDateBasis": "FlightDeparture",
+    "status": "Draft"
+  },
+  "read": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "CABIN_BAG",
+    "version": 1,
+    "status": {
+      "value": 1,
+      "name": "Draft",
+      "title": "Draft"
+    },
+    "profile": {
+      "value": 1,
+      "name": "Baggage",
+      "title": "Baggage"
+    },
+    "variantName": "Cabin bag",
+    "supplierName": "Dot Air",
+    "createdAt": "2026-10-01T10:00:00\u002B00:00",
+    "activatedAt": null,
+    "suspendedAt": null,
+    "retiredAt": null,
+    "form": {
+      "supplierId": "{supplierId}",
+      "serviceSubCode": "XC1",
+      "subCodeSource": "CarrierDefined",
+      "serviceTypeCode": "F",
+      "groupCode": "BG",
+      "subGroupCode": null,
+      "description1Code": null,
+      "description2Code": null,
+      "pricingUnit": "PerPiece",
+      "serviceDateBasis": "FlightDeparture",
+      "variantCode": "A05",
+      "documentRouting": "Emd",
+      "specification": {
+        "allowanceConcept": "Piece",
+        "maxKgPerPiece": 8.000,
+        "maxSize": {
+          "lengthCm": 55.000,
+          "widthCm": 40.000,
+          "heightCm": 23.000
+        }
+      },
+      "commercialName": "Extra cabin bag",
+      "description": null,
+      "document": {
+        "type": "EmdAssociated",
+        "rfic": "C",
+        "rfisc": "XC1"
+      },
+      "booking": {
+        "method": "NoBookingProcessRequired",
+        "ssrCode": null,
+        "ssimCode": null,
+        "confirmationRequirement": "Immediate"
+      },
+      "salesEffectiveFrom": null,
+      "salesDiscontinueOn": null
+    }
+  },
+  "editRequest": {
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "XC1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "BG",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerPiece",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A05",
+    "documentRouting": "Emd",
+    "specification": {
+      "allowanceConcept": "Piece",
+      "maxKgPerPiece": 8.000,
+      "maxSize": {
+        "lengthCm": 55.000,
+        "widthCm": 40.000,
+        "heightCm": 23.000
+      }
+    },
+    "commercialName": "Extra cabin bag",
+    "description": null,
+    "document": {
+      "type": "EmdAssociated",
+      "rfic": "C",
+      "rfisc": "XC1"
+    },
+    "booking": {
+      "method": "NoBookingProcessRequired",
+      "ssrCode": null,
+      "ssimCode": null,
+      "confirmationRequirement": "Immediate"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  }
+}

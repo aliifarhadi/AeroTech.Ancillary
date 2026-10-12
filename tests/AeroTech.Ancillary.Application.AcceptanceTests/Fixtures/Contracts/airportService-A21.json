@@ -1,0 +1,163 @@
+{
+  "createRequest": {
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "FAST_TRACK_THR",
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "FT1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "LG",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerPassenger",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A21",
+    "documentRouting": "Emd",
+    "specification": {
+      "airportId": 1,
+      "terminalRef": "T1",
+      "facilityId": null,
+      "direction": "Departure",
+      "serviceWindowStart": "05:00:00",
+      "serviceWindowEnd": "23:00:00",
+      "ianaTimeZone": "Asia/Tehran",
+      "visitDurationMinutes": null,
+      "maxGuestsPerPrimary": 0,
+      "requiresSpecificAppointment": false
+    },
+    "commercialName": "Fast track Tehran",
+    "description": null,
+    "document": {
+      "type": "EmdStandalone",
+      "rfic": "E",
+      "rfisc": "FT1"
+    },
+    "booking": {
+      "method": "NoBookingProcessRequired",
+      "ssrCode": null,
+      "ssimCode": null,
+      "confirmationRequirement": "Immediate"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  },
+  "createResponse": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "supplierId": "{supplierId}",
+    "serviceDefinitionRef": "FAST_TRACK_THR",
+    "version": 1,
+    "serviceTypeCode": "F",
+    "serviceSubCode": "FT1",
+    "subCodeSource": "CarrierDefined",
+    "groupCode": "LG",
+    "pricingUnit": "PerPassenger",
+    "serviceDateBasis": "FlightDeparture",
+    "status": "Draft"
+  },
+  "read": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "FAST_TRACK_THR",
+    "version": 1,
+    "status": {
+      "value": 1,
+      "name": "Draft",
+      "title": "Draft"
+    },
+    "profile": {
+      "value": 7,
+      "name": "AirportService",
+      "title": "Airport Service"
+    },
+    "variantName": "Fast track",
+    "supplierName": "Dot Air",
+    "createdAt": "2026-10-01T10:00:00\u002B00:00",
+    "activatedAt": null,
+    "suspendedAt": null,
+    "retiredAt": null,
+    "form": {
+      "supplierId": "{supplierId}",
+      "serviceSubCode": "FT1",
+      "subCodeSource": "CarrierDefined",
+      "serviceTypeCode": "F",
+      "groupCode": "LG",
+      "subGroupCode": null,
+      "description1Code": null,
+      "description2Code": null,
+      "pricingUnit": "PerPassenger",
+      "serviceDateBasis": "FlightDeparture",
+      "variantCode": "A21",
+      "documentRouting": "Emd",
+      "specification": {
+        "airportId": 1,
+        "terminalRef": "T1",
+        "facilityId": null,
+        "direction": "Departure",
+        "serviceWindowStart": "05:00:00",
+        "serviceWindowEnd": "23:00:00",
+        "ianaTimeZone": "Asia/Tehran",
+        "visitDurationMinutes": null,
+        "maxGuestsPerPrimary": 0,
+        "requiresSpecificAppointment": false
+      },
+      "commercialName": "Fast track Tehran",
+      "description": null,
+      "document": {
+        "type": "EmdStandalone",
+        "rfic": "E",
+        "rfisc": "FT1"
+      },
+      "booking": {
+        "method": "NoBookingProcessRequired",
+        "ssrCode": null,
+        "ssimCode": null,
+        "confirmationRequirement": "Immediate"
+      },
+      "salesEffectiveFrom": null,
+      "salesDiscontinueOn": null
+    }
+  },
+  "editRequest": {
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "FT1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "LG",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerPassenger",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A21",
+    "documentRouting": "Emd",
+    "specification": {
+      "airportId": 1,
+      "terminalRef": "T1",
+      "facilityId": null,
+      "direction": "Departure",
+      "serviceWindowStart": "05:00:00",
+      "serviceWindowEnd": "23:00:00",
+      "ianaTimeZone": "Asia/Tehran",
+      "visitDurationMinutes": null,
+      "maxGuestsPerPrimary": 0,
+      "requiresSpecificAppointment": false
+    },
+    "commercialName": "Fast track Tehran",
+    "description": null,
+    "document": {
+      "type": "EmdStandalone",
+      "rfic": "E",
+      "rfisc": "FT1"
+    },
+    "booking": {
+      "method": "NoBookingProcessRequired",
+      "ssrCode": null,
+      "ssimCode": null,
+      "confirmationRequirement": "Immediate"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  }
+}

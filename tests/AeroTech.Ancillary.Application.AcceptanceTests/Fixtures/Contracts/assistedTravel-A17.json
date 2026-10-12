@@ -1,0 +1,160 @@
+{
+  "createRequest": {
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "MEDICAL_OXYGEN",
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "MO1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "SP",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerPassenger",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A17",
+    "documentRouting": "Emd",
+    "specification": {
+      "medicalEquipment": {
+        "medicalServiceCode": "AOXY",
+        "requiresMedicalApproval": true,
+        "equipmentKind": "Oxygen",
+        "oxygenUnits": 2.000,
+        "evidenceTypeCodes": [
+          "MEDIF"
+        ]
+      }
+    },
+    "commercialName": "Medical oxygen",
+    "description": null,
+    "document": {
+      "type": "EmdAssociated",
+      "rfic": "E",
+      "rfisc": "MO1"
+    },
+    "booking": {
+      "method": "Ssr",
+      "ssrCode": "AOXY",
+      "ssimCode": null,
+      "confirmationRequirement": "SubjectToConfirmation"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  },
+  "createResponse": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "supplierId": "{supplierId}",
+    "serviceDefinitionRef": "MEDICAL_OXYGEN",
+    "version": 1,
+    "serviceTypeCode": "F",
+    "serviceSubCode": "MO1",
+    "subCodeSource": "CarrierDefined",
+    "groupCode": "SP",
+    "pricingUnit": "PerPassenger",
+    "serviceDateBasis": "FlightDeparture",
+    "status": "Draft"
+  },
+  "read": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "MEDICAL_OXYGEN",
+    "version": 1,
+    "status": {
+      "value": 1,
+      "name": "Draft",
+      "title": "Draft"
+    },
+    "profile": {
+      "value": 6,
+      "name": "AssistedTravel",
+      "title": "Assisted Travel"
+    },
+    "variantName": "Medical equipment",
+    "supplierName": "Dot Air",
+    "createdAt": "2026-10-01T10:00:00\u002B00:00",
+    "activatedAt": null,
+    "suspendedAt": null,
+    "retiredAt": null,
+    "form": {
+      "supplierId": "{supplierId}",
+      "serviceSubCode": "MO1",
+      "subCodeSource": "CarrierDefined",
+      "serviceTypeCode": "F",
+      "groupCode": "SP",
+      "subGroupCode": null,
+      "description1Code": null,
+      "description2Code": null,
+      "pricingUnit": "PerPassenger",
+      "serviceDateBasis": "FlightDeparture",
+      "variantCode": "A17",
+      "documentRouting": "Emd",
+      "specification": {
+        "medicalEquipment": {
+          "medicalServiceCode": "AOXY",
+          "requiresMedicalApproval": true,
+          "equipmentKind": "Oxygen",
+          "oxygenUnits": 2.000,
+          "evidenceTypeCodes": [
+            "MEDIF"
+          ]
+        }
+      },
+      "commercialName": "Medical oxygen",
+      "description": null,
+      "document": {
+        "type": "EmdAssociated",
+        "rfic": "E",
+        "rfisc": "MO1"
+      },
+      "booking": {
+        "method": "Ssr",
+        "ssrCode": "AOXY",
+        "ssimCode": null,
+        "confirmationRequirement": "SubjectToConfirmation"
+      },
+      "salesEffectiveFrom": null,
+      "salesDiscontinueOn": null
+    }
+  },
+  "editRequest": {
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "MO1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "SP",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerPassenger",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A17",
+    "documentRouting": "Emd",
+    "specification": {
+      "medicalEquipment": {
+        "medicalServiceCode": "AOXY",
+        "requiresMedicalApproval": true,
+        "equipmentKind": "Oxygen",
+        "oxygenUnits": 2.000,
+        "evidenceTypeCodes": [
+          "MEDIF"
+        ]
+      }
+    },
+    "commercialName": "Medical oxygen",
+    "description": null,
+    "document": {
+      "type": "EmdAssociated",
+      "rfic": "E",
+      "rfisc": "MO1"
+    },
+    "booking": {
+      "method": "Ssr",
+      "ssrCode": "AOXY",
+      "ssimCode": null,
+      "confirmationRequirement": "SubjectToConfirmation"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  }
+}

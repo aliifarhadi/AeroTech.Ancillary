@@ -10,6 +10,7 @@ using AeroTech.Ancillary.Query;
 using AeroTech.Ancillary.ReferenceData;
 using AeroTech.Ancillary.RestApi;
 using AeroTech.Ancillary.RestApi.V1._Shared;
+using AeroTech.Ancillary.RestApi.V1._Shared.OpenApi;
 using AeroTech.Ancillary.ServiceHost.CallerContext;
 using AeroTech.Ancillary.ServiceHost.ReferenceData;
 using AeroTech.Ancillary.Shopping;
@@ -33,7 +34,8 @@ builder.Services
     .AddReferenceData(builder.Configuration)
     .AddAncillaryShopping()
     .AddPresentation(builder.Configuration, typeof(RestApiAssembly).Assembly, typeof(ReferenceDataAssembly).Assembly)
-    .AddSurfaceAuthorization();
+    .AddSurfaceAuthorization()
+    .AddContractDocumentation();
 
 builder.Services.AddScoped<ICallerContext, ClaimsCallerContext>();
 builder.Services.AddScoped<IRequestCountry, HeaderRequestCountry>();

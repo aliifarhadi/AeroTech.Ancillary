@@ -1,0 +1,136 @@
+{
+  "createRequest": {
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "WEIGHT_PACK_10",
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "XW1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "BG",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerItem",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A02",
+    "documentRouting": "Emd",
+    "specification": {
+      "packageWeightKg": 10.000
+    },
+    "commercialName": "Extra weight package 10 kg",
+    "description": null,
+    "document": {
+      "type": "EmdAssociated",
+      "rfic": "C",
+      "rfisc": "XW1"
+    },
+    "booking": {
+      "method": "Ssr",
+      "ssrCode": "XBAG",
+      "ssimCode": null,
+      "confirmationRequirement": "Immediate"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  },
+  "createResponse": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "supplierId": "{supplierId}",
+    "serviceDefinitionRef": "WEIGHT_PACK_10",
+    "version": 1,
+    "serviceTypeCode": "F",
+    "serviceSubCode": "XW1",
+    "subCodeSource": "CarrierDefined",
+    "groupCode": "BG",
+    "pricingUnit": "PerItem",
+    "serviceDateBasis": "FlightDeparture",
+    "status": "Draft"
+  },
+  "read": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "WEIGHT_PACK_10",
+    "version": 1,
+    "status": {
+      "value": 1,
+      "name": "Draft",
+      "title": "Draft"
+    },
+    "profile": {
+      "value": 1,
+      "name": "Baggage",
+      "title": "Baggage"
+    },
+    "variantName": "Extra weight package",
+    "supplierName": "Dot Air",
+    "createdAt": "2026-10-01T10:00:00\u002B00:00",
+    "activatedAt": null,
+    "suspendedAt": null,
+    "retiredAt": null,
+    "form": {
+      "supplierId": "{supplierId}",
+      "serviceSubCode": "XW1",
+      "subCodeSource": "CarrierDefined",
+      "serviceTypeCode": "F",
+      "groupCode": "BG",
+      "subGroupCode": null,
+      "description1Code": null,
+      "description2Code": null,
+      "pricingUnit": "PerItem",
+      "serviceDateBasis": "FlightDeparture",
+      "variantCode": "A02",
+      "documentRouting": "Emd",
+      "specification": {
+        "packageWeightKg": 10.000
+      },
+      "commercialName": "Extra weight package 10 kg",
+      "description": null,
+      "document": {
+        "type": "EmdAssociated",
+        "rfic": "C",
+        "rfisc": "XW1"
+      },
+      "booking": {
+        "method": "Ssr",
+        "ssrCode": "XBAG",
+        "ssimCode": null,
+        "confirmationRequirement": "Immediate"
+      },
+      "salesEffectiveFrom": null,
+      "salesDiscontinueOn": null
+    }
+  },
+  "editRequest": {
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "XW1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "BG",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerItem",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A02",
+    "documentRouting": "Emd",
+    "specification": {
+      "packageWeightKg": 10.000
+    },
+    "commercialName": "Extra weight package 10 kg",
+    "description": null,
+    "document": {
+      "type": "EmdAssociated",
+      "rfic": "C",
+      "rfisc": "XW1"
+    },
+    "booking": {
+      "method": "Ssr",
+      "ssrCode": "XBAG",
+      "ssimCode": null,
+      "confirmationRequirement": "Immediate"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  }
+}

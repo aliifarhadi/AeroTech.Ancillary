@@ -1,0 +1,193 @@
+{
+  "createRequest": {
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "PET_CABIN",
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "PC1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "PT",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerItem",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A13",
+    "documentRouting": "Emd",
+    "specification": {
+      "allowedAnimalTypes": [
+        {
+          "animalType": "Cat",
+          "otherCode": ""
+        },
+        {
+          "animalType": "Dog",
+          "otherCode": ""
+        }
+      ],
+      "maxCombinedWeightKg": 8.000,
+      "carrierDimensionsMaxCm": {
+        "lengthCm": 55.000,
+        "widthCm": 40.000,
+        "heightCm": 23.000
+      },
+      "minAnimalAgeWeeks": 12,
+      "requiredDocumentCodes": [
+        "ENTRY_RULES_ACK"
+      ]
+    },
+    "commercialName": "Pet in cabin",
+    "description": null,
+    "document": {
+      "type": "EmdAssociated",
+      "rfic": "C",
+      "rfisc": "PC1"
+    },
+    "booking": {
+      "method": "Ssr",
+      "ssrCode": "PETC",
+      "ssimCode": null,
+      "confirmationRequirement": "SubjectToConfirmation"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  },
+  "createResponse": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "supplierId": "{supplierId}",
+    "serviceDefinitionRef": "PET_CABIN",
+    "version": 1,
+    "serviceTypeCode": "F",
+    "serviceSubCode": "PC1",
+    "subCodeSource": "CarrierDefined",
+    "groupCode": "PT",
+    "pricingUnit": "PerItem",
+    "serviceDateBasis": "FlightDeparture",
+    "status": "Draft"
+  },
+  "read": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "PET_CABIN",
+    "version": 1,
+    "status": {
+      "value": 1,
+      "name": "Draft",
+      "title": "Draft"
+    },
+    "profile": {
+      "value": 5,
+      "name": "Pet",
+      "title": "Pet"
+    },
+    "variantName": "Pet in cabin",
+    "supplierName": "Dot Air",
+    "createdAt": "2026-10-01T10:00:00\u002B00:00",
+    "activatedAt": null,
+    "suspendedAt": null,
+    "retiredAt": null,
+    "form": {
+      "supplierId": "{supplierId}",
+      "serviceSubCode": "PC1",
+      "subCodeSource": "CarrierDefined",
+      "serviceTypeCode": "F",
+      "groupCode": "PT",
+      "subGroupCode": null,
+      "description1Code": null,
+      "description2Code": null,
+      "pricingUnit": "PerItem",
+      "serviceDateBasis": "FlightDeparture",
+      "variantCode": "A13",
+      "documentRouting": "Emd",
+      "specification": {
+        "allowedAnimalTypes": [
+          {
+            "animalType": "Cat",
+            "otherCode": ""
+          },
+          {
+            "animalType": "Dog",
+            "otherCode": ""
+          }
+        ],
+        "maxCombinedWeightKg": 8.000,
+        "carrierDimensionsMaxCm": {
+          "lengthCm": 55.000,
+          "widthCm": 40.000,
+          "heightCm": 23.000
+        },
+        "minAnimalAgeWeeks": 12,
+        "requiredDocumentCodes": [
+          "ENTRY_RULES_ACK"
+        ]
+      },
+      "commercialName": "Pet in cabin",
+      "description": null,
+      "document": {
+        "type": "EmdAssociated",
+        "rfic": "C",
+        "rfisc": "PC1"
+      },
+      "booking": {
+        "method": "Ssr",
+        "ssrCode": "PETC",
+        "ssimCode": null,
+        "confirmationRequirement": "SubjectToConfirmation"
+      },
+      "salesEffectiveFrom": null,
+      "salesDiscontinueOn": null
+    }
+  },
+  "editRequest": {
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "PC1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "PT",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerItem",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A13",
+    "documentRouting": "Emd",
+    "specification": {
+      "allowedAnimalTypes": [
+        {
+          "animalType": "Cat",
+          "otherCode": ""
+        },
+        {
+          "animalType": "Dog",
+          "otherCode": ""
+        }
+      ],
+      "maxCombinedWeightKg": 8.000,
+      "carrierDimensionsMaxCm": {
+        "lengthCm": 55.000,
+        "widthCm": 40.000,
+        "heightCm": 23.000
+      },
+      "minAnimalAgeWeeks": 12,
+      "requiredDocumentCodes": [
+        "ENTRY_RULES_ACK"
+      ]
+    },
+    "commercialName": "Pet in cabin",
+    "description": null,
+    "document": {
+      "type": "EmdAssociated",
+      "rfic": "C",
+      "rfisc": "PC1"
+    },
+    "booking": {
+      "method": "Ssr",
+      "ssrCode": "PETC",
+      "ssimCode": null,
+      "confirmationRequirement": "SubjectToConfirmation"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  }
+}

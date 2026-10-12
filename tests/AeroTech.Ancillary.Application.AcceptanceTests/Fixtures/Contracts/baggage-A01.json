@@ -1,0 +1,136 @@
+{
+  "createRequest": {
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "EXTRA_BAG",
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "XB1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "BG",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerPiece",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A01",
+    "documentRouting": "Emd",
+    "specification": {
+      "maxKgPerPiece": 23.000
+    },
+    "commercialName": "Extra checked bag",
+    "description": null,
+    "document": {
+      "type": "EmdAssociated",
+      "rfic": "C",
+      "rfisc": "XB1"
+    },
+    "booking": {
+      "method": "Ssr",
+      "ssrCode": "XBAG",
+      "ssimCode": null,
+      "confirmationRequirement": "Immediate"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  },
+  "createResponse": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "supplierId": "{supplierId}",
+    "serviceDefinitionRef": "EXTRA_BAG",
+    "version": 1,
+    "serviceTypeCode": "F",
+    "serviceSubCode": "XB1",
+    "subCodeSource": "CarrierDefined",
+    "groupCode": "BG",
+    "pricingUnit": "PerPiece",
+    "serviceDateBasis": "FlightDeparture",
+    "status": "Draft"
+  },
+  "read": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "EXTRA_BAG",
+    "version": 1,
+    "status": {
+      "value": 1,
+      "name": "Draft",
+      "title": "Draft"
+    },
+    "profile": {
+      "value": 1,
+      "name": "Baggage",
+      "title": "Baggage"
+    },
+    "variantName": "Extra checked bag",
+    "supplierName": "Dot Air",
+    "createdAt": "2026-10-01T10:00:00\u002B00:00",
+    "activatedAt": null,
+    "suspendedAt": null,
+    "retiredAt": null,
+    "form": {
+      "supplierId": "{supplierId}",
+      "serviceSubCode": "XB1",
+      "subCodeSource": "CarrierDefined",
+      "serviceTypeCode": "F",
+      "groupCode": "BG",
+      "subGroupCode": null,
+      "description1Code": null,
+      "description2Code": null,
+      "pricingUnit": "PerPiece",
+      "serviceDateBasis": "FlightDeparture",
+      "variantCode": "A01",
+      "documentRouting": "Emd",
+      "specification": {
+        "maxKgPerPiece": 23.000
+      },
+      "commercialName": "Extra checked bag",
+      "description": null,
+      "document": {
+        "type": "EmdAssociated",
+        "rfic": "C",
+        "rfisc": "XB1"
+      },
+      "booking": {
+        "method": "Ssr",
+        "ssrCode": "XBAG",
+        "ssimCode": null,
+        "confirmationRequirement": "Immediate"
+      },
+      "salesEffectiveFrom": null,
+      "salesDiscontinueOn": null
+    }
+  },
+  "editRequest": {
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "XB1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "BG",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerPiece",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A01",
+    "documentRouting": "Emd",
+    "specification": {
+      "maxKgPerPiece": 23.000
+    },
+    "commercialName": "Extra checked bag",
+    "description": null,
+    "document": {
+      "type": "EmdAssociated",
+      "rfic": "C",
+      "rfisc": "XB1"
+    },
+    "booking": {
+      "method": "Ssr",
+      "ssrCode": "XBAG",
+      "ssimCode": null,
+      "confirmationRequirement": "Immediate"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  }
+}

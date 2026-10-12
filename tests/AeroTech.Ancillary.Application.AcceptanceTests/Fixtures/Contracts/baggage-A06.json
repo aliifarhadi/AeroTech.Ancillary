@@ -1,0 +1,160 @@
+{
+  "createRequest": {
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "SPORT_BIKE",
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "XE1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "BG",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerItem",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A06",
+    "documentRouting": "Emd",
+    "specification": {
+      "allowanceConcept": null,
+      "maxKgPerPiece": 32.000,
+      "maxSize": {
+        "lengthCm": 200.000,
+        "widthCm": 80.000,
+        "heightCm": 40.000
+      },
+      "maxLinearSumCm": null,
+      "equipmentKind": "BIKE"
+    },
+    "commercialName": "Bicycle",
+    "description": null,
+    "document": {
+      "type": "EmdAssociated",
+      "rfic": "C",
+      "rfisc": "XE1"
+    },
+    "booking": {
+      "method": "Ssr",
+      "ssrCode": "BIKE",
+      "ssimCode": null,
+      "confirmationRequirement": "SubjectToConfirmation"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  },
+  "createResponse": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "supplierId": "{supplierId}",
+    "serviceDefinitionRef": "SPORT_BIKE",
+    "version": 1,
+    "serviceTypeCode": "F",
+    "serviceSubCode": "XE1",
+    "subCodeSource": "CarrierDefined",
+    "groupCode": "BG",
+    "pricingUnit": "PerItem",
+    "serviceDateBasis": "FlightDeparture",
+    "status": "Draft"
+  },
+  "read": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "SPORT_BIKE",
+    "version": 1,
+    "status": {
+      "value": 1,
+      "name": "Draft",
+      "title": "Draft"
+    },
+    "profile": {
+      "value": 1,
+      "name": "Baggage",
+      "title": "Baggage"
+    },
+    "variantName": "Sports and special equipment",
+    "supplierName": "Dot Air",
+    "createdAt": "2026-10-01T10:00:00\u002B00:00",
+    "activatedAt": null,
+    "suspendedAt": null,
+    "retiredAt": null,
+    "form": {
+      "supplierId": "{supplierId}",
+      "serviceSubCode": "XE1",
+      "subCodeSource": "CarrierDefined",
+      "serviceTypeCode": "F",
+      "groupCode": "BG",
+      "subGroupCode": null,
+      "description1Code": null,
+      "description2Code": null,
+      "pricingUnit": "PerItem",
+      "serviceDateBasis": "FlightDeparture",
+      "variantCode": "A06",
+      "documentRouting": "Emd",
+      "specification": {
+        "allowanceConcept": null,
+        "maxKgPerPiece": 32.000,
+        "maxSize": {
+          "lengthCm": 200.000,
+          "widthCm": 80.000,
+          "heightCm": 40.000
+        },
+        "maxLinearSumCm": null,
+        "equipmentKind": "BIKE"
+      },
+      "commercialName": "Bicycle",
+      "description": null,
+      "document": {
+        "type": "EmdAssociated",
+        "rfic": "C",
+        "rfisc": "XE1"
+      },
+      "booking": {
+        "method": "Ssr",
+        "ssrCode": "BIKE",
+        "ssimCode": null,
+        "confirmationRequirement": "SubjectToConfirmation"
+      },
+      "salesEffectiveFrom": null,
+      "salesDiscontinueOn": null
+    }
+  },
+  "editRequest": {
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "XE1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "BG",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerItem",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A06",
+    "documentRouting": "Emd",
+    "specification": {
+      "allowanceConcept": null,
+      "maxKgPerPiece": 32.000,
+      "maxSize": {
+        "lengthCm": 200.000,
+        "widthCm": 80.000,
+        "heightCm": 40.000
+      },
+      "maxLinearSumCm": null,
+      "equipmentKind": "BIKE"
+    },
+    "commercialName": "Bicycle",
+    "description": null,
+    "document": {
+      "type": "EmdAssociated",
+      "rfic": "C",
+      "rfisc": "XE1"
+    },
+    "booking": {
+      "method": "Ssr",
+      "ssrCode": "BIKE",
+      "ssimCode": null,
+      "confirmationRequirement": "SubjectToConfirmation"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  }
+}

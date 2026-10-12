@@ -1,0 +1,178 @@
+{
+  "createRequest": {
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "CIP_IKA",
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "CP1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "LG",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerPassenger",
+    "serviceDateBasis": "ServiceStart",
+    "variantCode": "A22",
+    "documentRouting": "Emd",
+    "specification": {
+      "airportId": 2,
+      "terminalRef": "CIP",
+      "facilityId": "7001",
+      "direction": "Any",
+      "serviceWindowStart": null,
+      "serviceWindowEnd": null,
+      "ianaTimeZone": null,
+      "visitDurationMinutes": 120,
+      "maxGuestsPerPrimary": 2,
+      "includedComponentCodes": [
+        "FAST_TRACK",
+        "LOUNGE",
+        "PORTER"
+      ],
+      "requiresSpecificAppointment": true
+    },
+    "commercialName": "CIP meet and assist",
+    "description": null,
+    "document": {
+      "type": "EmdStandalone",
+      "rfic": "E",
+      "rfisc": "CP1"
+    },
+    "booking": {
+      "method": "NoBookingProcessRequired",
+      "ssrCode": null,
+      "ssimCode": null,
+      "confirmationRequirement": "SubjectToConfirmation"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  },
+  "createResponse": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "supplierId": "{supplierId}",
+    "serviceDefinitionRef": "CIP_IKA",
+    "version": 1,
+    "serviceTypeCode": "F",
+    "serviceSubCode": "CP1",
+    "subCodeSource": "CarrierDefined",
+    "groupCode": "LG",
+    "pricingUnit": "PerPassenger",
+    "serviceDateBasis": "ServiceStart",
+    "status": "Draft"
+  },
+  "read": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "CIP_IKA",
+    "version": 1,
+    "status": {
+      "value": 1,
+      "name": "Draft",
+      "title": "Draft"
+    },
+    "profile": {
+      "value": 7,
+      "name": "AirportService",
+      "title": "Airport Service"
+    },
+    "variantName": "CIP meet and assist",
+    "supplierName": "Dot Air",
+    "createdAt": "2026-10-01T10:00:00\u002B00:00",
+    "activatedAt": null,
+    "suspendedAt": null,
+    "retiredAt": null,
+    "form": {
+      "supplierId": "{supplierId}",
+      "serviceSubCode": "CP1",
+      "subCodeSource": "CarrierDefined",
+      "serviceTypeCode": "F",
+      "groupCode": "LG",
+      "subGroupCode": null,
+      "description1Code": null,
+      "description2Code": null,
+      "pricingUnit": "PerPassenger",
+      "serviceDateBasis": "ServiceStart",
+      "variantCode": "A22",
+      "documentRouting": "Emd",
+      "specification": {
+        "airportId": 2,
+        "terminalRef": "CIP",
+        "facilityId": "7001",
+        "direction": "Any",
+        "serviceWindowStart": null,
+        "serviceWindowEnd": null,
+        "ianaTimeZone": null,
+        "visitDurationMinutes": 120,
+        "maxGuestsPerPrimary": 2,
+        "includedComponentCodes": [
+          "FAST_TRACK",
+          "LOUNGE",
+          "PORTER"
+        ],
+        "requiresSpecificAppointment": true
+      },
+      "commercialName": "CIP meet and assist",
+      "description": null,
+      "document": {
+        "type": "EmdStandalone",
+        "rfic": "E",
+        "rfisc": "CP1"
+      },
+      "booking": {
+        "method": "NoBookingProcessRequired",
+        "ssrCode": null,
+        "ssimCode": null,
+        "confirmationRequirement": "SubjectToConfirmation"
+      },
+      "salesEffectiveFrom": null,
+      "salesDiscontinueOn": null
+    }
+  },
+  "editRequest": {
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "CP1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "LG",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerPassenger",
+    "serviceDateBasis": "ServiceStart",
+    "variantCode": "A22",
+    "documentRouting": "Emd",
+    "specification": {
+      "airportId": 2,
+      "terminalRef": "CIP",
+      "facilityId": "7001",
+      "direction": "Any",
+      "serviceWindowStart": null,
+      "serviceWindowEnd": null,
+      "ianaTimeZone": null,
+      "visitDurationMinutes": 120,
+      "maxGuestsPerPrimary": 2,
+      "includedComponentCodes": [
+        "FAST_TRACK",
+        "LOUNGE",
+        "PORTER"
+      ],
+      "requiresSpecificAppointment": true
+    },
+    "commercialName": "CIP meet and assist",
+    "description": null,
+    "document": {
+      "type": "EmdStandalone",
+      "rfic": "E",
+      "rfisc": "CP1"
+    },
+    "booking": {
+      "method": "NoBookingProcessRequired",
+      "ssrCode": null,
+      "ssimCode": null,
+      "confirmationRequirement": "SubjectToConfirmation"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  }
+}

@@ -1,0 +1,160 @@
+{
+  "createRequest": {
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "WIFI_FULL_FLIGHT",
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "WF1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "IE",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerItem",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A24",
+    "documentRouting": "Emd",
+    "specification": {
+      "planKind": "FullFlight",
+      "durationMinutes": null,
+      "includedDataMb": null,
+      "maxDevices": 2,
+      "eligibleAircraftIds": [
+        1
+      ],
+      "deliveryStage": "PreOrder",
+      "fulfillmentProviderRef": "WIFIPROVIDER"
+    },
+    "commercialName": "Wi-Fi full flight",
+    "description": null,
+    "document": {
+      "type": "EmdStandalone",
+      "rfic": "E",
+      "rfisc": "WF1"
+    },
+    "booking": {
+      "method": "NoBookingProcessRequired",
+      "ssrCode": null,
+      "ssimCode": null,
+      "confirmationRequirement": "Immediate"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  },
+  "createResponse": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "supplierId": "{supplierId}",
+    "serviceDefinitionRef": "WIFI_FULL_FLIGHT",
+    "version": 1,
+    "serviceTypeCode": "F",
+    "serviceSubCode": "WF1",
+    "subCodeSource": "CarrierDefined",
+    "groupCode": "IE",
+    "pricingUnit": "PerItem",
+    "serviceDateBasis": "FlightDeparture",
+    "status": "Draft"
+  },
+  "read": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "WIFI_FULL_FLIGHT",
+    "version": 1,
+    "status": {
+      "value": 1,
+      "name": "Draft",
+      "title": "Draft"
+    },
+    "profile": {
+      "value": 9,
+      "name": "Connectivity",
+      "title": "Connectivity"
+    },
+    "variantName": "Onboard Wi-Fi",
+    "supplierName": "Dot Air",
+    "createdAt": "2026-10-01T10:00:00\u002B00:00",
+    "activatedAt": null,
+    "suspendedAt": null,
+    "retiredAt": null,
+    "form": {
+      "supplierId": "{supplierId}",
+      "serviceSubCode": "WF1",
+      "subCodeSource": "CarrierDefined",
+      "serviceTypeCode": "F",
+      "groupCode": "IE",
+      "subGroupCode": null,
+      "description1Code": null,
+      "description2Code": null,
+      "pricingUnit": "PerItem",
+      "serviceDateBasis": "FlightDeparture",
+      "variantCode": "A24",
+      "documentRouting": "Emd",
+      "specification": {
+        "planKind": "FullFlight",
+        "durationMinutes": null,
+        "includedDataMb": null,
+        "maxDevices": 2,
+        "eligibleAircraftIds": [
+          1
+        ],
+        "deliveryStage": "PreOrder",
+        "fulfillmentProviderRef": "WIFIPROVIDER"
+      },
+      "commercialName": "Wi-Fi full flight",
+      "description": null,
+      "document": {
+        "type": "EmdStandalone",
+        "rfic": "E",
+        "rfisc": "WF1"
+      },
+      "booking": {
+        "method": "NoBookingProcessRequired",
+        "ssrCode": null,
+        "ssimCode": null,
+        "confirmationRequirement": "Immediate"
+      },
+      "salesEffectiveFrom": null,
+      "salesDiscontinueOn": null
+    }
+  },
+  "editRequest": {
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "WF1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "IE",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerItem",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A24",
+    "documentRouting": "Emd",
+    "specification": {
+      "planKind": "FullFlight",
+      "durationMinutes": null,
+      "includedDataMb": null,
+      "maxDevices": 2,
+      "eligibleAircraftIds": [
+        1
+      ],
+      "deliveryStage": "PreOrder",
+      "fulfillmentProviderRef": "WIFIPROVIDER"
+    },
+    "commercialName": "Wi-Fi full flight",
+    "description": null,
+    "document": {
+      "type": "EmdStandalone",
+      "rfic": "E",
+      "rfisc": "WF1"
+    },
+    "booking": {
+      "method": "NoBookingProcessRequired",
+      "ssrCode": null,
+      "ssimCode": null,
+      "confirmationRequirement": "Immediate"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  }
+}

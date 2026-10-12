@@ -10,6 +10,7 @@
     <ProjectReference Include="../../src/AeroTech.Ancillary.Application/AeroTech.Ancillary.Application.csproj" />
     <ProjectReference Include="../../src/AeroTech.Ancillary.Providers/AeroTech.Ancillary.Providers.csproj" />
     <ProjectReference Include="../../src/AeroTech.Ancillary.Persistence/AeroTech.Ancillary.Persistence.csproj" />
+    <ProjectReference Include="../../src/AeroTech.Ancillary.RestApi/AeroTech.Ancillary.RestApi.csproj" />
     <ProjectReference Include="../../src/AeroTech.Ancillary.Synchronizer/AeroTech.Ancillary.Synchronizer.csproj" />
   </ItemGroup>
 

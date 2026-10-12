@@ -1,0 +1,173 @@
+{
+  "createRequest": {
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "SEAT_EXTRA",
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "ST3",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "SA",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerSeat",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A09",
+    "documentRouting": "TicketOrExchange",
+    "specification": {
+      "seatCharacteristicCodes": [],
+      "applicableCabinIds": [
+        1
+      ],
+      "requiresExitRowEligibility": false,
+      "requiresAdjacentSeat": true,
+      "extraSeatPurpose": "PassengerComfort",
+      "extraOccupiedSeatCount": 1,
+      "requiresExternalTicketAction": true
+    },
+    "commercialName": "Extra seat for comfort",
+    "description": null,
+    "document": {
+      "type": "None",
+      "rfic": null,
+      "rfisc": null
+    },
+    "booking": {
+      "method": "Ssr",
+      "ssrCode": "EXST",
+      "ssimCode": null
+    },
+    "salesEffectiveFrom": "2026-11-01",
+    "salesDiscontinueOn": null
+  },
+  "createResponse": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "supplierId": "{supplierId}",
+    "serviceDefinitionRef": "SEAT_EXTRA",
+    "version": 1,
+    "serviceTypeCode": "F",
+    "serviceSubCode": "ST3",
+    "subCodeSource": "CarrierDefined",
+    "groupCode": "SA",
+    "pricingUnit": "PerSeat",
+    "serviceDateBasis": "FlightDeparture",
+    "status": "Draft"
+  },
+  "read": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "SEAT_EXTRA",
+    "version": 1,
+    "status": {
+      "value": 1,
+      "name": "Draft",
+      "title": "Draft"
+    },
+    "profile": {
+      "value": 2,
+      "name": "Seat",
+      "title": "Seat"
+    },
+    "variantName": "Extra seat",
+    "supplierName": "Dot Air",
+    "createdAt": "2026-10-01T10:00:00\u002B00:00",
+    "activatedAt": null,
+    "suspendedAt": null,
+    "retiredAt": null,
+    "form": {
+      "supplierId": "{supplierId}",
+      "serviceSubCode": "ST3",
+      "subCodeSource": "CarrierDefined",
+      "serviceTypeCode": "F",
+      "groupCode": "SA",
+      "subGroupCode": null,
+      "description1Code": null,
+      "description2Code": null,
+      "pricingUnit": "PerSeat",
+      "serviceDateBasis": "FlightDeparture",
+      "variantCode": "A09",
+      "documentRouting": "TicketOrExchange",
+      "specification": {
+        "seatCharacteristicCodes": [],
+        "applicableCabinIds": [
+          1
+        ],
+        "requiresExitRowEligibility": false,
+        "requiresAdjacentSeat": true,
+        "extraSeatPurpose": "PassengerComfort",
+        "extraOccupiedSeatCount": 1,
+        "requiresExternalTicketAction": true
+      },
+      "commercialName": "Extra seat for comfort",
+      "description": null,
+      "document": {
+        "type": "None",
+        "rfic": null,
+        "rfisc": null
+      },
+      "booking": {
+        "method": "Ssr",
+        "ssrCode": "EXST",
+        "ssimCode": null,
+        "confirmationRequirement": "Immediate"
+      },
+      "salesEffectiveFrom": "2026-11-01",
+      "salesDiscontinueOn": null
+    }
+  },
+  "editRequest": {
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "ST3",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "SA",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerSeat",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A09",
+    "documentRouting": "TicketOrExchange",
+    "specification": {
+      "seatCharacteristicCodes": [],
+      "applicableCabinIds": [
+        1
+      ],
+      "requiresExitRowEligibility": false,
+      "requiresAdjacentSeat": true,
+      "extraSeatPurpose": "PassengerComfort",
+      "extraOccupiedSeatCount": 1,
+      "requiresExternalTicketAction": true
+    },
+    "commercialName": "Extra seat for comfort",
+    "description": null,
+    "document": {
+      "type": "None",
+      "rfic": null,
+      "rfisc": null
+    },
+    "booking": {
+      "method": "Ssr",
+      "ssrCode": "EXST",
+      "ssimCode": null,
+      "confirmationRequirement": "Immediate"
+    },
+    "salesEffectiveFrom": "2026-11-01",
+    "salesDiscontinueOn": null
+  },
+  "editResponse": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "supplierId": "{supplierId}",
+    "serviceDefinitionRef": "SEAT_EXTRA",
+    "version": 1,
+    "serviceTypeCode": "F",
+    "serviceSubCode": "ST3",
+    "subCodeSource": "CarrierDefined",
+    "groupCode": "SA",
+    "pricingUnit": "PerSeat",
+    "serviceDateBasis": "FlightDeparture",
+    "status": "Draft"
+  }
+}

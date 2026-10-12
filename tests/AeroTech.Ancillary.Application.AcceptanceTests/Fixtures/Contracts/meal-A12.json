@@ -1,0 +1,148 @@
+{
+  "createRequest": {
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "MEAL_PASTA",
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "MP1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "ML",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerItem",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A12",
+    "documentRouting": "Emd",
+    "specification": {
+      "mealCode": null,
+      "menuItemRef": "MENU_PASTA_01",
+      "dietaryCode": "VEGETARIAN",
+      "cateringLeadTimeMinutes": 2880,
+      "exclusiveMealFamilyCode": "MAIN_MEAL"
+    },
+    "commercialName": "Pre-order pasta",
+    "description": null,
+    "document": {
+      "type": "EmdAssociated",
+      "rfic": "G",
+      "rfisc": "MP1"
+    },
+    "booking": {
+      "method": "Ssr",
+      "ssrCode": "SPML",
+      "ssimCode": null,
+      "confirmationRequirement": "Immediate"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  },
+  "createResponse": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "supplierId": "{supplierId}",
+    "serviceDefinitionRef": "MEAL_PASTA",
+    "version": 1,
+    "serviceTypeCode": "F",
+    "serviceSubCode": "MP1",
+    "subCodeSource": "CarrierDefined",
+    "groupCode": "ML",
+    "pricingUnit": "PerItem",
+    "serviceDateBasis": "FlightDeparture",
+    "status": "Draft"
+  },
+  "read": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "MEAL_PASTA",
+    "version": 1,
+    "status": {
+      "value": 1,
+      "name": "Draft",
+      "title": "Draft"
+    },
+    "profile": {
+      "value": 4,
+      "name": "Meal",
+      "title": "Meal"
+    },
+    "variantName": "Paid pre-order meal",
+    "supplierName": "Dot Air",
+    "createdAt": "2026-10-01T10:00:00\u002B00:00",
+    "activatedAt": null,
+    "suspendedAt": null,
+    "retiredAt": null,
+    "form": {
+      "supplierId": "{supplierId}",
+      "serviceSubCode": "MP1",
+      "subCodeSource": "CarrierDefined",
+      "serviceTypeCode": "F",
+      "groupCode": "ML",
+      "subGroupCode": null,
+      "description1Code": null,
+      "description2Code": null,
+      "pricingUnit": "PerItem",
+      "serviceDateBasis": "FlightDeparture",
+      "variantCode": "A12",
+      "documentRouting": "Emd",
+      "specification": {
+        "mealCode": null,
+        "menuItemRef": "MENU_PASTA_01",
+        "dietaryCode": "VEGETARIAN",
+        "cateringLeadTimeMinutes": 2880,
+        "exclusiveMealFamilyCode": "MAIN_MEAL"
+      },
+      "commercialName": "Pre-order pasta",
+      "description": null,
+      "document": {
+        "type": "EmdAssociated",
+        "rfic": "G",
+        "rfisc": "MP1"
+      },
+      "booking": {
+        "method": "Ssr",
+        "ssrCode": "SPML",
+        "ssimCode": null,
+        "confirmationRequirement": "Immediate"
+      },
+      "salesEffectiveFrom": null,
+      "salesDiscontinueOn": null
+    }
+  },
+  "editRequest": {
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "MP1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "ML",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerItem",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A12",
+    "documentRouting": "Emd",
+    "specification": {
+      "mealCode": null,
+      "menuItemRef": "MENU_PASTA_01",
+      "dietaryCode": "VEGETARIAN",
+      "cateringLeadTimeMinutes": 2880,
+      "exclusiveMealFamilyCode": "MAIN_MEAL"
+    },
+    "commercialName": "Pre-order pasta",
+    "description": null,
+    "document": {
+      "type": "EmdAssociated",
+      "rfic": "G",
+      "rfisc": "MP1"
+    },
+    "booking": {
+      "method": "Ssr",
+      "ssrCode": "SPML",
+      "ssimCode": null,
+      "confirmationRequirement": "Immediate"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  }
+}

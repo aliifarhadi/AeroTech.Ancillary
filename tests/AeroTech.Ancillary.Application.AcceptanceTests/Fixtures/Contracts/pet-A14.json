@@ -1,0 +1,229 @@
+{
+  "createRequest": {
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "PET_HOLD",
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "PH1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "PT",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerItem",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A14",
+    "documentRouting": "Emd",
+    "specification": {
+      "allowedAnimalTypes": [
+        {
+          "animalType": "Cat",
+          "otherCode": ""
+        },
+        {
+          "animalType": "Dog",
+          "otherCode": ""
+        }
+      ],
+      "maxCombinedWeightKg": 75.000,
+      "carrierDimensionsMaxCm": {
+        "lengthCm": 125.000,
+        "widthCm": 75.000,
+        "heightCm": 85.000
+      },
+      "minAnimalAgeWeeks": 12,
+      "requiredDocumentCodes": [
+        "HEALTH_CERT"
+      ],
+      "allowedHoldAnimalSizeBrackets": [
+        {
+          "code": "LARGE",
+          "weightFromExclusiveKg": 32.000,
+          "weightToInclusiveKg": 75.000
+        },
+        {
+          "code": "MEDIUM",
+          "weightFromExclusiveKg": 8.000,
+          "weightToInclusiveKg": 32.000
+        }
+      ]
+    },
+    "commercialName": "Pet in hold",
+    "description": null,
+    "document": {
+      "type": "EmdAssociated",
+      "rfic": "C",
+      "rfisc": "PH1"
+    },
+    "booking": {
+      "method": "Ssr",
+      "ssrCode": "AVIH",
+      "ssimCode": null,
+      "confirmationRequirement": "SubjectToConfirmation"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  },
+  "createResponse": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "supplierId": "{supplierId}",
+    "serviceDefinitionRef": "PET_HOLD",
+    "version": 1,
+    "serviceTypeCode": "F",
+    "serviceSubCode": "PH1",
+    "subCodeSource": "CarrierDefined",
+    "groupCode": "PT",
+    "pricingUnit": "PerItem",
+    "serviceDateBasis": "FlightDeparture",
+    "status": "Draft"
+  },
+  "read": {
+    "id": "{serviceDefinitionId}",
+    "ownerAirlineId": 1,
+    "serviceDefinitionRef": "PET_HOLD",
+    "version": 1,
+    "status": {
+      "value": 1,
+      "name": "Draft",
+      "title": "Draft"
+    },
+    "profile": {
+      "value": 5,
+      "name": "Pet",
+      "title": "Pet"
+    },
+    "variantName": "Pet in hold",
+    "supplierName": "Dot Air",
+    "createdAt": "2026-10-01T10:00:00\u002B00:00",
+    "activatedAt": null,
+    "suspendedAt": null,
+    "retiredAt": null,
+    "form": {
+      "supplierId": "{supplierId}",
+      "serviceSubCode": "PH1",
+      "subCodeSource": "CarrierDefined",
+      "serviceTypeCode": "F",
+      "groupCode": "PT",
+      "subGroupCode": null,
+      "description1Code": null,
+      "description2Code": null,
+      "pricingUnit": "PerItem",
+      "serviceDateBasis": "FlightDeparture",
+      "variantCode": "A14",
+      "documentRouting": "Emd",
+      "specification": {
+        "allowedAnimalTypes": [
+          {
+            "animalType": "Cat",
+            "otherCode": ""
+          },
+          {
+            "animalType": "Dog",
+            "otherCode": ""
+          }
+        ],
+        "maxCombinedWeightKg": 75.000,
+        "carrierDimensionsMaxCm": {
+          "lengthCm": 125.000,
+          "widthCm": 75.000,
+          "heightCm": 85.000
+        },
+        "minAnimalAgeWeeks": 12,
+        "requiredDocumentCodes": [
+          "HEALTH_CERT"
+        ],
+        "allowedHoldAnimalSizeBrackets": [
+          {
+            "code": "LARGE",
+            "weightFromExclusiveKg": 32.000,
+            "weightToInclusiveKg": 75.000
+          },
+          {
+            "code": "MEDIUM",
+            "weightFromExclusiveKg": 8.000,
+            "weightToInclusiveKg": 32.000
+          }
+        ]
+      },
+      "commercialName": "Pet in hold",
+      "description": null,
+      "document": {
+        "type": "EmdAssociated",
+        "rfic": "C",
+        "rfisc": "PH1"
+      },
+      "booking": {
+        "method": "Ssr",
+        "ssrCode": "AVIH",
+        "ssimCode": null,
+        "confirmationRequirement": "SubjectToConfirmation"
+      },
+      "salesEffectiveFrom": null,
+      "salesDiscontinueOn": null
+    }
+  },
+  "editRequest": {
+    "supplierId": "{supplierId}",
+    "serviceSubCode": "PH1",
+    "subCodeSource": "CarrierDefined",
+    "serviceTypeCode": "F",
+    "groupCode": "PT",
+    "subGroupCode": null,
+    "description1Code": null,
+    "description2Code": null,
+    "pricingUnit": "PerItem",
+    "serviceDateBasis": "FlightDeparture",
+    "variantCode": "A14",
+    "documentRouting": "Emd",
+    "specification": {
+      "allowedAnimalTypes": [
+        {
+          "animalType": "Cat",
+          "otherCode": ""
+        },
+        {
+          "animalType": "Dog",
+          "otherCode": ""
+        }
+      ],
+      "maxCombinedWeightKg": 75.000,
+      "carrierDimensionsMaxCm": {
+        "lengthCm": 125.000,
+        "widthCm": 75.000,
+        "heightCm": 85.000
+      },
+      "minAnimalAgeWeeks": 12,
+      "requiredDocumentCodes": [
+        "HEALTH_CERT"
+      ],
+      "allowedHoldAnimalSizeBrackets": [
+        {
+          "code": "LARGE",
+          "weightFromExclusiveKg": 32.000,
+          "weightToInclusiveKg": 75.000
+        },
+        {
+          "code": "MEDIUM",
+          "weightFromExclusiveKg": 8.000,
+          "weightToInclusiveKg": 32.000
+        }
+      ]
+    },
+    "commercialName": "Pet in hold",
+    "description": null,
+    "document": {
+      "type": "EmdAssociated",
+      "rfic": "C",
+      "rfisc": "PH1"
+    },
+    "booking": {
+      "method": "Ssr",
+      "ssrCode": "AVIH",
+      "ssimCode": null,
+      "confirmationRequirement": "SubjectToConfirmation"
+    },
+    "salesEffectiveFrom": null,
+    "salesDiscontinueOn": null
+  }
+}
