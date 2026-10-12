@@ -1,8 +1,8 @@
 namespace AeroTech.Ancillary.Query.AncillaryOffers.Dto.Api
 {
     public sealed record ApiIncludedAllowanceDto(
-        string TravellerRef,
-        string FlightRef,
+        string TravelerId,
+        IReadOnlyList<string> SegmentIds,
         int? CheckedPieces,
         decimal? CheckedWeight,
         string? CheckedWeightUnit,
@@ -48,9 +48,9 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Dto.Api
         string? PassengerTypeCode,
         int? AgeFromInclusive,
         int? AgeToExclusive,
-        int CurrencyId,
-        decimal BaseAmount,
-        decimal UnitTotal,
+        string? CurrencyCode,
+        string Base,
+        string Total,
         bool UnitTotalComplete,
         bool Applied);
 }

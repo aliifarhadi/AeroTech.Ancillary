@@ -63,6 +63,7 @@ using AeroTech.Ancillary.Persistence.SupplierAggregate;
 using AeroTech.Ancillary.Query.AncillaryPricingAggregate.Queries.GetAncillaryPricingById;
 using AeroTech.Ancillary.Query.AncillaryPricingAggregate.Queries.GetAncillaryPricingsPaginated;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionById;
+using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionForm;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionsPaginated;
 using AeroTech.Ancillary.Query.AncillaryReservationAggregate.Queries.GetAncillaryHoldById;
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.GetAncillaryServiceDefinitionById;
@@ -181,6 +182,7 @@ public sealed class AncillaryScope : IAsyncDisposable
         GetServiceDefinitionsPaginated = new GetAncillaryServiceDefinitionsPaginatedService(Query);
         GetVariants = new GetAncillaryVariantsService();
         GetProvisionById = new GetAncillaryProvisionByIdService(Query);
+        GetProvisionForm = new GetAncillaryProvisionFormService(GetProvisionById);
         GetProvisionsPaginated = new GetAncillaryProvisionsPaginatedService(Query);
         GetPricingById = new GetAncillaryPricingByIdService(Query);
         GetPricingsPaginated = new GetAncillaryPricingsPaginatedService(Query);
@@ -316,6 +318,8 @@ public sealed class AncillaryScope : IAsyncDisposable
     public IGetAncillaryVariantsService GetVariants { get; }
 
     public IGetAncillaryProvisionByIdService GetProvisionById { get; }
+
+    public IGetAncillaryProvisionFormService GetProvisionForm { get; }
 
     public IGetAncillaryProvisionsPaginatedService GetProvisionsPaginated { get; }
 

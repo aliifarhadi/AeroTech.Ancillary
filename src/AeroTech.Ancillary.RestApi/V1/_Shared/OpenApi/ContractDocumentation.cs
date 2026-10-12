@@ -13,10 +13,10 @@ namespace AeroTech.Ancillary.RestApi.V1._Shared.OpenApi
             {
                 options.SupportNonNullableReferenceTypes();
                 options.NonNullableReferenceTypesAsRequired();
-                options.UseOneOfForPolymorphism();
+                options.UseAllOfToExtendReferenceSchemas();
                 options.MapType<long>(() => new OpenApiSchema { Type = JsonSchemaType.String, Format = LongFormat });
                 options.MapType<long?>(() => new OpenApiSchema { Type = JsonSchemaType.String | JsonSchemaType.Null, Format = LongFormat });
-                options.SchemaFilter<VariantSpecificationSchemaFilter>();
+                options.SchemaFilter<VariantContractSchemaFilter>();
             });
     }
 }

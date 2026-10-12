@@ -1,0 +1,210 @@
+{
+  "read": {
+    "id": "{provisionId}",
+    "serviceDefinitionId": "{serviceDefinitionId}",
+    "status": {
+      "value": 1,
+      "name": "Draft",
+      "title": "Draft"
+    },
+    "profile": {
+      "value": 2,
+      "name": "Seat",
+      "title": "Seat"
+    },
+    "variantCode": "A08",
+    "applicableRuleSections": [
+      "PassengerEligibility",
+      "SalesRestrictions",
+      "Geography",
+      "TravelDate",
+      "DayTimeApplication",
+      "AdvancePurchase",
+      "FlightApplication",
+      "FareApplication",
+      "SeatApplication"
+    ],
+    "createdAt": "2026-10-01T10:00:00\u002B00:00",
+    "activatedAt": null,
+    "suspendedAt": null,
+    "retiredAt": null,
+    "form": {
+      "sequence": 10,
+      "coverageScope": "Sector",
+      "purchaseStage": "Both",
+      "priceOrigin": "Filed",
+      "quoteProviderKey": null,
+      "quantity": {
+        "unit": "Each",
+        "minQuantity": 1,
+        "maxQuantity": 1
+      },
+      "applicationType": "Seat",
+      "outcome": {
+        "disposition": "Paid",
+        "documentRequired": true,
+        "bookingRequired": false
+      },
+      "settlement": {
+        "reissueRefund": "NonRefundable",
+        "formOfRefund": null,
+        "commissionable": false,
+        "interlineSettlement": false
+      },
+      "availability": {
+        "mustCheckAvailability": true
+      },
+      "fulfillment": {
+        "fulfillmentProviderKey": "Ancillary"
+      },
+      "passengerEligibility": {
+        "allowedPassengerTypes": [
+          "ADT",
+          "CHD"
+        ],
+        "allowedAgeBands": []
+      },
+      "salesRestrictions": {
+        "salesEffectiveFrom": null,
+        "salesDiscontinueAt": null,
+        "allowedPointOfSaleIds": [
+          "9001"
+        ],
+        "allowedCustomerIds": [],
+        "allowedCustomerTypes": []
+      },
+      "geography": null,
+      "flightApplication": null,
+      "fareApplication": {
+        "allowedAirFareIds": [],
+        "allowedAirFareTypes": [],
+        "allowedFareFamilyIds": [],
+        "allowedFareBasisCodes": [],
+        "allowedCabinClassIds": [
+          1
+        ],
+        "allowedRbdIds": []
+      },
+      "travelDate": {
+        "permittedPeriods": [
+          {
+            "startDate": "2027-01-01",
+            "endDate": "2027-12-31"
+          }
+        ],
+        "blackoutPeriods": []
+      },
+      "dayTimeApplication": null,
+      "advancePurchase": {
+        "minimumPeriod": 24,
+        "unit": "Hours",
+        "sameTimeAsTicketed": false,
+        "maximumPeriod": null
+      },
+      "baggageApplication": null,
+      "seatApplication": {
+        "seatNumbers": [],
+        "seatCharacteristicCodes": [
+          "E"
+        ]
+      },
+      "petRule": null,
+      "assistedTravelRule": null,
+      "airportServiceRule": null
+    }
+  },
+  "editRequest": {
+    "sequence": 10,
+    "coverageScope": "Sector",
+    "purchaseStage": "Both",
+    "priceOrigin": "Filed",
+    "quoteProviderKey": null,
+    "quantity": {
+      "unit": "Each",
+      "minQuantity": 1,
+      "maxQuantity": 1
+    },
+    "applicationType": "Seat",
+    "outcome": {
+      "disposition": "Paid",
+      "documentRequired": true,
+      "bookingRequired": false
+    },
+    "settlement": {
+      "reissueRefund": "NonRefundable",
+      "formOfRefund": null,
+      "commissionable": false,
+      "interlineSettlement": false
+    },
+    "availability": {
+      "mustCheckAvailability": true
+    },
+    "fulfillment": {
+      "fulfillmentProviderKey": "Ancillary"
+    },
+    "passengerEligibility": {
+      "allowedPassengerTypes": [
+        "ADT",
+        "CHD"
+      ],
+      "allowedAgeBands": []
+    },
+    "salesRestrictions": {
+      "salesEffectiveFrom": null,
+      "salesDiscontinueAt": null,
+      "allowedPointOfSaleIds": [
+        "9001"
+      ],
+      "allowedCustomerIds": [],
+      "allowedCustomerTypes": []
+    },
+    "geography": null,
+    "flightApplication": null,
+    "fareApplication": {
+      "allowedAirFareIds": [],
+      "allowedAirFareTypes": [],
+      "allowedFareFamilyIds": [],
+      "allowedFareBasisCodes": [],
+      "allowedCabinClassIds": [
+        1
+      ],
+      "allowedRbdIds": []
+    },
+    "travelDate": {
+      "permittedPeriods": [
+        {
+          "startDate": "2027-01-01",
+          "endDate": "2027-12-31"
+        }
+      ],
+      "blackoutPeriods": []
+    },
+    "dayTimeApplication": null,
+    "advancePurchase": {
+      "minimumPeriod": 24,
+      "unit": "Hours",
+      "sameTimeAsTicketed": false,
+      "maximumPeriod": null
+    },
+    "baggageApplication": null,
+    "seatApplication": {
+      "seatNumbers": [],
+      "seatCharacteristicCodes": [
+        "E"
+      ]
+    },
+    "petRule": null,
+    "assistedTravelRule": null,
+    "airportServiceRule": null
+  },
+  "editResponse": {
+    "id": "{provisionId}",
+    "serviceDefinitionId": "{serviceDefinitionId}",
+    "sequence": 10,
+    "coverageScope": "Sector",
+    "purchaseStage": "Both",
+    "disposition": "Paid",
+    "priceOrigin": "Filed",
+    "status": "Draft"
+  }
+}

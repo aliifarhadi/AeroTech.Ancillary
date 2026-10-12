@@ -1,4 +1,5 @@
 using AeroTech.Ancillary.Query.AncillaryOffers.Dto.Api;
+using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Api;
 using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
 using AeroTech.Ancillary.Shopping.Context;
 using AeroTech.Messages.Ancillary.Enums;
@@ -7,10 +8,10 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOfferDeta
 {
     public static class ApiOfferDetailSectionsMapper
     {
-        public static ApiIncludedAllowanceDto Allowance(TravellerFlightBaggageFacts fact)
+        public static ApiIncludedAllowanceDto Allowance(TravellerFlightBaggageFacts fact, ApiOfferReferences references)
             => new(
-                fact.TravellerRef,
-                fact.FlightRef,
+                references.TravelerIds([fact.TravellerRef]).Single(),
+                references.SegmentIds([fact.FlightRef]),
                 fact.CheckedPieces,
                 fact.CheckedWeight,
                 fact.CheckedWeightUnit?.ToString(),
@@ -55,14 +56,14 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOfferDeta
                 terms.FormOfRefund?.ToString(),
                 terms.ConfirmationRequirement.ToString());
 
-        public static ApiRateDto Rate(OfferPublishedRate rate)
+        public static ApiRateDto Rate(OfferPublishedRate rate, ApiOfferReferences references)
             => new(
                 rate.PassengerTypeCode?.ToString(),
                 rate.AgeFromInclusive,
                 rate.AgeToExclusive,
-                rate.CurrencyId,
-                rate.BaseAmount,
-                rate.UnitTotal,
+                references.CurrencyCode(rate.CurrencyId),
+                ApiOfferReferences.Amount(rate.BaseAmount),
+                ApiOfferReferences.Amount(rate.UnitTotal),
                 rate.IsUnitTotalComplete,
                 rate.IsApplied);
     }

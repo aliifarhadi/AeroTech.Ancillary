@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto
@@ -9,6 +10,7 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto
     [JsonDerivedType(typeof(CipMeetAssistSpecificationDto))]
     public abstract record AirportServiceVariantSpecificationDto;
 
+    [VariantCode(AncillaryVariant.Lounge)]
     public sealed record LoungeSpecificationDto(
         int AirportId,
         string? TerminalRef,
@@ -21,6 +23,7 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto
         int? MaxGuestsPerPrimary,
         bool RequiresSpecificAppointment) : AirportServiceVariantSpecificationDto;
 
+    [VariantCode(AncillaryVariant.FastTrack)]
     public sealed record FastTrackSpecificationDto(
         int AirportId,
         string? TerminalRef,
@@ -33,6 +36,7 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto
         int? MaxGuestsPerPrimary,
         bool RequiresSpecificAppointment) : AirportServiceVariantSpecificationDto;
 
+    [VariantCode(AncillaryVariant.CipMeetAssist)]
     public sealed record CipMeetAssistSpecificationDto(
         int AirportId,
         string? TerminalRef,

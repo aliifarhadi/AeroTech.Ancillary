@@ -1,136 +1,109 @@
 {
   "data": {
-    "sourceOfferId": "1|1|0;9000000000000000001~9000000000000000101_9000000000000000002~9000000000000000102;3|9000000000000000900||70|1791706372",
-    "currency": {
-      "id": 70,
-      "code": "IRR"
+    "meta": {
+      "count": 12,
+      "withheldCount": 4,
+      "status": "NeedsSelectionOrRecheck"
     },
-    "dataLists": {
-      "passengers": [
+    "data": {
+      "type": "ancillary-offers",
+      "flightOfferId": "1|1|0;9000000000000000001~9000000000000000101_9000000000000000002~9000000000000000102;3|9000000000000000900||70|1791706372",
+      "travelers": [
         {
-          "passengerRef": "ADT-1",
-          "ptc": "ADT"
+          "id": "1",
+          "travelerType": "ADULT"
         },
         {
-          "passengerRef": "CHD-1",
-          "ptc": "CHD"
+          "id": "2",
+          "travelerType": "CHILD"
         }
       ],
-      "paxSegments": [
+      "segments": [
         {
-          "segmentRef": "B1:F1",
-          "journeyRef": "B1",
-          "flightId": "1558420526869774453",
-          "flightNumber": "1124",
-          "marketingAirlineId": 1,
-          "operatingAirlineId": 1,
-          "originAirportId": 2,
-          "destinationAirportId": 6,
-          "departureAt": "2026-10-15T08:15:00+03:30",
-          "arrivalAt": "2026-10-15T11:11:00+03:00",
-          "cabinClassId": 1
+          "id": "1",
+          "carrierCode": "L1",
+          "number": "1124",
+          "departure": {
+            "iataCode": "P02",
+            "at": "2026-10-15T08:15:00+03:30"
+          },
+          "arrival": {
+            "iataCode": "P06",
+            "at": "2026-10-15T11:11:00+03:00"
+          },
+          "operating": {
+            "carrierCode": "L1"
+          }
         },
         {
-          "segmentRef": "B2:F1",
-          "journeyRef": "B2",
-          "flightId": "1550116065952923910",
-          "flightNumber": "1598",
-          "marketingAirlineId": 3,
-          "operatingAirlineId": 1,
-          "originAirportId": 6,
-          "destinationAirportId": 2,
-          "departureAt": "2026-10-16T19:40:00+03:00",
-          "arrivalAt": "2026-10-16T23:33:00+03:30",
-          "cabinClassId": 1
-        }
-      ],
-      "serviceDefinitions": [
-        {
-          "serviceDefinitionRef": "EXTRA_BAG",
-          "name": "Extra checked bag",
-          "description": null,
-          "category": "Baggage",
-          "variantCode": "A01",
-          "serviceTypeCode": "F",
-          "serviceSubCode": "XB1",
-          "rfic": "C",
-          "rfisc": "XB1",
-          "documentType": "EmdAssociated",
-          "bookingMethod": "Ssr",
-          "ssrCode": "XBAG"
-        },
-        {
-          "serviceDefinitionRef": "SEAT_STANDARD",
-          "name": "Standard seat",
-          "description": null,
-          "category": "Seat",
-          "variantCode": "A07",
-          "serviceTypeCode": "F",
-          "serviceSubCode": "ST1",
-          "rfic": "A",
-          "rfisc": "ST1",
-          "documentType": "EmdAssociated",
-          "bookingMethod": "Ssr",
-          "ssrCode": "RQST"
-        },
-        {
-          "serviceDefinitionRef": "WIFI_FULL_FLIGHT",
-          "name": "Wi-Fi full flight",
-          "description": null,
-          "category": "Connectivity",
-          "variantCode": "A24",
-          "serviceTypeCode": "F",
-          "serviceSubCode": "WF1",
-          "rfic": "E",
-          "rfisc": "WF1",
-          "documentType": "EmdStandalone",
-          "bookingMethod": "NoBookingProcessRequired",
-          "ssrCode": null
+          "id": "2",
+          "carrierCode": "L3",
+          "number": "1598",
+          "departure": {
+            "iataCode": "P06",
+            "at": "2026-10-16T19:40:00+03:00"
+          },
+          "arrival": {
+            "iataCode": "P02",
+            "at": "2026-10-16T23:33:00+03:30"
+          },
+          "operating": {
+            "carrierCode": "L1"
+          }
         }
       ]
     },
-    "aLaCarteOffers": [
-      {
-        "offerItems": [
-          {
-            "offerItemRef": "cwzds73NV6kKIt_ultY6ogR3jKuDsxMFLeFqPlkZQo4",
-            "serviceDefinitionRef": "EXTRA_BAG",
-            "eligibility": {
-              "coverageScope": "Portion",
-              "passengerRefs": [
-                "ADT-1"
-              ],
-              "segmentRefs": [
-                "B1:F1"
-              ],
-              "journeyRefs": [
-                "B1"
-              ]
+    "included": {
+      "bags": {
+        "cwzds73NV6kKIt_ultY6ogR3jKuDsxMFLeFqPlkZQo4": {
+          "quantity": 1,
+          "weight": 23,
+          "weightUnit": "KG",
+          "name": "EXTRA_CHECKED_BAG",
+          "price": {
+            "amount": "5450000.00",
+            "currencyCode": "IRR"
+          },
+          "bookableByItinerary": false,
+          "segmentIds": [
+            "1"
+          ],
+          "travelerIds": [
+            "1"
+          ],
+          "ancillary": {
+            "type": "CHECKED_BAGS",
+            "service": {
+              "serviceDefinitionRef": "EXTRA_BAG",
+              "commercialName": "Extra checked bag",
+              "description": null,
+              "category": "Baggage",
+              "variantCode": "A01",
+              "serviceTypeCode": "F",
+              "serviceSubCode": "XB1",
+              "rfic": "C",
+              "rfisc": "XB1",
+              "documentType": "EmdAssociated",
+              "bookingMethod": "Ssr",
+              "ssrCode": "XBAG"
             },
             "pricing": {
               "origin": "Filed",
               "status": "Complete",
               "unit": "PerPiece",
-              "unitPrice": {
-                "amount": 5450000,
-                "currencyId": 70
-              },
-              "base": {
-                "amount": 5000000,
-                "currencyId": 70
-              },
+              "currencyCode": "IRR",
+              "base": "5000000.00",
+              "total": "5450000.00",
               "taxes": [
                 {
+                  "amount": "450000.00",
                   "code": "VAT",
-                  "amount": 450000,
-                  "currencyId": 70,
-                  "appliesPer": null
+                  "currencyCode": "IRR",
+                  "included": false
                 }
               ],
-              "includedTaxes": [],
-              "additionalFees": [],
-              "orderLevelFees": [],
-              "totalPrice": null,
+              "fees": [],
+              "requestedTotal": null,
               "totalComplete": true
             },
             "quantity": {
@@ -166,46 +139,57 @@
             "reasons": [
               "InventoryNotConfigured"
             ]
+          }
+        },
+        "nB85gIoO5Y3QKTCV9uzxsEA3eF517Fwgep76pnwohWk": {
+          "quantity": 1,
+          "weight": 23,
+          "weightUnit": "KG",
+          "name": "EXTRA_CHECKED_BAG",
+          "price": {
+            "amount": "5450000.00",
+            "currencyCode": "IRR"
           },
-          {
-            "offerItemRef": "nB85gIoO5Y3QKTCV9uzxsEA3eF517Fwgep76pnwohWk",
-            "serviceDefinitionRef": "EXTRA_BAG",
-            "eligibility": {
-              "coverageScope": "Portion",
-              "passengerRefs": [
-                "ADT-1"
-              ],
-              "segmentRefs": [
-                "B2:F1"
-              ],
-              "journeyRefs": [
-                "B2"
-              ]
+          "bookableByItinerary": false,
+          "segmentIds": [
+            "2"
+          ],
+          "travelerIds": [
+            "1"
+          ],
+          "ancillary": {
+            "type": "CHECKED_BAGS",
+            "service": {
+              "serviceDefinitionRef": "EXTRA_BAG",
+              "commercialName": "Extra checked bag",
+              "description": null,
+              "category": "Baggage",
+              "variantCode": "A01",
+              "serviceTypeCode": "F",
+              "serviceSubCode": "XB1",
+              "rfic": "C",
+              "rfisc": "XB1",
+              "documentType": "EmdAssociated",
+              "bookingMethod": "Ssr",
+              "ssrCode": "XBAG"
             },
             "pricing": {
               "origin": "Filed",
               "status": "Complete",
               "unit": "PerPiece",
-              "unitPrice": {
-                "amount": 5450000,
-                "currencyId": 70
-              },
-              "base": {
-                "amount": 5000000,
-                "currencyId": 70
-              },
+              "currencyCode": "IRR",
+              "base": "5000000.00",
+              "total": "5450000.00",
               "taxes": [
                 {
+                  "amount": "450000.00",
                   "code": "VAT",
-                  "amount": 450000,
-                  "currencyId": 70,
-                  "appliesPer": null
+                  "currencyCode": "IRR",
+                  "included": false
                 }
               ],
-              "includedTaxes": [],
-              "additionalFees": [],
-              "orderLevelFees": [],
-              "totalPrice": null,
+              "fees": [],
+              "requestedTotal": null,
               "totalComplete": true
             },
             "quantity": {
@@ -241,46 +225,57 @@
             "reasons": [
               "InventoryNotConfigured"
             ]
+          }
+        },
+        "j5zAQME8NHb2tLTn5-MvGFFsrDzW-O0boG9jrwvYHGA": {
+          "quantity": 1,
+          "weight": 23,
+          "weightUnit": "KG",
+          "name": "EXTRA_CHECKED_BAG",
+          "price": {
+            "amount": "5450000.00",
+            "currencyCode": "IRR"
           },
-          {
-            "offerItemRef": "j5zAQME8NHb2tLTn5-MvGFFsrDzW-O0boG9jrwvYHGA",
-            "serviceDefinitionRef": "EXTRA_BAG",
-            "eligibility": {
-              "coverageScope": "Portion",
-              "passengerRefs": [
-                "CHD-1"
-              ],
-              "segmentRefs": [
-                "B1:F1"
-              ],
-              "journeyRefs": [
-                "B1"
-              ]
+          "bookableByItinerary": false,
+          "segmentIds": [
+            "1"
+          ],
+          "travelerIds": [
+            "2"
+          ],
+          "ancillary": {
+            "type": "CHECKED_BAGS",
+            "service": {
+              "serviceDefinitionRef": "EXTRA_BAG",
+              "commercialName": "Extra checked bag",
+              "description": null,
+              "category": "Baggage",
+              "variantCode": "A01",
+              "serviceTypeCode": "F",
+              "serviceSubCode": "XB1",
+              "rfic": "C",
+              "rfisc": "XB1",
+              "documentType": "EmdAssociated",
+              "bookingMethod": "Ssr",
+              "ssrCode": "XBAG"
             },
             "pricing": {
               "origin": "Filed",
               "status": "Complete",
               "unit": "PerPiece",
-              "unitPrice": {
-                "amount": 5450000,
-                "currencyId": 70
-              },
-              "base": {
-                "amount": 5000000,
-                "currencyId": 70
-              },
+              "currencyCode": "IRR",
+              "base": "5000000.00",
+              "total": "5450000.00",
               "taxes": [
                 {
+                  "amount": "450000.00",
                   "code": "VAT",
-                  "amount": 450000,
-                  "currencyId": 70,
-                  "appliesPer": null
+                  "currencyCode": "IRR",
+                  "included": false
                 }
               ],
-              "includedTaxes": [],
-              "additionalFees": [],
-              "orderLevelFees": [],
-              "totalPrice": null,
+              "fees": [],
+              "requestedTotal": null,
               "totalComplete": true
             },
             "quantity": {
@@ -316,46 +311,57 @@
             "reasons": [
               "InventoryNotConfigured"
             ]
+          }
+        },
+        "SLSUn3FPRGwe_cL8t8QKVhn5VnCSn5v9AO-WofgfJB4": {
+          "quantity": 1,
+          "weight": 23,
+          "weightUnit": "KG",
+          "name": "EXTRA_CHECKED_BAG",
+          "price": {
+            "amount": "5450000.00",
+            "currencyCode": "IRR"
           },
-          {
-            "offerItemRef": "SLSUn3FPRGwe_cL8t8QKVhn5VnCSn5v9AO-WofgfJB4",
-            "serviceDefinitionRef": "EXTRA_BAG",
-            "eligibility": {
-              "coverageScope": "Portion",
-              "passengerRefs": [
-                "CHD-1"
-              ],
-              "segmentRefs": [
-                "B2:F1"
-              ],
-              "journeyRefs": [
-                "B2"
-              ]
+          "bookableByItinerary": false,
+          "segmentIds": [
+            "2"
+          ],
+          "travelerIds": [
+            "2"
+          ],
+          "ancillary": {
+            "type": "CHECKED_BAGS",
+            "service": {
+              "serviceDefinitionRef": "EXTRA_BAG",
+              "commercialName": "Extra checked bag",
+              "description": null,
+              "category": "Baggage",
+              "variantCode": "A01",
+              "serviceTypeCode": "F",
+              "serviceSubCode": "XB1",
+              "rfic": "C",
+              "rfisc": "XB1",
+              "documentType": "EmdAssociated",
+              "bookingMethod": "Ssr",
+              "ssrCode": "XBAG"
             },
             "pricing": {
               "origin": "Filed",
               "status": "Complete",
               "unit": "PerPiece",
-              "unitPrice": {
-                "amount": 5450000,
-                "currencyId": 70
-              },
-              "base": {
-                "amount": 5000000,
-                "currencyId": 70
-              },
+              "currencyCode": "IRR",
+              "base": "5000000.00",
+              "total": "5450000.00",
               "taxes": [
                 {
+                  "amount": "450000.00",
                   "code": "VAT",
-                  "amount": 450000,
-                  "currencyId": 70,
-                  "appliesPer": null
+                  "currencyCode": "IRR",
+                  "included": false
                 }
               ],
-              "includedTaxes": [],
-              "additionalFees": [],
-              "orderLevelFees": [],
-              "totalPrice": null,
+              "fees": [],
+              "requestedTotal": null,
               "totalComplete": true
             },
             "quantity": {
@@ -391,39 +397,50 @@
             "reasons": [
               "InventoryNotConfigured"
             ]
+          }
+        }
+      },
+      "other-services": {
+        "OogQC7MIPl24j0iJf0BWHCOCyD-DJhOS5QQtpOp-GnQ": {
+          "name": "STANDARD_SEAT",
+          "price": {
+            "amount": "1500000.00",
+            "currencyCode": "IRR"
           },
-          {
-            "offerItemRef": "OogQC7MIPl24j0iJf0BWHCOCyD-DJhOS5QQtpOp-GnQ",
-            "serviceDefinitionRef": "SEAT_STANDARD",
-            "eligibility": {
-              "coverageScope": "Sector",
-              "passengerRefs": [
-                "ADT-1"
-              ],
-              "segmentRefs": [
-                "B1:F1"
-              ],
-              "journeyRefs": [
-                "B1"
-              ]
+          "bookableByTraveler": true,
+          "bookableByItinerary": false,
+          "segmentIds": [
+            "1"
+          ],
+          "travelerIds": [
+            "1"
+          ],
+          "ancillary": {
+            "type": "SEATS",
+            "service": {
+              "serviceDefinitionRef": "SEAT_STANDARD",
+              "commercialName": "Standard seat",
+              "description": null,
+              "category": "Seat",
+              "variantCode": "A07",
+              "serviceTypeCode": "F",
+              "serviceSubCode": "ST1",
+              "rfic": "A",
+              "rfisc": "ST1",
+              "documentType": "EmdAssociated",
+              "bookingMethod": "Ssr",
+              "ssrCode": "RQST"
             },
             "pricing": {
               "origin": "Filed",
               "status": "Complete",
               "unit": "PerSeat",
-              "unitPrice": {
-                "amount": 1500000,
-                "currencyId": 70
-              },
-              "base": {
-                "amount": 1500000,
-                "currencyId": 70
-              },
+              "currencyCode": "IRR",
+              "base": "1500000.00",
+              "total": "1500000.00",
               "taxes": [],
-              "includedTaxes": [],
-              "additionalFees": [],
-              "orderLevelFees": [],
-              "totalPrice": null,
+              "fees": [],
+              "requestedTotal": null,
               "totalComplete": true
             },
             "quantity": {
@@ -461,39 +478,48 @@
               "SelectionRequired",
               "InventoryNotConfigured"
             ]
+          }
+        },
+        "SeiS6D-0647-PP9Vp3JrG6SlXQDJy07pyMa9YEf5N-Y": {
+          "name": "STANDARD_SEAT",
+          "price": {
+            "amount": "1500000.00",
+            "currencyCode": "IRR"
           },
-          {
-            "offerItemRef": "SeiS6D-0647-PP9Vp3JrG6SlXQDJy07pyMa9YEf5N-Y",
-            "serviceDefinitionRef": "SEAT_STANDARD",
-            "eligibility": {
-              "coverageScope": "Sector",
-              "passengerRefs": [
-                "ADT-1"
-              ],
-              "segmentRefs": [
-                "B2:F1"
-              ],
-              "journeyRefs": [
-                "B2"
-              ]
+          "bookableByTraveler": true,
+          "bookableByItinerary": false,
+          "segmentIds": [
+            "2"
+          ],
+          "travelerIds": [
+            "1"
+          ],
+          "ancillary": {
+            "type": "SEATS",
+            "service": {
+              "serviceDefinitionRef": "SEAT_STANDARD",
+              "commercialName": "Standard seat",
+              "description": null,
+              "category": "Seat",
+              "variantCode": "A07",
+              "serviceTypeCode": "F",
+              "serviceSubCode": "ST1",
+              "rfic": "A",
+              "rfisc": "ST1",
+              "documentType": "EmdAssociated",
+              "bookingMethod": "Ssr",
+              "ssrCode": "RQST"
             },
             "pricing": {
               "origin": "Filed",
               "status": "Complete",
               "unit": "PerSeat",
-              "unitPrice": {
-                "amount": 1500000,
-                "currencyId": 70
-              },
-              "base": {
-                "amount": 1500000,
-                "currencyId": 70
-              },
+              "currencyCode": "IRR",
+              "base": "1500000.00",
+              "total": "1500000.00",
               "taxes": [],
-              "includedTaxes": [],
-              "additionalFees": [],
-              "orderLevelFees": [],
-              "totalPrice": null,
+              "fees": [],
+              "requestedTotal": null,
               "totalComplete": true
             },
             "quantity": {
@@ -531,39 +557,48 @@
               "SelectionRequired",
               "InventoryNotConfigured"
             ]
+          }
+        },
+        "8WfZ597tpACkZVh7WxZLIMFDyS1_zeLDKBVJ0zIraBI": {
+          "name": "STANDARD_SEAT",
+          "price": {
+            "amount": "1500000.00",
+            "currencyCode": "IRR"
           },
-          {
-            "offerItemRef": "8WfZ597tpACkZVh7WxZLIMFDyS1_zeLDKBVJ0zIraBI",
-            "serviceDefinitionRef": "SEAT_STANDARD",
-            "eligibility": {
-              "coverageScope": "Sector",
-              "passengerRefs": [
-                "CHD-1"
-              ],
-              "segmentRefs": [
-                "B1:F1"
-              ],
-              "journeyRefs": [
-                "B1"
-              ]
+          "bookableByTraveler": true,
+          "bookableByItinerary": false,
+          "segmentIds": [
+            "1"
+          ],
+          "travelerIds": [
+            "2"
+          ],
+          "ancillary": {
+            "type": "SEATS",
+            "service": {
+              "serviceDefinitionRef": "SEAT_STANDARD",
+              "commercialName": "Standard seat",
+              "description": null,
+              "category": "Seat",
+              "variantCode": "A07",
+              "serviceTypeCode": "F",
+              "serviceSubCode": "ST1",
+              "rfic": "A",
+              "rfisc": "ST1",
+              "documentType": "EmdAssociated",
+              "bookingMethod": "Ssr",
+              "ssrCode": "RQST"
             },
             "pricing": {
               "origin": "Filed",
               "status": "Complete",
               "unit": "PerSeat",
-              "unitPrice": {
-                "amount": 1500000,
-                "currencyId": 70
-              },
-              "base": {
-                "amount": 1500000,
-                "currencyId": 70
-              },
+              "currencyCode": "IRR",
+              "base": "1500000.00",
+              "total": "1500000.00",
               "taxes": [],
-              "includedTaxes": [],
-              "additionalFees": [],
-              "orderLevelFees": [],
-              "totalPrice": null,
+              "fees": [],
+              "requestedTotal": null,
               "totalComplete": true
             },
             "quantity": {
@@ -601,39 +636,48 @@
               "SelectionRequired",
               "InventoryNotConfigured"
             ]
+          }
+        },
+        "BLTY42gR9uV8MrhQK3ZuR4SNj29RdiIV8Ca8uVeoB30": {
+          "name": "STANDARD_SEAT",
+          "price": {
+            "amount": "1500000.00",
+            "currencyCode": "IRR"
           },
-          {
-            "offerItemRef": "BLTY42gR9uV8MrhQK3ZuR4SNj29RdiIV8Ca8uVeoB30",
-            "serviceDefinitionRef": "SEAT_STANDARD",
-            "eligibility": {
-              "coverageScope": "Sector",
-              "passengerRefs": [
-                "CHD-1"
-              ],
-              "segmentRefs": [
-                "B2:F1"
-              ],
-              "journeyRefs": [
-                "B2"
-              ]
+          "bookableByTraveler": true,
+          "bookableByItinerary": false,
+          "segmentIds": [
+            "2"
+          ],
+          "travelerIds": [
+            "2"
+          ],
+          "ancillary": {
+            "type": "SEATS",
+            "service": {
+              "serviceDefinitionRef": "SEAT_STANDARD",
+              "commercialName": "Standard seat",
+              "description": null,
+              "category": "Seat",
+              "variantCode": "A07",
+              "serviceTypeCode": "F",
+              "serviceSubCode": "ST1",
+              "rfic": "A",
+              "rfisc": "ST1",
+              "documentType": "EmdAssociated",
+              "bookingMethod": "Ssr",
+              "ssrCode": "RQST"
             },
             "pricing": {
               "origin": "Filed",
               "status": "Complete",
               "unit": "PerSeat",
-              "unitPrice": {
-                "amount": 1500000,
-                "currencyId": 70
-              },
-              "base": {
-                "amount": 1500000,
-                "currencyId": 70
-              },
+              "currencyCode": "IRR",
+              "base": "1500000.00",
+              "total": "1500000.00",
               "taxes": [],
-              "includedTaxes": [],
-              "additionalFees": [],
-              "orderLevelFees": [],
-              "totalPrice": null,
+              "fees": [],
+              "requestedTotal": null,
               "totalComplete": true
             },
             "quantity": {
@@ -671,320 +715,63 @@
               "SelectionRequired",
               "InventoryNotConfigured"
             ]
+          }
+        },
+        "RSEJinAcYNFQLLBWeyr-VEm4SL59u72sUHzfGANQcTA": {
+          "name": "ONBOARD_WI_FI",
+          "price": {
+            "amount": "981000.00",
+            "currencyCode": "IRR"
           },
-          {
-            "offerItemRef": "RSEJinAcYNFQLLBWeyr-VEm4SL59u72sUHzfGANQcTA",
-            "serviceDefinitionRef": "WIFI_FULL_FLIGHT",
-            "eligibility": {
-              "coverageScope": "Sector",
-              "passengerRefs": [
-                "ADT-1"
-              ],
-              "segmentRefs": [
-                "B1:F1"
-              ],
-              "journeyRefs": [
-                "B1"
-              ]
+          "bookableByTraveler": true,
+          "bookableByItinerary": false,
+          "segmentIds": [
+            "1"
+          ],
+          "travelerIds": [
+            "1"
+          ],
+          "ancillary": {
+            "type": "OTHER_SERVICES",
+            "service": {
+              "serviceDefinitionRef": "WIFI_FULL_FLIGHT",
+              "commercialName": "Wi-Fi full flight",
+              "description": null,
+              "category": "Connectivity",
+              "variantCode": "A24",
+              "serviceTypeCode": "F",
+              "serviceSubCode": "WF1",
+              "rfic": "E",
+              "rfisc": "WF1",
+              "documentType": "EmdStandalone",
+              "bookingMethod": "NoBookingProcessRequired",
+              "ssrCode": null
             },
             "pricing": {
               "origin": "Filed",
               "status": "Complete",
               "unit": "PerItem",
-              "unitPrice": {
-                "amount": 981000,
-                "currencyId": 70
-              },
-              "base": {
-                "amount": 900000,
-                "currencyId": 70
-              },
+              "currencyCode": "IRR",
+              "base": "900000.00",
+              "total": "981000.00",
               "taxes": [
                 {
+                  "amount": "81000.00",
                   "code": "VAT",
-                  "amount": 81000,
-                  "currencyId": 70,
-                  "appliesPer": null
+                  "currencyCode": "IRR",
+                  "included": false
                 }
               ],
-              "includedTaxes": [],
-              "additionalFees": [],
-              "orderLevelFees": [
+              "fees": [
                 {
-                  "code": "TKT",
-                  "amount": 100000,
-                  "currencyId": 70,
-                  "appliesPer": "Ticket"
+                  "amount": "100000.00",
+                  "type": "TKT",
+                  "currencyCode": "IRR",
+                  "appliesPer": "Ticket",
+                  "orderLevel": true
                 }
               ],
-              "totalPrice": null,
-              "totalComplete": false
-            },
-            "quantity": {
-              "unit": "Each",
-              "min": 1,
-              "max": 1
-            },
-            "selectionRequirements": [
-              {
-                "name": "PlanCode",
-                "type": "Code",
-                "required": true
-              },
-              {
-                "name": "DeviceCount",
-                "type": "Integer",
-                "required": false
-              },
-              {
-                "name": "TravellerRef",
-                "type": "Reference",
-                "required": true
-              },
-              {
-                "name": "FlightRef",
-                "type": "Reference",
-                "required": true
-              }
-            ],
-            "availability": {
-              "state": "NotChecked",
-              "guaranteed": false,
-              "requiresCheckAtReserve": false
-            },
-            "confirmationRequirement": "Immediate",
-            "readiness": "NeedsSelection",
-            "canPurchase": false,
-            "reasons": [
-              "SelectionRequired",
-              "FeeNotAppliedAtUnitLevel",
-              "InventoryNotConfigured"
-            ]
-          },
-          {
-            "offerItemRef": "1Ox5nJAxHb5RmX1Jhe48ifDoA9dt7WzGsbj_HE7cyFU",
-            "serviceDefinitionRef": "WIFI_FULL_FLIGHT",
-            "eligibility": {
-              "coverageScope": "Sector",
-              "passengerRefs": [
-                "ADT-1"
-              ],
-              "segmentRefs": [
-                "B2:F1"
-              ],
-              "journeyRefs": [
-                "B2"
-              ]
-            },
-            "pricing": {
-              "origin": "Filed",
-              "status": "Complete",
-              "unit": "PerItem",
-              "unitPrice": {
-                "amount": 981000,
-                "currencyId": 70
-              },
-              "base": {
-                "amount": 900000,
-                "currencyId": 70
-              },
-              "taxes": [
-                {
-                  "code": "VAT",
-                  "amount": 81000,
-                  "currencyId": 70,
-                  "appliesPer": null
-                }
-              ],
-              "includedTaxes": [],
-              "additionalFees": [],
-              "orderLevelFees": [
-                {
-                  "code": "TKT",
-                  "amount": 100000,
-                  "currencyId": 70,
-                  "appliesPer": "Ticket"
-                }
-              ],
-              "totalPrice": null,
-              "totalComplete": false
-            },
-            "quantity": {
-              "unit": "Each",
-              "min": 1,
-              "max": 1
-            },
-            "selectionRequirements": [
-              {
-                "name": "PlanCode",
-                "type": "Code",
-                "required": true
-              },
-              {
-                "name": "DeviceCount",
-                "type": "Integer",
-                "required": false
-              },
-              {
-                "name": "TravellerRef",
-                "type": "Reference",
-                "required": true
-              },
-              {
-                "name": "FlightRef",
-                "type": "Reference",
-                "required": true
-              }
-            ],
-            "availability": {
-              "state": "NotChecked",
-              "guaranteed": false,
-              "requiresCheckAtReserve": false
-            },
-            "confirmationRequirement": "Immediate",
-            "readiness": "NeedsSelection",
-            "canPurchase": false,
-            "reasons": [
-              "SelectionRequired",
-              "FeeNotAppliedAtUnitLevel",
-              "InventoryNotConfigured"
-            ]
-          },
-          {
-            "offerItemRef": "sI1MNgap1Jro0AAIxn4YfpMLWnWIOMq-j6aloGlavU4",
-            "serviceDefinitionRef": "WIFI_FULL_FLIGHT",
-            "eligibility": {
-              "coverageScope": "Sector",
-              "passengerRefs": [
-                "CHD-1"
-              ],
-              "segmentRefs": [
-                "B1:F1"
-              ],
-              "journeyRefs": [
-                "B1"
-              ]
-            },
-            "pricing": {
-              "origin": "Filed",
-              "status": "Complete",
-              "unit": "PerItem",
-              "unitPrice": {
-                "amount": 981000,
-                "currencyId": 70
-              },
-              "base": {
-                "amount": 900000,
-                "currencyId": 70
-              },
-              "taxes": [
-                {
-                  "code": "VAT",
-                  "amount": 81000,
-                  "currencyId": 70,
-                  "appliesPer": null
-                }
-              ],
-              "includedTaxes": [],
-              "additionalFees": [],
-              "orderLevelFees": [
-                {
-                  "code": "TKT",
-                  "amount": 100000,
-                  "currencyId": 70,
-                  "appliesPer": "Ticket"
-                }
-              ],
-              "totalPrice": null,
-              "totalComplete": false
-            },
-            "quantity": {
-              "unit": "Each",
-              "min": 1,
-              "max": 1
-            },
-            "selectionRequirements": [
-              {
-                "name": "PlanCode",
-                "type": "Code",
-                "required": true
-              },
-              {
-                "name": "DeviceCount",
-                "type": "Integer",
-                "required": false
-              },
-              {
-                "name": "TravellerRef",
-                "type": "Reference",
-                "required": true
-              },
-              {
-                "name": "FlightRef",
-                "type": "Reference",
-                "required": true
-              }
-            ],
-            "availability": {
-              "state": "NotChecked",
-              "guaranteed": false,
-              "requiresCheckAtReserve": false
-            },
-            "confirmationRequirement": "Immediate",
-            "readiness": "NeedsSelection",
-            "canPurchase": false,
-            "reasons": [
-              "SelectionRequired",
-              "FeeNotAppliedAtUnitLevel",
-              "InventoryNotConfigured"
-            ]
-          },
-          {
-            "offerItemRef": "F10X9FhrWfOVj3JEAkBHIT6ZmZaUpoYjxgmUhGh5WpY",
-            "serviceDefinitionRef": "WIFI_FULL_FLIGHT",
-            "eligibility": {
-              "coverageScope": "Sector",
-              "passengerRefs": [
-                "CHD-1"
-              ],
-              "segmentRefs": [
-                "B2:F1"
-              ],
-              "journeyRefs": [
-                "B2"
-              ]
-            },
-            "pricing": {
-              "origin": "Filed",
-              "status": "Complete",
-              "unit": "PerItem",
-              "unitPrice": {
-                "amount": 981000,
-                "currencyId": 70
-              },
-              "base": {
-                "amount": 900000,
-                "currencyId": 70
-              },
-              "taxes": [
-                {
-                  "code": "VAT",
-                  "amount": 81000,
-                  "currencyId": 70,
-                  "appliesPer": null
-                }
-              ],
-              "includedTaxes": [],
-              "additionalFees": [],
-              "orderLevelFees": [
-                {
-                  "code": "TKT",
-                  "amount": 100000,
-                  "currencyId": 70,
-                  "appliesPer": "Ticket"
-                }
-              ],
-              "totalPrice": null,
+              "requestedTotal": null,
               "totalComplete": false
             },
             "quantity": {
@@ -1028,10 +815,305 @@
               "InventoryNotConfigured"
             ]
           }
-        ]
+        },
+        "1Ox5nJAxHb5RmX1Jhe48ifDoA9dt7WzGsbj_HE7cyFU": {
+          "name": "ONBOARD_WI_FI",
+          "price": {
+            "amount": "981000.00",
+            "currencyCode": "IRR"
+          },
+          "bookableByTraveler": true,
+          "bookableByItinerary": false,
+          "segmentIds": [
+            "2"
+          ],
+          "travelerIds": [
+            "1"
+          ],
+          "ancillary": {
+            "type": "OTHER_SERVICES",
+            "service": {
+              "serviceDefinitionRef": "WIFI_FULL_FLIGHT",
+              "commercialName": "Wi-Fi full flight",
+              "description": null,
+              "category": "Connectivity",
+              "variantCode": "A24",
+              "serviceTypeCode": "F",
+              "serviceSubCode": "WF1",
+              "rfic": "E",
+              "rfisc": "WF1",
+              "documentType": "EmdStandalone",
+              "bookingMethod": "NoBookingProcessRequired",
+              "ssrCode": null
+            },
+            "pricing": {
+              "origin": "Filed",
+              "status": "Complete",
+              "unit": "PerItem",
+              "currencyCode": "IRR",
+              "base": "900000.00",
+              "total": "981000.00",
+              "taxes": [
+                {
+                  "amount": "81000.00",
+                  "code": "VAT",
+                  "currencyCode": "IRR",
+                  "included": false
+                }
+              ],
+              "fees": [
+                {
+                  "amount": "100000.00",
+                  "type": "TKT",
+                  "currencyCode": "IRR",
+                  "appliesPer": "Ticket",
+                  "orderLevel": true
+                }
+              ],
+              "requestedTotal": null,
+              "totalComplete": false
+            },
+            "quantity": {
+              "unit": "Each",
+              "min": 1,
+              "max": 1
+            },
+            "selectionRequirements": [
+              {
+                "name": "PlanCode",
+                "type": "Code",
+                "required": true
+              },
+              {
+                "name": "DeviceCount",
+                "type": "Integer",
+                "required": false
+              },
+              {
+                "name": "TravellerRef",
+                "type": "Reference",
+                "required": true
+              },
+              {
+                "name": "FlightRef",
+                "type": "Reference",
+                "required": true
+              }
+            ],
+            "availability": {
+              "state": "NotChecked",
+              "guaranteed": false,
+              "requiresCheckAtReserve": false
+            },
+            "confirmationRequirement": "Immediate",
+            "readiness": "NeedsSelection",
+            "canPurchase": false,
+            "reasons": [
+              "SelectionRequired",
+              "FeeNotAppliedAtUnitLevel",
+              "InventoryNotConfigured"
+            ]
+          }
+        },
+        "sI1MNgap1Jro0AAIxn4YfpMLWnWIOMq-j6aloGlavU4": {
+          "name": "ONBOARD_WI_FI",
+          "price": {
+            "amount": "981000.00",
+            "currencyCode": "IRR"
+          },
+          "bookableByTraveler": true,
+          "bookableByItinerary": false,
+          "segmentIds": [
+            "1"
+          ],
+          "travelerIds": [
+            "2"
+          ],
+          "ancillary": {
+            "type": "OTHER_SERVICES",
+            "service": {
+              "serviceDefinitionRef": "WIFI_FULL_FLIGHT",
+              "commercialName": "Wi-Fi full flight",
+              "description": null,
+              "category": "Connectivity",
+              "variantCode": "A24",
+              "serviceTypeCode": "F",
+              "serviceSubCode": "WF1",
+              "rfic": "E",
+              "rfisc": "WF1",
+              "documentType": "EmdStandalone",
+              "bookingMethod": "NoBookingProcessRequired",
+              "ssrCode": null
+            },
+            "pricing": {
+              "origin": "Filed",
+              "status": "Complete",
+              "unit": "PerItem",
+              "currencyCode": "IRR",
+              "base": "900000.00",
+              "total": "981000.00",
+              "taxes": [
+                {
+                  "amount": "81000.00",
+                  "code": "VAT",
+                  "currencyCode": "IRR",
+                  "included": false
+                }
+              ],
+              "fees": [
+                {
+                  "amount": "100000.00",
+                  "type": "TKT",
+                  "currencyCode": "IRR",
+                  "appliesPer": "Ticket",
+                  "orderLevel": true
+                }
+              ],
+              "requestedTotal": null,
+              "totalComplete": false
+            },
+            "quantity": {
+              "unit": "Each",
+              "min": 1,
+              "max": 1
+            },
+            "selectionRequirements": [
+              {
+                "name": "PlanCode",
+                "type": "Code",
+                "required": true
+              },
+              {
+                "name": "DeviceCount",
+                "type": "Integer",
+                "required": false
+              },
+              {
+                "name": "TravellerRef",
+                "type": "Reference",
+                "required": true
+              },
+              {
+                "name": "FlightRef",
+                "type": "Reference",
+                "required": true
+              }
+            ],
+            "availability": {
+              "state": "NotChecked",
+              "guaranteed": false,
+              "requiresCheckAtReserve": false
+            },
+            "confirmationRequirement": "Immediate",
+            "readiness": "NeedsSelection",
+            "canPurchase": false,
+            "reasons": [
+              "SelectionRequired",
+              "FeeNotAppliedAtUnitLevel",
+              "InventoryNotConfigured"
+            ]
+          }
+        },
+        "F10X9FhrWfOVj3JEAkBHIT6ZmZaUpoYjxgmUhGh5WpY": {
+          "name": "ONBOARD_WI_FI",
+          "price": {
+            "amount": "981000.00",
+            "currencyCode": "IRR"
+          },
+          "bookableByTraveler": true,
+          "bookableByItinerary": false,
+          "segmentIds": [
+            "2"
+          ],
+          "travelerIds": [
+            "2"
+          ],
+          "ancillary": {
+            "type": "OTHER_SERVICES",
+            "service": {
+              "serviceDefinitionRef": "WIFI_FULL_FLIGHT",
+              "commercialName": "Wi-Fi full flight",
+              "description": null,
+              "category": "Connectivity",
+              "variantCode": "A24",
+              "serviceTypeCode": "F",
+              "serviceSubCode": "WF1",
+              "rfic": "E",
+              "rfisc": "WF1",
+              "documentType": "EmdStandalone",
+              "bookingMethod": "NoBookingProcessRequired",
+              "ssrCode": null
+            },
+            "pricing": {
+              "origin": "Filed",
+              "status": "Complete",
+              "unit": "PerItem",
+              "currencyCode": "IRR",
+              "base": "900000.00",
+              "total": "981000.00",
+              "taxes": [
+                {
+                  "amount": "81000.00",
+                  "code": "VAT",
+                  "currencyCode": "IRR",
+                  "included": false
+                }
+              ],
+              "fees": [
+                {
+                  "amount": "100000.00",
+                  "type": "TKT",
+                  "currencyCode": "IRR",
+                  "appliesPer": "Ticket",
+                  "orderLevel": true
+                }
+              ],
+              "requestedTotal": null,
+              "totalComplete": false
+            },
+            "quantity": {
+              "unit": "Each",
+              "min": 1,
+              "max": 1
+            },
+            "selectionRequirements": [
+              {
+                "name": "PlanCode",
+                "type": "Code",
+                "required": true
+              },
+              {
+                "name": "DeviceCount",
+                "type": "Integer",
+                "required": false
+              },
+              {
+                "name": "TravellerRef",
+                "type": "Reference",
+                "required": true
+              },
+              {
+                "name": "FlightRef",
+                "type": "Reference",
+                "required": true
+              }
+            ],
+            "availability": {
+              "state": "NotChecked",
+              "guaranteed": false,
+              "requiresCheckAtReserve": false
+            },
+            "confirmationRequirement": "Immediate",
+            "readiness": "NeedsSelection",
+            "canPurchase": false,
+            "reasons": [
+              "SelectionRequired",
+              "FeeNotAppliedAtUnitLevel",
+              "InventoryNotConfigured"
+            ]
+          }
+        }
       }
-    ],
-    "withheldItemCount": 4,
-    "responseStatus": "NeedsSelectionOrRecheck"
+    }
   }
 }

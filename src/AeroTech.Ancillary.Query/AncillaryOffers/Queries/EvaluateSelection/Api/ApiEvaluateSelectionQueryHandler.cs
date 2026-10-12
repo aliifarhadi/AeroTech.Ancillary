@@ -8,19 +8,27 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.EvaluateSelection.Api
     {
         private readonly IApiSalesScopeResolver _salesScope;
         private readonly IEvaluateSelectionService _service;
+        private readonly IApiOfferReferencesReader _references;
 
-        public ApiEvaluateSelectionQueryHandler(IApiSalesScopeResolver salesScope, IEvaluateSelectionService service)
+        public ApiEvaluateSelectionQueryHandler(
+            IApiSalesScopeResolver salesScope,
+            IEvaluateSelectionService service,
+            IApiOfferReferencesReader references)
         {
             _salesScope = salesScope;
             _service = service;
+            _references = references;
         }
 
         public async Task<ApiSelectionResultDto> Handle(ApiEvaluateSelectionQuery query, CancellationToken cancellationToken)
-            => ApiSelectionResultMapper.Map(
-                await _service.ExecuteAsync(
-                    query,
-                    ApiSelectionInputMapper.ToSelection(query.Selection),
-                    await _salesScope.ResolveAsync(cancellationToken),
-                    cancellationToken));
+        {
+            var selection = await _service.ExecuteAsync(
+                query,
+                ApiSelectionInputMapper.ToSelection(query.Selection),
+                await _salesScope.ResolveAsync(cancellationToken),
+                cancellationToken);
+
+            return ApiSelectionResultMapper.Map(selection, await _references.ReadAsync(selection.Shopping, cancellationToken));
+        }
     }
 }

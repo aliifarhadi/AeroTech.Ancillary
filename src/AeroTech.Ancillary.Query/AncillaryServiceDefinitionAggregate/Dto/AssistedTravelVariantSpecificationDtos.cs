@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto
@@ -38,18 +39,23 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto
         MinorConnectionPolicy ConnectionPolicy,
         IReadOnlyList<int> AllowedTransitAirportIds);
 
+    [VariantCode(AncillaryVariant.Wheelchair)]
     public sealed record WheelchairSpecificationDto(
         WheelchairFormDto Wheelchair) : AssistedTravelVariantSpecificationDto;
 
+    [VariantCode(AncillaryVariant.DisabilityAssistance)]
     public sealed record DisabilityAssistanceSpecificationDto(
         DisabilityAssistanceFormDto DisabilityAssistance) : AssistedTravelVariantSpecificationDto;
 
+    [VariantCode(AncillaryVariant.MedicalEquipment)]
     public sealed record MedicalEquipmentSpecificationDto(
         MedicalEquipmentFormDto MedicalEquipment) : AssistedTravelVariantSpecificationDto;
 
+    [VariantCode(AncillaryVariant.Bassinet)]
     public sealed record BassinetSpecificationDto(
         BassinetFormDto Bassinet) : AssistedTravelVariantSpecificationDto;
 
+    [VariantCode(AncillaryVariant.UnaccompaniedMinor)]
     public sealed record UnaccompaniedMinorSpecificationDto(
         UnaccompaniedMinorFormDto UnaccompaniedMinor) : AssistedTravelVariantSpecificationDto;
 }

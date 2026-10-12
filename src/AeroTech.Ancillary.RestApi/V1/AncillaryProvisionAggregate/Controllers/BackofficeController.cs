@@ -28,10 +28,13 @@ using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Remove
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RemoveProvisionPermittedTravelPeriod.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RetireAncillaryProvision.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.SuspendAncillaryProvision.Backoffice;
+using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Dto;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionById.Backoffice;
+using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionForm.Backoffice;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionsPaginated.Backoffice;
 using AeroTech.Ancillary.RestApi.V1.AncillaryProvisionAggregate.Requests;
 using AeroTech.Ancillary.RestApi.V1._Shared;
+using AeroTech.Framework.Presentation.Responses;
 using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -320,6 +323,15 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryProvisionAggregate.Controllers
             [FromQuery] BackofficeGetAncillaryProvisionsPaginatedQuery query,
             CancellationToken cancellationToken)
             => Ok(await _mediator.Send(query, cancellationToken));
+
+        [HttpGet("{provisionId:long}/Form")]
+        [EndpointSummary("Read a sale rule for editing")]
+        [EndpointDescription(
+            "Returns the state of the provision and its form. The form has exactly the members of the PUT body of the provision, enums as names " +
+            "and rule lists as plain values, and can be sent back as it was read.")]
+        [ProducesResponseType<ApiResult<BackofficeProvisionFormDto>>(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetForm(long provisionId, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new BackofficeGetAncillaryProvisionFormQuery(provisionId), cancellationToken));
 
         [HttpGet("{provisionId:long}")]
         public async Task<IActionResult> GetById(long provisionId, CancellationToken cancellationToken)

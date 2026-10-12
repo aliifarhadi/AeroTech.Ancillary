@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto
@@ -12,6 +13,7 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto
         PetAnimalType AnimalType,
         string? OtherCode);
 
+    [VariantCode(AncillaryVariant.PetInCabin)]
     public sealed record PetInCabinSpecificationDto(
         [property: MinLength(1)] IReadOnlyList<PetAnimalFormDto> AllowedAnimalTypes,
         decimal MaxCombinedWeightKg,
@@ -19,6 +21,7 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto
         int? MinAnimalAgeWeeks,
         IReadOnlyList<string> RequiredDocumentCodes) : PetVariantSpecificationDto;
 
+    [VariantCode(AncillaryVariant.PetInHold)]
     public sealed record PetInHoldSpecificationDto(
         [property: MinLength(1)] IReadOnlyList<PetAnimalFormDto> AllowedAnimalTypes,
         decimal MaxCombinedWeightKg,

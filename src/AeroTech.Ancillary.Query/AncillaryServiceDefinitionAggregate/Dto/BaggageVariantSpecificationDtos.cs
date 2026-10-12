@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto
@@ -11,12 +12,15 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto
     [JsonDerivedType(typeof(SpecialEquipmentSpecificationDto))]
     public abstract record BaggageVariantSpecificationDto;
 
+    [VariantCode(AncillaryVariant.ExtraCheckedBag)]
     public sealed record ExtraCheckedBagSpecificationDto(
         decimal? MaxKgPerPiece) : BaggageVariantSpecificationDto;
 
+    [VariantCode(AncillaryVariant.ExtraWeightPackage)]
     public sealed record ExtraWeightPackageSpecificationDto(
         decimal PackageWeightKg) : BaggageVariantSpecificationDto;
 
+    [VariantCode(AncillaryVariant.Overweight)]
     public sealed record OverweightBagSpecificationDto(
         BaggageAllowanceConcept? AllowanceConcept,
         decimal? MaxKgPerPiece,
@@ -24,6 +28,7 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto
         decimal WeightToInclusiveKg,
         BaggageChargeCombination? ChargeCombination) : BaggageVariantSpecificationDto;
 
+    [VariantCode(AncillaryVariant.Oversize)]
     public sealed record OversizeBagSpecificationDto(
         BaggageAllowanceConcept? AllowanceConcept,
         decimal? MaxKgPerPiece,
@@ -31,11 +36,13 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto
         decimal? MaxLinearSumCm,
         BaggageChargeCombination? ChargeCombination) : BaggageVariantSpecificationDto;
 
+    [VariantCode(AncillaryVariant.CabinBag)]
     public sealed record CabinBagSpecificationDto(
         BaggageAllowanceConcept AllowanceConcept,
         decimal? MaxKgPerPiece,
         DimensionsCmDto? MaxSize) : BaggageVariantSpecificationDto;
 
+    [VariantCode(AncillaryVariant.SpecialEquipment)]
     public sealed record SpecialEquipmentSpecificationDto(
         BaggageAllowanceConcept? AllowanceConcept,
         decimal? MaxKgPerPiece,

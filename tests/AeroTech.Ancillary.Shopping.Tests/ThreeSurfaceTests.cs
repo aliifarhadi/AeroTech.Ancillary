@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using AeroTech.Ancillary.Application.AcceptanceTests.Fakes;
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Arguments;
 using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Providers.SeatMap;
 using AeroTech.Ancillary.Query.AncillaryOffers.Dto.Api;
@@ -86,7 +87,39 @@ public class ThreeSurfaceTests
             eligibility ?? new Eligibility { Result = InventoryReferenceCheck.Verified, Allowed = [Pos] },
             clock ?? new FixedClock());
 
-    private static IEnumerable<ApiOfferItemDto> Items(ApiAncillaryOffersDto response) => response.ALaCarteOffers.SelectMany(offer => offer.OfferItems);
+    private static readonly Dictionary<int, string> CurrencyCodes = new() { [Irr] = "IRR", [155] = "USD" };
+
+    private sealed record AgencyItem(
+        string OfferItemRef,
+        IReadOnlyList<string> SegmentIds,
+        IReadOnlyList<string> TravelerIds,
+        ApiElementaryPriceDto? Price,
+        ApiAncillaryDto Ancillary);
+
+    private static IEnumerable<AgencyItem> Items(ApiAncillaryOffersDto response)
+        => response.Included.Bags
+            .Select(entry => new AgencyItem(entry.Key, entry.Value.SegmentIds, entry.Value.TravelerIds, entry.Value.Price, entry.Value.Ancillary))
+            .Concat(response.Included.OtherServices.Select(
+                entry => new AgencyItem(entry.Key, entry.Value.SegmentIds, entry.Value.TravelerIds, entry.Value.Price, entry.Value.Ancillary)));
+
+    private static ApiOfferReferences References(AncillaryShoppingSnapshot snapshot, AncillaryOfferDetailSnapshot? detail = null)
+    {
+        var flights = snapshot.Offer.Bounds.SelectMany(bound => bound.Flights).ToList();
+        var baggage = new Dictionary<long, BaggageSpecificationArgs>();
+
+        if (detail?.Specification.Baggage is { } specification)
+            baggage[detail.Item.Candidate.DefinitionVersionId] = specification;
+
+        return new ApiOfferReferences(
+            snapshot.Offer,
+            flights
+                .SelectMany(flight => flight.Legs.SelectMany(leg => new[] { leg.OriginAirportId, leg.DestinationAirportId }))
+                .Distinct()
+                .ToDictionary(id => id, id => $"P{id:00}"),
+            flights.SelectMany(flight => new[] { flight.MarketingAirlineId, flight.OperatingAirlineId }).Distinct().ToDictionary(id => id, id => $"L{id}"),
+            CurrencyCodes,
+            baggage);
+    }
 
     private static IEnumerable<OtaPanelServiceDto> Services(OtaPanelAncillaryOffersDto response)
         => response.TravellerGroups.SelectMany(group => group.FlightGroups).SelectMany(group => group.Services);
@@ -108,14 +141,14 @@ public class ThreeSurfaceTests
     {
         var snapshot = await SnapshotAsync(Shop(), scope: Desk);
         var backoffice = BackofficeAncillaryOffersMapper.Map(snapshot);
-        var api = ApiAncillaryOffersMapper.Map(snapshot);
+        var api = ApiAncillaryOffersMapper.Map(snapshot, References(snapshot));
         var panel = OtaPanelAncillaryOffersMapper.Map(snapshot);
         var offered = snapshot.Items.Where(item => ApiAncillaryOffersMapper.IsOffered(item.Candidate.OfferReadiness)).ToList();
 
         Assert.Equal(12, snapshot.Items.Count());
         Assert.Equal(12, offered.Count);
         Assert.Equal((12, 0), (backoffice.Offers.Count, backoffice.BlockedOffers.Count));
-        Assert.Equal((12, 0), (Items(api).Count(), api.WithheldItemCount));
+        Assert.Equal((12, 0), (Items(api).Count(), api.Meta.WithheldCount));
         Assert.Equal((12, 0), (Services(panel).Count(), panel.BlockedCount));
         Assert.All(offered, item =>
         {
@@ -125,24 +158,30 @@ public class ThreeSurfaceTests
             var panelView = Services(panel).Single(service => service.OfferItemRef == item.OfferItemRef);
 
             Assert.Equal((price.CompleteUnitTotal, price.CurrencyId), (operatorView.Pricing.CompleteUnitTotal, operatorView.Pricing.CurrencyId));
-            Assert.Equal((price.CompleteUnitTotal, price.CurrencyId), (agencyView.Pricing.UnitPrice?.Amount, agencyView.Pricing.UnitPrice?.CurrencyId));
+            Assert.Equal(
+                (price.CompleteUnitTotal is { } unit ? ApiOfferReferences.Amount(unit) : null, price.CompleteUnitTotal is null ? null : References(snapshot).CurrencyCode(price.CurrencyId)),
+                (agencyView.Price?.Amount, agencyView.Price?.CurrencyCode));
             Assert.Equal((price.CompleteUnitTotal, price.CurrencyId), (panelView.UnitPrice?.Amount, panelView.UnitPrice?.CurrencyId));
             Assert.Equal(item.Candidate.OfferReadiness.ToString(), operatorView.OfferReadiness.Name);
-            Assert.Equal(item.Candidate.OfferReadiness.ToString(), agencyView.Readiness);
+            Assert.Equal(item.Candidate.OfferReadiness.ToString(), agencyView.Ancillary.Readiness);
             Assert.Equal(OtaPanelAncillaryOffersMapper.DisplayStatusOf(item.Candidate.OfferReadiness), panelView.DisplayStatus);
             Assert.Equal(price.Status.ToString(), operatorView.Pricing.Status.Name);
-            Assert.Equal(price.Status.ToString(), agencyView.Pricing.Status);
+            Assert.Equal(price.Status.ToString(), agencyView.Ancillary.Pricing.Status);
             Assert.Equal(price.Status.ToString(), panelView.PriceStatus);
             Assert.Equal(item.Candidate.FlightRefs, operatorView.Coverage.FlightRefs);
-            Assert.Equal(item.Candidate.FlightRefs, agencyView.Eligibility.SegmentRefs);
+            Assert.Equal(References(snapshot).SegmentIds(item.Candidate.FlightRefs), agencyView.SegmentIds);
+            Assert.Equal(References(snapshot).TravelerIds(item.Candidate.Travellers), agencyView.TravelerIds);
             Assert.Equal(item.Candidate.FlightRefs, panelView.CoveredFlightRefs);
-            Assert.Equal(price.UnappliedFeeLines.Select(line => line.Amount), agencyView.Pricing.OrderLevelFees.Select(line => line.Amount));
+            Assert.Equal(
+                price.UnappliedFeeLines.Select(line => ApiOfferReferences.Amount(line.Amount)),
+                agencyView.Ancillary.Pricing.Fees.Where(fee => fee.OrderLevel).Select(fee => fee.Amount));
             Assert.Equal(price.UnappliedFeeLines.Select(line => line.Amount), panelView.OrderLevelFees.Select(line => line.Amount));
-            Assert.False(operatorView.CanPurchase || agencyView.CanPurchase || panelView.CanPurchase);
-            Assert.Null(agencyView.Pricing.TotalPrice);
+            Assert.False(operatorView.CanPurchase || agencyView.Ancillary.CanPurchase || panelView.CanPurchase);
+            Assert.Null(agencyView.Ancillary.Pricing.RequestedTotal);
         });
         Assert.Equal(3, new[] { backoffice.GetType(), api.GetType(), panel.GetType() }.Distinct().Count());
-        Assert.Empty(Members(typeof(ApiAncillaryOffersDto)).Intersect(Members(typeof(BackofficeAncillaryOffersDto))).Except(["Currency"]));
+        Assert.Empty(Members(typeof(ApiAncillaryOffersDto)).Intersect(Members(typeof(BackofficeAncillaryOffersDto))));
+        Assert.Equal(new[] { "Data", "Included", "Meta" }, Members(typeof(ApiAncillaryOffersDto)));
         Assert.Equal(new[] { "BlockedCount", "CurrencyCode", "CurrencyId", "OfferId", "TravellerGroups" }, Members(typeof(OtaPanelAncillaryOffersDto)));
     }
 
@@ -155,35 +194,55 @@ public class ThreeSurfaceTests
         lab.Price(blocked, lab.Provision(blocked), Rate(2_000_000m, Irr));
 
         var snapshot = await SnapshotAsync(lab, scope: Desk.On(AgencySalesPolicy.SalesChannel, Pos));
-        var api = ApiAncillaryOffersMapper.Map(snapshot);
+        var api = ApiAncillaryOffersMapper.Map(snapshot, References(snapshot));
         var json = JsonSerializer.Serialize(api, Json);
         var withheld = snapshot.Items.Where(item => !ApiAncillaryOffersMapper.IsOffered(item.Candidate.OfferReadiness)).ToList();
 
         Assert.NotEmpty(withheld);
-        Assert.Equal(withheld.Count, api.WithheldItemCount);
-        Assert.Equal(new[] { "ADT-1", "CHD-1" }, api.DataLists.Passengers.Select(passenger => passenger.PassengerRef));
-        Assert.Equal(new[] { "ADT", "CHD" }, api.DataLists.Passengers.Select(passenger => passenger.Ptc));
-        Assert.Equal(new[] { "B1:F1", "B2:F1" }, api.DataLists.PaxSegments.Select(segment => segment.SegmentRef));
-        Assert.Equal(3, api.DataLists.ServiceDefinitions.Count);
-        Assert.DoesNotContain(api.DataLists.ServiceDefinitions, definition => definition.VariantCode == "A13");
-        Assert.Equal(api.DataLists.ServiceDefinitions.Count, api.DataLists.ServiceDefinitions.Select(definition => definition.ServiceDefinitionRef).Distinct().Count());
-        Assert.Single(api.ALaCarteOffers);
+        Assert.Equal(withheld.Count, api.Meta.WithheldCount);
+        Assert.Equal(ApiAncillaryOffersMapper.AncillaryOffers, api.Data.Type);
+        Assert.Equal(OfferWire.OfferId, api.Data.FlightOfferId);
+        Assert.Equal(new[] { "1", "2" }, api.Data.Travelers.Select(traveler => traveler.Id));
+        Assert.Equal(new[] { "ADULT", "CHILD" }, api.Data.Travelers.Select(traveler => traveler.TravelerType));
+        Assert.Equal(Enumerable.Range(1, api.Data.Segments.Count).Select(number => number.ToString()), api.Data.Segments.Select(segment => segment.Id));
+        Assert.Equal(snapshot.Offer.Bounds.Sum(bound => bound.Flights.Sum(flight => flight.Legs.Count)), api.Data.Segments.Count);
+        Assert.All(api.Data.Segments, segment =>
+        {
+            Assert.Matches("^P[0-9]+$", segment.Departure.IataCode);
+            Assert.Matches("^P[0-9]+$", segment.Arrival.IataCode);
+            Assert.Matches("^L[0-9]+$", segment.CarrierCode);
+        });
+        Assert.Equal(3, Items(api).Select(item => item.Ancillary.Service.ServiceDefinitionRef).Distinct().Count());
+        Assert.DoesNotContain(Items(api), item => item.Ancillary.Service.VariantCode == "A13");
+        Assert.Equal(api.Meta.Count, Items(api).Count());
+        Assert.NotEmpty(api.Included.Bags);
+        Assert.All(api.Included.Bags.Values, bag => Assert.Equal(("CHECKED_BAGS", "EXTRA_CHECKED_BAG"), (bag.Ancillary.Type, bag.Name)));
+        Assert.Equal(new[] { "ONBOARD_WI_FI", "STANDARD_SEAT" }, api.Included.OtherServices.Values.Select(service => service.Name).Distinct().Order());
+        Assert.Equal(new[] { "OTHER_SERVICES", "SEATS" }, api.Included.OtherServices.Values.Select(service => service.Ancillary.Type).Distinct().Order());
         Assert.All(Items(api), item =>
         {
-            Assert.Contains(api.DataLists.ServiceDefinitions, definition => definition.ServiceDefinitionRef == item.ServiceDefinitionRef);
-            Assert.All(item.Eligibility.PassengerRefs, reference => Assert.Contains(api.DataLists.Passengers, passenger => passenger.PassengerRef == reference));
-            Assert.All(item.Eligibility.SegmentRefs, reference => Assert.Contains(api.DataLists.PaxSegments, segment => segment.SegmentRef == reference));
-            Assert.False(item.Availability.Guaranteed);
-            Assert.NotEqual("NeedsVerification", item.Readiness);
+            Assert.NotEmpty(item.TravelerIds);
+            Assert.NotEmpty(item.SegmentIds);
+            Assert.All(item.TravelerIds, id => Assert.Contains(api.Data.Travelers, traveler => traveler.Id == id));
+            Assert.All(item.SegmentIds, id => Assert.Contains(api.Data.Segments, segment => segment.Id == id));
+            Assert.False(item.Ancillary.Availability.Guaranteed);
+            Assert.NotEqual("NeedsVerification", item.Ancillary.Readiness);
+            Assert.True(item.Price is null || item.Price.CurrencyCode == "IRR");
         });
-        Assert.Equal(ApiAncillaryOffersMapper.NeedsSelectionOrRecheck, api.ResponseStatus);
+        Assert.Equal(ApiAncillaryOffersMapper.NeedsSelectionOrRecheck, api.Meta.Status);
         Assert.All(
             new[] { "provisionId", "pricingRevisionId", "pricingRateId", "definitionVersionId", "pointOfSale", "supplierId", "diagnostics", "missingContextFields", "ownerAirlineId" },
             member => Assert.DoesNotContain(member, json, StringComparison.OrdinalIgnoreCase));
         Assert.All(
             snapshot.Items.SelectMany(item => new[] { item.Candidate.ProvisionId, item.Candidate.DefinitionVersionId, item.Candidate.Price.PricingRevisionId ?? 0, item.PointOfSaleId }).Where(id => id > 999).Distinct(),
             id => Assert.DoesNotContain($"\"{id}\"", json, StringComparison.Ordinal));
-        Assert.Contains("\"unitPrice\": {", json, StringComparison.Ordinal);
+        Assert.Contains("\"price\": {", json, StringComparison.Ordinal);
+        Assert.Contains("\"other-services\": {", json, StringComparison.Ordinal);
+        Assert.Contains("\"currencyCode\": \"IRR\"", json, StringComparison.Ordinal);
+        Assert.DoesNotContain("currencyId", json, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("airportId", json, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("airlineId", json, StringComparison.OrdinalIgnoreCase);
+        Assert.All(new[] { "ADT-1", "CHD-1", "B1:F1" }, reference => Assert.DoesNotContain(reference, json, StringComparison.Ordinal));
         Assert.Contains("\"readiness\": \"NeedsSelection\"", json, StringComparison.Ordinal);
     }
 
@@ -223,7 +282,7 @@ public class ThreeSurfaceTests
         var none = await offers.ExecuteAsync(new OfferQuery(OfferWire.OfferId), Desk.On(Channel.BackOffice));
         var unknown = await offers.ExecuteAsync(new OfferQuery(OfferWire.OfferId), Desk.On(Channel.BackOffice, 4242));
         var backoffice = BackofficeAncillaryOffersMapper.Map(both);
-        var api = ApiAncillaryOffersMapper.Map(both);
+        var api = ApiAncillaryOffersMapper.Map(both, References(both));
 
         Assert.Equal(new[] { Pos, OtherPos }, both.PointsOfSale.Select(pointOfSale => pointOfSale.PointOfSaleId));
         Assert.Equal(8, both.Items.Count());
@@ -236,13 +295,13 @@ public class ThreeSurfaceTests
         Assert.Null(backoffice.Scope.PointOfSaleId);
         Assert.Equal(new[] { Pos, OtherPos }, backoffice.Scope.PointOfSaleIds);
         Assert.Equal(new[] { 4, 4 }, new[] { Pos, OtherPos }.Select(pointOfSale => backoffice.Offers.Count(offer => offer.PointOfSaleId == pointOfSale)));
-        Assert.Equal(new[] { 4, 4 }, api.ALaCarteOffers.Select(offer => offer.OfferItems.Count));
-        Assert.Equal(new[] { 900_000m, 700_000m }, api.ALaCarteOffers.Select(offer => offer.OfferItems.Select(item => item.Pricing.UnitPrice!.Amount).Distinct().Single()));
-        Assert.Single(api.DataLists.ServiceDefinitions);
+        Assert.Equal(8, Items(api).Count());
+        Assert.Equal(new[] { "900000.00", "700000.00" }, Items(api).Select(item => item.Price!.Amount).Distinct());
+        Assert.Single(Items(api).Select(item => item.Ancillary.Service.ServiceDefinitionRef).Distinct());
         Assert.Equal((OtherPos, 4, 700_000m), (one.PointsOfSale.Single().PointOfSaleId, one.Items.Count(), one.Items.Select(item => item.Candidate.Price.CompleteUnitTotal).Distinct().Single()));
         Assert.Empty(none.PointsOfSale);
         Assert.Equal(BackofficeAncillaryOffersMapper.NoAuthorizedPointOfSale, Assert.Single(BackofficeAncillaryOffersMapper.Map(none).Diagnostics).Code);
-        Assert.Equal((ApiAncillaryOffersMapper.NoApplicableOffer, 0), (ApiAncillaryOffersMapper.Map(none).ResponseStatus, ApiAncillaryOffersMapper.Map(none).ALaCarteOffers.Count));
+        Assert.Equal((ApiAncillaryOffersMapper.NoApplicableOffer, 0), (ApiAncillaryOffersMapper.Map(none, References(none)).Meta.Status, ApiAncillaryOffersMapper.Map(none, References(none)).Meta.Count));
         Assert.Equal(2, OtaPanelAncillaryOffersMapper.Map(none).TravellerGroups.Count);
         Assert.Empty(unknown.Items);
         Assert.Equal(BackofficeAncillaryOffersMapper.NoApplicableProduct, Assert.Single(BackofficeAncillaryOffersMapper.Map(unknown).Diagnostics).Code);
@@ -428,7 +487,7 @@ public class ThreeSurfaceTests
         var specification = definition.SpecificationArgs().Baggage!;
         var allowanceConcept = specification.AllowanceConcept?.ToString();
         var backoffice = BackofficeAncillaryOfferDetailMapper.Map(detail);
-        var api = ApiAncillaryOfferDetailMapper.Map(detail);
+        var api = ApiAncillaryOfferDetailMapper.Map(detail, References(detail.Shopping, detail)).Data;
         var panel = OtaPanelAncillaryOfferDetailMapper.Map(detail);
 
         Assert.Equal(specification, detail.Specification.Baggage);
@@ -446,28 +505,37 @@ public class ThreeSurfaceTests
         Assert.NotEmpty(detail.IncludedAllowance);
         Assert.All(api.IncludedAllowance, allowance =>
         {
-            Assert.Equal((item.Candidate.CandidateIdentity.TravellerRef, 25m, "Kg", true), (allowance.TravellerRef, allowance.CheckedWeight, allowance.CheckedWeightUnit, allowance.Verified));
+            Assert.Equal(
+                (References(detail.Shopping).TravelerIds(item.Candidate.Travellers).Single(), 25m, "Kg", true),
+                (allowance.TravelerId, allowance.CheckedWeight, allowance.CheckedWeightUnit, allowance.Verified));
             Assert.Equal(1, allowance.CheckedPieces);
-            Assert.Contains(allowance.FlightRef, item.Candidate.FlightRefs);
+            Assert.NotEmpty(allowance.SegmentIds);
+            Assert.All(allowance.SegmentIds, id => Assert.Contains(id, References(detail.Shopping).SegmentIds(item.Candidate.FlightRefs)));
         });
         Assert.Equal(api.IncludedAllowance.Count, panel.IncludedAllowance.Count);
         Assert.Equal(api.IncludedAllowance.Count, backoffice.IncludedAllowance.Count);
         Assert.Equal(
-            (item.Candidate.Price.CompleteUnitTotal, 5_000_000m, 450_000m),
-            (api.OfferItem.Pricing.UnitPrice!.Amount, api.OfferItem.Pricing.Base!.Amount, api.OfferItem.Pricing.Taxes.Single().Amount));
+            (ApiOfferReferences.Amount(item.Candidate.Price.CompleteUnitTotal!.Value), "5000000.00", "450000.00", "IRR"),
+            (api.Bag!.Price!.Amount, api.Bag.Ancillary.Pricing.Base, api.Bag.Ancillary.Pricing.Taxes.Single().Amount, api.Bag.Price.CurrencyCode));
+        Assert.Equal(
+            (specification.ChargeKind == BaggageChargeKind.WeightPackage ? (int?)null : 1, specification.PackageWeightKg ?? specification.WeightToInclusiveKg ?? specification.MaxKgPerPiece),
+            (api.Bag.Quantity, api.Bag.Weight));
+        Assert.Equal(api.Bag.Weight is null ? null : "KG", api.Bag.WeightUnit);
+        Assert.Null(api.OtherService);
+        Assert.Equal((ApiAncillaryOfferDetailMapper.AncillaryOffer, item.OfferItemRef), (api.Type, api.Id));
         Assert.Equal((5_450_000m, 5_000_000m, 450_000m), (panel.PriceBreakdown.UnitPrice!.Amount, panel.PriceBreakdown.Base!.Amount, panel.PriceBreakdown.AddedTaxes.Single().Amount));
         Assert.Equal((5_450_000m, 5_000_000m), (backoffice.Offer.Pricing.CompleteUnitTotal, backoffice.Offer.Pricing.BaseAmount));
-        Assert.Equal((5_000_000m, 5_450_000m, true, true), (api.Rates.Single().BaseAmount, api.Rates.Single().UnitTotal, api.Rates.Single().UnitTotalComplete, api.Rates.Single().Applied));
+        Assert.Equal(("5000000.00", "5450000.00", "IRR", true, true), (api.Rates.Single().Base, api.Rates.Single().Total, api.Rates.Single().CurrencyCode, api.Rates.Single().UnitTotalComplete, api.Rates.Single().Applied));
         Assert.Equal(
             (item.Candidate.Quantity.Unit.ToString(), item.Candidate.Quantity.MinPerSelection, item.Candidate.Quantity.MaxPerSelection),
-            (api.OfferItem.Quantity.Unit, api.OfferItem.Quantity.Min, api.OfferItem.Quantity.Max));
-        Assert.Equal(item.Candidate.Selection.Fields.Select(field => field.Name), api.OfferItem.SelectionRequirements.Select(field => field.Name));
+            (api.Bag.Ancillary.Quantity.Unit, api.Bag.Ancillary.Quantity.Min, api.Bag.Ancillary.Quantity.Max));
+        Assert.Equal(item.Candidate.Selection.Fields.Select(field => field.Name), api.Bag.Ancillary.SelectionRequirements.Select(field => field.Name));
         Assert.Equal(("Paid", "NonRefundable", definition.Booking.ConfirmationRequirement.ToString()), (api.Terms.Disposition, api.Terms.ReissueRefund, api.Terms.ConfirmationRequirement));
         Assert.Equal(("NonRefundable", false, false), (backoffice.Terms.ReissueRefund.Name, backoffice.Terms.Commissionable, backoffice.Terms.InterlineSettlement));
         Assert.Equal("Both", api.Restrictions.PurchaseStage);
-        Assert.Equal(item.Candidate.OfferReadiness.ToString(), api.OfferItem.Readiness);
-        Assert.False(api.OfferItem.CanPurchase || panel.Service.CanPurchase || backoffice.Offer.CanPurchase);
-        Assert.False(api.OfferItem.Availability.Guaranteed);
+        Assert.Equal(item.Candidate.OfferReadiness.ToString(), api.Bag.Ancillary.Readiness);
+        Assert.False(api.Bag.Ancillary.CanPurchase || panel.Service.CanPurchase || backoffice.Offer.CanPurchase);
+        Assert.False(api.Bag.Ancillary.Availability.Guaranteed);
     }
 
     [Fact]
@@ -484,7 +552,7 @@ public class ThreeSurfaceTests
         Assert.Equal(BaggageAllowanceConcept.Weight, package.SpecificationArgs().Baggage!.AllowanceConcept);
         Assert.All(context.TravellerBaggageFacts, fact => Assert.Equal((1, 25m), (fact.CheckedPieces, fact.CheckedWeight)));
         Assert.Empty(snapshot.Items);
-        Assert.Equal(ApiAncillaryOffersMapper.NoApplicableOffer, ApiAncillaryOffersMapper.Map(snapshot).ResponseStatus);
+        Assert.Equal(ApiAncillaryOffersMapper.NoApplicableOffer, ApiAncillaryOffersMapper.Map(snapshot, References(snapshot)).Meta.Status);
     }
 
     [Theory]
@@ -503,7 +571,7 @@ public class ThreeSurfaceTests
         var query = new OfferQuery(OfferWire.OfferId, item.OfferItemRef);
         var detail = await new GetAncillaryOfferDetailService(offers, lab.Catalog, lab.Catalog, lab.Catalog).ExecuteAsync(query, Desk);
         var seat = definition.SpecificationArgs().Seat!;
-        var api = ApiAncillaryOfferDetailMapper.Map(detail);
+        var api = ApiAncillaryOfferDetailMapper.Map(detail, References(detail.Shopping, detail)).Data;
         var panel = OtaPanelAncillaryOfferDetailMapper.Map(detail);
         var backoffice = BackofficeAncillaryOfferDetailMapper.Map(detail);
 
@@ -518,9 +586,10 @@ public class ThreeSurfaceTests
         Assert.Null(api.BaggageRule);
         Assert.Null(api.Specification.Baggage);
         Assert.DoesNotContain(detail.IncludedAllowance, fact => !item.Candidate.FlightRefs.Contains(fact.FlightRef));
-        Assert.All(new[] { "\"rows\"", "\"seats\"", "\"seatMap\"", "\"columns\"" }, member => Assert.DoesNotContain(member, JsonSerializer.Serialize(api, Json), StringComparison.OrdinalIgnoreCase));
-        Assert.False(api.OfferItem.Availability.Guaranteed);
-        Assert.Equal("NotChecked", api.OfferItem.Availability.State);
+        Assert.All(new[] { "\"rows\":", "\"seats\":", "\"seatMap\":", "\"columns\":" }, member => Assert.DoesNotContain(member, JsonSerializer.Serialize(api, Json), StringComparison.OrdinalIgnoreCase));
+        Assert.False(api.OtherService!.Ancillary.Availability.Guaranteed);
+        Assert.Null(api.Bag);
+        Assert.Equal("NotChecked", api.OtherService.Ancillary.Availability.State);
 
         var seatMaps = new GetSeatMapService(offers, new NotConnectedFlightSeatMapReference());
         var unavailable = await Assert.ThrowsAsync<BusinessException>(() => seatMaps.ExecuteAsync(query, Desk));
@@ -551,7 +620,7 @@ public class ThreeSurfaceTests
         foreach (var item in snapshot.Items.DistinctBy(item => item.Candidate.VariantCode))
         {
             var detail = await details.ExecuteAsync(new OfferQuery(OfferWire.OfferId, item.OfferItemRef), Desk);
-            var api = ApiAncillaryOfferDetailMapper.Map(detail).Specification;
+            var api = ApiAncillaryOfferDetailMapper.Map(detail, References(detail.Shopping, detail)).Data.Specification;
             var panel = OtaPanelAncillaryOfferDetailMapper.Map(detail).Specification;
             var backoffice = BackofficeAncillaryOfferDetailMapper.Map(detail).Specification;
             var present = typeof(ApiServiceSpecificationDto).GetProperties().Where(property => property.GetValue(api) is not null).Select(property => property.Name).ToList();
@@ -590,18 +659,19 @@ public class ThreeSurfaceTests
         var none = await service.ExecuteAsync(query, BackofficeSelectionInputMapper.ToSelection(null), Desk);
         var forged = await service.ExecuteAsync(query, new AncillarySelection { Quantity = 2, SeatNumber = "12A" }, Desk);
         var withFee = await service.ExecuteAsync(new OfferQuery(OfferWire.OfferId, wifi.OfferItemRef), new AncillarySelection { OptIn = true }, Desk);
-        var api = ApiSelectionResultMapper.Map(two);
+        var api = ApiSelectionResultMapper.Map(two, References(two.Shopping)).Data;
         var panel = OtaPanelSelectionResultMapper.Map(two);
         var backoffice = BackofficeSelectionResultMapper.Map(two);
 
         Assert.Equal((SelectionEvaluationStatus.Accepted, 10_900_000m, false), (two.Evaluation.Status, two.Evaluation.Candidate.Price.RequestedQuantityTotal, two.Evaluation.ProvisionChangedBySelection));
-        Assert.Equal(("Accepted", 10_900_000m, Irr, 5_450_000m), (api.Status, api.SelectedPrice!.Amount, api.SelectedPrice.CurrencyId, api.OfferItem.Pricing.UnitPrice!.Amount));
+        Assert.Equal(("Accepted", "10900000.00", "IRR", "5450000.00"), (api.Status, api.SelectedPrice!.Amount, api.SelectedPrice.CurrencyCode, api.Bag!.Price!.Amount));
+        Assert.Equal(ApiSelectionResultMapper.AncillarySelection, api.Type);
         Assert.Equal(("Accepted", 10_900_000m, 5_450_000m), (panel.Status, panel.SelectedAmount!.Amount, panel.Service.UnitPrice!.Amount));
         Assert.Equal(("Accepted", 10_900_000m, 5_450_000m), (backoffice.Status.Name, backoffice.SelectedQuantityTotal, backoffice.Offer.Pricing.CompleteUnitTotal));
         Assert.Equal(bag.OfferItemRef, api.OfferItemRef);
         Assert.Equal(bag.OfferItemRef, api.CurrentOfferItemRef);
         Assert.False(api.CanPurchase || panel.CanPurchase || backoffice.CanPurchase);
-        Assert.False(api.OfferItem.Availability.Guaranteed);
+        Assert.False(api.Bag.Ancillary.Availability.Guaranteed);
         Assert.Null(bag.Candidate.Price.RequestedQuantityTotal);
         Assert.Equal((SelectionEvaluationStatus.Rejected, null), (nine.Evaluation.Status, nine.Evaluation.Candidate.Price.RequestedQuantityTotal));
         Assert.Null(OtaPanelSelectionResultMapper.Map(nine).SelectedAmount);
@@ -609,10 +679,10 @@ public class ThreeSurfaceTests
         Assert.Equal((SelectionEvaluationStatus.Incomplete, null), (none.Evaluation.Status, none.Evaluation.Candidate.Price.RequestedQuantityTotal));
         Assert.Null(BackofficeSelectionResultMapper.Map(none).SelectedQuantityTotal);
         Assert.Equal(SelectionEvaluationStatus.Rejected, forged.Evaluation.Status);
-        Assert.Contains(ApiSelectionResultMapper.Map(forged).Issues, issue => issue is { Field: "SeatNumber", Reason: ShoppingReasonCodes.SelectionFieldNotAllowed });
+        Assert.Contains(ApiSelectionResultMapper.Map(forged, References(forged.Shopping)).Data.Issues, issue => issue is { Field: "SeatNumber", Reason: ShoppingReasonCodes.SelectionFieldNotAllowed });
         Assert.Equal((981_000m, null), (withFee.Evaluation.Candidate.Price.CompleteUnitTotal, withFee.Evaluation.Candidate.Price.RequestedQuantityTotal));
-        Assert.Null(ApiSelectionResultMapper.Map(withFee).SelectedPrice);
-        Assert.Equal(100_000m, ApiSelectionResultMapper.Map(withFee).OfferItem.Pricing.OrderLevelFees.Single().Amount);
+        Assert.Null(ApiSelectionResultMapper.Map(withFee, References(withFee.Shopping)).Data.SelectedPrice);
+        Assert.Equal("100000.00", ApiSelectionResultMapper.Map(withFee, References(withFee.Shopping)).Data.OtherService!.Ancillary.Pricing.Fees.Single(fee => fee.OrderLevel).Amount);
     }
 
     [Theory]
@@ -637,7 +707,12 @@ public class ThreeSurfaceTests
             {
                 ("offers", BackofficeAncillaryOffersMapper.Map(snapshot)), ("detail", BackofficeAncillaryOfferDetailMapper.Map(detail)), ("selection", BackofficeSelectionResultMapper.Map(selection))
             },
-            "api" => [("offers", ApiAncillaryOffersMapper.Map(snapshot)), ("detail", ApiAncillaryOfferDetailMapper.Map(detail)), ("selection", ApiSelectionResultMapper.Map(selection))],
+            "api" =>
+            [
+                ("offers", ApiAncillaryOffersMapper.Map(snapshot, References(snapshot, detail))),
+                ("detail", ApiAncillaryOfferDetailMapper.Map(detail, References(detail.Shopping, detail))),
+                ("selection", ApiSelectionResultMapper.Map(selection, References(selection.Shopping, detail)))
+            ],
             _ => [("offers", OtaPanelAncillaryOffersMapper.Map(snapshot)), ("detail", OtaPanelAncillaryOfferDetailMapper.Map(detail)), ("selection", OtaPanelSelectionResultMapper.Map(selection))]
         };
 

@@ -1,38 +1,75 @@
+using System.Text.Json.Serialization;
+
 namespace AeroTech.Ancillary.Query.AncillaryOffers.Dto.Api
 {
     public sealed record ApiAncillaryOffersDto(
-        string SourceOfferId,
-        ApiCurrencyDto Currency,
-        ApiDataListsDto DataLists,
-        IReadOnlyList<ApiALaCarteOfferDto> ALaCarteOffers,
-        int WithheldItemCount,
-        string ResponseStatus);
+        ApiMetaDto Meta,
+        ApiAncillaryOffersDataDto Data,
+        ApiIncludedDto Included);
 
-    public sealed record ApiCurrencyDto(int Id, string? Code);
+    public sealed record ApiMetaDto(int Count, int WithheldCount, string Status);
 
-    public sealed record ApiDataListsDto(
-        IReadOnlyList<ApiPassengerDto> Passengers,
-        IReadOnlyList<ApiPaxSegmentDto> PaxSegments,
-        IReadOnlyList<ApiServiceDefinitionDto> ServiceDefinitions);
+    public sealed record ApiAncillaryOffersDataDto(
+        string Type,
+        string FlightOfferId,
+        IReadOnlyList<ApiTravelerDto> Travelers,
+        IReadOnlyList<ApiSegmentDto> Segments);
 
-    public sealed record ApiPassengerDto(string PassengerRef, string Ptc);
+    public sealed record ApiTravelerDto(string Id, string TravelerType);
 
-    public sealed record ApiPaxSegmentDto(
-        string SegmentRef,
-        string JourneyRef,
-        long FlightId,
-        string? FlightNumber,
-        int MarketingAirlineId,
-        int OperatingAirlineId,
-        int OriginAirportId,
-        int DestinationAirportId,
-        DateTimeOffset DepartureAt,
-        DateTimeOffset ArrivalAt,
-        int? CabinClassId);
+    public sealed record ApiSegmentDto(
+        string Id,
+        string? CarrierCode,
+        string? Number,
+        ApiEndpointDto Departure,
+        ApiEndpointDto Arrival,
+        ApiOperatingDto Operating);
 
-    public sealed record ApiServiceDefinitionDto(
-        string ServiceDefinitionRef,
+    public sealed record ApiEndpointDto(string? IataCode, DateTimeOffset At);
+
+    public sealed record ApiOperatingDto(string? CarrierCode);
+
+    public sealed record ApiIncludedDto(
+        IReadOnlyDictionary<string, ApiBagDto> Bags,
+        [property: JsonPropertyName("other-services")] IReadOnlyDictionary<string, ApiOtherServiceDto> OtherServices);
+
+    public sealed record ApiBagDto(
+        int? Quantity,
+        decimal? Weight,
+        string? WeightUnit,
         string Name,
+        ApiElementaryPriceDto? Price,
+        bool BookableByItinerary,
+        IReadOnlyList<string> SegmentIds,
+        IReadOnlyList<string> TravelerIds,
+        ApiAncillaryDto Ancillary);
+
+    public sealed record ApiOtherServiceDto(
+        string Name,
+        ApiElementaryPriceDto? Price,
+        bool BookableByTraveler,
+        bool BookableByItinerary,
+        IReadOnlyList<string> SegmentIds,
+        IReadOnlyList<string> TravelerIds,
+        ApiAncillaryDto Ancillary);
+
+    public sealed record ApiElementaryPriceDto(string Amount, string? CurrencyCode);
+
+    public sealed record ApiAncillaryDto(
+        string Type,
+        ApiServiceDto Service,
+        ApiPricingDto Pricing,
+        ApiQuantityDto Quantity,
+        IReadOnlyList<ApiSelectionRequirementDto> SelectionRequirements,
+        ApiAvailabilityDto Availability,
+        string ConfirmationRequirement,
+        string Readiness,
+        bool CanPurchase,
+        IReadOnlyList<string> Reasons);
+
+    public sealed record ApiServiceDto(
+        string ServiceDefinitionRef,
+        string CommercialName,
         string? Description,
         string Category,
         string VariantCode,
@@ -44,43 +81,21 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Dto.Api
         string BookingMethod,
         string? SsrCode);
 
-    public sealed record ApiALaCarteOfferDto(IReadOnlyList<ApiOfferItemDto> OfferItems);
-
-    public sealed record ApiOfferItemDto(
-        string OfferItemRef,
-        string ServiceDefinitionRef,
-        ApiEligibilityDto Eligibility,
-        ApiPricingDto Pricing,
-        ApiQuantityDto Quantity,
-        IReadOnlyList<ApiSelectionRequirementDto> SelectionRequirements,
-        ApiAvailabilityDto Availability,
-        string ConfirmationRequirement,
-        string Readiness,
-        bool CanPurchase,
-        IReadOnlyList<string> Reasons);
-
-    public sealed record ApiEligibilityDto(
-        string CoverageScope,
-        IReadOnlyList<string> PassengerRefs,
-        IReadOnlyList<string> SegmentRefs,
-        IReadOnlyList<string> JourneyRefs);
-
     public sealed record ApiPricingDto(
         string Origin,
         string Status,
         string? Unit,
-        ApiMoneyDto? UnitPrice,
-        ApiMoneyDto? Base,
-        IReadOnlyList<ApiPriceLineDto> Taxes,
-        IReadOnlyList<ApiPriceLineDto> IncludedTaxes,
-        IReadOnlyList<ApiPriceLineDto> AdditionalFees,
-        IReadOnlyList<ApiPriceLineDto> OrderLevelFees,
-        ApiMoneyDto? TotalPrice,
+        string? CurrencyCode,
+        string? Base,
+        string? Total,
+        IReadOnlyList<ApiTaxDto> Taxes,
+        IReadOnlyList<ApiFeeDto> Fees,
+        string? RequestedTotal,
         bool TotalComplete);
 
-    public sealed record ApiMoneyDto(decimal Amount, int CurrencyId);
+    public sealed record ApiTaxDto(string Amount, string? Code, string? CurrencyCode, bool Included);
 
-    public sealed record ApiPriceLineDto(string? Code, decimal Amount, int CurrencyId, string? AppliesPer);
+    public sealed record ApiFeeDto(string Amount, string? Type, string? CurrencyCode, string? AppliesPer, bool OrderLevel);
 
     public sealed record ApiQuantityDto(string Unit, int Min, int Max);
 
@@ -88,11 +103,14 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Dto.Api
 
     public sealed record ApiAvailabilityDto(string State, bool Guaranteed, bool RequiresCheckAtReserve);
 
-    public sealed record ApiAncillaryOfferDetailDto(
-        string SourceOfferId,
-        ApiCurrencyDto Currency,
-        ApiOfferItemDto OfferItem,
-        ApiServiceDefinitionDto ServiceDefinition,
+    public sealed record ApiAncillaryOfferDetailDto(ApiAncillaryOfferDetailDataDto Data);
+
+    public sealed record ApiAncillaryOfferDetailDataDto(
+        string Type,
+        string Id,
+        string FlightOfferId,
+        ApiBagDto? Bag,
+        ApiOtherServiceDto? OtherService,
         ApiServiceSpecificationDto Specification,
         IReadOnlyList<ApiIncludedAllowanceDto> IncludedAllowance,
         ApiBaggageRuleDto? BaggageRule,
@@ -101,14 +119,18 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Dto.Api
         ApiTermsDto Terms,
         IReadOnlyList<ApiRateDto> Rates);
 
-    public sealed record ApiSelectionResultDto(
-        string SourceOfferId,
+    public sealed record ApiSelectionResultDto(ApiSelectionResultDataDto Data);
+
+    public sealed record ApiSelectionResultDataDto(
+        string Type,
+        string FlightOfferId,
         string Status,
         string OfferItemRef,
         string CurrentOfferItemRef,
         bool OfferItemChanged,
-        ApiOfferItemDto OfferItem,
-        ApiMoneyDto? SelectedPrice,
+        ApiBagDto? Bag,
+        ApiOtherServiceDto? OtherService,
+        ApiElementaryPriceDto? SelectedPrice,
         IReadOnlyList<ApiSelectionIssueDto> Issues,
         bool CanPurchase);
 

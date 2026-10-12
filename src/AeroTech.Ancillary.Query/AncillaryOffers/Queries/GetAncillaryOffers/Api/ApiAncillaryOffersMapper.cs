@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.Query.AncillaryOffers.Dto.Api;
 using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
 using AeroTech.Ancillary.Shopping.Results;
@@ -5,76 +7,91 @@ using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Api
 {
-    public static class ApiAncillaryOffersMapper
+    public static partial class ApiAncillaryOffersMapper
     {
+        public const string AncillaryOffers = "ancillary-offers";
         public const string NeedsSelectionOrRecheck = "NeedsSelectionOrRecheck";
         public const string NoApplicableOffer = "NoApplicableOffer";
+
+        private const string Kilogram = "KG";
 
         public static bool IsOffered(OfferReadiness readiness)
             => readiness is OfferReadiness.Selectable or OfferReadiness.NeedsSelection or OfferReadiness.NeedsQuote;
 
-        public static ApiAncillaryOffersDto Map(AncillaryShoppingSnapshot snapshot)
+        public static bool IsBag(CanonicalAncillaryOfferCandidate candidate) => candidate.Profile == AncillaryProfile.Baggage;
+
+        public static ApiAncillaryOffersDto Map(AncillaryShoppingSnapshot snapshot, ApiOfferReferences references)
         {
-            var offered = snapshot.PointsOfSale
-                .Select(pointOfSale => pointOfSale.Items.Where(item => IsOffered(item.Candidate.OfferReadiness)).ToList())
-                .Where(items => items.Count > 0)
-                .ToList();
-            var items = offered.SelectMany(group => group).ToList();
+            var items = snapshot.Items.Where(item => IsOffered(item.Candidate.OfferReadiness)).ToList();
 
             return new ApiAncillaryOffersDto(
-                snapshot.Offer.OfferId,
-                Currency(snapshot),
-                new ApiDataListsDto(
-                    snapshot.Offer.Tickets.Select(ticket => new ApiPassengerDto(ticket.TravellerRef, ticket.PassengerTypeCode.ToString())).ToList(),
-                    snapshot.Offer.Bounds
-                        .SelectMany(bound => bound.Flights.Select(flight => new ApiPaxSegmentDto(
-                            FlightOfferShoppingContextMapper.FlightRef(bound, flight),
-                            bound.BoundId,
-                            flight.FlightId,
-                            flight.FlightNumber,
-                            flight.MarketingAirlineId,
-                            flight.OperatingAirlineId,
-                            flight.OriginAirportId,
-                            flight.DestinationAirportId,
-                            flight.DepartureAt,
-                            flight.ArrivalAt,
-                            flight.CabinClassId)))
-                        .ToList(),
+                new ApiMetaDto(items.Count, snapshot.Items.Count() - items.Count, items.Count > 0 ? NeedsSelectionOrRecheck : NoApplicableOffer),
+                new ApiAncillaryOffersDataDto(AncillaryOffers, snapshot.Offer.OfferId, references.Travelers, references.Segments),
+                new ApiIncludedDto(
                     items
-                        .Select(item => item.Candidate)
-                        .DistinctBy(candidate => candidate.ServiceDefinitionRef, StringComparer.Ordinal)
-                        .OrderBy(candidate => candidate.ServiceDefinitionRef, StringComparer.Ordinal)
-                        .Select(ServiceDefinition)
-                        .ToList()),
-                offered.Select(group => new ApiALaCarteOfferDto(group.Select(item => OfferItem(item.OfferItemRef, item.Candidate)).ToList())).ToList(),
-                snapshot.Items.Count() - items.Count,
-                items.Count > 0 ? NeedsSelectionOrRecheck : NoApplicableOffer);
+                        .Where(item => IsBag(item.Candidate))
+                        .ToDictionary(item => item.OfferItemRef, item => Bag(item.Candidate, references), StringComparer.Ordinal),
+                    items
+                        .Where(item => !IsBag(item.Candidate))
+                        .ToDictionary(item => item.OfferItemRef, item => OtherService(item.Candidate, references), StringComparer.Ordinal)));
         }
 
-        public static ApiCurrencyDto Currency(AncillaryShoppingSnapshot snapshot)
-            => new(snapshot.CurrencyId, snapshot.CurrencyId == snapshot.Offer.CurrencyId ? snapshot.Offer.CurrencyCode : null);
+        public static ApiBagDto Bag(CanonicalAncillaryOfferCandidate candidate, ApiOfferReferences references)
+        {
+            var specification = references.Baggage(candidate.DefinitionVersionId);
+            var weight = specification?.PackageWeightKg ?? specification?.WeightToInclusiveKg ?? specification?.MaxKgPerPiece;
 
-        public static ApiServiceDefinitionDto ServiceDefinition(CanonicalAncillaryOfferCandidate candidate)
-            => new(
-                candidate.ServiceDefinitionRef,
-                candidate.CommercialName,
-                candidate.Description,
-                candidate.Profile.ToString(),
-                candidate.VariantCode,
-                candidate.ServiceTypeCode,
-                candidate.ServiceSubCode,
-                candidate.Document.Rfic,
-                candidate.Document.Rfisc,
-                candidate.Document.DocumentType.ToString(),
-                candidate.Booking.Method.ToString(),
-                candidate.Booking.SsrCode);
+            return new ApiBagDto(
+                specification is null || specification.ChargeKind == BaggageChargeKind.WeightPackage ? null : 1,
+                weight,
+                weight is null ? null : Kilogram,
+                Name(candidate),
+                Price(candidate.Price.CompleteUnitTotal, candidate.Price.CurrencyId, references),
+                candidate.Scope.CoverageScope == ServiceCoverageScope.Journey,
+                references.SegmentIds(candidate.FlightRefs),
+                references.TravelerIds(candidate.Travellers),
+                Ancillary(candidate, references));
+        }
 
-        public static ApiOfferItemDto OfferItem(string offerItemRef, CanonicalAncillaryOfferCandidate candidate)
+        public static ApiOtherServiceDto OtherService(CanonicalAncillaryOfferCandidate candidate, ApiOfferReferences references)
             => new(
-                offerItemRef,
-                candidate.ServiceDefinitionRef,
-                new ApiEligibilityDto(candidate.Scope.CoverageScope.ToString(), candidate.Travellers, candidate.FlightRefs, candidate.PortionRefs),
-                Pricing(candidate.Price),
+                Name(candidate),
+                Price(candidate.Price.CompleteUnitTotal, candidate.Price.CurrencyId, references),
+                candidate.Travellers.Count == 1,
+                candidate.Scope.CoverageScope == ServiceCoverageScope.Journey,
+                references.SegmentIds(candidate.FlightRefs),
+                references.TravelerIds(candidate.Travellers),
+                Ancillary(candidate, references));
+
+        public static ApiElementaryPriceDto? Price(decimal? amount, int? currencyId, ApiOfferReferences references)
+            => amount is { } value ? new ApiElementaryPriceDto(ApiOfferReferences.Amount(value), references.CurrencyCode(currencyId)) : null;
+
+        private static string Name(CanonicalAncillaryOfferCandidate candidate)
+            => Separators().Replace(AncillaryVariant.Find(candidate.VariantCode)!.Name, "_").Trim('_').ToUpperInvariant();
+
+        private static ApiAncillaryDto Ancillary(CanonicalAncillaryOfferCandidate candidate, ApiOfferReferences references)
+            => new(
+                candidate.Profile switch
+                {
+                    AncillaryProfile.Baggage => "CHECKED_BAGS",
+                    AncillaryProfile.Meal => "MEALS",
+                    AncillaryProfile.Seat => "SEATS",
+                    _ => "OTHER_SERVICES"
+                },
+                new ApiServiceDto(
+                    candidate.ServiceDefinitionRef,
+                    candidate.CommercialName,
+                    candidate.Description,
+                    candidate.Profile.ToString(),
+                    candidate.VariantCode,
+                    candidate.ServiceTypeCode,
+                    candidate.ServiceSubCode,
+                    candidate.Document.Rfic,
+                    candidate.Document.Rfisc,
+                    candidate.Document.DocumentType.ToString(),
+                    candidate.Booking.Method.ToString(),
+                    candidate.Booking.SsrCode),
+                Pricing(candidate.Price, references),
                 new ApiQuantityDto(candidate.Quantity.Unit.ToString(), candidate.Quantity.MinPerSelection, candidate.Quantity.MaxPerSelection),
                 candidate.Selection.Fields.Select(field => new ApiSelectionRequirementDto(field.Name, field.Type.ToString(), field.Required)).ToList(),
                 new ApiAvailabilityDto(candidate.Availability.CheckedState.ToString(), candidate.Availability.IsGuaranteed, candidate.Availability.RequiresCheckAtReserve),
@@ -83,23 +100,30 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Ap
                 false,
                 candidate.ReasonCodes);
 
-        public static ApiMoneyDto? Money(decimal? amount, int? currencyId)
-            => amount is { } value && currencyId is { } currency ? new ApiMoneyDto(value, currency) : null;
-
-        private static ApiPricingDto Pricing(PriceAssessment price)
+        private static ApiPricingDto Pricing(PriceAssessment price, ApiOfferReferences references)
             => new(
                 price.Origin.ToString(),
                 price.Status.ToString(),
                 price.PricingUnit?.ToString(),
-                Money(price.CompleteUnitTotal, price.CurrencyId),
-                Money(price.BaseAmount, price.CurrencyId),
-                price.AddedTaxLines.Select(Line).ToList(),
-                price.IncludedTaxLines.Select(Line).ToList(),
-                price.AppliedUnitFeeLines.Select(Line).ToList(),
-                price.UnappliedFeeLines.Select(Line).ToList(),
-                Money(price.RequestedQuantityTotal, price.CurrencyId),
+                references.CurrencyCode(price.CurrencyId),
+                price.BaseAmount is { } baseAmount ? ApiOfferReferences.Amount(baseAmount) : null,
+                price.CompleteUnitTotal is { } total ? ApiOfferReferences.Amount(total) : null,
+                price.AddedTaxLines.Select(line => Tax(line, false, references))
+                    .Concat(price.IncludedTaxLines.Select(line => Tax(line, true, references)))
+                    .ToList(),
+                price.AppliedUnitFeeLines.Select(line => Fee(line, false, references))
+                    .Concat(price.UnappliedFeeLines.Select(line => Fee(line, true, references)))
+                    .ToList(),
+                price.RequestedQuantityTotal is { } requested ? ApiOfferReferences.Amount(requested) : null,
                 price.IsOrderLevelTotalComplete);
 
-        private static ApiPriceLineDto Line(PriceComponentLine line) => new(line.Code, line.Amount, line.CurrencyId, line.FeeApplicationUnit?.ToString());
+        private static ApiTaxDto Tax(PriceComponentLine line, bool included, ApiOfferReferences references)
+            => new(ApiOfferReferences.Amount(line.Amount), line.Code, references.CurrencyCode(line.CurrencyId), included);
+
+        private static ApiFeeDto Fee(PriceComponentLine line, bool orderLevel, ApiOfferReferences references)
+            => new(ApiOfferReferences.Amount(line.Amount), line.Code, references.CurrencyCode(line.CurrencyId), line.FeeApplicationUnit?.ToString(), orderLevel);
+
+        [GeneratedRegex("[^A-Za-z0-9]+")]
+        private static partial Regex Separators();
     }
 }

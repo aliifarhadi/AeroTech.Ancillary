@@ -1,7 +1,9 @@
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto
 {
+    [VariantCode(AncillaryVariant.CabinUpgrade)]
     public sealed record CabinUpgradeSpecificationDto(
         int FromCabinId,
         int ToCabinId,
@@ -9,6 +11,7 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto
         bool RequiresTicketExchange,
         IReadOnlyList<long> EligibleFareFamilyIds);
 
+    [VariantCode(AncillaryVariant.PriorityBoardingCheckin)]
     public sealed record PriorityBoardingCheckinSpecificationDto(
         PriorityKind Kind,
         string? PriorityZoneCode,
@@ -16,6 +19,7 @@ namespace AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto
         string? FareBenefitRef,
         IReadOnlyList<int> AirportIds);
 
+    [VariantCode(AncillaryVariant.OnboardWifi)]
     public sealed record OnboardWifiSpecificationDto(
         ConnectivityPlanKind PlanKind,
         int? DurationMinutes,
