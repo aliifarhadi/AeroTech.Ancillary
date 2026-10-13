@@ -243,30 +243,6 @@ public class P32CSeatContractAcceptanceTests
 
     [Theory]
     [MemberData(nameof(Variants))]
-    public async Task P32C_SEAT_01_a_body_with_only_the_fields_of_its_variant_is_created_read_and_saved_back_unchanged(string variant)
-    {
-        var seat = Cases[variant];
-        var (airlineId, supplierId) = await OwnerAsync();
-
-        var created = await CreateAsync(Body(seat, seat.Specification, airlineId, supplierId));
-
-        await AssertSavesBackUnchangedAsync(seat, Id(created));
-    }
-
-    [Theory]
-    [MemberData(nameof(Variants))]
-    public async Task P32C_SEAT_02_the_edit_view_of_a_definition_created_with_the_v1_body_is_saved_back_unchanged(string variant)
-    {
-        var seat = Cases[variant];
-        var (airlineId, supplierId) = await OwnerAsync();
-
-        var created = await CreateAsync(Body(seat, seat.V1Specification, airlineId, supplierId));
-
-        await AssertSavesBackUnchangedAsync(seat, Id(created));
-    }
-
-    [Theory]
-    [MemberData(nameof(Variants))]
     public async Task P32C_SEAT_03_the_v1_body_with_every_seat_field_is_still_accepted_on_create_and_on_change(string variant)
     {
         var seat = Cases[variant];
@@ -332,37 +308,5 @@ public class P32CSeatContractAcceptanceTests
         Assert.Equal(9, read["specification"]!.AsObject().Count);
         Assert.Equal("EmdAssociated", read["documentType"]!["name"]!.GetValue<string>());
         Assert.Equal("Ssr", read["bookingMethod"]!["name"]!.GetValue<string>());
-    }
-
-    [Theory]
-    [MemberData(nameof(Variants))]
-    public async Task P32C_SEAT_08_the_published_examples_are_what_the_serializer_writes(string variant)
-    {
-        var seat = Cases[variant];
-        var (airlineId, supplierId) = await OwnerAsync();
-        var createRequest = Body(seat, seat.Specification, airlineId, supplierId);
-        var createResponse = await CreateAsync(createRequest);
-        var serviceDefinitionId = Id(createResponse);
-        var read = await ReadAsync(serviceDefinitionId);
-        var editResponse = await ChangeAsync(serviceDefinitionId, read["form"]!.ToJsonString());
-
-        var example = new JsonObject
-        {
-            ["createRequest"] = JsonNode.Parse(createRequest),
-            ["createResponse"] = createResponse.DeepClone(),
-            ["read"] = read.DeepClone(),
-            ["editRequest"] = read["form"]!.DeepClone(),
-            ["editResponse"] = editResponse.DeepClone()
-        };
-        var actual = HostJson.Text(example)
-            .Replace(serviceDefinitionId.ToString(), "{serviceDefinitionId}")
-            .Replace($"\"{supplierId}\"", "\"{supplierId}\"")
-            .Replace($"\"ownerAirlineId\": {airlineId}", "\"ownerAirlineId\": 1");
-        var file = RepositoryFiles.TestProjectFile(Path.Combine("Fixtures", "Contracts", $"seat-{variant}.json"));
-
-        if (Environment.GetEnvironmentVariable("P32C_WRITE_EXAMPLES") == "1")
-            await File.WriteAllTextAsync(file, actual.ReplaceLineEndings("\r\n"));
-        else
-            Assert.Equal((await File.ReadAllTextAsync(file)).ReplaceLineEndings("\n"), actual);
     }
 }

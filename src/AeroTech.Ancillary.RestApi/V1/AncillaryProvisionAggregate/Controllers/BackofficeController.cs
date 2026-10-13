@@ -6,12 +6,15 @@ using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Publis
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ReactivateAncillaryProvision.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RetireAncillaryProvision.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.SuspendAncillaryProvision.Backoffice;
+using AeroTech.Ancillary.Query.AncillaryPricingAggregate.Dto;
+using AeroTech.Ancillary.Query.AncillaryPricingAggregate.Queries.GetProvisionPricingsPaginated.Backoffice;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Dto;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionById.Backoffice;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionForm.Backoffice;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionsPaginated.Backoffice;
 using AeroTech.Ancillary.RestApi.V1.AncillaryProvisionAggregate.Requests;
 using AeroTech.Ancillary.RestApi.V1._Shared;
+using AeroTech.Framework.Core.Domain.Queries;
 using AeroTech.Framework.Presentation.Responses;
 using Asp.Versioning;
 using MediatR;
@@ -133,6 +136,22 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryProvisionAggregate.Controllers
         [ProducesResponseType<ApiResult<BackofficeProvisionFormDto>>(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetForm(long provisionId, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(new BackofficeGetAncillaryProvisionFormQuery(provisionId), cancellationToken));
+
+        [HttpGet("{provisionId:long}/Pricings")]
+        [EndpointSummary("List the pricings of a provision with their rates and price components")]
+        [EndpointDescription(
+            "One row per pricing version of the provision, newest first. Each row holds its rates and each rate holds its price components, " +
+            "so no further call is needed. An unknown provision answers 404 with code 16301.")]
+        [ProducesResponseType<ApiResult<GridData<ProvisionPricingRowDto>>>(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetPricings(
+            long provisionId,
+            [FromQuery] BackofficeGetProvisionPricingsPaginatedQuery query,
+            CancellationToken cancellationToken)
+        {
+            query.AncillaryProvisionId = provisionId;
+
+            return Ok(await _mediator.Send(query, cancellationToken));
+        }
 
         [HttpGet("{provisionId:long}")]
         public async Task<IActionResult> GetById(long provisionId, CancellationToken cancellationToken)

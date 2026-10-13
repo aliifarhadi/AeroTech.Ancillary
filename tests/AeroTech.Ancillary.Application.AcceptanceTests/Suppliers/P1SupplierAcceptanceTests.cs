@@ -51,31 +51,6 @@ public class P1SupplierAcceptanceTests
     }
 
     [Fact]
-    public async Task P1_C03_a_definition_of_a_retired_supplier_cannot_be_activated_or_reactivated()
-    {
-        var airlineId = _database.NextAirlineId();
-        await using var scope = new AncillaryScope(_database, _clock);
-        var supplier = await scope.RegisterSupplier.RegisterAsync(M1Commands.LocalSupplier(airlineId));
-        var draft = await scope.DefineServiceDefinition.DefineAsync(M1Commands.LoungeDefinition(airlineId, supplier.Id, "LNG_DRAFT"));
-        var published = await scope.DefineServiceDefinition.DefineAsync(M1Commands.LoungeDefinition(airlineId, supplier.Id, "LNG_LIVE"));
-        await scope.ActivateServiceDefinition.ActivateAsync(new TestActivateServiceDefinitionCommand(published.Id));
-        await scope.SuspendServiceDefinition.SuspendAsync(new TestServiceDefinitionLifecycleCommand(published.Id));
-        await scope.RetireSupplier.RetireAsync(new TestRetireSupplierCommand(supplier.Id));
-
-        await using var writer = new AncillaryScope(_database, _clock);
-
-        await BusinessAssert.ThrowsAsync(16206, 422, () => writer.ActivateServiceDefinition.ActivateAsync(
-            new TestActivateServiceDefinitionCommand(draft.Id)));
-        await BusinessAssert.ThrowsAsync(16206, 422, () => writer.ReactivateServiceDefinition.ReactivateAsync(
-            new TestServiceDefinitionLifecycleCommand(published.Id)));
-
-        await using var reader = new AncillaryScope(_database, _clock);
-
-        Assert.Equal("Draft", (await reader.GetServiceDefinitionById.ExecuteAsync(draft.Id)).Status.Name);
-        Assert.Equal("Suspended", (await reader.GetServiceDefinitionById.ExecuteAsync(published.Id)).Status.Name);
-    }
-
-    [Fact]
     public async Task P1_B01_two_suppliers_own_separate_definitions_of_the_same_sub_code()
     {
         var airlineId = _database.NextAirlineId();

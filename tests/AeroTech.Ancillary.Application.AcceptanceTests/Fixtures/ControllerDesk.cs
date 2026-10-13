@@ -1,4 +1,6 @@
 using AeroTech.Ancillary.Application._Shared.Behaviors;
+using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetSeatProvisionCreateForm;
+using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetSeatProvisionForm;
 using AeroTech.Ancillary.Query._Shared.DbContexts;
 using AeroTech.Framework.Core.ServiceContracts;
 using FluentValidation;
@@ -6,6 +8,7 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using DefinitionController = AeroTech.Ancillary.RestApi.V1.AncillaryServiceDefinitionAggregate.Controllers.BackofficeController;
 using ProvisionController = AeroTech.Ancillary.RestApi.V1.AncillaryProvisionAggregate.Controllers.BackofficeController;
+using SeatProvisionController = AeroTech.Ancillary.RestApi.V1.AncillaryProvisionAggregate.Controllers.SeatBackofficeController;
 
 namespace AeroTech.Ancillary.Application.AcceptanceTests.Fixtures;
 
@@ -27,9 +30,12 @@ public sealed class ControllerDesk : IAsyncDisposable
         services.AddSingleton(Scope.ChangeServiceDefinition);
         services.AddSingleton(Scope.GetServiceDefinitionById);
         services.AddSingleton(Scope.GetServiceDefinitionForm);
+        services.AddSingleton(Scope.DefineProvision);
         services.AddSingleton(Scope.ChangeProvision);
         services.AddSingleton(Scope.GetProvisionById);
         services.AddSingleton(Scope.GetProvisionForm);
+        services.AddSingleton<IGetSeatProvisionCreateFormService>(new GetSeatProvisionCreateFormService(Scope.Definitions));
+        services.AddSingleton<IGetSeatProvisionFormService>(new GetSeatProvisionFormService(Scope.GetProvisionForm));
 
         _provider = services.BuildServiceProvider();
     }
@@ -39,6 +45,8 @@ public sealed class ControllerDesk : IAsyncDisposable
     public DefinitionController ServiceDefinitions => new(_provider.GetRequiredService<IMediator>());
 
     public ProvisionController Provisions => new(_provider.GetRequiredService<IMediator>());
+
+    public SeatProvisionController SeatProvisions => new(_provider.GetRequiredService<IMediator>());
 
     public async ValueTask DisposeAsync()
     {

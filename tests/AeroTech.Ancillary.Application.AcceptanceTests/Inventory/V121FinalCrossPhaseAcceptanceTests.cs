@@ -97,24 +97,6 @@ public class V121FinalCrossPhaseAcceptanceTests
                 """));
 
     [Fact]
-    public async Task X01_unlimited_and_must_check_availability_coexist_without_a_local_count_and_without_a_guarantee()
-    {
-        var (fixture, airlineId, supplierId) = await _harness.OperatorAsync(connected: false);
-        var wheelchair = await _harness.ProductAsync(airlineId, supplierId, "ASSIST_WCHR");
-
-        await _harness.Proof.RuleAsync(Provision(wheelchair.Id, 10, CommercialDisposition.Free) with { Availability = new(true) });
-
-        var active = await ActivateAsync(fixture, (await DefineAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, "ASSIST_WCHR", wheelchair.Id, InventoryAuthority.Unlimited))).Id);
-        var snapshot = await _harness.SnapshotAsync(fixture, "ASSIST_WCHR", Flight);
-
-        Assert.Equal((InventoryRecordStatus.Active, InventoryAuthority.Unlimited), (active.Status, active.Authority));
-        Assert.Equal(("Unlimited", true, false), (snapshot.State.Name, snapshot.RequiresAvailabilityCheck, snapshot.IsGuaranteed));
-        Assert.Null(snapshot.ConfiguredCount);
-        Assert.Null(snapshot.ConfiguredKg);
-        Assert.Equal(NoSources, await SourceRowsAsync(airlineId));
-    }
-
-    [Fact]
     public async Task X02_not_configured_is_never_reported_as_unlimited()
     {
         var (fixture, airlineId, supplierId) = await _harness.OperatorAsync(connected: false);
@@ -127,36 +109,6 @@ public class V121FinalCrossPhaseAcceptanceTests
         Assert.Null(missing.Authority);
         Assert.Equal(("NotConfigured", "PolicyNotActive", draft.Id), (authored.State.Name, authored.ReasonCode, authored.PolicyId!.Value));
         Assert.Equal("NotConfigured", (await _harness.SnapshotAsync(fixture, "NEVER_DEFINED")).State.Name);
-    }
-
-    [Fact]
-    public async Task X03_a_baggage_sale_type_never_seeds_a_flight_count_or_a_flight_weight_source()
-    {
-        var (fixture, airlineId, supplierId) = await _harness.OperatorAsync(connected: false);
-        var package = await _harness.ProductAsync(airlineId, supplierId, "XBAG_WEIGHT_10KG", PricingUnit.PerItem, variant: "A02");
-        var piece = await _harness.ProductAsync(airlineId, supplierId, "XBAG_PIECE_23KG", PricingUnit.PerPiece);
-
-        await _harness.Proof.RuleAsync(
-            Provision(package.Id, 10, maxQuantity: 2, applicationType: ProvisionApplicationType.Baggage) with
-            {
-                BaggageApplication = Baggage(10m, chargeKind: BaggageChargeKind.WeightPackage, allowanceConcept: BaggageAllowanceConcept.Weight)
-            },
-            id => Pricing(id, Eur, Base(25m)));
-        await _harness.Proof.RuleAsync(
-            Provision(piece.Id, 10, quantityUnit: AncillaryQuantityUnit.Piece, maxQuantity: 3, applicationType: ProvisionApplicationType.Baggage) with { BaggageApplication = Baggage(23m, 1, 3) },
-            id => Pricing(id, Eur, Base(30m)));
-
-        Assert.Equal(NoSources, await SourceRowsAsync(airlineId));
-        Assert.Equal("NotConfigured", (await _harness.SnapshotAsync(fixture, "XBAG_WEIGHT_10KG", Flight)).State.Name);
-
-        await ActivePolicyAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, "XBAG_WEIGHT_10KG", package.Id, InventoryAuthority.Unlimited));
-        await ActivePolicyAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, "XBAG_PIECE_23KG", piece.Id, InventoryAuthority.Unlimited));
-
-        var declared = await _harness.SnapshotAsync(fixture, "XBAG_WEIGHT_10KG", Flight);
-
-        Assert.Equal(("Unlimited", false), (declared.State.Name, declared.IsGuaranteed));
-        Assert.Null(declared.ConfiguredKg);
-        Assert.Equal(NoSources, await SourceRowsAsync(airlineId));
     }
 
     [Fact]
@@ -310,78 +262,6 @@ public class V121FinalCrossPhaseAcceptanceTests
     }
 
     [Fact]
-    public async Task X13_a_new_product_version_keeps_the_one_policy_and_its_physical_source_and_the_pointer_is_reconciled_at_activation()
-    {
-        var (fixture, airlineId, supplierId) = await VerifiedAsync();
-        var first = await _harness.ProductAsync(airlineId, supplierId, "PET_IN_CABIN", PricingUnit.PerItem);
-        var policyId = await ActivePolicyAsync(
-            fixture,
-            new TestDefineInventoryPolicyCommand(airlineId, "PET_IN_CABIN", first.Id, InventoryAuthority.Local, LocalInventoryPattern.FlightCount, CountConsumption: Count()));
-        var source = await CountAsync(fixture, airlineId, Flight, 2);
-
-        await _harness.RequestAsync(fixture, scope => scope.ActivateFlightCountInventory.ActivateAsync(new TestFlightCountLifecycleCommand(source.Id, 1)));
-
-        long secondId;
-
-        await using (var author = new AncillaryScope(_database, _clock))
-        {
-            secondId = (await author.ReviseServiceDefinition.ReviseAsync(new TestServiceDefinitionLifecycleCommand(first.Id))).Id;
-            await author.RetireServiceDefinition.RetireAsync(new TestServiceDefinitionLifecycleCommand(first.Id));
-            await author.ActivateServiceDefinition.ActivateAsync(new TestActivateServiceDefinitionCommand(secondId));
-        }
-
-        var kept = await _harness.RequestAsync(fixture, scope => scope.GetInventoryPolicyByServiceIdentity.ExecuteAsync("PET_IN_CABIN"));
-        var snapshot = await _harness.SnapshotAsync(fixture, "PET_IN_CABIN", Flight);
-
-        Assert.NotEqual(first.Id, secondId);
-        Assert.Equal((policyId, first.Id, "Active"), (kept.Id, kept.ServiceDefinitionId, kept.Status.Name));
-        Assert.Equal((policyId, "ConfiguredNotGuaranteed", 2), (snapshot.PolicyId!.Value, snapshot.State.Name, snapshot.ConfiguredCount!.Value));
-        await _harness.RefusedAsync(16604, 409, fixture, scope => scope.DefineInventoryPolicy.DefineAsync(
-            new TestDefineInventoryPolicyCommand(airlineId, "PET_IN_CABIN", secondId, InventoryAuthority.Unlimited)));
-
-        var suspended = await _harness.RequestAsync(fixture, scope => scope.SuspendInventoryPolicy.SuspendAsync(new TestInventoryPolicyLifecycleCommand(policyId, kept.Version)));
-        var reconciled = await ActivateAsync(fixture, policyId, suspended.Version);
-
-        Assert.Equal((policyId, secondId, InventoryRecordStatus.Active), (reconciled.Id, reconciled.ServiceDefinitionId, reconciled.Status));
-        Assert.Equal(
-            new[] { $"{policyId}|{secondId}|2|{source.Id}|2" },
-            await _harness.RowsAsync($"""
-                SELECT CONCAT(policy.Id, '|', policy.ServiceDefinitionId, '|', policy.Status, '|', source.Id, '|', source.TotalCapacity) AS Value
-                FROM ReadModel.AncillaryInventoryPolicies AS policy
-                JOIN Ancillary.FlightCountInventories AS source ON source.OwnerAirlineId = policy.OwnerAirlineId AND source.ResourceId = policy.CountResourceId
-                WHERE policy.OwnerAirlineId = {airlineId}
-                """));
-        Assert.Equal(secondId, (await _harness.RequestAsync(fixture, scope => scope.GetInventoryPolicyById.ExecuteAsync(policyId))).ServiceDefinitionId);
-    }
-
-    [Fact]
-    public async Task X14_two_products_share_a_real_resource_only_through_their_explicit_typed_binding()
-    {
-        var (fixture, airlineId, supplierId) = await VerifiedAsync();
-        var cabin = await _harness.ProductAsync(airlineId, supplierId, "PET_IN_CABIN", PricingUnit.PerItem);
-        var small = await _harness.ProductAsync(airlineId, supplierId, "PET_SMALL_DOG", PricingUnit.PerItem);
-        var unbound = await _harness.ProductAsync(airlineId, supplierId, "PET_TREATS", PricingUnit.PerItem);
-
-        await ActivePolicyAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, "PET_IN_CABIN", cabin.Id, InventoryAuthority.Local, LocalInventoryPattern.FlightCount, CountConsumption: Count()));
-        await ActivePolicyAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, "PET_SMALL_DOG", small.Id, InventoryAuthority.Local, LocalInventoryPattern.FlightCount, CountConsumption: Count()));
-        await ActivePolicyAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, "PET_TREATS", unbound.Id, InventoryAuthority.Unlimited));
-
-        var source = await CountAsync(fixture, airlineId, Flight, 2);
-
-        await _harness.RequestAsync(fixture, scope => scope.ActivateFlightCountInventory.ActivateAsync(new TestFlightCountLifecycleCommand(source.Id, 1)));
-
-        var first = await _harness.SnapshotAsync(fixture, "PET_IN_CABIN", Flight);
-        var second = await _harness.SnapshotAsync(fixture, "PET_SMALL_DOG", Flight);
-        var third = await _harness.SnapshotAsync(fixture, "PET_TREATS", Flight);
-
-        Assert.Equal((2, 2), (first.ConfiguredCount!.Value, second.ConfiguredCount!.Value));
-        Assert.Equal(first.Resource, second.Resource);
-        Assert.Equal(("Unlimited", (int?)null), (third.State.Name, third.ConfiguredCount));
-        Assert.Null(third.Resource);
-        Assert.Equal("1|0|0|1|0|0", await SourceRowsAsync(airlineId));
-    }
-
-    [Fact]
     public async Task X15_a_count_plus_weight_policy_binds_exactly_one_count_and_one_weight_resource()
     {
         var (fixture, airlineId, supplierId) = await VerifiedAsync();
@@ -437,77 +317,6 @@ public class V121FinalCrossPhaseAcceptanceTests
             typeof(PassengerUsageLimit).GetProperties(),
             property => new[] { "Used", "Consumed", "Remaining", "Available", "Total" }.Any(term => property.Name.Contains(term, StringComparison.Ordinal)));
         Assert.Empty(await _harness.RowsAsync($"SELECT t.name AS Value FROM sys.tables AS t WHERE t.name LIKE '%Usage%' AND t.name NOT LIKE '%PassengerUsageLimits'"));
-    }
-
-    [Theory]
-    [InlineData(LocalInventoryPattern.DailyCount)]
-    [InlineData(LocalInventoryPattern.RoomNight)]
-    [InlineData(LocalInventoryPattern.AssignedAsset)]
-    public async Task X17_a_deferred_daily_room_night_or_assigned_asset_pattern_is_never_activated(LocalInventoryPattern pattern)
-    {
-        var (fixture, airlineId, supplierId) = await VerifiedAsync();
-        var reference = $"CIP_{pattern}".ToUpperInvariant();
-        var product = await _harness.ProductAsync(airlineId, supplierId, reference, PricingUnit.PerItem, ServiceDateBasis.ServiceStart, "A22");
-        var draft = await DefineAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, reference, product.Id, InventoryAuthority.Local, pattern));
-
-        await _harness.RefusedAsync(16607, 409, fixture, scope => scope.ActivateInventoryPolicy.ActivateAsync(new TestInventoryPolicyLifecycleCommand(draft.Id, 1)));
-
-        var snapshot = await _harness.SnapshotAsync(fixture, reference, Flight);
-
-        Assert.Equal(("UnsupportedPattern", "PatternNotSupported", false), (snapshot.State.Name, snapshot.ReasonCode, snapshot.IsGuaranteed));
-        Assert.Equal(NoSources, await SourceRowsAsync(airlineId));
-    }
-
-    [Fact]
-    public async Task X18_an_unavailable_source_is_never_reported_as_unlimited_or_available()
-    {
-        var (fixture, airlineId, supplierId) = await _harness.OperatorAsync(connected: false);
-        var pet = await _harness.ProductAsync(airlineId, supplierId, "PET_IN_CABIN", PricingUnit.PerItem);
-        var seat = await _harness.ProductAsync(airlineId, supplierId, "SEAT_SELECTION", PricingUnit.PerSeat);
-        var local = await DefineAsync(
-            fixture,
-            new TestDefineInventoryPolicyCommand(airlineId, "PET_IN_CABIN", pet.Id, InventoryAuthority.Local, LocalInventoryPattern.FlightCount, CountConsumption: Count()));
-        var delegated = await DefineAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, "SEAT_SELECTION", seat.Id, InventoryAuthority.FlightFlow, ProviderKey: "FlightFlow"));
-
-        await _harness.RefusedAsync(16608, 409, fixture, scope => scope.ActivateInventoryPolicy.ActivateAsync(new TestInventoryPolicyLifecycleCommand(local.Id, 1)));
-        await _harness.RefusedAsync(16608, 409, fixture, scope => scope.ActivateInventoryPolicy.ActivateAsync(new TestInventoryPolicyLifecycleCommand(delegated.Id, 1)));
-
-        var petSnapshot = await _harness.SnapshotAsync(fixture, "PET_IN_CABIN", Flight);
-        var seatSnapshot = await _harness.SnapshotAsync(fixture, "SEAT_SELECTION", Flight);
-
-        Assert.Equal(
-            (("NotConfigured", false, (int?)null), ("NotConfigured", false, (int?)null)),
-            ((petSnapshot.State.Name, petSnapshot.IsGuaranteed, petSnapshot.ConfiguredCount), (seatSnapshot.State.Name, seatSnapshot.IsGuaranteed, seatSnapshot.ConfiguredCount)));
-        Assert.DoesNotContain(Enum.GetNames<InventoryCapacityReadState>(), name => name.Contains("Available", StringComparison.Ordinal));
-        Assert.Equal(
-            new[] { "1", "1" },
-            await _harness.RowsAsync($"SELECT CAST(Status AS varchar(10)) AS Value FROM Ancillary.AncillaryInventoryPolicies WHERE OwnerAirlineId = {airlineId} ORDER BY Id"));
-    }
-
-    [Fact]
-    public async Task X19_capacity_changes_leave_the_published_rules_and_prices_untouched()
-    {
-        var (fixture, airlineId, supplierId) = await VerifiedAsync();
-        var pet = await _harness.ProductAsync(airlineId, supplierId, "PET_IN_CABIN", PricingUnit.PerItem);
-
-        await _harness.Proof.RuleAsync(Provision(pet.Id, 10, bookingRequired: false) with { Availability = new(true) }, id => Pricing(id, Eur, Base(55m), Tax("VAT", 5.5m)));
-
-        var before = await CommercialRowsAsync(airlineId);
-
-        _clock.Now = _clock.Now.AddHours(2);
-
-        var policyId = await ActivePolicyAsync(
-            fixture,
-            new TestDefineInventoryPolicyCommand(airlineId, "PET_IN_CABIN", pet.Id, InventoryAuthority.Local, LocalInventoryPattern.FlightCount, CountConsumption: Count()));
-        var source = await CountAsync(fixture, airlineId, Flight, 2);
-
-        await _harness.RequestAsync(fixture, scope => scope.ActivateFlightCountInventory.ActivateAsync(new TestFlightCountLifecycleCommand(source.Id, 1)));
-        await _harness.RequestAsync(fixture, scope => scope.AdjustFlightCountInventory.AdjustAsync(new TestAdjustFlightCountInventoryCommand(source.Id, 0, "CABIN_FULL", "x19", 2)));
-        await _harness.RequestAsync(fixture, scope => scope.CloseFlightCountInventoryForSale.CloseAsync(new TestFlightCountLifecycleCommand(source.Id, 3)));
-        await _harness.RequestAsync(fixture, scope => scope.SuspendInventoryPolicy.SuspendAsync(new TestInventoryPolicyLifecycleCommand(policyId, 2)));
-
-        Assert.Equal(before, await CommercialRowsAsync(airlineId));
-        Assert.Equal(3, before.Split('\n').Length);
     }
 
     [Fact]

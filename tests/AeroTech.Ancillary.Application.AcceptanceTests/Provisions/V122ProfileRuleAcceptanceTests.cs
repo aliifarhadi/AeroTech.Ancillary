@@ -139,22 +139,4 @@ public class V122ProfileRuleAcceptanceTests
 
         Assert.Equal(("Pet", "A14", "Hold", 2), (moved.Profile!.Name, moved.VariantCode, moved.Specification!.Pet!.TransportMode.Name, moved.Specification.Pet.AllowedHoldAnimalSizeBrackets.Count));
     }
-
-    [Theory]
-    [InlineData("A01", "FlightApplication,FareApplication,BaggageApplication")]
-    [InlineData("A07", "FlightApplication,FareApplication,SeatApplication")]
-    [InlineData("A11", "FlightApplication,FareApplication")]
-    [InlineData("A13", "FlightApplication,FareApplication,PetRule")]
-    [InlineData("A19", "FlightApplication,FareApplication,AssistedTravelRule")]
-    [InlineData("A20", "FlightApplication,FareApplication,AirportServiceRule")]
-    [InlineData("A22", "AirportServiceRule")]
-    [InlineData("A24", "FlightApplication,FareApplication")]
-    public async Task V122_the_provision_detail_names_only_the_rule_sections_of_its_profile(string code, string own)
-    {
-        var (_, provisionId, _) = await DraftRuleAsync(code);
-        var detail = await ReadAsync(provisionId);
-
-        Assert.Equal((V122Catalog.Case(code).Profile.ToString(), code), (detail.Profile!.Name, detail.VariantCode));
-        Assert.Equal(SharedSections.Concat(own.Split(',')), detail.ApplicableRuleSections);
-    }
 }

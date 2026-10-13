@@ -85,6 +85,8 @@ public sealed record TestDefineProvisionCommand(
 
     public ProvisionPetRuleInput? PetRule { get; init; }
 
+    public AncillaryProfile? Profile { get; init; }
+
     public ProvisionAssistedTravelRuleInput? AssistedTravelRule { get; init; }
 
     public ProvisionAirportServiceRuleInput? AirportServiceRule { get; init; }

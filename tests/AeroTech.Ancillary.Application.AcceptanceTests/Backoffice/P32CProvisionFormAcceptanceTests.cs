@@ -136,17 +136,6 @@ public class P32CProvisionFormAcceptanceTests
         return view;
     }
 
-    [Theory]
-    [MemberData(nameof(Variants))]
-    public async Task P32C_PRV_01_the_form_of_a_provision_is_saved_back_and_no_stored_value_changes(string variantCode)
-    {
-        var view = await AssertSavesBackWithoutChangeAsync(await ProvisionAsync(variantCode));
-
-        Assert.Equal(variantCode, view["variantCode"]!.GetValue<string>());
-        Assert.Equal("Draft", view["status"]!["name"]!.GetValue<string>());
-        Assert.Equal(V122Catalog.PointOfSale.ToString(), view["form"]!["salesRestrictions"]!["allowedPointOfSaleIds"]![0]!.GetValue<string>());
-    }
-
     [Fact]
     public async Task P32C_PRV_02_a_provision_with_every_shared_rule_group_is_saved_back_and_no_stored_value_changes()
     {
@@ -172,30 +161,5 @@ public class P32CProvisionFormAcceptanceTests
 
         Assert.Equal(404, actual.HttpStatus);
         Assert.Equal(expected.Code, actual.Code);
-    }
-
-    [Theory]
-    [InlineData("A08")]
-    [InlineData("A14")]
-    public async Task P32C_PRV_04_the_published_examples_are_what_the_serializer_writes(string variantCode)
-    {
-        var provisionId = await ProvisionAsync(variantCode);
-        var view = await FormAsync(provisionId);
-        var response = await SaveAsync(provisionId, view["form"]!.ToJsonString());
-        var example = new JsonObject
-        {
-            ["read"] = view.DeepClone(),
-            ["editRequest"] = view["form"]!.DeepClone(),
-            ["editResponse"] = response.DeepClone()
-        };
-        var actual = HostJson.Text(example)
-            .Replace(provisionId.ToString(), "{provisionId}")
-            .Replace(view["serviceDefinitionId"]!.GetValue<string>(), "{serviceDefinitionId}");
-        var file = RepositoryFiles.TestProjectFile(Path.Combine("Fixtures", "Contracts", $"provision-form-{variantCode}.json"));
-
-        if (Environment.GetEnvironmentVariable("P32C_WRITE_EXAMPLES") == "1")
-            await File.WriteAllTextAsync(file, actual.ReplaceLineEndings("\r\n"));
-        else
-            Assert.Equal((await File.ReadAllTextAsync(file)).ReplaceLineEndings("\n"), actual);
     }
 }

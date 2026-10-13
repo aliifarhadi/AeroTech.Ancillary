@@ -28,5 +28,8 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
         ProvisionSeatApplicationInput? SeatApplication,
         ProvisionPetRuleInput? PetRule,
         ProvisionAssistedTravelRuleInput? AssistedTravelRule,
-        ProvisionAirportServiceRuleInput? AirportServiceRule) : IRequest<ProvisionResult>, IDefineAncillaryProvisionCommand;
+        ProvisionAirportServiceRuleInput? AirportServiceRule) : IRequest<ProvisionResult>, IDefineAncillaryProvisionCommand
+    {
+        public AncillaryProfile? Profile => null;
+    }
 }

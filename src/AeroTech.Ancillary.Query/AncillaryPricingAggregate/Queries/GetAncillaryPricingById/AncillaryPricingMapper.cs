@@ -41,11 +41,27 @@ namespace AeroTech.Ancillary.Query.AncillaryPricingAggregate.Queries.GetAncillar
                 AncillaryProvisionId = pricing.AncillaryProvisionId.ToString(CultureInfo.InvariantCulture),
                 Version = pricing.Version,
                 PricingUnit = EnumValueDto.OfNullable(pricing.PricingUnit),
-                Currencies = string.Join(", ", CurrencyCodes(rates, currencies)),
+                Currencies = CurrencyCodes(rates, currencies).ToList(),
                 RateCount = rates.Count,
                 Status = EnumValueDto.Of(pricing.Status),
                 CreatedAt = pricing.CreatedAt,
                 ActivatedAt = pricing.ActivatedAt
+            };
+
+        public static ProvisionPricingRowDto ToProvisionPricingRow(BackofficePricingDto pricing)
+            => new()
+            {
+                Id = pricing.Id.ToString(CultureInfo.InvariantCulture),
+                AncillaryProvisionId = pricing.AncillaryProvisionId.ToString(CultureInfo.InvariantCulture),
+                Version = pricing.Version,
+                PricingUnit = pricing.PricingUnit,
+                Status = pricing.Status,
+                CreatedAt = pricing.CreatedAt,
+                ActivatedAt = pricing.ActivatedAt,
+                SuspendedAt = pricing.SuspendedAt,
+                RetiredAt = pricing.RetiredAt,
+                Currencies = pricing.Currencies,
+                Rates = pricing.Rates
             };
 
         private static BackofficePricingRateDto ToRate(

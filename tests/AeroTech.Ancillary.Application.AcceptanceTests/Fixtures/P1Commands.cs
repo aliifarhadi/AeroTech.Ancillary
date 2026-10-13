@@ -89,6 +89,10 @@ public sealed record TestChangeProvisionCommand(
 
     public ProvisionPetRuleInput? PetRule { get; init; }
 
+    public long? ServiceDefinitionId { get; init; }
+
+    public AncillaryProfile? Profile { get; init; }
+
     public ProvisionAssistedTravelRuleInput? AssistedTravelRule { get; init; }
 
     public ProvisionAirportServiceRuleInput? AirportServiceRule { get; init; }

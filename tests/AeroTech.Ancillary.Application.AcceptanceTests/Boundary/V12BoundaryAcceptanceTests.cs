@@ -267,7 +267,15 @@ public class V12BoundaryAcceptanceTests
             $"PUT Backoffice/AncillaryServiceDefinitions/{profile}/{{serviceDefinitionId:long}}",
             $"GET Backoffice/AncillaryServiceDefinitions/{profile}/{{serviceDefinitionId:long}}"
         });
-        string[] forms = ["GET Backoffice/AncillaryProvisions/{provisionId:long}/Form"];
+        string[] forms =
+        [
+            "GET Backoffice/AncillaryProvisions/{provisionId:long}/Form",
+            "GET Backoffice/AncillaryProvisions/{provisionId:long}/Pricings",
+            "GET Backoffice/AncillaryServiceDefinitions/Seat/{serviceDefinitionId:long}/ProvisionForm",
+            "POST Backoffice/AncillaryServiceDefinitions/Seat/{serviceDefinitionId:long}/Provisions",
+            "GET Backoffice/AncillaryServiceDefinitions/Seat/{serviceDefinitionId:long}/Provisions/{provisionId:long}/Form",
+            "PUT Backoffice/AncillaryServiceDefinitions/Seat/{serviceDefinitionId:long}/Provisions/{provisionId:long}"
+        ];
 
         string[] inventory =
         [
@@ -312,7 +320,7 @@ public class V12BoundaryAcceptanceTests
         Assert.Equal(
             preserved.Concat(added).Concat(typed).Concat(forms).Concat(inventory).OrderBy(route => route, StringComparer.Ordinal),
             routes.OrderBy(route => route, StringComparer.Ordinal));
-        Assert.Equal(113, routes.Count);
+        Assert.Equal(118, routes.Count);
         Assert.Equal(36, inventory.Length);
         Assert.DoesNotContain(routes, route => new[] { "Sell", "Reserve", "Release", "Expire" }.Any(term => route.Contains(term, StringComparison.Ordinal)));
         Assert.Equal(

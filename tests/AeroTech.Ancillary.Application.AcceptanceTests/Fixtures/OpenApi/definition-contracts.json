@@ -1400,6 +1400,254 @@
         }
       }
     },
+    "/Backoffice/v1/AncillaryServiceDefinitions/Seat/{serviceDefinitionId}/ProvisionForm": {
+      "get": {
+        "tags": [
+          "Backoffice Seat"
+        ],
+        "summary": "Read what a new seat provision of this product type may hold",
+        "description": "Returns the variant, the fixed application type, the rule sections a seat provision may carry and the limits the server enforces. It holds no provision and no default value. A definition of another profile answers 409 with code 16219.",
+        "parameters": [
+          {
+            "name": "serviceDefinitionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackofficeSeatProvisionCreateFormDtoApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackofficeSeatProvisionCreateFormDtoApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackofficeSeatProvisionCreateFormDtoApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Backoffice/v1/AncillaryServiceDefinitions/Seat/{serviceDefinitionId}/Provisions": {
+      "post": {
+        "tags": [
+          "Backoffice Seat"
+        ],
+        "summary": "Define a seat provision of this product type",
+        "description": "The product type comes from the route and the application type is Seat. The body holds only the seat fields; any other member is refused with 400. A definition of another profile answers 409 with code 16219.",
+        "parameters": [
+          {
+            "name": "serviceDefinitionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/SeatProvisionRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/SeatProvisionRequest"
+                  }
+                ]
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/SeatProvisionRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisionResultApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisionResultApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisionResultApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Backoffice/v1/AncillaryServiceDefinitions/Seat/{serviceDefinitionId}/Provisions/{provisionId}/Form": {
+      "get": {
+        "tags": [
+          "Backoffice Seat"
+        ],
+        "summary": "Read a seat provision for editing",
+        "description": "Returns the state of the provision and its form. The form has exactly the members of the PUT body and can be sent back as it was read. A provision of another product type answers 404 with code 16301.",
+        "parameters": [
+          {
+            "name": "serviceDefinitionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "provisionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackofficeSeatProvisionFormDtoApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackofficeSeatProvisionFormDtoApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackofficeSeatProvisionFormDtoApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Backoffice/v1/AncillaryServiceDefinitions/Seat/{serviceDefinitionId}/Provisions/{provisionId}": {
+      "put": {
+        "tags": [
+          "Backoffice Seat"
+        ],
+        "summary": "Change a draft seat provision",
+        "description": "Replaces the draft with the body, which holds only the seat fields. Only a draft is changed. A provision of another product type answers 404 with code 16301.",
+        "parameters": [
+          {
+            "name": "serviceDefinitionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "provisionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/SeatProvisionRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/SeatProvisionRequest"
+                  }
+                ]
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/SeatProvisionRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisionResultApiResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisionResultApiResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisionResultApiResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/Backoffice/v1/AncillaryServiceDefinitions/Upgrade": {
       "post": {
         "tags": [
@@ -1577,6 +1825,15 @@
     }
   },
   "schemas": {
+    "AirFareType": {
+      "enum": [
+        "Public",
+        "Private",
+        "Negotiated",
+        "Charter"
+      ],
+      "type": "string"
+    },
     "AirportServiceDirection": {
       "enum": [
         "Departure",
@@ -1756,6 +2013,14 @@
         "None",
         "EmdAssociated",
         "EmdStandalone"
+      ],
+      "type": "string"
+    },
+    "AncillaryQuantityUnit": {
+      "enum": [
+        "Each",
+        "Piece",
+        "Kilogram"
       ],
       "type": "string"
     },
@@ -1985,6 +2250,205 @@
           "A19": "#/components/schemas/UnaccompaniedMinorDefinitionForm"
         }
       }
+    },
+    "BackofficeSeatProvisionCreateFormDto": {
+      "required": [
+        "allowedRuleSections",
+        "applicationType",
+        "constraints",
+        "definitionStatus",
+        "pricingUnit",
+        "profile",
+        "serviceDateBasis",
+        "serviceDefinitionId",
+        "variantCode"
+      ],
+      "type": "object",
+      "properties": {
+        "serviceDefinitionId": {
+          "type": "string",
+          "format": "int64"
+        },
+        "variantCode": {
+          "type": "string"
+        },
+        "profile": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/EnumValueDto"
+            }
+          ]
+        },
+        "definitionStatus": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/EnumValueDto"
+            }
+          ]
+        },
+        "pricingUnit": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/EnumValueDto"
+            }
+          ]
+        },
+        "serviceDateBasis": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/EnumValueDto"
+            }
+          ]
+        },
+        "applicationType": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/EnumValueDto"
+            }
+          ]
+        },
+        "allowedRuleSections": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "constraints": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/SeatProvisionConstraintsDto"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "BackofficeSeatProvisionCreateFormDtoApiResult": {
+      "type": "object",
+      "properties": {
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/ApiErrorItem"
+          },
+          "nullable": true
+        },
+        "data": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/BackofficeSeatProvisionCreateFormDto"
+            }
+          ],
+          "nullable": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "BackofficeSeatProvisionFormDto": {
+      "required": [
+        "allowedRuleSections",
+        "constraints",
+        "createdAt",
+        "editable",
+        "form",
+        "id",
+        "profile",
+        "serviceDefinitionId",
+        "status",
+        "variantCode"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "serviceDefinitionId": {
+          "type": "string",
+          "format": "int64"
+        },
+        "status": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/EnumValueDto"
+            }
+          ]
+        },
+        "profile": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/EnumValueDto"
+            }
+          ]
+        },
+        "variantCode": {
+          "type": "string"
+        },
+        "editable": {
+          "type": "boolean"
+        },
+        "allowedRuleSections": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "constraints": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/SeatProvisionConstraintsDto"
+            }
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "activatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "nullable": true
+        },
+        "suspendedAt": {
+          "type": "string",
+          "format": "date-time",
+          "nullable": true
+        },
+        "retiredAt": {
+          "type": "string",
+          "format": "date-time",
+          "nullable": true
+        },
+        "form": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/SeatProvisionFormDto"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "BackofficeSeatProvisionFormDtoApiResult": {
+      "type": "object",
+      "properties": {
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/ApiErrorItem"
+          },
+          "nullable": true
+        },
+        "data": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/BackofficeSeatProvisionFormDto"
+            }
+          ],
+          "nullable": true
+        }
+      },
+      "additionalProperties": false
     },
     "BaggageAllowanceConcept": {
       "enum": [
@@ -5365,6 +5829,14 @@
       },
       "additionalProperties": false
     },
+    "CommercialDisposition": {
+      "enum": [
+        "Paid",
+        "Free",
+        "NotAvailable"
+      ],
+      "type": "string"
+    },
     "ConfirmationRequirement": {
       "enum": [
         "Immediate",
@@ -5676,6 +6148,21 @@
         }
       },
       "additionalProperties": false
+    },
+    "CustomerType": {
+      "enum": [
+        "Individual",
+        "TravelAgency",
+        "Organization"
+      ],
+      "type": "string"
+    },
+    "DayTimeRestrictionEffect": {
+      "enum": [
+        "Allow",
+        "Deny"
+      ],
+      "type": "string"
     },
     "DefineBassinetDefinition": {
       "required": [
@@ -9087,6 +9574,13 @@
       },
       "additionalProperties": false
     },
+    "FormOfRefund": {
+      "enum": [
+        "OriginalPayment",
+        "EVoucher"
+      ],
+      "type": "string"
+    },
     "FreeSpecialMealDefinitionForm": {
       "required": [
         "booking",
@@ -10457,6 +10951,127 @@
       },
       "additionalProperties": false
     },
+    "PassengerTypeCode": {
+      "enum": [
+        "ADT",
+        "ACC",
+        "AGT",
+        "ACP",
+        "ASF",
+        "ANN",
+        "GOV",
+        "GNN",
+        "GMZ",
+        "GIT",
+        "GEX",
+        "GDP",
+        "GCT",
+        "GCF",
+        "FFY",
+        "FDT",
+        "ENN",
+        "EMI",
+        "DOD",
+        "CTZ",
+        "CPN",
+        "CNV",
+        "CNN",
+        "CMX",
+        "CMA",
+        "CLG",
+        "CHD",
+        "BUD",
+        "BRV",
+        "BLD",
+        "BAG",
+        "ASB",
+        "GVT",
+        "GVM",
+        "GST",
+        "GTF",
+        "MED",
+        "MDP",
+        "MCR",
+        "MBT",
+        "LBR",
+        "JOB",
+        "ITX",
+        "INS",
+        "INN",
+        "INF",
+        "IIT",
+        "FNN",
+        "FTF",
+        "HNN",
+        "HCR",
+        "HOF",
+        "GVZ",
+        "ICP",
+        "MIS",
+        "MIR",
+        "MIL",
+        "MFM",
+        "OTS",
+        "NSB",
+        "NAT",
+        "MXS",
+        "MSG",
+        "MUS",
+        "MSB",
+        "MRE",
+        "MPA",
+        "MNN",
+        "MLZ",
+        "PFC",
+        "PFB",
+        "PFA",
+        "PNN",
+        "PCR",
+        "PFI",
+        "PFH",
+        "PFG",
+        "PFF",
+        "PFE",
+        "PFD",
+        "PFR",
+        "PFQ",
+        "PFP",
+        "PFO",
+        "PFN",
+        "PFM",
+        "PFL",
+        "PFK",
+        "PFJ",
+        "REF",
+        "REC",
+        "ZNN",
+        "YTH",
+        "YSB",
+        "YNN",
+        "YMZ",
+        "YCR",
+        "YCL",
+        "YCD",
+        "YCB",
+        "VNN",
+        "VFR",
+        "VAG",
+        "VAC",
+        "UNV",
+        "UNN",
+        "UAM",
+        "TUR",
+        "TNN",
+        "STU",
+        "SPS",
+        "SNN",
+        "SEA",
+        "SDB",
+        "STR",
+        "SRC"
+      ],
+      "type": "string"
+    },
     "PetAnimalFormDto": {
       "required": [
         "animalType"
@@ -11122,6 +11737,16 @@
       },
       "additionalProperties": false
     },
+    "PriceOrigin": {
+      "enum": [
+        "Filed",
+        "ExternalQuote",
+        "Free",
+        "NotAvailable",
+        "LegacyUnspecified"
+      ],
+      "type": "string"
+    },
     "PricingUnit": {
       "enum": [
         "PerPassenger",
@@ -11676,6 +12301,610 @@
       },
       "additionalProperties": false
     },
+    "ProvisionAdvancePurchaseInput": {
+      "required": [
+        "minimumPeriod",
+        "sameTimeAsTicketed",
+        "unit"
+      ],
+      "type": "object",
+      "properties": {
+        "minimumPeriod": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "unit": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/TimeUnit"
+            }
+          ]
+        },
+        "sameTimeAsTicketed": {
+          "type": "boolean"
+        },
+        "maximumPeriod": {
+          "type": "integer",
+          "format": "int32",
+          "nullable": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProvisionAgeBandInput": {
+      "required": [
+        "ageFromInclusive"
+      ],
+      "type": "object",
+      "properties": {
+        "ageFromInclusive": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "ageToExclusive": {
+          "type": "integer",
+          "format": "int32",
+          "nullable": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProvisionAvailabilityInput": {
+      "required": [
+        "mustCheckAvailability"
+      ],
+      "type": "object",
+      "properties": {
+        "mustCheckAvailability": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProvisionDatePeriodInput": {
+      "required": [
+        "endDate",
+        "startDate"
+      ],
+      "type": "object",
+      "properties": {
+        "startDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "endDate": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProvisionDayTimeApplicationInput": {
+      "type": "object",
+      "properties": {
+        "windows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/ProvisionDayTimeWindowInput"
+          },
+          "nullable": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProvisionDayTimeWindowInput": {
+      "required": [
+        "daysOfWeekMask",
+        "effect"
+      ],
+      "type": "object",
+      "properties": {
+        "daysOfWeekMask": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "startLocalTime": {
+          "type": "string",
+          "format": "time",
+          "nullable": true
+        },
+        "endLocalTime": {
+          "type": "string",
+          "format": "time",
+          "nullable": true
+        },
+        "effect": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/DayTimeRestrictionEffect"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProvisionFareApplicationInput": {
+      "type": "object",
+      "properties": {
+        "allowedAirFareIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          },
+          "nullable": true
+        },
+        "allowedAirFareTypes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/AirFareType"
+          },
+          "nullable": true
+        },
+        "allowedFareFamilyIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          },
+          "nullable": true
+        },
+        "allowedFareBasisCodes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "nullable": true
+        },
+        "allowedCabinClassIds": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nullable": true
+        },
+        "allowedRbdIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          },
+          "nullable": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProvisionFlightApplicationInput": {
+      "type": "object",
+      "properties": {
+        "allowedMarketingAirlineIds": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nullable": true
+        },
+        "allowedOperatingAirlineIds": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nullable": true
+        },
+        "allowedFlightNumbers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "nullable": true
+        },
+        "allowedFlightIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          },
+          "nullable": true
+        },
+        "allowedAircraftIds": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nullable": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProvisionFulfillmentInput": {
+      "required": [
+        "fulfillmentProviderKey"
+      ],
+      "type": "object",
+      "properties": {
+        "fulfillmentProviderKey": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProvisionGeographyInput": {
+      "type": "object",
+      "properties": {
+        "allowedOriginAirportIds": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nullable": true
+        },
+        "allowedDestinationAirportIds": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nullable": true
+        },
+        "allowedViaAirportIds": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nullable": true
+        },
+        "allowedRoutePairs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/ProvisionRoutePairInput"
+          },
+          "nullable": true
+        },
+        "serviceLocations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/ProvisionServiceLocationInput"
+          },
+          "nullable": true
+        },
+        "coverageCountryIds": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nullable": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProvisionOutcomeInput": {
+      "required": [
+        "bookingRequired",
+        "disposition",
+        "documentRequired"
+      ],
+      "type": "object",
+      "properties": {
+        "disposition": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/CommercialDisposition"
+            }
+          ]
+        },
+        "documentRequired": {
+          "type": "boolean"
+        },
+        "bookingRequired": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProvisionPassengerEligibilityInput": {
+      "type": "object",
+      "properties": {
+        "allowedPassengerTypes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/PassengerTypeCode"
+          },
+          "nullable": true
+        },
+        "allowedAgeBands": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/ProvisionAgeBandInput"
+          },
+          "nullable": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProvisionQuantityInput": {
+      "required": [
+        "maxQuantity",
+        "minQuantity",
+        "unit"
+      ],
+      "type": "object",
+      "properties": {
+        "unit": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/AncillaryQuantityUnit"
+            }
+          ]
+        },
+        "minQuantity": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "maxQuantity": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProvisionResult": {
+      "required": [
+        "coverageScope",
+        "disposition",
+        "id",
+        "priceOrigin",
+        "purchaseStage",
+        "sequence",
+        "serviceDefinitionId",
+        "status"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "serviceDefinitionId": {
+          "type": "string",
+          "format": "int64"
+        },
+        "sequence": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "coverageScope": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ServiceCoverageScope"
+            }
+          ]
+        },
+        "purchaseStage": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/PurchaseStage"
+            }
+          ]
+        },
+        "disposition": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/CommercialDisposition"
+            }
+          ]
+        },
+        "priceOrigin": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/PriceOrigin"
+            }
+          ]
+        },
+        "status": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionStatus"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProvisionResultApiResult": {
+      "type": "object",
+      "properties": {
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/ApiErrorItem"
+          },
+          "nullable": true
+        },
+        "data": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionResult"
+            }
+          ],
+          "nullable": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProvisionRoutePairInput": {
+      "required": [
+        "destinationAirportId",
+        "direction",
+        "originAirportId"
+      ],
+      "type": "object",
+      "properties": {
+        "originAirportId": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "destinationAirportId": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "direction": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/RoutePairDirection"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProvisionSalesRestrictionsInput": {
+      "type": "object",
+      "properties": {
+        "salesEffectiveFrom": {
+          "type": "string",
+          "format": "date-time",
+          "nullable": true
+        },
+        "salesDiscontinueAt": {
+          "type": "string",
+          "format": "date-time",
+          "nullable": true
+        },
+        "allowedPointOfSaleIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          },
+          "nullable": true
+        },
+        "allowedCustomerIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          },
+          "nullable": true
+        },
+        "allowedCustomerTypes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/CustomerType"
+          },
+          "nullable": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProvisionSeatApplicationInput": {
+      "type": "object",
+      "properties": {
+        "seatNumbers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "nullable": true
+        },
+        "seatCharacteristicCodes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "nullable": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProvisionServiceLocationInput": {
+      "required": [
+        "locationId",
+        "locationType"
+      ],
+      "type": "object",
+      "properties": {
+        "locationType": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ServiceLocationType"
+            }
+          ]
+        },
+        "locationId": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProvisionSettlementInput": {
+      "required": [
+        "commissionable",
+        "interlineSettlement",
+        "reissueRefund"
+      ],
+      "type": "object",
+      "properties": {
+        "reissueRefund": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ReissueRefundPolicy"
+            }
+          ]
+        },
+        "formOfRefund": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/FormOfRefund"
+            }
+          ],
+          "nullable": true
+        },
+        "commissionable": {
+          "type": "boolean"
+        },
+        "interlineSettlement": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProvisionStatus": {
+      "enum": [
+        "Draft",
+        "Active",
+        "Suspended",
+        "Retired"
+      ],
+      "type": "string"
+    },
+    "ProvisionTravelDateInput": {
+      "type": "object",
+      "properties": {
+        "permittedPeriods": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/ProvisionDatePeriodInput"
+          },
+          "nullable": true
+        },
+        "blackoutPeriods": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/ProvisionDatePeriodInput"
+          },
+          "nullable": true
+        }
+      },
+      "additionalProperties": false
+    },
     "PurchaseStage": {
       "enum": [
         "PreOrder",
@@ -11685,6 +12914,365 @@
         "OnBoard"
       ],
       "type": "string"
+    },
+    "ReissueRefundPolicy": {
+      "enum": [
+        "Refundable",
+        "NonRefundable",
+        "NonRefundableReusable"
+      ],
+      "type": "string"
+    },
+    "RoutePairDirection": {
+      "enum": [
+        "Directional",
+        "BothDirections"
+      ],
+      "type": "string"
+    },
+    "SeatProvisionConstraintsDto": {
+      "required": [
+        "publishedPointOfSaleCount",
+        "quantityUnit",
+        "requiresPreferredCharacteristic",
+        "requiresSeatNumberOrCharacteristic",
+        "seatNumberFilterRequiresAircraft"
+      ],
+      "type": "object",
+      "properties": {
+        "quantityUnit": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/EnumValueDto"
+            }
+          ]
+        },
+        "maxQuantity": {
+          "type": "integer",
+          "format": "int32",
+          "nullable": true
+        },
+        "requiresSeatNumberOrCharacteristic": {
+          "type": "boolean"
+        },
+        "seatNumberFilterRequiresAircraft": {
+          "type": "boolean"
+        },
+        "publishedPointOfSaleCount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "requiresPreferredCharacteristic": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SeatProvisionFormDto": {
+      "required": [
+        "availability",
+        "coverageScope",
+        "fulfillment",
+        "outcome",
+        "priceOrigin",
+        "purchaseStage",
+        "quantity",
+        "sequence",
+        "settlement"
+      ],
+      "type": "object",
+      "properties": {
+        "sequence": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "coverageScope": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ServiceCoverageScope"
+            }
+          ]
+        },
+        "purchaseStage": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/PurchaseStage"
+            }
+          ]
+        },
+        "priceOrigin": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/PriceOrigin"
+            }
+          ]
+        },
+        "quoteProviderKey": {
+          "type": "string",
+          "nullable": true
+        },
+        "quantity": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionQuantityInput"
+            }
+          ]
+        },
+        "outcome": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionOutcomeInput"
+            }
+          ]
+        },
+        "settlement": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionSettlementInput"
+            }
+          ]
+        },
+        "availability": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionAvailabilityInput"
+            }
+          ]
+        },
+        "fulfillment": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionFulfillmentInput"
+            }
+          ]
+        },
+        "passengerEligibility": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionPassengerEligibilityInput"
+            }
+          ],
+          "nullable": true
+        },
+        "salesRestrictions": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionSalesRestrictionsInput"
+            }
+          ],
+          "nullable": true
+        },
+        "geography": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionGeographyInput"
+            }
+          ],
+          "nullable": true
+        },
+        "flightApplication": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionFlightApplicationInput"
+            }
+          ],
+          "nullable": true
+        },
+        "fareApplication": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionFareApplicationInput"
+            }
+          ],
+          "nullable": true
+        },
+        "travelDate": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionTravelDateInput"
+            }
+          ],
+          "nullable": true
+        },
+        "dayTimeApplication": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionDayTimeApplicationInput"
+            }
+          ],
+          "nullable": true
+        },
+        "advancePurchase": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionAdvancePurchaseInput"
+            }
+          ],
+          "nullable": true
+        },
+        "seatApplication": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionSeatApplicationInput"
+            }
+          ],
+          "nullable": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "SeatProvisionRequest": {
+      "required": [
+        "availability",
+        "coverageScope",
+        "fulfillment",
+        "outcome",
+        "priceOrigin",
+        "purchaseStage",
+        "quantity",
+        "sequence",
+        "settlement"
+      ],
+      "type": "object",
+      "properties": {
+        "sequence": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "coverageScope": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ServiceCoverageScope"
+            }
+          ]
+        },
+        "purchaseStage": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/PurchaseStage"
+            }
+          ]
+        },
+        "priceOrigin": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/PriceOrigin"
+            }
+          ]
+        },
+        "quoteProviderKey": {
+          "type": "string",
+          "nullable": true
+        },
+        "quantity": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionQuantityInput"
+            }
+          ]
+        },
+        "outcome": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionOutcomeInput"
+            }
+          ]
+        },
+        "settlement": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionSettlementInput"
+            }
+          ]
+        },
+        "availability": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionAvailabilityInput"
+            }
+          ]
+        },
+        "fulfillment": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionFulfillmentInput"
+            }
+          ]
+        },
+        "passengerEligibility": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionPassengerEligibilityInput"
+            }
+          ],
+          "nullable": true
+        },
+        "salesRestrictions": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionSalesRestrictionsInput"
+            }
+          ],
+          "nullable": true
+        },
+        "geography": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionGeographyInput"
+            }
+          ],
+          "nullable": true
+        },
+        "flightApplication": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionFlightApplicationInput"
+            }
+          ],
+          "nullable": true
+        },
+        "fareApplication": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionFareApplicationInput"
+            }
+          ],
+          "nullable": true
+        },
+        "travelDate": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionTravelDateInput"
+            }
+          ],
+          "nullable": true
+        },
+        "dayTimeApplication": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionDayTimeApplicationInput"
+            }
+          ],
+          "nullable": true
+        },
+        "advancePurchase": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionAdvancePurchaseInput"
+            }
+          ],
+          "nullable": true
+        },
+        "seatApplication": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ProvisionSeatApplicationInput"
+            }
+          ],
+          "nullable": true
+        }
+      },
+      "additionalProperties": false
     },
     "SeatSpecificationRequestChangeServiceDefinitionRequest": {
       "oneOf": [
@@ -11850,6 +13438,15 @@
           "A09": "#/components/schemas/ExtraSeatDefinitionForm"
         }
       }
+    },
+    "ServiceCoverageScope": {
+      "enum": [
+        "Sector",
+        "Portion",
+        "Journey",
+        "Order"
+      ],
+      "type": "string"
     },
     "ServiceDateBasis": {
       "enum": [
@@ -12076,6 +13673,14 @@
         "Active",
         "Suspended",
         "Retired"
+      ],
+      "type": "string"
+    },
+    "ServiceLocationType": {
+      "enum": [
+        "Airport",
+        "City",
+        "Country"
       ],
       "type": "string"
     },
@@ -12380,6 +13985,17 @@
         }
       },
       "additionalProperties": false
+    },
+    "TimeUnit": {
+      "enum": [
+        "Minutes",
+        "Hours",
+        "Days",
+        "Weeks",
+        "Months",
+        "Years"
+      ],
+      "type": "string"
     },
     "UnaccompaniedMinorDefinitionForm": {
       "required": [

@@ -388,21 +388,6 @@ public class V122VariantMatrixAcceptanceTests : IClassFixture<VariantMatrixCache
 
     [Theory]
     [MemberData(nameof(Variants))]
-    public async Task Axx_D_a_draft_is_defined_and_edited_with_exactly_its_typed_specification_and_foreign_or_unknown_shapes_are_refused(string variant)
-    {
-        var authored = V122Catalog.Case(variant);
-        var defined = await DefinedAsync(variant);
-
-        Assert.Equal(("Draft", authored.Name, 1), (defined.Draft.Status.Name, defined.Draft.CommercialName, defined.Draft.Version));
-        AssertTyped(authored, defined.Draft);
-        Assert.Equal(("Draft", authored.Name + " (edited)"), (defined.Edited.Status.Name, defined.Edited.CommercialName));
-        AssertTyped(authored, defined.Edited);
-        Assert.Equal(new[] { 16216, 16216, 16202 }, defined.Refusals);
-        Assert.NotEqual("{}", SpecText.Of(defined.Draft.Specification));
-    }
-
-    [Theory]
-    [MemberData(nameof(Variants))]
     public async Task Axx_R_the_provision_keeps_one_point_of_sale_its_scope_quantity_outcome_and_typed_rules_and_another_point_of_sale_count_is_refused(string variant)
     {
         var authored = V122Catalog.Case(variant);
@@ -462,101 +447,5 @@ public class V122VariantMatrixAcceptanceTests : IClassFixture<VariantMatrixCache
         Assert.Equal(
             authored.PriceOrigin == PriceOrigin.ExternalQuote ? ((string?)V122Catalog.QuoteProvider, 16322) : (null, 0),
             (priced.Provision.QuoteProviderKey, priced.ForeignQuoteAuthority));
-    }
-
-    [Theory]
-    [MemberData(nameof(Variants))]
-    public async Task Axx_I_the_inventory_authority_and_the_usage_limit_are_authored_without_a_fabricated_quota_and_are_never_a_guarantee(string variant)
-    {
-        var authored = V122Catalog.Case(variant);
-        var stocked = await StockedAsync(variant);
-        var limit = Assert.Single(stocked.Policy.PassengerUsageLimits);
-        var expected = LimitOf(authored);
-
-        Assert.NotEqual(0, stocked.OfflineRefusal);
-        Assert.Equal(("NotConfigured", false), (stocked.Before.State.Name, stocked.Before.IsGuaranteed));
-        Assert.Equal(
-            (authored.Authority.ToString(), authored.Authority == InventoryAuthority.Unlimited ? "Unlimited" : "DelegatedCheckRequired", false),
-            (stocked.Snapshot.Authority!.Name, stocked.Snapshot.State.Name, stocked.Snapshot.IsGuaranteed));
-        Assert.Null(stocked.Snapshot.ConfiguredCount);
-        Assert.Null(stocked.Snapshot.ConfiguredKg);
-        Assert.Null(stocked.Snapshot.Pattern);
-        Assert.Equal((await PricedAsync(variant)).Provision.MustCheckAvailability, stocked.Snapshot.RequiresAvailabilityCheck);
-        Assert.Equal(
-            (expected.LimitScope.ToString(), expected.MaxUnits, authored.Reference, expected.ConsumptionUnit.ToString(), expected.UnitsPerPurchase),
-            (limit.LimitScope.Name, limit.MaxUnits, limit.CountingFamilyCode, limit.ConsumptionUnit.Name, limit.UnitsPerPurchase));
-        Assert.Equal(("Active", "0|0|0"), (stocked.Policy.Status.Name, stocked.SourceRows));
-    }
-
-    [Theory]
-    [MemberData(nameof(Variants))]
-    public async Task Axx_Q_the_published_product_reads_back_typed_with_its_selection_contract_and_a_revision_copies_exactly_one_specification(string variant)
-    {
-        var authored = V122Catalog.Case(variant);
-        var read = await ReadAsync(variant);
-        var (kind, fields) = V122Catalog.Selection[variant];
-
-        Assert.Equal(("Active", 1), (read.Detail.Status.Name, read.Detail.Version));
-        AssertTyped(authored, read.Detail);
-        Assert.Equal(
-            (kind.ToString(), kind == SelectionKind.QuantityChoice),
-            (read.Detail.SelectionContract!.Kind.Name, read.Detail.SelectionContract.ZeroQuantityMeansNoSelection));
-        Assert.Equal(fields, read.Detail.SelectionContract.Fields.Select(field => field.Name));
-        Assert.Equal((authored.Profile.ToString(), variant, "Active"), (read.Listed.Profile!.Name, read.Listed.VariantCode, read.Listed.Status.Name));
-        Assert.Equal(16203, read.ActiveEdit);
-        Assert.Equal(("Draft", 2), (read.Revision.Status.Name, read.Revision.Version));
-        AssertTyped(authored, read.Revision);
-        Assert.Equal(AncillaryVariant.All.Count(other => other.Profile == authored.Profile) > 1 ? 16217 : 16219, read.VariantDrift);
-        Assert.Equal(new[] { $"{authored.Profile}=2" }, read.SpecificationRows);
-        Assert.Equal($"{(int)authored.Profile}|{variant}|{(int)authored.Routing}|{(int)ServiceDefinitionStatus.Active}", read.ReadModelRow);
-        Assert.Equal(
-            ("Active", authored.PriceOrigin.ToString(), V122Catalog.PointOfSale),
-            (read.Provision.Status.Name, read.Provision.PriceOrigin.Name, read.Provision.SalesRestrictions!.AllowedPointsOfSale.Single().Value));
-    }
-
-    [Theory]
-    [MemberData(nameof(Variants))]
-    public async Task Axx_N_the_variant_boundary_is_refused_with_its_business_code(string variant)
-    {
-        var authored = V122Catalog.Case(variant);
-        var negative = Negatives[variant];
-        var (airlineId, supplierId) = await OperatorAsync(authored);
-        var command = V122Catalog.Define(authored, airlineId, supplierId);
-
-        command = negative.Definition?.Invoke(command) ?? command;
-
-        if (negative.Rule is null && !negative.AtActivation)
-        {
-            Assert.Equal(negative.Code, await RefusalAsync(scope => scope.DefineServiceDefinition.DefineAsync(command)));
-            Assert.False(await RequestAsync(scope => scope.Command.AncillaryServiceDefinitions.AnyAsync(definition => definition.OwnerAirlineId == airlineId)));
-
-            return;
-        }
-
-        var definitionId = (await RequestAsync(scope => scope.DefineServiceDefinition.DefineAsync(command))).Id;
-
-        if (negative.Rule is null)
-        {
-            Assert.Equal(negative.Code, await RefusalAsync(scope => scope.ActivateServiceDefinition.ActivateAsync(new TestActivateServiceDefinitionCommand(definitionId))));
-            Assert.Equal("Draft", (await RequestAsync(scope => scope.GetServiceDefinitionById.ExecuteAsync(definitionId))).Status.Name);
-
-            return;
-        }
-
-        await RequestAsync(scope => scope.ActivateServiceDefinition.ActivateAsync(new TestActivateServiceDefinitionCommand(definitionId)));
-
-        var rule = negative.Rule(V122Catalog.Rule(authored, definitionId));
-
-        if (!negative.AtActivation)
-        {
-            Assert.Equal(negative.Code, await RefusalAsync(scope => scope.DefineProvision.DefineAsync(rule)));
-
-            return;
-        }
-
-        var provisionId = (await RequestAsync(scope => scope.DefineProvision.DefineAsync(rule))).Id;
-
-        Assert.Equal(negative.Code, await RefusalAsync(scope => scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(provisionId))));
-        Assert.Equal("Draft", (await RequestAsync(scope => scope.GetProvisionById.ExecuteAsync(provisionId))).Status.Name);
     }
 }

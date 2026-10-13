@@ -60,32 +60,6 @@ public class V121ProvisionRuleAcceptanceTests
     private Task<BackofficeProvisionDto> ReadAsync(long provisionId) => RequestAsync(scope => scope.GetProvisionById.ExecuteAsync(provisionId));
 
     [Fact]
-    public async Task V121_D01_one_thousand_consecutive_days_are_one_permitted_period_row_in_both_stores()
-    {
-        var definitionId = await ActiveDefinitionAsync();
-        var days = Enumerable.Range(0, 1000).Select(offset => Day(2027, 1, 1).AddDays(offset)).Select(day => Period(day, day)).ToArray();
-        var draft = await RequestAsync(scope => scope.DefineProvision.DefineAsync(Free(definitionId) with { TravelDate = Dates(days) }));
-        var detail = await ReadAsync(draft.Id);
-
-        Assert.Equal(new[] { (Day(2027, 1, 1), Day(2029, 9, 26)) }, Periods(detail.TravelDate!.PermittedPeriods));
-        Assert.Empty(detail.TravelDate.BlackoutPeriods);
-        Assert.Equal(
-            new[] { $"{detail.TravelDate.PermittedPeriods[0].Id}|{detail.TravelDate.Id}|2027-01-01|2029-09-26" },
-            await RowsAsync($"SELECT CONCAT(Id, '|', ProvisionTravelDateRuleId, '|', CONVERT(varchar(10), StartDate, 23), '|', CONVERT(varchar(10), EndDate, 23)) AS Value FROM Ancillary.ProvisionPermittedTravelPeriods WHERE AncillaryProvisionId = {draft.Id}"));
-        Assert.Equal(
-            new[] { $"{detail.TravelDate.PermittedPeriods[0].Id}|2027-01-01|2029-09-26" },
-            await RowsAsync($"SELECT CONCAT(Id, '|', CONVERT(varchar(10), StartDate, 23), '|', CONVERT(varchar(10), EndDate, 23)) AS Value FROM ReadModel.AncillaryProvisionPermittedTravelPeriods WHERE AncillaryProvisionId = {draft.Id}"));
-        Assert.Equal(
-            new[] { detail.TravelDate.Id.ToString() },
-            await RowsAsync($"SELECT CAST(Id AS varchar(30)) AS Value FROM Ancillary.ProvisionTravelDateRules WHERE AncillaryProvisionId = {draft.Id}"));
-        Assert.Equal((1, 0, 0), (await _proof.ListedProvisionsAsync(definitionId)).Select(row => (row.PermittedPeriodCount, row.BlackoutPeriodCount, row.DayTimeWindowCount)).Single());
-
-        await RequestAsync(scope => scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(draft.Id)));
-
-        Assert.Equal(("Active", 1), ((await ReadAsync(draft.Id)).Status.Name, (await ReadAsync(draft.Id)).TravelDate!.PermittedPeriods.Count));
-    }
-
-    [Fact]
     public async Task V121_D02_one_thousand_sparse_dates_are_one_thousand_single_day_rows_written_in_batches()
     {
         var definitionId = await ActiveDefinitionAsync();

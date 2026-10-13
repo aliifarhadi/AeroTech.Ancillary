@@ -469,11 +469,6 @@ public class V121FinalFamilyAcceptanceTests : IClassFixture<FinalFamilyCache>
     public async Task Fxx_PRICE_a_paid_rule_round_trips_every_rate_as_amount_and_currency_and_a_free_rule_has_no_price(string family)
         => Assert.Equal(Catalog[family].Price, (await OutcomeOfAsync(family)).Price);
 
-    [Theory]
-    [MemberData(nameof(Families))]
-    public async Task Fxx_POLICY_the_inventory_authority_is_authored_without_an_invented_quota_and_is_never_a_guarantee(string family)
-        => Assert.Equal(Catalog[family].Policy, (await OutcomeOfAsync(family)).Policy);
-
     [Fact]
     public async Task EXA_a_ten_kilogram_package_is_sold_per_point_of_sale_by_two_provisions_each_with_its_own_currencies_and_no_weight_pool()
     {

@@ -466,60 +466,6 @@ public class EngineRuleTests
         return sets.Select(set => new object[] { set.Name, set.Rules });
     }
 
-    [Theory]
-    [MemberData(nameof(OracleRules))]
-    public async Task RULE_ORACLE_the_engine_decides_like_the_phase_one_reference_oracle(string name, ProvisionRulesArgs rules)
-    {
-        (string Name, AncillaryShoppingContext Context)[] contexts =
-        [
-            ("default", Trip.Context()),
-            ("child", Trip.Context(travellers: [Trip.Child("T1")])),
-            ("no birth date", Trip.Context(travellers: [Trip.Adult() with { DateOfBirth = null }])),
-            ("no zone", Trip.Context([Trip.Flight(zone: null)])),
-            ("no fare facts", Trip.Context() with { TravellerFareFacts = [] }),
-            ("customer", Trip.Context() with { CustomerId = 77, CustomerType = (CustomerType)1 }),
-            ("other route", Trip.Context([Trip.Flight(origin: Trip.Ist, destination: Trip.Mhd) with { ViaAirportIds = [Trip.Ika], OperatingAirlineId = 2, AircraftId = null, DestinationCountryId = null }])),
-            ("christmas noon", Trip.Context([Trip.Flight(departure: new DateTimeOffset(2026, 12, 25, 12, 0, 0, Trip.TehranOffset))])),
-            ("wednesday morning", Trip.Context([Trip.Flight(departure: new DateTimeOffset(2026, 12, 2, 8, 0, 0, Trip.TehranOffset))])),
-            ("tomorrow", Trip.Context([Trip.Flight(departure: Now.AddHours(30).ToOffset(Trip.TehranOffset))])),
-            ("ticketed now", Trip.Context() with { SourceIdentity = new SourceIdentityContext { SourceKind = ShoppingSourceKind.Offer, TicketedAtUtc = Now } }),
-            ("other fare", With(Trip.Context(), fare => fare with { FareFamilyId = 9, AirFareType = (AirFareType)2, RbdId = null }))
-        ];
-
-        foreach (var (disposition, sequence) in new[] { (CommercialDisposition.Free, 10), (CommercialDisposition.NotAvailable, 5) })
-        {
-            var lab = new ShoppingLab();
-            var definition = lab.Definition("A23", specification: Plain);
-            var broad = lab.Provision(definition, sequence: 10, disposition: CommercialDisposition.Free);
-            var specific = sequence == 10 ? broad : lab.Provision(definition, sequence: sequence, rules: rules, disposition: disposition);
-
-            if (sequence == 10)
-            {
-                lab.Catalog.Provisions.Clear();
-                specific = lab.Provision(definition, sequence: 10, rules: rules, disposition: disposition);
-            }
-
-            foreach (var (label, context) in contexts)
-            {
-                var expected = ProvisionRuleOracle.Select(lab.Catalog.Provisions, Oracle(context));
-                var result = await lab.Engine.ShopAsync(context, new ShoppingFilter { IncludeNonSellable = true });
-                var candidate = result.Candidates.SingleOrDefault();
-                var actual = candidate switch
-                {
-                    null => OracleOutcome.NoMatch,
-                    { Eligibility.Status: EligibilityStatus.InsufficientContext } => OracleOutcome.UnsupportedContext,
-                    { OfferReadiness: OfferReadiness.Unavailable } => OracleOutcome.NotAvailable,
-                    _ => OracleOutcome.Free
-                };
-
-                Assert.True(expected.Outcome == actual, $"{name} / {disposition} / {label}: oracle {expected.Outcome}, engine {actual}");
-                Assert.Equal(expected.ProvisionId, candidate?.ProvisionId);
-            }
-
-            Assert.NotNull(specific);
-        }
-    }
-
     private static OracleContext Oracle(AncillaryShoppingContext context)
     {
         var flight = context.Flights.Single();

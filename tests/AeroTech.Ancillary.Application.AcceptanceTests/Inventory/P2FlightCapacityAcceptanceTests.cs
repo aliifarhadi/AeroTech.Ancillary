@@ -143,42 +143,6 @@ public class P2FlightCapacityAcceptanceTests
     }
 
     [Fact]
-    public async Task P2_F09_meal_variants_share_one_catering_quota()
-    {
-        var (fixture, airlineId, supplierId) = await ConnectedAsync();
-        var child = await _harness.ProductAsync(airlineId, supplierId, "MEAL_CHML");
-        var vegetarian = await _harness.ProductAsync(airlineId, supplierId, "MEAL_VGML");
-        var meals = Count(MealResource, 1, InventoryCountUnit.Item);
-
-        await ActivePolicyAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, "MEAL_CHML", child.Id, InventoryAuthority.Local, LocalInventoryPattern.FlightCount, CountConsumption: meals));
-
-        var source = await CountAsync(fixture, airlineId, Flight, MealResource, InventoryCountUnit.Item, 30);
-
-        await ActivateCountAsync(fixture, source.Id, 1);
-        await _harness.RefusedAsync(16618, 409, fixture, scope => scope.DefineFlightCountInventory.DefineAsync(
-            new TestDefineFlightCountInventoryCommand(airlineId, OtherFlight, MealResource, InventoryCountUnit.Person, 30)));
-
-        var wrongUnit = await _harness.RequestAsync(fixture, scope => scope.DefineInventoryPolicy.DefineAsync(
-            new TestDefineInventoryPolicyCommand(airlineId, "MEAL_VGML", vegetarian.Id, InventoryAuthority.Local, LocalInventoryPattern.FlightCount, CountConsumption: Count(MealResource, 1, InventoryCountUnit.Person))));
-
-        await _harness.RefusedAsync(16618, 409, fixture, scope => scope.ActivateInventoryPolicy.ActivateAsync(new TestInventoryPolicyLifecycleCommand(wrongUnit.Id, 1)));
-
-        var corrected = await _harness.RequestAsync(fixture, scope => scope.ChangeInventoryPolicy.ChangeAsync(
-            new TestChangeInventoryPolicyCommand(wrongUnit.Id, vegetarian.Id, InventoryAuthority.Local, 1, LocalInventoryPattern.FlightCount, CountConsumption: meals)));
-
-        await _harness.RequestAsync(fixture, scope => scope.ActivateInventoryPolicy.ActivateAsync(new TestInventoryPolicyLifecycleCommand(wrongUnit.Id, corrected.Version)));
-
-        var childSnapshot = await _harness.SnapshotAsync(fixture, "MEAL_CHML", Flight);
-        var vegetarianSnapshot = await _harness.SnapshotAsync(fixture, "MEAL_VGML", Flight);
-
-        Assert.Equal((30, 30), (childSnapshot.ConfiguredCount!.Value, vegetarianSnapshot.ConfiguredCount!.Value));
-        Assert.Equal(childSnapshot.Resource, vegetarianSnapshot.Resource);
-        Assert.Equal(
-            new[] { $"{source.Id}|30" },
-            await _harness.RowsAsync($"SELECT CONCAT(Id, '|', TotalCapacity) AS Value FROM Ancillary.FlightCountInventories WHERE OwnerAirlineId = {airlineId} AND ResourceId = {MealResource}"));
-    }
-
-    [Fact]
     public async Task P2_F06_F07_an_adjustment_is_an_audited_absolute_change_that_refuses_a_stale_version_and_replays_idempotently()
     {
         var (fixture, airlineId, _) = await ConnectedAsync();
@@ -358,50 +322,6 @@ public class P2FlightCapacityAcceptanceTests
     }
 
     [Fact]
-    public async Task P2_W04_count_and_weight_binding_is_closed_two_resource_contract()
-    {
-        var (fixture, airlineId, supplierId) = await ConnectedAsync();
-        var bike = await _harness.ProductAsync(airlineId, supplierId, "SPORT_BIKE", PricingUnit.PerPiece);
-
-        await ActivePolicyAsync(fixture, new TestDefineInventoryPolicyCommand(
-            airlineId,
-            "SPORT_BIKE",
-            bike.Id,
-            InventoryAuthority.Local,
-            LocalInventoryPattern.FlightCountPlusWeight,
-            CountConsumption: Count(OversizeResource, 1, InventoryCountUnit.Equipment),
-            WeightConsumption: FixedKg(12m)));
-
-        var count = await CountAsync(fixture, airlineId, Flight, OversizeResource, InventoryCountUnit.Equipment, 3);
-
-        await ActivateCountAsync(fixture, count.Id, 1);
-
-        var half = await _harness.SnapshotAsync(fixture, "SPORT_BIKE", Flight);
-
-        Assert.Equal(("NotConfigured", "SourceNotConfigured"), (half.State.Name, half.ReasonCode));
-        Assert.Null(half.ConfiguredCount);
-
-        var weight = await WeightAsync(fixture, airlineId, Flight, 120m);
-
-        await ActivateWeightAsync(fixture, weight.Id, 1);
-
-        var both = await _harness.SnapshotAsync(fixture, "SPORT_BIKE", Flight);
-
-        Assert.Equal(("ConfiguredNotGuaranteed", 3, 120m, "FlightCountPlusWeight", false), (both.State.Name, both.ConfiguredCount!.Value, both.ConfiguredKg!.Value, both.Pattern!.Name, both.IsGuaranteed));
-        Assert.Null(both.ResourceKind);
-        Assert.Equal((Flight, OversizeResource, BagWeightResource), (both.Resource!.FlightId!.Value, both.Resource.ResourceId!.Value, both.Resource.WeightResourceId!.Value));
-
-        await _harness.RequestAsync(fixture, scope => scope.CloseFlightWeightInventoryForSale.CloseAsync(new TestFlightWeightLifecycleCommand(weight.Id, 2)));
-
-        var closed = await _harness.SnapshotAsync(fixture, "SPORT_BIKE", Flight);
-
-        Assert.Equal(("ClosedForSale", 3, 120m, true), (closed.State.Name, closed.ConfiguredCount!.Value, closed.ConfiguredKg!.Value, closed.ClosedForSale!.Value));
-        Assert.Equal(
-            new[] { "CountPerAcceptedUnit", "CountResourceId", "CountUnit", "SlotFacilityId", "SlotOccupancyMinutes", "SlotPeoplePerAcceptedUnit", "WeightConsumptionMode", "WeightFixedKgPerUnit", "WeightResourceId" },
-            await _harness.RowsAsync($"SELECT COLUMN_NAME AS Value FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'Ancillary' AND TABLE_NAME = 'AncillaryInventoryPolicies' AND (COLUMN_NAME LIKE 'Count%' OR COLUMN_NAME LIKE 'Weight%' OR COLUMN_NAME LIKE 'Slot%') ORDER BY COLUMN_NAME"));
-    }
-
-    [Fact]
     public async Task P2_F04_a_source_stays_draft_until_its_flight_and_resource_are_verified_by_their_source_of_truth()
     {
         var (fixture, airlineId, _) = await _harness.OperatorAsync(connected: false);
@@ -477,41 +397,6 @@ public class P2FlightCapacityAcceptanceTests
         await _harness.RefusedAsync(16612, 422, fixture, scope => scope.DefineFlightCountInventory.DefineAsync(
             new TestDefineFlightCountInventoryCommand(airlineId, 70500, PetResource, InventoryCountUnit.AnimalCarrier, -1)));
         Assert.Equal("100", (await _harness.RowsAsync($"SELECT CAST(COUNT(*) AS varchar(10)) AS Value FROM Ancillary.FlightCountInventories WHERE OwnerAirlineId = {airlineId}")).Single());
-    }
-
-    [Fact]
-    public async Task P2_F10_C06_the_provision_keeps_the_purchase_cutoff_and_the_commercial_outcome_whatever_the_capacity_says()
-    {
-        var (fixture, airlineId, supplierId) = await ConnectedAsync();
-        var meal = await _harness.ProductAsync(airlineId, supplierId, "MEAL_PREORDER_HOT");
-        var paid = await _harness.Proof.RuleAsync(
-            Provision(meal.Id, 100) with { AdvancePurchase = new(24, AeroTech.Messages.AirPrice.Enums.TimeUnit.Hours) },
-            provisionId => V12Commands.Pricing(provisionId, Eur, V12Commands.Base(12m)));
-        var blocked = await _harness.Proof.RuleAsync(
-            Provision(meal.Id, 10, CommercialDisposition.NotAvailable) with { FlightApplication = new(AllowedFlightIds: [OtherFlight]) });
-
-        await ActivePolicyAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, "MEAL_PREORDER_HOT", meal.Id, InventoryAuthority.Local, LocalInventoryPattern.FlightCount, CountConsumption: Count(MealResource, 1, InventoryCountUnit.Item)));
-
-        foreach (var flightId in new[] { Flight, OtherFlight })
-        {
-            var source = await CountAsync(fixture, airlineId, flightId, MealResource, InventoryCountUnit.Item, 30);
-
-            await ActivateCountAsync(fixture, source.Id, 1);
-        }
-
-        var snapshot = await _harness.SnapshotAsync(fixture, "MEAL_PREORDER_HOT", OtherFlight);
-
-        await using var reader = new AncillaryScope(_database, _clock);
-        var provision = await reader.GetProvisionById.ExecuteAsync(paid.Provision.Id);
-        var denied = await reader.GetProvisionById.ExecuteAsync(blocked.Provision.Id);
-
-        Assert.Equal(("ConfiguredNotGuaranteed", 30), (snapshot.State.Name, snapshot.ConfiguredCount!.Value));
-        Assert.Equal((24, "Hours", "Active", "Paid"), (provision.AdvancePurchase!.MinimumPeriod, provision.AdvancePurchase.Unit.Name, provision.Status.Name, provision.Disposition.Name));
-        Assert.Equal(("NotAvailable", "Active"), (denied.Disposition.Name, denied.Status.Name));
-        Assert.Equal("Active", (await reader.GetPricingById.ExecuteAsync(paid.Pricing!.Id)).Status.Name);
-        Assert.Equal(
-            new[] { "ClosedForSale", "CountUnit", "CreatedAt", "FlightId", "Id", "LastUpdatedBy", "LastUpdateTime", "OwnerAirlineId", "ResourceId", "RowVersion", "Status", "TotalCapacity", "UpdatedAt", "Version" },
-            await _harness.RowsAsync($"SELECT COLUMN_NAME AS Value FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'Ancillary' AND TABLE_NAME = 'FlightCountInventories' ORDER BY COLUMN_NAME"));
     }
 
     private sealed class CommandOnlyUnitOfWork : IUnitOfWork

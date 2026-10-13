@@ -65,6 +65,6 @@ public static class FlatPricingView
 
     extension(PricingPaginatedRowDto row)
     {
-        public string Currency => row.Currencies;
+        public string Currency => row.Currencies.Single();
     }
 }

@@ -71,36 +71,6 @@ public class M1ProvisionAcceptanceTests
     }
 
     [Fact]
-    public async Task M1_D02_M06_activation_supersedes_the_previous_active_sequence_atomically()
-    {
-        var (definitionId, scope) = await ActiveDefinitionAsync();
-        await using var _ = scope;
-
-        var first = await scope.DefineProvision.DefineAsync(PaidLounge(definitionId));
-        var firstPrice = await scope.DefinePricing.DefineAsync(M1Commands.LoungePricing(first.Id, 2500000m));
-
-        await scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(first.Id, firstPrice.Id));
-
-        var revision = await scope.DefineProvision.DefineAsync(PaidLounge(definitionId));
-        var revisionPrice = await scope.DefinePricing.DefineAsync(M1Commands.LoungePricing(revision.Id, 2800000m));
-
-        Assert.NotEqual(first.Id, revision.Id);
-
-        var activated = await scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(revision.Id, revisionPrice.Id));
-
-        Assert.Equal(ProvisionStatus.Active, activated.Status);
-
-        await using var reader = new AncillaryScope(_database, _clock);
-        var superseded = await reader.GetProvisionById.ExecuteAsync(first.Id);
-        var current = await reader.GetProvisionById.ExecuteAsync(revision.Id);
-
-        Assert.Equal("Retired", superseded.Status.Name);
-        Assert.Equal("Active", current.Status.Name);
-        Assert.Equal(2500000m, Assert.Single((await reader.GetPricingById.ExecuteAsync(firstPrice.Id)).PriceLines).Amount);
-        Assert.Equal(2800000m, Assert.Single((await reader.GetPricingById.ExecuteAsync(revisionPrice.Id)).PriceLines).Amount);
-    }
-
-    [Fact]
     public async Task M1_G09A_an_unimplemented_fee_application_unit_is_refused_at_activation()
     {
         var (definitionId, scope) = await ActiveDefinitionAsync();

@@ -175,7 +175,7 @@ public class M1PaginatedAcceptanceTests
             prices.Metadata.Fields.Select(field => field.Title));
         Assert.Equal(
             (firstPrice.Id.ToString(), first.Id.ToString(), 1, "PerPassenger", "IRR", 1, "Active"),
-            prices.Results.Select(price => (price.Id, price.AncillaryProvisionId, price.Version, price.PricingUnit!.Name, price.Currencies, price.RateCount, price.Status.Name)).Single());
+            prices.Results.Select(price => (price.Id, price.AncillaryProvisionId, price.Version, price.PricingUnit!.Name, string.Join(",", price.Currencies), price.RateCount, price.Status.Name)).Single());
         Assert.Equal(15000000m, Assert.Single((await scope.GetPricingById.ExecuteAsync(firstPrice.Id)).PriceLines).Amount);
 
         var draftPrices = await scope.GetPricingsPaginated.ExecuteAsync(new BackofficeGetAncillaryPricingsPaginatedQuery { Status = PricingStatus.Draft, AncillaryProvisionId = later.Id });

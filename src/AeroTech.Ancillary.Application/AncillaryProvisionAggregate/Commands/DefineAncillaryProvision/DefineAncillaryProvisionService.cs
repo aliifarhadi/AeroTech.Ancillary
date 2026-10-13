@@ -39,6 +39,9 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
             var definition = await _definitions.GetAsync(command.ServiceDefinitionId, cancellationToken)
                              ?? throw ExceptionFactory.ProvisionServiceDefinitionNotFound();
 
+            if (command.Profile is { } profile && definition.Profile != profile)
+                throw ExceptionFactory.ServiceDefinitionBelongsToAnotherProfile(definition.Profile, profile);
+
             var provision = AncillaryProvision.Define(
                 _idGenerator.NewId(),
                 definition,

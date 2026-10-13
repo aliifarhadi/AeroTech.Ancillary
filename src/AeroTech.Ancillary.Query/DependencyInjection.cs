@@ -1,6 +1,9 @@
 using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
+using AeroTech.Ancillary.Query.AncillaryPricingAggregate.Queries.GetProvisionPricingsPaginated;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionForm;
+using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetSeatProvisionCreateForm;
+using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetSeatProvisionForm;
 using AeroTech.Framework.Infrastructure.HealthChecks;
 using AeroTech.Ancillary.Query.AirportSlotInventoryAggregate.Queries.GetAirportSlotInventoriesPaginated;
 using AeroTech.Ancillary.Query.AirportSlotInventoryAggregate.Queries.GetAirportSlotInventoryById;
@@ -69,9 +72,12 @@ namespace AeroTech.Ancillary.Query
             services.AddScoped<IOtaPanelSalesScopeResolver, OtaPanelSalesScopeResolver>();
             services.AddScoped<IGetAncillaryProvisionByIdService, GetAncillaryProvisionByIdService>();
             services.AddScoped<IGetAncillaryProvisionFormService, GetAncillaryProvisionFormService>();
+            services.AddScoped<IGetSeatProvisionCreateFormService, GetSeatProvisionCreateFormService>();
+            services.AddScoped<IGetSeatProvisionFormService, GetSeatProvisionFormService>();
             services.AddScoped<IGetAncillaryProvisionsPaginatedService, GetAncillaryProvisionsPaginatedService>();
             services.AddScoped<IGetAncillaryPricingByIdService, GetAncillaryPricingByIdService>();
             services.AddScoped<IGetAncillaryPricingsPaginatedService, GetAncillaryPricingsPaginatedService>();
+            services.AddScoped<IGetProvisionPricingsPaginatedService, GetProvisionPricingsPaginatedService>();
             services.AddScoped<IGetAncillaryHoldByIdService, GetAncillaryHoldByIdService>();
             services.AddScoped<IGetInventoryPolicyByIdService, GetInventoryPolicyByIdService>();
             services.AddScoped<IGetInventoryPolicyByServiceIdentityService, GetInventoryPolicyByServiceIdentityService>();

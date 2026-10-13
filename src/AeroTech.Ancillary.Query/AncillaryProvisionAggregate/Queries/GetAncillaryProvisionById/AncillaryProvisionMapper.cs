@@ -186,7 +186,7 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                 CreatedAt = provision.CreatedAt
             };
 
-        private static IReadOnlyList<string> RuleSections(AncillaryProfile? profile, ServiceDateBasis? serviceDateBasis)
+        internal static IReadOnlyList<string> RuleSections(AncillaryProfile? profile, ServiceDateBasis? serviceDateBasis)
         {
             var sections = new List<string>
             {

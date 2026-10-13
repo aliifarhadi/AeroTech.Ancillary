@@ -6,6 +6,8 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
     {
         long ServiceDefinitionId { get; }
 
+        AncillaryProfile? Profile { get; }
+
         int Sequence { get; }
 
         ServiceCoverageScope CoverageScope { get; }

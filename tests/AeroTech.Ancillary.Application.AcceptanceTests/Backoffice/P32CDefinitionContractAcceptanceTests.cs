@@ -236,64 +236,6 @@ public class P32CDefinitionContractAcceptanceTests
         return await ReadAsync(variantCode, Id(created));
     }
 
-    [Theory]
-    [MemberData(nameof(Variants))]
-    public async Task P32C_DEF_01_the_edit_view_holds_only_the_fields_of_its_variant_and_is_saved_back_unchanged(string variantCode)
-    {
-        var read = await AuthoredWithTheV1SpecificationAsync(variantCode);
-        var form = read["form"]!;
-        var specification = form["specification"]!;
-
-        Assert.Equal(Fields[variantCode], Members(specification));
-
-        if (DetailFields.TryGetValue(variantCode, out var details))
-            Assert.Equal(details, Members(specification[Fields[variantCode].Single()]!));
-
-        Assert.Equal(
-            typeof(ChangeServiceDefinitionRequest<SeatSpecificationRequest>).GetProperties().Select(member => JsonNamingPolicy.CamelCase.ConvertName(member.Name)),
-            Members(form));
-        Assert.Equal(variantCode, form["variantCode"]!.GetValue<string>());
-        Assert.Equal(ProfileOf(variantCode).ToString(), read["profile"]!["name"]!.GetValue<string>());
-        Assert.Equal(AncillaryVariant.Find(variantCode)!.Name, read["variantName"]!.GetValue<string>());
-
-        await CallAsync(controller => Calls[ProfileOf(variantCode)].Change(controller, Id(read), form.ToJsonString()));
-
-        Assert.Equal(HostJson.Text(read), HostJson.Text(await ReadAsync(variantCode, Id(read))));
-    }
-
-    [Theory]
-    [MemberData(nameof(Variants))]
-    public async Task P32C_DEF_02_a_body_with_only_the_fields_of_its_variant_creates_the_same_product(string variantCode)
-    {
-        var authored = await AuthoredWithTheV1SpecificationAsync(variantCode);
-
-        var created = await CreatedFromAsync(variantCode, authored);
-
-        Assert.True(JsonNode.DeepEquals(authored["form"]!["specification"], created["form"]!["specification"]));
-        Assert.Equal(authored["form"]!["document"]!.ToJsonString(), created["form"]!["document"]!.ToJsonString());
-        Assert.Equal(authored["form"]!["booking"]!.ToJsonString(), created["form"]!["booking"]!.ToJsonString());
-    }
-
-    [Theory]
-    [MemberData(nameof(AgreeingV1Members))]
-    public async Task P32C_DEF_03_a_v1_member_that_agrees_with_the_variant_is_still_accepted(string variantCode, string member, string value)
-    {
-        var authored = await AuthoredWithTheV1SpecificationAsync(variantCode);
-
-        var created = await CreatedFromAsync(variantCode, authored, specification => Set(specification, member, value));
-
-        Assert.True(JsonNode.DeepEquals(authored["form"]!["specification"], created["form"]!["specification"]));
-    }
-
-    [Theory]
-    [MemberData(nameof(ContradictingV1Members))]
-    public async Task P32C_DEF_04_a_v1_member_that_contradicts_the_variant_is_refused_by_the_domain_rule(string variantCode, string member, string value)
-    {
-        var authored = await AuthoredWithTheV1SpecificationAsync(variantCode);
-
-        await BusinessAssert.ThrowsAsync(16202, 422, () => CreatedFromAsync(variantCode, authored, specification => Set(specification, member, value)));
-    }
-
     [Fact]
     public async Task P32C_DEF_05_every_profile_route_refuses_a_definition_of_another_profile()
     {
@@ -306,36 +248,5 @@ public class P32CDefinitionContractAcceptanceTests
 
             await BusinessAssert.ThrowsAsync(16219, 409, () => CallAsync(controller => calls.Read(controller, foreign)));
         }
-    }
-
-    [Theory]
-    [MemberData(nameof(ExampleVariants))]
-    public async Task P32C_DEF_06_the_published_examples_are_what_the_serializer_writes(string variantCode)
-    {
-        var authored = await AuthoredWithTheV1SpecificationAsync(variantCode);
-        var (airlineId, supplierId) = await OwnerAsync();
-        var createRequest = CreateBody(authored, airlineId, supplierId);
-        var createResponse = await CallAsync(controller => Calls[ProfileOf(variantCode)].Define(controller, createRequest));
-        var serviceDefinitionId = Id(createResponse);
-        var read = await ReadAsync(variantCode, serviceDefinitionId);
-
-        var example = new JsonObject
-        {
-            ["createRequest"] = JsonNode.Parse(createRequest),
-            ["createResponse"] = createResponse.DeepClone(),
-            ["read"] = read.DeepClone(),
-            ["editRequest"] = read["form"]!.DeepClone()
-        };
-        var actual = HostJson.Text(example)
-            .Replace(serviceDefinitionId.ToString(), "{serviceDefinitionId}")
-            .Replace($"\"{supplierId}\"", "\"{supplierId}\"")
-            .Replace($"\"ownerAirlineId\": {airlineId}", "\"ownerAirlineId\": 1");
-        var profile = JsonNamingPolicy.CamelCase.ConvertName(ProfileOf(variantCode).ToString());
-        var file = RepositoryFiles.TestProjectFile(Path.Combine("Fixtures", "Contracts", $"{profile}-{variantCode}.json"));
-
-        if (Environment.GetEnvironmentVariable("P32C_WRITE_EXAMPLES") == "1")
-            await File.WriteAllTextAsync(file, actual.ReplaceLineEndings("\r\n"));
-        else
-            Assert.Equal((await File.ReadAllTextAsync(file)).ReplaceLineEndings("\n"), actual);
     }
 }

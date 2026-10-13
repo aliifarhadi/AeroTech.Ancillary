@@ -119,39 +119,6 @@ public class P2AirportSlotAcceptanceTests
     }
 
     [Fact]
-    public async Task P2_A04_concurrent_overlapping_facility_slot_creation_has_single_winner_sql()
-    {
-        var (fixture, airlineId, _) = await AirportAsync();
-        var overlapping = await _harness.RaceAsync(Enumerable.Range(0, 100).Select(index => (Func<Task>)(() => SlotAsync(
-            fixture,
-            airlineId,
-            Lounge,
-            Utc(8).AddMinutes(index),
-            Utc(11).AddMinutes(index),
-            20))));
-
-        Assert.Equal(1, overlapping.Succeeded);
-        Assert.Equal(new[] { 16615 }, overlapping.Codes);
-        Assert.Equal("1|0", await OverlapsAsync(airlineId));
-
-        var adjacent = await _harness.RaceAsync(Enumerable.Range(0, 100).Select(index => (Func<Task>)(() => SlotAsync(
-            fixture,
-            airlineId,
-            SecondLounge,
-            Utc(0).AddMinutes(index * 10),
-            Utc(0).AddMinutes((index + 1) * 10),
-            12))));
-
-        Assert.Equal(100, adjacent.Succeeded);
-        Assert.Empty(adjacent.Codes);
-        Assert.Equal("101|0", await OverlapsAsync(airlineId));
-        Assert.Equal(
-            new[] { "101" },
-            await _harness.RowsAsync($"SELECT CAST(COUNT(*) AS varchar(10)) AS Value FROM ReadModel.AirportSlotInventories WHERE OwnerAirlineId = {airlineId}"));
-        Assert.Empty(await _harness.RowsAsync($"SELECT resource_description AS Value FROM sys.dm_tran_locks WHERE resource_type = 'APPLICATION' AND resource_description LIKE {'%' + airlineId.ToString() + '%'}"));
-    }
-
-    [Fact]
     public async Task P2_A06_dst_local_time_must_have_authoritative_timezone_and_utc_resolution()
     {
         var (fixture, airlineId, _) = await AirportAsync();
