@@ -179,52 +179,6 @@ public class V121ProvisionRuleConformanceTests
         BusinessAssert.Throws(16302, 422, () => Provision(Groups(travelDate: Dates([period, period]))));
         BusinessAssert.Throws(16302, 422, () => Provision(Groups(travelDate: Dates(blackout: [period, period]))));
         BusinessAssert.Throws(16302, 422, () => Provision(Groups(travelDate: Dates(blackout: [Period(Day(2027, 4, 2), Day(2027, 4, 1))]))));
-
-        var provision = Provision(Groups(travelDate: Dates([period], [Period(Day(2027, 4, 10), Day(2027, 4, 12))])));
-        var ids = new SequentialIdGenerator();
-
-        BusinessAssert.Throws(16309, 409, () => provision.AddPermittedTravelPeriod(period, ids));
-        BusinessAssert.Throws(16309, 409, () => provision.AddBlackoutPeriod(Period(Day(2027, 4, 10), Day(2027, 4, 12)), ids));
-        BusinessAssert.Throws(16302, 422, () => provision.AddPermittedTravelPeriod(Period(Day(2027, 6, 2), Day(2027, 6, 1)), ids));
-        Assert.Equal((1, 1), (provision.TravelDate!.PermittedPeriods.Count, provision.TravelDate.BlackoutPeriods.Count));
-    }
-
-    [Fact]
-    public void V121_D10_M07_row_level_periods_merge_into_the_oldest_row_and_keep_untouched_identities()
-    {
-        var ids = new SequentialIdGenerator();
-        var provision = Provision(ids: ids);
-
-        var april = provision.AddPermittedTravelPeriod(Period(Day(2027, 4, 1), Day(2027, 4, 30)), ids);
-        var june = provision.AddPermittedTravelPeriod(Period(Day(2027, 6, 1), Day(2027, 6, 30)), ids);
-        var ruleId = provision.TravelDate!.Id;
-
-        Assert.Equal(new[] { april.Id, june.Id }, provision.TravelDate.PermittedPeriods.Select(row => row.Id));
-        Assert.All(provision.TravelDate.PermittedPeriods, row => Assert.Equal(ruleId, row.ProvisionTravelDateRuleId));
-
-        var merged = provision.AddPermittedTravelPeriod(Period(Day(2027, 5, 1), Day(2027, 5, 31)), ids);
-
-        Assert.Equal(april.Id, merged.Id);
-        Assert.Equal(new[] { (Day(2027, 4, 1), Day(2027, 6, 30)) }, Permitted(provision));
-
-        var august = provision.AddPermittedTravelPeriod(Period(Day(2027, 8, 1), Day(2027, 8, 31)), ids);
-        var changed = provision.ChangePermittedTravelPeriod(august.Id, Period(Day(2027, 8, 5), Day(2027, 8, 20)));
-
-        Assert.Equal((august.Id, Day(2027, 8, 5), Day(2027, 8, 20)), (changed.Id, changed.StartDate, changed.EndDate));
-        BusinessAssert.Throws(16309, 409, () => provision.ChangePermittedTravelPeriod(august.Id, Period(Day(2027, 4, 1), Day(2027, 6, 30))));
-        BusinessAssert.Throws(16308, 404, () => provision.ChangePermittedTravelPeriod(999_999, Period(Day(2027, 9, 1), Day(2027, 9, 2))));
-        BusinessAssert.Throws(16308, 404, () => provision.RemoveBlackoutPeriod(august.Id));
-
-        var blackout = provision.AddBlackoutPeriod(Period(Day(2027, 4, 10), Day(2027, 4, 12)), ids);
-
-        provision.RemovePermittedTravelPeriod(august.Id);
-        provision.RemovePermittedTravelPeriod(april.Id);
-
-        Assert.Equal((ruleId, 0, 1), (provision.TravelDate!.Id, provision.TravelDate.PermittedPeriods.Count, provision.TravelDate.BlackoutPeriods.Count));
-
-        provision.RemoveBlackoutPeriod(blackout.Id);
-
-        Assert.Null(provision.TravelDate);
     }
 
     [Fact]
@@ -259,29 +213,6 @@ public class V121ProvisionRuleConformanceTests
         Assert.Equal(
             new[] { (Saturday, (int?)22, (int?)null), (Sunday, null, 2), (EveryDay, null, null), (Monday, 8, 12), (Monday, 8, 12) },
             night.DayTimeApplication!.Windows.Select(row => (row.DaysOfWeekMask, row.StartLocalTime?.Hour, row.EndLocalTime?.Hour)));
-
-        var ids = new SequentialIdGenerator();
-        var provision = Provision(ids: ids);
-        var added = provision.AddDayTimeWindow(window, ids);
-        var ruleId = provision.DayTimeApplication!.Id;
-
-        BusinessAssert.Throws(16309, 409, () => provision.AddDayTimeWindow(window, ids));
-        BusinessAssert.Throws(16302, 422, () => provision.AddDayTimeWindow(Window(0, 8, 12), ids));
-
-        var deny = provision.AddDayTimeWindow(Window(Monday, 9, 10, DayTimeRestrictionEffect.Deny), ids);
-        var changed = provision.ChangeDayTimeWindow(deny.Id, Window((byte)(Monday | Tuesday), 9, 11, DayTimeRestrictionEffect.Deny));
-
-        Assert.Equal((deny.Id, (byte)3, 11), (changed.Id, changed.DaysOfWeekMask, changed.EndLocalTime!.Value.Hour));
-        BusinessAssert.Throws(16309, 409, () => provision.ChangeDayTimeWindow(deny.Id, window));
-        BusinessAssert.Throws(16308, 404, () => provision.RemoveDayTimeWindow(424242));
-
-        provision.RemoveDayTimeWindow(deny.Id);
-
-        Assert.Equal((ruleId, added.Id), (provision.DayTimeApplication!.Id, provision.DayTimeApplication.Windows.Single().Id));
-
-        provision.RemoveDayTimeWindow(added.Id);
-
-        Assert.Null(provision.DayTimeApplication);
     }
 
     [Fact]
@@ -327,7 +258,7 @@ public class V121ProvisionRuleConformanceTests
     }
 
     [Fact]
-    public void V121_M07_M08_replacing_a_group_keeps_the_identity_of_unchanged_rows_and_only_a_draft_is_edited()
+    public void V121_M07_M08_a_change_keeps_the_identity_of_unchanged_rows_and_only_a_draft_is_edited()
     {
         var ids = new SequentialIdGenerator();
         var provision = Provision(
@@ -342,9 +273,13 @@ public class V121ProvisionRuleConformanceTests
         var permitted = provision.TravelDate!.PermittedPeriods.Single().Id;
         var dateRule = provision.TravelDate.Id;
 
-        provision.ChangePassengerEligibility(Passengers([PassengerTypeCode.INF, PassengerTypeCode.ADT]), ids);
-        provision.ChangeFlightApplication(Flights(flights: [81240], aircraft: [2]), ids);
-        provision.ChangeTravelDate(Dates([Period(Day(2027, 4, 1), Day(2027, 4, 30)), Period(Day(2027, 6, 1), Day(2027, 6, 30))]), ids);
+        Replace(
+            provision,
+            Groups(
+                Passengers([PassengerTypeCode.INF, PassengerTypeCode.ADT]),
+                flightApplication: Flights(flights: [81240], aircraft: [2]),
+                travelDate: Dates([Period(Day(2027, 4, 1), Day(2027, 4, 30)), Period(Day(2027, 6, 1), Day(2027, 6, 30))])),
+            ids);
 
         Assert.Equal(passengerRule, provision.PassengerEligibility!.Id);
         Assert.Equal(new[] { PassengerTypeCode.INF, PassengerTypeCode.ADT }, provision.PassengerEligibility.PassengerTypes.Select(row => row.PassengerTypeCode));
@@ -353,19 +288,13 @@ public class V121ProvisionRuleConformanceTests
         Assert.Equal((dateRule, permitted), (provision.TravelDate!.Id, provision.TravelDate.PermittedPeriods.Single(row => row.StartDate == Day(2027, 4, 1)).Id));
         Assert.Empty(provision.TravelDate.BlackoutPeriods);
 
-        provision.ChangePassengerEligibility(null, ids);
-        provision.ChangeFlightApplication(Flights(), ids);
+        Replace(provision, Groups(travelDate: Dates([Period(Day(2027, 4, 1), Day(2027, 4, 30)), Period(Day(2027, 6, 1), Day(2027, 6, 30))])), ids);
 
         Assert.Null(provision.PassengerEligibility);
         Assert.Null(provision.FlightApplication);
 
         provision.Activate(CarrierDefinition(), null, Now);
 
-        BusinessAssert.Throws(16303, 409, () => provision.ChangeTravelDate(null, ids));
-        BusinessAssert.Throws(16303, 409, () => provision.ChangeGeography(Geography(origins: [Thr]), ids));
-        BusinessAssert.Throws(16303, 409, () => provision.AddPermittedTravelPeriod(Period(Day(2027, 9, 1), Day(2027, 9, 2)), ids));
-        BusinessAssert.Throws(16303, 409, () => provision.RemovePermittedTravelPeriod(permitted));
-        BusinessAssert.Throws(16303, 409, () => provision.AddDayTimeWindow(Window(Monday), ids));
         BusinessAssert.Throws(16303, 409, () => Replace(provision, Groups(), ids));
         Assert.Equal(2, provision.TravelDate.PermittedPeriods.Count);
     }
@@ -399,20 +328,9 @@ public class V121ProvisionRuleConformanceTests
 
         var baggage = Provision(applicationType: ProvisionApplicationType.Baggage);
         var seat = Provision(Groups(flightApplication: Flights(aircraft: [1]), seatApplication: Seats(["12A", "12F"], ["LS"])), ProvisionApplicationType.Seat);
-        var ids = new SequentialIdGenerator();
 
         Assert.Equal((23m, WeightUnit.Kg, BaggagePurchaseApplication.Prepaid), (baggage.BaggageApplication!.Weight, baggage.BaggageApplication.WeightUnit, baggage.BaggageApplication.PurchaseApplication));
         Assert.Equal((2, 1), (seat.SeatApplication!.SeatNumbers.Count, seat.SeatApplication.SeatCharacteristics.Count));
-        BusinessAssert.Throws(16302, 422, () => baggage.ChangeBaggageApplication(null, ids));
-        BusinessAssert.Throws(16302, 422, () => seat.ChangeSeatApplication(Seats(), ids));
-        BusinessAssert.Throws(16302, 422, () => seat.ChangeFlightApplication(null, ids));
-        BusinessAssert.Throws(16302, 422, () => baggage.ChangeSeatApplication(Seats(characteristics: ["W"]), ids));
-
-        seat.ChangeSeatApplication(Seats(characteristics: ["W"]), ids);
-        seat.ChangeFlightApplication(null, ids);
-        baggage.ChangeBaggageApplication(Baggage() with { Weight = 32m }, ids);
-
-        Assert.Equal(("W", 32m), (seat.SeatApplication!.SeatCharacteristics.Single().CharacteristicCode, baggage.BaggageApplication!.Weight));
     }
 
     [Theory]

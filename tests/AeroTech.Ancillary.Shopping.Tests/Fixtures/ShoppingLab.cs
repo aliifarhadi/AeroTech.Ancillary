@@ -141,7 +141,7 @@ public sealed class ShoppingLab
             : null);
         var provision = AncillaryProvision.Define(
             _ids.NewId(),
-            definition.Id,
+            definition,
             sequence,
             scope ?? variant.CoverageScope,
             stage ?? (definition.Connectivity is { DeliveryStage: PurchaseStage.OnBoard } ? PurchaseStage.OnBoard : PurchaseStage.Both),

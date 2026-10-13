@@ -8,32 +8,10 @@ using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.ReviseAn
 using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.SuspendAncillaryPricing;
 using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.SwitchActiveAncillaryPricing;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ActivateAncillaryProvision;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionBlackoutPeriod;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionDayTimeWindow;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionPermittedTravelPeriod;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeAncillaryProvision;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionAdvancePurchase;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionAirportServiceRule;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionAssistedTravelRule;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionBaggageApplication;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionBlackoutPeriod;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionDayTimeApplication;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionDayTimeWindow;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionFareApplication;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionFlightApplication;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionGeography;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionPassengerEligibility;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionPetRule;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionPermittedTravelPeriod;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionSalesRestrictions;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionSeatApplication;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionTravelDate;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.DefineAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.PublishAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ReactivateAncillaryProvision;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RemoveProvisionBlackoutPeriod;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RemoveProvisionDayTimeWindow;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RemoveProvisionPermittedTravelPeriod;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RetireAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.SuspendAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ConfirmAncillaryHold;
@@ -124,7 +102,7 @@ public sealed class AncillaryScope : IAsyncDisposable
         AssignServiceDateBasis = new AssignAncillaryServiceDefinitionServiceDateBasisService(Definitions, Suppliers, definitionSynchronizer, UnitOfWork);
 
         DefineProvision = new DefineAncillaryProvisionService(Provisions, Definitions, provisionSynchronizer, UnitOfWork, ids, clock);
-        ChangeProvision = new ChangeAncillaryProvisionService(Provisions, provisionSynchronizer, UnitOfWork, ids);
+        ChangeProvision = new ChangeAncillaryProvisionService(Provisions, Definitions, provisionSynchronizer, UnitOfWork, ids);
         ActivateProvision = new ActivateAncillaryProvisionService(Provisions, Definitions, Suppliers, Pricings, provisionSynchronizer, UnitOfWork, clock);
         PublishProvision = new PublishAncillaryProvisionService(
             Provisions,
@@ -139,29 +117,6 @@ public sealed class AncillaryScope : IAsyncDisposable
         SuspendProvision = new SuspendAncillaryProvisionService(Provisions, provisionSynchronizer, UnitOfWork, clock);
         ReactivateProvision = new ReactivateAncillaryProvisionService(Provisions, Definitions, Pricings, provisionSynchronizer, UnitOfWork);
         RetireProvision = new RetireAncillaryProvisionService(Provisions, provisionSynchronizer, UnitOfWork, clock);
-
-        ChangePassengerEligibility = new ChangeProvisionPassengerEligibilityService(Provisions, provisionSynchronizer, UnitOfWork, ids);
-        ChangeSalesRestrictions = new ChangeProvisionSalesRestrictionsService(Provisions, provisionSynchronizer, UnitOfWork, ids);
-        ChangeGeography = new ChangeProvisionGeographyService(Provisions, provisionSynchronizer, UnitOfWork, ids);
-        ChangeFlightApplication = new ChangeProvisionFlightApplicationService(Provisions, provisionSynchronizer, UnitOfWork, ids);
-        ChangeFareApplication = new ChangeProvisionFareApplicationService(Provisions, provisionSynchronizer, UnitOfWork, ids);
-        ChangeTravelDate = new ChangeProvisionTravelDateService(Provisions, provisionSynchronizer, UnitOfWork, ids);
-        ChangeDayTimeApplication = new ChangeProvisionDayTimeApplicationService(Provisions, provisionSynchronizer, UnitOfWork, ids);
-        ChangeAdvancePurchase = new ChangeProvisionAdvancePurchaseService(Provisions, provisionSynchronizer, UnitOfWork, ids);
-        ChangeBaggageApplication = new ChangeProvisionBaggageApplicationService(Provisions, provisionSynchronizer, UnitOfWork, ids);
-        ChangeSeatApplication = new ChangeProvisionSeatApplicationService(Provisions, provisionSynchronizer, UnitOfWork, ids);
-        ChangePetRule = new ChangeProvisionPetRuleService(Provisions, Definitions, provisionSynchronizer, UnitOfWork, ids);
-        ChangeAssistedTravelRule = new ChangeProvisionAssistedTravelRuleService(Provisions, Definitions, provisionSynchronizer, UnitOfWork, ids);
-        ChangeAirportServiceRule = new ChangeProvisionAirportServiceRuleService(Provisions, Definitions, provisionSynchronizer, UnitOfWork, ids);
-        AddPermittedTravelPeriod = new AddProvisionPermittedTravelPeriodService(Provisions, provisionSynchronizer, UnitOfWork, ids);
-        ChangePermittedTravelPeriod = new ChangeProvisionPermittedTravelPeriodService(Provisions, provisionSynchronizer, UnitOfWork);
-        RemovePermittedTravelPeriod = new RemoveProvisionPermittedTravelPeriodService(Provisions, provisionSynchronizer, UnitOfWork);
-        AddBlackoutPeriod = new AddProvisionBlackoutPeriodService(Provisions, provisionSynchronizer, UnitOfWork, ids);
-        ChangeBlackoutPeriod = new ChangeProvisionBlackoutPeriodService(Provisions, provisionSynchronizer, UnitOfWork);
-        RemoveBlackoutPeriod = new RemoveProvisionBlackoutPeriodService(Provisions, provisionSynchronizer, UnitOfWork);
-        AddDayTimeWindow = new AddProvisionDayTimeWindowService(Provisions, provisionSynchronizer, UnitOfWork, ids);
-        ChangeDayTimeWindow = new ChangeProvisionDayTimeWindowService(Provisions, provisionSynchronizer, UnitOfWork);
-        RemoveDayTimeWindow = new RemoveProvisionDayTimeWindowService(Provisions, provisionSynchronizer, UnitOfWork);
 
         DefinePricing = new DefineAncillaryPricingService(Pricings, Provisions, Definitions, currencies, pricingSynchronizer, UnitOfWork, ids, clock);
         ChangePricing = new ChangeAncillaryPricingService(Pricings, currencies, pricingSynchronizer, UnitOfWork, ids);
@@ -240,50 +195,6 @@ public sealed class AncillaryScope : IAsyncDisposable
     public IReactivateAncillaryProvisionService ReactivateProvision { get; }
 
     public IRetireAncillaryProvisionService RetireProvision { get; }
-
-    public IChangeProvisionPassengerEligibilityService ChangePassengerEligibility { get; }
-
-    public IChangeProvisionSalesRestrictionsService ChangeSalesRestrictions { get; }
-
-    public IChangeProvisionGeographyService ChangeGeography { get; }
-
-    public IChangeProvisionFlightApplicationService ChangeFlightApplication { get; }
-
-    public IChangeProvisionFareApplicationService ChangeFareApplication { get; }
-
-    public IChangeProvisionTravelDateService ChangeTravelDate { get; }
-
-    public IChangeProvisionDayTimeApplicationService ChangeDayTimeApplication { get; }
-
-    public IChangeProvisionAdvancePurchaseService ChangeAdvancePurchase { get; }
-
-    public IChangeProvisionBaggageApplicationService ChangeBaggageApplication { get; }
-
-    public IChangeProvisionSeatApplicationService ChangeSeatApplication { get; }
-
-    public IChangeProvisionPetRuleService ChangePetRule { get; }
-
-    public IChangeProvisionAssistedTravelRuleService ChangeAssistedTravelRule { get; }
-
-    public IChangeProvisionAirportServiceRuleService ChangeAirportServiceRule { get; }
-
-    public IAddProvisionPermittedTravelPeriodService AddPermittedTravelPeriod { get; }
-
-    public IChangeProvisionPermittedTravelPeriodService ChangePermittedTravelPeriod { get; }
-
-    public IRemoveProvisionPermittedTravelPeriodService RemovePermittedTravelPeriod { get; }
-
-    public IAddProvisionBlackoutPeriodService AddBlackoutPeriod { get; }
-
-    public IChangeProvisionBlackoutPeriodService ChangeBlackoutPeriod { get; }
-
-    public IRemoveProvisionBlackoutPeriodService RemoveBlackoutPeriod { get; }
-
-    public IAddProvisionDayTimeWindowService AddDayTimeWindow { get; }
-
-    public IChangeProvisionDayTimeWindowService ChangeDayTimeWindow { get; }
-
-    public IRemoveProvisionDayTimeWindowService RemoveDayTimeWindow { get; }
 
     public IDefineAncillaryPricingService DefinePricing { get; }
 

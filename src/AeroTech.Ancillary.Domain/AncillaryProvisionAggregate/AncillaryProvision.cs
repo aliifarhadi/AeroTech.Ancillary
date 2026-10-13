@@ -85,7 +85,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
 
         public static AncillaryProvision Define(
             long id,
-            long serviceDefinitionId,
+            AncillaryServiceDefinition definition,
             int sequence,
             ServiceCoverageScope coverageScope,
             PurchaseStage purchaseStage,
@@ -101,18 +101,20 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             IIdGenerator idGenerator,
             DateTimeOffset createdAt)
         {
-            Require(serviceDefinitionId > 0, nameof(ServiceDefinitionId));
+            Require(definition.Id > 0, nameof(ServiceDefinitionId));
 
-            var provision = new AncillaryProvision(id, serviceDefinitionId);
+            var provision = new AncillaryProvision(id, definition.Id);
 
             provision.Status = ProvisionStatus.Draft;
             provision.CreatedAt = createdAt;
+            provision.EnsureProfileRules(definition, rules);
             provision.Apply(sequence, coverageScope, purchaseStage, priceOrigin, quoteProviderKey, quantity, applicationType, outcome, settlement, availability, fulfillment, rules, idGenerator);
 
             return provision;
         }
 
         public void Change(
+            AncillaryServiceDefinition definition,
             int sequence,
             ServiceCoverageScope coverageScope,
             PurchaseStage purchaseStage,
@@ -128,6 +130,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             IIdGenerator idGenerator)
         {
             EnsureDraft();
+            EnsureProfileRules(definition, rules);
 
             Apply(sequence, coverageScope, purchaseStage, priceOrigin, quoteProviderKey, quantity, applicationType, outcome, settlement, availability, fulfillment, rules, idGenerator);
         }

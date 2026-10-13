@@ -64,7 +64,7 @@ public static class P1Fixtures
         AncillaryQuantityUnit quantityUnit = AncillaryQuantityUnit.Each)
         => AncillaryProvision.Define(
             id,
-            1001,
+            CarrierDefinition(),
             sequence,
             ServiceCoverageScope.Sector,
             PurchaseStage.Both,
@@ -82,6 +82,7 @@ public static class P1Fixtures
 
     public static void Replace(AncillaryProvision provision, ProvisionRulesArgs rules, SequentialIdGenerator ids)
         => provision.Change(
+            CarrierDefinition(),
             provision.Sequence,
             provision.CoverageScope,
             provision.PurchaseStage,

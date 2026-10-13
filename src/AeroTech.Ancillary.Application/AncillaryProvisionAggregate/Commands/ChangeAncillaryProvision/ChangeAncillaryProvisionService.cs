@@ -2,6 +2,7 @@ using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Define
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Projection;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Services;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Contracts;
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Contracts;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Framework.Core.Domain.Repository;
 using AeroTech.Framework.Core.ServiceContracts;
@@ -11,17 +12,20 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Ch
     public sealed class ChangeAncillaryProvisionService : IChangeAncillaryProvisionService
     {
         private readonly IAncillaryProvisionRepository _provisions;
+        private readonly IAncillaryServiceDefinitionRepository _definitions;
         private readonly IAncillaryProvisionQueryDbSynchronizer _synchronizer;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IIdGenerator _idGenerator;
 
         public ChangeAncillaryProvisionService(
             IAncillaryProvisionRepository provisions,
+            IAncillaryServiceDefinitionRepository definitions,
             IAncillaryProvisionQueryDbSynchronizer synchronizer,
             IUnitOfWork unitOfWork,
             IIdGenerator idGenerator)
         {
             _provisions = provisions;
+            _definitions = definitions;
             _synchronizer = synchronizer;
             _unitOfWork = unitOfWork;
             _idGenerator = idGenerator;
@@ -31,8 +35,11 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Ch
         {
             var provision = await _provisions.GetAsync(command.ProvisionId, cancellationToken)
                             ?? throw ExceptionFactory.ProvisionNotFound();
+            var definition = await _definitions.GetAsync(provision.ServiceDefinitionId, cancellationToken)
+                             ?? throw ExceptionFactory.ProvisionServiceDefinitionNotFound();
 
             provision.Change(
+                definition,
                 command.Sequence,
                 command.CoverageScope,
                 command.PurchaseStage,

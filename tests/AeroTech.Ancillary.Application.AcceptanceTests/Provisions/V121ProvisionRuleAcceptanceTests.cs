@@ -116,122 +116,45 @@ public class V121ProvisionRuleAcceptanceTests
     }
 
     [Fact]
-    public async Task V121_D03_D04_D10_permitted_and_blackout_periods_are_edited_row_by_row_and_stay_canonical()
+    public async Task V121_T01_T04_T05_T10_day_time_windows_are_authored_with_a_weekday_mask()
     {
         var definitionId = await ActiveDefinitionAsync();
-        var draft = await RequestAsync(scope => scope.DefineProvision.DefineAsync(Free(definitionId)));
+        var draft = await RequestAsync(scope => scope.DefineProvision.DefineAsync(Free(definitionId) with
+        {
+            DayTimeApplication = DayTime(Window(Weekdays, 9, 17), Window(Saturday, 22), Window(Sunday, toHour: 2), Window(Monday, 12, 13, DayTimeRestrictionEffect.Deny))
+        }));
 
-        Assert.Null((await ReadAsync(draft.Id)).TravelDate);
-
-        var april = await RequestAsync(scope => scope.AddPermittedTravelPeriod.AddAsync(new TestPermittedTravelPeriodRowCommand(draft.Id, 0, Day(2027, 4, 1), Day(2027, 4, 30))));
-        var june = await RequestAsync(scope => scope.AddPermittedTravelPeriod.AddAsync(new TestPermittedTravelPeriodRowCommand(draft.Id, 0, Day(2027, 6, 1), Day(2027, 6, 30))));
-        var ruleId = (await ReadAsync(draft.Id)).TravelDate!.Id;
-
-        Assert.NotEqual(april.RowId, june.RowId);
-        await RefusedAsync(16309, 409, scope => scope.AddPermittedTravelPeriod.AddAsync(new TestPermittedTravelPeriodRowCommand(draft.Id, 0, Day(2027, 4, 1), Day(2027, 4, 30))));
-        await RefusedAsync(16302, 422, scope => scope.AddPermittedTravelPeriod.AddAsync(new TestPermittedTravelPeriodRowCommand(draft.Id, 0, Day(2027, 5, 2), Day(2027, 5, 1))));
-        await RefusedAsync(16301, 404, scope => scope.AddPermittedTravelPeriod.AddAsync(new TestPermittedTravelPeriodRowCommand(999_999_999, 0, Day(2027, 5, 1), Day(2027, 5, 2))));
-
-        var overlapping = await RequestAsync(scope => scope.AddPermittedTravelPeriod.AddAsync(new TestPermittedTravelPeriodRowCommand(draft.Id, 0, Day(2027, 4, 20), Day(2027, 5, 10))));
-
-        Assert.Equal(april.RowId, overlapping.RowId);
-        Assert.Equal(
-            new[] { (april.RowId, Day(2027, 4, 1), Day(2027, 5, 10)), (june.RowId, Day(2027, 6, 1), Day(2027, 6, 30)) },
-            (await ReadAsync(draft.Id)).TravelDate!.PermittedPeriods.Select(row => (row.Id, row.StartDate, row.EndDate)));
-
-        var adjacent = await RequestAsync(scope => scope.AddPermittedTravelPeriod.AddAsync(new TestPermittedTravelPeriodRowCommand(draft.Id, 0, Day(2027, 5, 11), Day(2027, 5, 31))));
-
-        Assert.Equal(april.RowId, adjacent.RowId);
-        Assert.Equal(new[] { (Day(2027, 4, 1), Day(2027, 6, 30)) }, Periods((await ReadAsync(draft.Id)).TravelDate!.PermittedPeriods));
-        Assert.Equal(
-            new[] { $"{april.RowId}|{ruleId}" },
-            await RowsAsync($"SELECT CONCAT(Id, '|', ProvisionTravelDateRuleId) AS Value FROM Ancillary.ProvisionPermittedTravelPeriods WHERE AncillaryProvisionId = {draft.Id}"));
-
-        var blackout = await RequestAsync(scope => scope.AddBlackoutPeriod.AddAsync(new TestBlackoutPeriodRowCommand(draft.Id, 0, Day(2027, 4, 10), Day(2027, 4, 12))));
-
-        await RefusedAsync(16309, 409, scope => scope.AddBlackoutPeriod.AddAsync(new TestBlackoutPeriodRowCommand(draft.Id, 0, Day(2027, 4, 10), Day(2027, 4, 12))));
-
-        var changedBlackout = await RequestAsync(scope => scope.ChangeBlackoutPeriod.ChangeAsync(new TestBlackoutPeriodRowCommand(draft.Id, blackout.RowId, Day(2027, 4, 11), Day(2027, 4, 11))));
-        var changedPeriod = await RequestAsync(scope => scope.ChangePermittedTravelPeriod.ChangeAsync(new TestPermittedTravelPeriodRowCommand(draft.Id, april.RowId, Day(2027, 4, 1), Day(2027, 4, 30))));
-
-        await RefusedAsync(16308, 404, scope => scope.ChangePermittedTravelPeriod.ChangeAsync(new TestPermittedTravelPeriodRowCommand(draft.Id, blackout.RowId, Day(2027, 9, 1), Day(2027, 9, 2))));
-        await RefusedAsync(16308, 404, scope => scope.RemoveBlackoutPeriod.RemoveAsync(new TestBlackoutPeriodRowCommand(draft.Id, april.RowId, default, default)));
-
-        var edited = await ReadAsync(draft.Id);
-
-        Assert.Equal((blackout.RowId, april.RowId), (changedBlackout.RowId, changedPeriod.RowId));
-        Assert.Equal((ruleId, 1, 1), (edited.TravelDate!.Id, edited.TravelDate.PermittedPeriods.Count, edited.TravelDate.BlackoutPeriods.Count));
-        Assert.Equal(new[] { (Day(2027, 4, 1), Day(2027, 4, 30)) }, Periods(edited.TravelDate.PermittedPeriods));
-        Assert.Equal(new[] { (Day(2027, 4, 11), Day(2027, 4, 11)) }, Periods(edited.TravelDate.BlackoutPeriods));
-        Assert.Equal(
-            new[] { "1|1|1|1" },
-            await RowsAsync($"SELECT CONCAT((SELECT COUNT(*) FROM Ancillary.ProvisionPermittedTravelPeriods WHERE AncillaryProvisionId = {draft.Id}), '|', (SELECT COUNT(*) FROM Ancillary.ProvisionBlackoutPeriods WHERE AncillaryProvisionId = {draft.Id}), '|', (SELECT COUNT(*) FROM ReadModel.AncillaryProvisionPermittedTravelPeriods WHERE AncillaryProvisionId = {draft.Id}), '|', (SELECT COUNT(*) FROM ReadModel.AncillaryProvisionBlackoutPeriods WHERE AncillaryProvisionId = {draft.Id})) AS Value"));
-
-        await RequestAsync(scope => scope.RemovePermittedTravelPeriod.RemoveAsync(new TestPermittedTravelPeriodRowCommand(draft.Id, april.RowId, default, default)));
-
-        Assert.Equal((ruleId, 0, 1), ((await ReadAsync(draft.Id)).TravelDate!.Id, (await ReadAsync(draft.Id)).TravelDate!.PermittedPeriods.Count, (await ReadAsync(draft.Id)).TravelDate!.BlackoutPeriods.Count));
-
-        await RequestAsync(scope => scope.RemoveBlackoutPeriod.RemoveAsync(new TestBlackoutPeriodRowCommand(draft.Id, blackout.RowId, default, default)));
-
-        Assert.Null((await ReadAsync(draft.Id)).TravelDate);
-        Assert.Equal(
-            new[] { "0|0" },
-            await RowsAsync($"SELECT CONCAT((SELECT COUNT(*) FROM Ancillary.ProvisionTravelDateRules WHERE AncillaryProvisionId = {draft.Id}), '|', (SELECT COUNT(*) FROM ReadModel.AncillaryProvisions WHERE Id = {draft.Id} AND TravelDateRuleId IS NOT NULL)) AS Value"));
-    }
-
-    [Fact]
-    public async Task V121_T01_T04_T05_T10_day_time_windows_are_authored_row_by_row_with_a_weekday_mask()
-    {
-        var definitionId = await ActiveDefinitionAsync();
-        var draft = await RequestAsync(scope => scope.DefineProvision.DefineAsync(Free(definitionId)));
-        var office = await RequestAsync(scope => scope.AddDayTimeWindow.AddAsync(WindowRow(draft.Id, 0, Window(Weekdays, 9, 17))));
-        var saturdayNight = await RequestAsync(scope => scope.AddDayTimeWindow.AddAsync(WindowRow(draft.Id, 0, Window(Saturday, 22))));
-        var sundayMorning = await RequestAsync(scope => scope.AddDayTimeWindow.AddAsync(WindowRow(draft.Id, 0, Window(Sunday, toHour: 2))));
-        var lunch = await RequestAsync(scope => scope.AddDayTimeWindow.AddAsync(WindowRow(draft.Id, 0, Window(Monday, 12, 13, DayTimeRestrictionEffect.Deny))));
-
-        await RefusedAsync(16309, 409, scope => scope.AddDayTimeWindow.AddAsync(WindowRow(draft.Id, 0, Window(Weekdays, 9, 17))));
-        await RefusedAsync(16302, 422, scope => scope.AddDayTimeWindow.AddAsync(WindowRow(draft.Id, 0, Window(0, 9, 17))));
-        await RefusedAsync(16302, 422, scope => scope.AddDayTimeWindow.AddAsync(WindowRow(draft.Id, 0, Window(128, 9, 17))));
-        await RefusedAsync(16302, 422, scope => scope.AddDayTimeWindow.AddAsync(WindowRow(draft.Id, 0, Window(Monday, 17, 9))));
-        await RefusedAsync(16302, 422, scope => scope.AddDayTimeWindow.AddAsync(WindowRow(draft.Id, 0, Window(Monday, 9, 17, (DayTimeRestrictionEffect)9))));
-        await RefusedAsync(16308, 404, scope => scope.ChangeDayTimeWindow.ChangeAsync(WindowRow(draft.Id, 424242, Window(Monday, 9, 17))));
+        await RefusedAsync(16302, 422, scope => scope.DefineProvision.DefineAsync(Free(definitionId) with { DayTimeApplication = DayTime(Window(0, 9, 17)) }));
+        await RefusedAsync(16302, 422, scope => scope.DefineProvision.DefineAsync(Free(definitionId) with { DayTimeApplication = DayTime(Window(128, 9, 17)) }));
+        await RefusedAsync(16302, 422, scope => scope.DefineProvision.DefineAsync(Free(definitionId) with { DayTimeApplication = DayTime(Window(Monday, 17, 9)) }));
+        await RefusedAsync(16302, 422, scope => scope.DefineProvision.DefineAsync(Free(definitionId) with { DayTimeApplication = DayTime(Window(Monday, 9, 17, (DayTimeRestrictionEffect)9)) }));
 
         var detail = await ReadAsync(draft.Id);
 
         Assert.Equal(
             new[]
             {
-                (office.RowId, (byte)31, "Monday,Tuesday,Wednesday,Thursday,Friday", (int?)9, (int?)17, "Allow"),
-                (saturdayNight.RowId, (byte)32, "Saturday", 22, null, "Allow"),
-                (sundayMorning.RowId, (byte)64, "Sunday", null, 2, "Allow"),
-                (lunch.RowId, (byte)1, "Monday", 12, 13, "Deny")
+                ((byte)31, "Monday,Tuesday,Wednesday,Thursday,Friday", (int?)9, (int?)17, "Allow"),
+                ((byte)32, "Saturday", 22, null, "Allow"),
+                ((byte)64, "Sunday", null, 2, "Allow"),
+                ((byte)1, "Monday", 12, 13, "Deny")
             },
-            detail.DayTimeApplication!.Windows.Select(row => (row.Id, row.DaysOfWeekMask, string.Join(",", row.DaysOfWeek), row.StartLocalTime?.Hour, row.EndLocalTime?.Hour, row.Effect.Name)));
+            detail.DayTimeApplication!.Windows.Select(row => (row.DaysOfWeekMask, string.Join(",", row.DaysOfWeek), row.StartLocalTime?.Hour, row.EndLocalTime?.Hour, row.Effect.Name)));
 
-        var changed = await RequestAsync(scope => scope.ChangeDayTimeWindow.ChangeAsync(WindowRow(draft.Id, lunch.RowId, Window((byte)(Monday | Friday), 12, 14, DayTimeRestrictionEffect.Deny))));
-
-        await RefusedAsync(16309, 409, scope => scope.ChangeDayTimeWindow.ChangeAsync(WindowRow(draft.Id, lunch.RowId, Window(Weekdays, 9, 17))));
-        await RequestAsync(scope => scope.RemoveDayTimeWindow.RemoveAsync(WindowRow(draft.Id, saturdayNight.RowId, Window(Saturday))));
-        await RequestAsync(scope => scope.RemoveDayTimeWindow.RemoveAsync(WindowRow(draft.Id, sundayMorning.RowId, Window(Sunday))));
+        await RequestAsync(scope => scope.ChangeProvision.ChangeAsync(Change(draft.Id, Free(definitionId) with
+        {
+            DayTimeApplication = DayTime(Window(Weekdays, 9, 17), Window((byte)(Monday | Friday), 12, 14, DayTimeRestrictionEffect.Deny))
+        })));
 
         var edited = await ReadAsync(draft.Id);
 
-        Assert.Equal(lunch.RowId, changed.RowId);
-        Assert.Equal(detail.DayTimeApplication.Id, edited.DayTimeApplication!.Id);
         Assert.Equal(
-            new[] { (office.RowId, (byte)31, "Allow"), (lunch.RowId, (byte)17, "Deny") },
-            edited.DayTimeApplication.Windows.Select(row => (row.Id, row.DaysOfWeekMask, row.Effect.Name)));
+            new[] { ((byte)31, "Allow"), ((byte)17, "Deny") },
+            edited.DayTimeApplication!.Windows.Select(row => (row.DaysOfWeekMask, row.Effect.Name)));
         Assert.Equal(
-            new[] { $"{office.RowId}|31|09:00:00|17:00:00|1", $"{lunch.RowId}|17|12:00:00|14:00:00|2" },
-            (await RowsAsync($"SELECT CONCAT(Id, '|', DaysOfWeekMask, '|', CONVERT(varchar(8), StartLocalTime, 108), '|', CONVERT(varchar(8), EndLocalTime, 108), '|', Effect) AS Value FROM ReadModel.AncillaryProvisionDayTimeWindows WHERE AncillaryProvisionId = {draft.Id}")).OrderBy(row => row, StringComparer.Ordinal));
+            new[] { "17|12:00:00|14:00:00|2", "31|09:00:00|17:00:00|1" },
+            (await RowsAsync($"SELECT CONCAT(DaysOfWeekMask, '|', CONVERT(varchar(8), StartLocalTime, 108), '|', CONVERT(varchar(8), EndLocalTime, 108), '|', Effect) AS Value FROM ReadModel.AncillaryProvisionDayTimeWindows WHERE AncillaryProvisionId = {draft.Id}")).OrderBy(row => row, StringComparer.Ordinal));
         Assert.Equal(2, (await _proof.ListedProvisionsAsync(definitionId)).Single().DayTimeWindowCount);
-
-        await RequestAsync(scope => scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(draft.Id)));
-        await RefusedAsync(16303, 409, scope => scope.AddDayTimeWindow.AddAsync(WindowRow(draft.Id, 0, Window(Sunday))));
-        await RefusedAsync(16303, 409, scope => scope.RemoveDayTimeWindow.RemoveAsync(WindowRow(draft.Id, office.RowId, Window(Sunday))));
-        await RefusedAsync(16303, 409, scope => scope.ChangeDayTimeWindow.ChangeAsync(WindowRow(draft.Id, office.RowId, Window(Sunday))));
-
-        Assert.Equal(2, (await ReadAsync(draft.Id)).DayTimeApplication!.Windows.Count);
     }
 
     private static TestDefineProvisionCommand FullyRestricted(long definitionId)
@@ -388,86 +311,6 @@ public class V121ProvisionRuleAcceptanceTests
     }
 
     [Fact]
-    public async Task V121_M10_M07_each_typed_group_endpoint_replaces_only_its_group_and_keeps_the_identity_of_unchanged_rows()
-    {
-        var definitionId = await ActiveDefinitionAsync();
-        var command = FullyRestricted(definitionId);
-        var draft = await RequestAsync(scope => scope.DefineProvision.DefineAsync(command));
-        var before = await ReadAsync(draft.Id);
-
-        await RequestAsync(scope => scope.ChangePassengerEligibility.ChangeAsync(new TestChangeProvisionPassengerEligibilityCommand(draft.Id, new([PassengerTypeCode.INF, PassengerTypeCode.ADT]))));
-        await RequestAsync(scope => scope.ChangeSalesRestrictions.ChangeAsync(new TestChangeProvisionSalesRestrictionsCommand(draft.Id, new(AllowedPointOfSaleIds: [502, 503]))));
-        await RequestAsync(scope => scope.ChangeGeography.ChangeAsync(new TestChangeProvisionGeographyCommand(draft.Id, new(AllowedRoutePairs: [Pair(Thr, Ist)], CoverageCountryIds: [90]))));
-        await RequestAsync(scope => scope.ChangeFlightApplication.ChangeAsync(new TestChangeProvisionFlightApplicationCommand(draft.Id, new(AllowedFlightIds: [81240], AllowedAircraftIds: [2, 3]))));
-        await RequestAsync(scope => scope.ChangeFareApplication.ChangeAsync(new TestChangeProvisionFareApplicationCommand(draft.Id, null)));
-        await RequestAsync(scope => scope.ChangeTravelDate.ChangeAsync(new TestChangeProvisionTravelDateCommand(draft.Id, Dates([Period(Day(2027, 4, 1), Day(2027, 4, 30)), Period(Day(2027, 5, 10), Day(2027, 5, 15))]))));
-        await RequestAsync(scope => scope.ChangeDayTimeApplication.ChangeAsync(new TestChangeProvisionDayTimeApplicationCommand(draft.Id, DayTime(Window(Monday, 8, 12), Window(Friday, effect: DayTimeRestrictionEffect.Deny)))));
-        await RequestAsync(scope => scope.ChangeAdvancePurchase.ChangeAsync(new TestChangeProvisionAdvancePurchaseCommand(draft.Id, new(48, TimeUnit.Hours, true))));
-        await RequestAsync(scope => scope.ChangeSeatApplication.ChangeAsync(new TestChangeProvisionSeatApplicationCommand(draft.Id, Seat(["12F", "14C"], null))));
-
-        var after = await ReadAsync(draft.Id);
-
-        Assert.Equal(
-            new object?[]
-            {
-                "ADT,INF", "", null, null, "502,503", "", "", "", "", "", "1>6:Directional", "", "90", "", "", "", "81240", "2,3",
-                "", "", "", "", "", "", "2027-04-01..2027-04-30,2027-05-10..2027-05-15", "", "1:8-12:Allow,16:-:Deny", "48:Hours:True", null, "12F,14C", ""
-            },
-            Shape(after));
-        Assert.Null(after.FareApplication);
-        Assert.Equal(
-            new[] { before.PassengerEligibility!.Id, before.SalesRestrictions!.Id, before.Geography!.Id, before.FlightApplication!.Id, before.TravelDate!.Id, before.DayTimeApplication!.Id, before.AdvancePurchase!.Id, before.SeatApplication!.Id },
-            new[] { after.PassengerEligibility!.Id, after.SalesRestrictions!.Id, after.Geography!.Id, after.FlightApplication!.Id, after.TravelDate!.Id, after.DayTimeApplication!.Id, after.AdvancePurchase!.Id, after.SeatApplication!.Id });
-        Assert.Equal(
-            new[]
-            {
-                before.PassengerEligibility.AllowedPassengerTypes.Single(row => row.Value.Name == "ADT").Id,
-                before.SalesRestrictions.AllowedPointsOfSale.Single(row => row.Value == 502).Id,
-                before.Geography.AllowedRoutePairs.Single(row => row.DestinationAirportId == Ist && row.OriginAirportId == Thr).Id,
-                before.Geography.CoverageCountries.Single(row => row.Value == 90).Id,
-                before.FlightApplication.AllowedFlights.Single(row => row.Value == 81240).Id,
-                before.FlightApplication.AllowedAircraft.Single(row => row.Value == 2).Id,
-                before.TravelDate.PermittedPeriods.Single().Id,
-                before.DayTimeApplication.Windows.Single(row => row.Effect.Name == "Allow").Id,
-                before.SeatApplication.SeatNumbers.Single(row => row.Value == "12F").Id
-            },
-            new[]
-            {
-                after.PassengerEligibility.AllowedPassengerTypes.Single(row => row.Value.Name == "ADT").Id,
-                after.SalesRestrictions.AllowedPointsOfSale.Single(row => row.Value == 502).Id,
-                after.Geography.AllowedRoutePairs.Single().Id,
-                after.Geography.CoverageCountries.Single().Id,
-                after.FlightApplication.AllowedFlights.Single().Id,
-                after.FlightApplication.AllowedAircraft.Single(row => row.Value == 2).Id,
-                after.TravelDate.PermittedPeriods.Single(row => row.StartDate == Day(2027, 4, 1)).Id,
-                after.DayTimeApplication.Windows.Single(row => row.Effect.Name == "Allow").Id,
-                after.SeatApplication.SeatNumbers.Single(row => row.Value == "12F").Id
-            });
-
-        await RefusedAsync(16302, 422, scope => scope.ChangeSeatApplication.ChangeAsync(new TestChangeProvisionSeatApplicationCommand(draft.Id, null)));
-        await RefusedAsync(16302, 422, scope => scope.ChangeFlightApplication.ChangeAsync(new TestChangeProvisionFlightApplicationCommand(draft.Id, null)));
-        await RefusedAsync(16302, 422, scope => scope.ChangeBaggageApplication.ChangeAsync(new TestChangeProvisionBaggageApplicationCommand(draft.Id, Baggage(23m))));
-        await RefusedAsync(16302, 422, scope => scope.ChangeGeography.ChangeAsync(new TestChangeProvisionGeographyCommand(draft.Id, new(AllowedRoutePairs: [Pair(Thr, Thr)]))));
-        await RefusedAsync(16301, 404, scope => scope.ChangeTravelDate.ChangeAsync(new TestChangeProvisionTravelDateCommand(999_999_999, null)));
-
-        Assert.Equal(Shape(after), Shape(await ReadAsync(draft.Id)));
-
-        await RequestAsync(scope => scope.ChangePassengerEligibility.ChangeAsync(new TestChangeProvisionPassengerEligibilityCommand(draft.Id, null)));
-        await RequestAsync(scope => scope.ChangeSalesRestrictions.ChangeAsync(new TestChangeProvisionSalesRestrictionsCommand(draft.Id, new())));
-        await RequestAsync(scope => scope.ChangeGeography.ChangeAsync(new TestChangeProvisionGeographyCommand(draft.Id, null)));
-        await RequestAsync(scope => scope.ChangeTravelDate.ChangeAsync(new TestChangeProvisionTravelDateCommand(draft.Id, null)));
-        await RequestAsync(scope => scope.ChangeDayTimeApplication.ChangeAsync(new TestChangeProvisionDayTimeApplicationCommand(draft.Id, DayTime())));
-        await RequestAsync(scope => scope.ChangeAdvancePurchase.ChangeAsync(new TestChangeProvisionAdvancePurchaseCommand(draft.Id, null)));
-
-        var cleared = await ReadAsync(draft.Id);
-
-        Assert.Equal(new long?[] { null, null, null, after.FlightApplication.Id, null, null, null, null, null, after.SeatApplication.Id }, RuleIds(cleared));
-        Assert.Equal(
-            new[] { "0" },
-            await RowsAsync($"SELECT CAST((SELECT COUNT(*) FROM Ancillary.ProvisionPassengerEligibilityRules WHERE AncillaryProvisionId = {draft.Id}) + (SELECT COUNT(*) FROM Ancillary.ProvisionPassengerTypes WHERE AncillaryProvisionId = {draft.Id}) + (SELECT COUNT(*) FROM Ancillary.ProvisionTravelDateRules WHERE AncillaryProvisionId = {draft.Id}) + (SELECT COUNT(*) FROM Ancillary.ProvisionPermittedTravelPeriods WHERE AncillaryProvisionId = {draft.Id}) + (SELECT COUNT(*) FROM Ancillary.ProvisionAdvancePurchaseRules WHERE AncillaryProvisionId = {draft.Id}) + (SELECT COUNT(*) FROM ReadModel.AncillaryProvisionPermittedTravelPeriods WHERE AncillaryProvisionId = {draft.Id}) + (SELECT COUNT(*) FROM ReadModel.AncillaryProvisionDayTimeWindows WHERE AncillaryProvisionId = {draft.Id}) AS varchar(10)) AS Value"));
-    }
-
-    [Fact]
     public async Task V121_B_an_unrestricted_provision_has_no_rule_group_row_and_every_rule_table_is_typed()
     {
         var definitionId = await ActiveDefinitionAsync();
@@ -528,13 +371,6 @@ public class V121ProvisionRuleAcceptanceTests
         var periodId = published.TravelDate!.PermittedPeriods.Single().Id;
 
         await RefusedAsync(16303, 409, scope => scope.ChangeProvision.ChangeAsync(Change(published.Id, original with { TravelDate = null })));
-        await RefusedAsync(16303, 409, scope => scope.ChangeTravelDate.ChangeAsync(new TestChangeProvisionTravelDateCommand(published.Id, null)));
-        await RefusedAsync(16303, 409, scope => scope.ChangePassengerEligibility.ChangeAsync(new TestChangeProvisionPassengerEligibilityCommand(published.Id, Passengers(PassengerTypeCode.CHD))));
-        await RefusedAsync(16303, 409, scope => scope.ChangeGeography.ChangeAsync(new TestChangeProvisionGeographyCommand(published.Id, new(AllowedOriginAirportIds: [Thr]))));
-        await RefusedAsync(16303, 409, scope => scope.ChangePermittedTravelPeriod.ChangeAsync(new TestPermittedTravelPeriodRowCommand(published.Id, periodId, Day(2027, 4, 1), Day(2027, 4, 29))));
-        await RefusedAsync(16303, 409, scope => scope.RemovePermittedTravelPeriod.RemoveAsync(new TestPermittedTravelPeriodRowCommand(published.Id, periodId, default, default)));
-        await RefusedAsync(16303, 409, scope => scope.AddBlackoutPeriod.AddAsync(new TestBlackoutPeriodRowCommand(published.Id, 0, Day(2027, 4, 10), Day(2027, 4, 12))));
-        await RefusedAsync(16303, 409, scope => scope.AddDayTimeWindow.AddAsync(WindowRow(published.Id, 0, Window(Monday))));
 
         _clock.Now = _clock.Now.AddHours(1);
 
@@ -583,7 +419,7 @@ public class V121ProvisionRuleAcceptanceTests
     }
 
     [Fact]
-    public async Task V121_M07_two_concurrent_edits_of_one_draft_rule_group_conflict_instead_of_overwriting_or_overlapping()
+    public async Task V121_M07_two_concurrent_edits_of_one_draft_conflict_instead_of_overwriting()
     {
         var definitionId = await ActiveDefinitionAsync();
         var draftCommand = Free(definitionId) with { TravelDate = Dates([Period(Day(2027, 4, 1), Day(2027, 4, 10))]), PassengerEligibility = Passengers(PassengerTypeCode.ADT) };
@@ -598,38 +434,10 @@ public class V121ProvisionRuleAcceptanceTests
             await BusinessAssert.ThrowsAsync(16005, 409, () => secondEditor.ChangeProvision.ChangeAsync(Change(draft.Id, draftCommand with { Sequence = 30 })));
         }
 
-        await using (var firstEditor = new AncillaryScope(_database, _clock))
-        await using (var secondEditor = new AncillaryScope(_database, _clock))
-        {
-            await firstEditor.Provisions.GetAsync(draft.Id);
-            await secondEditor.Provisions.GetAsync(draft.Id);
-            await firstEditor.AddPermittedTravelPeriod.AddAsync(new TestPermittedTravelPeriodRowCommand(draft.Id, 0, Day(2027, 5, 1), Day(2027, 5, 10)));
-            await BusinessAssert.ThrowsAsync(16005, 409, () => secondEditor.AddPermittedTravelPeriod.AddAsync(new TestPermittedTravelPeriodRowCommand(draft.Id, 0, Day(2027, 5, 5), Day(2027, 5, 20))));
-        }
-
-        await using (var firstEditor = new AncillaryScope(_database, _clock))
-        await using (var secondEditor = new AncillaryScope(_database, _clock))
-        await using (var thirdEditor = new AncillaryScope(_database, _clock))
-        {
-            await firstEditor.Provisions.GetAsync(draft.Id);
-            await secondEditor.Provisions.GetAsync(draft.Id);
-            await thirdEditor.Provisions.GetAsync(draft.Id);
-            await firstEditor.ChangeDayTimeApplication.ChangeAsync(new TestChangeProvisionDayTimeApplicationCommand(draft.Id, DayTime(Window(Monday, 9, 10))));
-            await BusinessAssert.ThrowsAsync(16005, 409, () => secondEditor.ChangePassengerEligibility.ChangeAsync(new TestChangeProvisionPassengerEligibilityCommand(draft.Id, Passengers(PassengerTypeCode.CHD))));
-            await BusinessAssert.ThrowsAsync(16005, 409, () => thirdEditor.AddDayTimeWindow.AddAsync(WindowRow(draft.Id, 0, Window(Monday, 8, 12, DayTimeRestrictionEffect.Deny))));
-        }
-
         var stored = await ReadAsync(draft.Id);
 
         Assert.Equal(20, stored.Sequence);
-        Assert.Equal(
-            new[] { (draft.TravelDate!.PermittedPeriods.Single().Id, Day(2027, 4, 1), Day(2027, 4, 10)), (stored.TravelDate!.PermittedPeriods[1].Id, Day(2027, 5, 1), Day(2027, 5, 10)) },
-            stored.TravelDate.PermittedPeriods.Select(row => (row.Id, row.StartDate, row.EndDate)));
-        Assert.Equal((draft.PassengerEligibility!.AllowedPassengerTypes.Single().Id, "ADT"), stored.PassengerEligibility!.AllowedPassengerTypes.Select(row => (row.Id, row.Value.Name)).Single());
-        Assert.Equal((byte)1, stored.DayTimeApplication!.Windows.Single().DaysOfWeekMask);
-
-        await RequestAsync(scope => scope.AddPermittedTravelPeriod.AddAsync(new TestPermittedTravelPeriodRowCommand(draft.Id, 0, Day(2027, 5, 5), Day(2027, 5, 20))));
-
-        Assert.Equal(new[] { (Day(2027, 4, 1), Day(2027, 4, 10)), (Day(2027, 5, 1), Day(2027, 5, 20)) }, Periods((await ReadAsync(draft.Id)).TravelDate!.PermittedPeriods));
+        Assert.Equal(new[] { (Day(2027, 4, 1), Day(2027, 4, 10)) }, Periods(stored.TravelDate!.PermittedPeriods));
+        Assert.Equal("ADT", stored.PassengerEligibility!.AllowedPassengerTypes.Single().Value.Name);
     }
 }

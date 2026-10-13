@@ -1,3 +1,5 @@
+using AeroTech.Ancillary.Domain._Shared.Contracts;
+using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionForm;
 using AeroTech.Framework.Infrastructure.HealthChecks;
 using AeroTech.Ancillary.Query.AirportSlotInventoryAggregate.Queries.GetAirportSlotInventoriesPaginated;
@@ -59,6 +61,7 @@ namespace AeroTech.Ancillary.Query
             services.AddScoped<IGetAncillaryOfferDetailService, GetAncillaryOfferDetailService>();
             services.AddScoped<IEvaluateSelectionService, EvaluateSelectionService>();
             services.AddScoped<IGetSeatMapService, GetSeatMapService>();
+            services.AddScoped<IPointOfSaleEligibilityReference, PointOfSaleEligibilityService>();
             services.AddScoped<IAgencySalesScopeService, AgencySalesScopeService>();
             services.AddScoped<IBackofficeSalesScopeResolver, BackofficeSalesScopeResolver>();
             services.AddScoped<IApiSalesScopeResolver, ApiSalesScopeResolver>();

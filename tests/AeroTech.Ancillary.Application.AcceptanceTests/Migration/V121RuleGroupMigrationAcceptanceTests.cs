@@ -1,6 +1,8 @@
+using System.Text.Json.Nodes;
 using AeroTech.Ancillary.Application.AcceptanceTests.Fakes;
 using AeroTech.Ancillary.Application.AcceptanceTests.Fixtures;
 using AeroTech.Ancillary.Query.AncillaryPricingAggregate.Queries.GetAncillaryPricingsPaginated.Backoffice;
+using AeroTech.Ancillary.RestApi.V1.AncillaryProvisionAggregate.Requests;
 using AeroTech.Messages.Ancillary.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -282,7 +284,16 @@ public class V121RuleGroupMigrationAcceptanceTests : IAsyncLifetime
         await MigrateAsync(null, null);
         await RequestAsync(scope => scope.AssignPricingUnit.AssignAsync(new TestAssignPricingUnitCommand(SimDefinition, PricingUnit.PerItem)));
         await RequestAsync(scope => scope.AssignServiceDateBasis.AssignAsync(new TestAssignServiceDateBasisCommand(SimDefinition, ServiceDateBasis.Activation)));
-        await RequestAsync(scope => scope.ChangeTravelDate.ChangeAsync(new TestChangeProvisionTravelDateCommand(SimRule, new([new(new DateOnly(2028, 1, 1), new DateOnly(2028, 1, 31))]))));
+
+        await using (var desk = new ControllerDesk(_database, _clock))
+        {
+            var form = HostJson.Data(await desk.Provisions.GetForm(SimRule, CancellationToken.None))["form"]!;
+
+            form["priceOrigin"] = form["outcome"]!["disposition"]!.GetValue<string>() == "Paid" ? "Filed" : "Free";
+            form["purchaseStage"] = "Both";
+            form["travelDate"] = JsonNode.Parse("""{"permittedPeriods":[{"startDate":"2028-01-01","endDate":"2028-01-31"}],"blackoutPeriods":[]}""");
+            await desk.Provisions.Change(SimRule, HostJson.Bind<ChangeProvisionRequest>(form.ToJsonString()), CancellationToken.None);
+        }
 
         Assert.Equal("PERMIT=2028-01-01..2028-01-31; TIME=16:-:Deny,1:9-10:Deny", await TextAsync(SimRule));
         Assert.Empty(await ParityDifferencesAsync());

@@ -109,12 +109,6 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public static BusinessException ProvisionServiceDefinitionNotActive(params object?[] args) =>
             new(16307, ExceptionMessages.ProvisionServiceDefinitionNotActive, args) { HttpStatus = 409 };
 
-        public static BusinessException ProvisionConditionNotFound(params object?[] args) =>
-            new(16308, ExceptionMessages.ProvisionConditionNotFound, args) { HttpStatus = 404 };
-
-        public static BusinessException ProvisionConditionAlreadyExists(params object?[] args) =>
-            new(16309, ExceptionMessages.ProvisionConditionAlreadyExists, args) { HttpStatus = 409 };
-
         public static BusinessException ProvisionActivePricingRequired(params object?[] args) =>
             new(16310, ExceptionMessages.ProvisionActivePricingRequired, args) { HttpStatus = 409 };
 

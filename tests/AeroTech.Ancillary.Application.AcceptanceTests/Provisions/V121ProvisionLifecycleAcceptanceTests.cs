@@ -4,19 +4,10 @@ using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.ChangeAn
 using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.DefineAncillaryPricing;
 using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.DefineAncillaryPricing.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.SwitchActiveAncillaryPricing.Backoffice;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionBlackoutPeriod.Backoffice;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionDayTimeWindow.Backoffice;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.AddProvisionPermittedTravelPeriod.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeAncillaryProvision.Backoffice;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionDayTimeApplication.Backoffice;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionDayTimeWindow.Backoffice;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionGeography.Backoffice;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionPermittedTravelPeriod.Backoffice;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ChangeProvisionTravelDate.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.DefineAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.DefineAncillaryProvision.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.PublishAncillaryProvision.Backoffice;
-using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RemoveProvisionBlackoutPeriod.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.AssignAncillaryServiceDefinitionPricingUnit.Backoffice;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.AssignAncillaryServiceDefinitionServiceDateBasis.Backoffice;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionsPaginated.Backoffice;
@@ -368,8 +359,11 @@ public class V121ProvisionLifecycleAcceptanceTests
             new[] { ticketed, fare, flight, route, weeks, blackedOut, denied },
             provisionId => Assert.Equal(ProvisionStatus.Draft, RequestAsync(scope => scope.Provisions.GetAsync(provisionId)).GetAwaiter().GetResult()!.Status));
 
-        await RequestAsync(scope => scope.ChangeAdvancePurchase.ChangeAsync(new TestChangeProvisionAdvancePurchaseCommand(weeks, new(14, TimeUnit.Days))));
-        await RequestAsync(scope => scope.ChangeTravelDate.ChangeAsync(new TestChangeProvisionTravelDateCommand(blackedOut, Dates([Period(Day(2027, 4, 1), Day(2027, 4, 30))], [Period(Day(2027, 4, 10), Day(2027, 4, 12))]))));
+        await RequestAsync(scope => scope.ChangeProvision.ChangeAsync(Change(weeks, Provision(flightId, 10, CommercialDisposition.Free) with { AdvancePurchase = new(14, TimeUnit.Days) })));
+        await RequestAsync(scope => scope.ChangeProvision.ChangeAsync(Change(blackedOut, Provision(flightId, 20, CommercialDisposition.Free) with
+        {
+            TravelDate = Dates([Period(Day(2027, 4, 1), Day(2027, 4, 30))], [Period(Day(2027, 4, 10), Day(2027, 4, 12))])
+        })));
 
         Assert.Equal(ProvisionStatus.Active, (await RequestAsync(scope => scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(weeks)))).Status);
         Assert.Equal(ProvisionStatus.Active, (await RequestAsync(scope => scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(blackedOut)))).Status);
@@ -546,48 +540,6 @@ public class V121ProvisionLifecycleAcceptanceTests
             new[] { "Rates[0].Components[0].Category", "Rates[0].Components[0].Code", "Rates[0].Components[1].Code", "Rates[1].PassengerTypeCode" },
             PricingChangeErrors(1, wrongCategory, wrongPassenger, longCode, longName));
 
-        Assert.Equal(
-            new[] { "ProvisionId", "DaysOfWeekMask", "Effect" },
-            new BackofficeAddProvisionDayTimeWindowCommandValidator()
-                .Validate(new BackofficeAddProvisionDayTimeWindowCommand(0, 0, null, null, (DayTimeRestrictionEffect)9))
-                .Errors.Select(error => error.PropertyName));
-        Assert.Equal(
-            new[] { "ProvisionId", "RowId", "DaysOfWeekMask" },
-            new BackofficeChangeProvisionDayTimeWindowCommandValidator()
-                .Validate(new BackofficeChangeProvisionDayTimeWindowCommand(0, 0, 200, null, null, DayTimeRestrictionEffect.Deny))
-                .Errors.Select(error => error.PropertyName));
-        Assert.Equal(
-            new[] { "ProvisionId" },
-            new BackofficeAddProvisionPermittedTravelPeriodCommandValidator()
-                .Validate(new BackofficeAddProvisionPermittedTravelPeriodCommand(0, new DateOnly(2027, 1, 1), new DateOnly(2027, 1, 2)))
-                .Errors.Select(error => error.PropertyName));
-        Assert.Equal(
-            new[] { "ProvisionId" },
-            new BackofficeAddProvisionBlackoutPeriodCommandValidator()
-                .Validate(new BackofficeAddProvisionBlackoutPeriodCommand(0, new DateOnly(2027, 1, 1), new DateOnly(2027, 1, 2)))
-                .Errors.Select(error => error.PropertyName));
-        Assert.Equal(
-            new[] { "ProvisionId", "RowId" },
-            new BackofficeChangeProvisionPermittedTravelPeriodCommandValidator()
-                .Validate(new BackofficeChangeProvisionPermittedTravelPeriodCommand(0, 0, new DateOnly(2027, 1, 1), new DateOnly(2027, 1, 2)))
-                .Errors.Select(error => error.PropertyName));
-        Assert.Equal(
-            new[] { "ProvisionId", "RowId" },
-            new BackofficeRemoveProvisionBlackoutPeriodCommandValidator()
-                .Validate(new BackofficeRemoveProvisionBlackoutPeriodCommand(0, 0))
-                .Errors.Select(error => error.PropertyName));
-        Assert.Equal(
-            new[] { "ProvisionId", "Geography.AllowedRoutePairs[0].Direction", "Geography.ServiceLocations[0].LocationType" },
-            new BackofficeChangeProvisionGeographyCommandValidator()
-                .Validate(new BackofficeChangeProvisionGeographyCommand(0, new(AllowedRoutePairs: [new(1, 6, (RoutePairDirection)9)], ServiceLocations: [new((ServiceLocationType)9, 1)])))
-                .Errors.Select(error => error.PropertyName));
-        Assert.Empty(new BackofficeChangeProvisionGeographyCommandValidator().Validate(new BackofficeChangeProvisionGeographyCommand(7, null)).Errors);
-        Assert.Empty(new BackofficeChangeProvisionTravelDateCommandValidator().Validate(new BackofficeChangeProvisionTravelDateCommand(7, Dates([Period(Day(2027, 1, 1), Day(2027, 1, 2))]))).Errors);
-        Assert.Equal(
-            new[] { "DayTimeApplication.Windows[1].DaysOfWeekMask" },
-            new BackofficeChangeProvisionDayTimeApplicationCommandValidator()
-                .Validate(new BackofficeChangeProvisionDayTimeApplicationCommand(7, DayTime(Window(Monday), Window(0))))
-                .Errors.Select(error => error.PropertyName));
         Assert.Equal(
             new[] { "ProvisionId", "PricingId" },
             new BackofficePublishAncillaryProvisionCommandValidator()

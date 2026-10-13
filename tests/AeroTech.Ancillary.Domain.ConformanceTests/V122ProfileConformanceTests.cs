@@ -131,15 +131,20 @@ public class V122ProfileConformanceTests
     }
 
     [Fact]
-    public void CT03_a_rule_of_another_family_is_refused_at_publication()
+    public void CT03_a_rule_of_another_family_is_refused_when_it_is_authored_and_another_application_type_at_publication()
     {
-        var petRule = Provision(Groups() with { PetRule = new ProvisionPetRuleArgs(null, null, null, ConfirmationRequirement.SubjectToConfirmation) }, disposition: CommercialDisposition.Free);
-        var medical = Provision(Groups() with { AssistedTravelRule = new ProvisionAssistedTravelRuleArgs(null, null, true) }, disposition: CommercialDisposition.Free);
-        var airport = Provision(Groups() with { AirportServiceRule = new ProvisionAirportServiceRuleArgs("T1", null, null, null, null, null) }, disposition: CommercialDisposition.Free);
+        BusinessAssert.Throws(16321, 409, () => Provision(
+            Groups() with { PetRule = new ProvisionPetRuleArgs(null, null, null, ConfirmationRequirement.SubjectToConfirmation) },
+            disposition: CommercialDisposition.Free));
+        BusinessAssert.Throws(16321, 409, () => Provision(Groups() with { AssistedTravelRule = new ProvisionAssistedTravelRuleArgs(null, null, true) }, disposition: CommercialDisposition.Free));
+        BusinessAssert.Throws(16321, 409, () => Provision(
+            Groups() with { AirportServiceRule = new ProvisionAirportServiceRuleArgs("T1", null, null, null, null, null) },
+            disposition: CommercialDisposition.Free));
+
         var baggage = Provision(applicationType: ProvisionApplicationType.Baggage, disposition: CommercialDisposition.Free);
 
-        Assert.All(new[] { petRule, medical, airport, baggage }, provision => BusinessAssert.Throws(16321, 409, () => provision.Activate(CarrierDefinition(), null, Now)));
-        Assert.All(new[] { petRule, medical, airport, baggage }, provision => Assert.Equal(ProvisionStatus.Draft, provision.Status));
+        BusinessAssert.Throws(16321, 409, () => baggage.Activate(CarrierDefinition(), null, Now));
+        Assert.Equal(ProvisionStatus.Draft, baggage.Status);
     }
 
     [Fact]
@@ -164,7 +169,7 @@ public class V122ProfileConformanceTests
         AncillaryProvision Origin(CommercialDisposition disposition, PriceOrigin origin, string? key)
             => AncillaryProvision.Define(
                 5001,
-                1001,
+                definition,
                 10,
                 ServiceCoverageScope.Sector,
                 PurchaseStage.Both,

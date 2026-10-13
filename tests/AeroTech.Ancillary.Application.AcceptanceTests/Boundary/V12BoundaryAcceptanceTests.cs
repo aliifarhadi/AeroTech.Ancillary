@@ -261,19 +261,6 @@ public class V12BoundaryAcceptanceTests
             "POST Backoffice/AncillaryPricings/{pricingId:long}/Revise"
         ];
 
-        var rows = new[] { "TravelDate/PermittedPeriods", "TravelDate/BlackoutPeriods", "DayTimeApplication/Windows" }
-            .SelectMany(collection => new[]
-            {
-                $"POST Backoffice/AncillaryProvisions/{{provisionId:long}}/{collection}",
-                $"PUT Backoffice/AncillaryProvisions/{{provisionId:long}}/{collection}/{{rowId:long}}",
-                $"DELETE Backoffice/AncillaryProvisions/{{provisionId:long}}/{collection}/{{rowId:long}}"
-            });
-        var groups = new[]
-            {
-                "PassengerEligibility", "SalesRestrictions", "Geography", "FlightApplication", "FareApplication", "TravelDate", "DayTimeApplication",
-                "AdvancePurchase", "BaggageApplication", "SeatApplication", "PetRule", "AssistedTravelRule", "AirportServiceRule"
-            }
-            .Select(group => $"PUT Backoffice/AncillaryProvisions/{{provisionId:long}}/{group}");
         var typed = Enum.GetNames<AncillaryProfile>().SelectMany(profile => new[]
         {
             $"POST Backoffice/AncillaryServiceDefinitions/{profile}",
@@ -323,9 +310,9 @@ public class V12BoundaryAcceptanceTests
         ];
 
         Assert.Equal(
-            preserved.Concat(added).Concat(rows).Concat(groups).Concat(typed).Concat(forms).Concat(inventory).OrderBy(route => route, StringComparer.Ordinal),
+            preserved.Concat(added).Concat(typed).Concat(forms).Concat(inventory).OrderBy(route => route, StringComparer.Ordinal),
             routes.OrderBy(route => route, StringComparer.Ordinal));
-        Assert.Equal(135, routes.Count);
+        Assert.Equal(113, routes.Count);
         Assert.Equal(36, inventory.Length);
         Assert.DoesNotContain(routes, route => new[] { "Sell", "Reserve", "Release", "Expire" }.Any(term => route.Contains(term, StringComparison.Ordinal)));
         Assert.Equal(
@@ -448,12 +435,12 @@ public class V12BoundaryAcceptanceTests
                            && type.Name.EndsWith("Service", StringComparison.Ordinal))
             .ToList();
 
-        Assert.Equal(76, contracts.Count);
+        Assert.Equal(54, contracts.Count);
         Assert.Equal(5, contracts.Count(contract => contract.Namespace!.Contains(".AncillaryInventoryPolicyAggregate.", StringComparison.Ordinal)));
         Assert.Equal(7, contracts.Count(contract => contract.Namespace!.Contains(".FlightCountInventoryAggregate.", StringComparison.Ordinal)));
         Assert.Equal(7, contracts.Count(contract => contract.Namespace!.Contains(".FlightWeightInventoryAggregate.", StringComparison.Ordinal)));
         Assert.Equal(7, contracts.Count(contract => contract.Namespace!.Contains(".AirportSlotInventoryAggregate.", StringComparison.Ordinal)));
-        Assert.Equal(29, contracts.Count(contract => contract.Namespace!.Contains(".AncillaryProvisionAggregate.", StringComparison.Ordinal)));
+        Assert.Equal(7, contracts.Count(contract => contract.Namespace!.Contains(".AncillaryProvisionAggregate.", StringComparison.Ordinal)));
         Assert.Equal(9, contracts.Count(contract => contract.Namespace!.Contains(".AncillaryServiceDefinitionAggregate.", StringComparison.Ordinal)));
         Assert.Equal(8, contracts.Count(contract => contract.Namespace!.Contains(".AncillaryPricingAggregate.", StringComparison.Ordinal)));
         Assert.Equal(2, contracts.Count(contract => contract.Namespace!.Contains($".{FrozenAggregate}.", StringComparison.Ordinal)));

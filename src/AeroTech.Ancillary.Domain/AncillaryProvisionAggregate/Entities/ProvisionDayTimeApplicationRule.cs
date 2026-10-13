@@ -26,12 +26,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
 
         public IReadOnlyCollection<ProvisionDayTimeWindow> Windows => _windows.AsReadOnly();
 
-        internal bool IsEmpty => _windows.Count == 0;
-
         internal bool IsUnsatisfiable => Enumerable.Range(0, DaysInWeek).All(day => !HasOpenTime((byte)(1 << day)));
-
-        internal static ProvisionDayTimeApplicationRule Open(long ancillaryProvisionId, IIdGenerator idGenerator)
-            => new(idGenerator.NewId(), ancillaryProvisionId);
 
         internal static Func<ProvisionDayTimeApplicationRule?> Plan(
             ProvisionDayTimeApplicationRule? stored,
@@ -58,33 +53,6 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
                 return rule;
             };
         }
-
-        internal ProvisionDayTimeWindow AddWindow(ProvisionDayTimeWindowArgs window, IIdGenerator idGenerator)
-        {
-            var row = new ProvisionDayTimeWindow(idGenerator.NewId(), AncillaryProvisionId, Id, window);
-
-            if (_windows.Any(other => other.SameAs(window)))
-                throw ExceptionFactory.ProvisionConditionAlreadyExists();
-
-            _windows.Add(row);
-
-            return row;
-        }
-
-        internal ProvisionDayTimeWindow ChangeWindow(long rowId, ProvisionDayTimeWindowArgs window)
-        {
-            var row = _windows.FirstOrDefault(other => other.Id == rowId) ?? throw ExceptionFactory.ProvisionConditionNotFound();
-
-            if (_windows.Any(other => other.Id != rowId && other.SameAs(window)))
-                throw ExceptionFactory.ProvisionConditionAlreadyExists();
-
-            row.Change(window);
-
-            return row;
-        }
-
-        internal void RemoveWindow(long rowId)
-            => _windows.Remove(_windows.FirstOrDefault(other => other.Id == rowId) ?? throw ExceptionFactory.ProvisionConditionNotFound());
 
         private bool HasOpenTime(byte day)
         {

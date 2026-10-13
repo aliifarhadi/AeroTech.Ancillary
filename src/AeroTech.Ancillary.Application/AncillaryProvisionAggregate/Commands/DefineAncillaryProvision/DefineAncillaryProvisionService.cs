@@ -41,7 +41,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
 
             var provision = AncillaryProvision.Define(
                 _idGenerator.NewId(),
-                definition.Id,
+                definition,
                 command.Sequence,
                 command.CoverageScope,
                 command.PurchaseStage,

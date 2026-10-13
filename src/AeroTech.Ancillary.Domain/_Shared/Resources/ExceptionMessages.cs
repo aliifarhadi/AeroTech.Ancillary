@@ -37,8 +37,6 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public const string FeeApplicationUnitNotSupported = "Fee application unit {0} is not supported for activation.";
         public const string ProvisionSequenceAlreadyActive = "An active provision already exists at sequence {0} of the service definition.";
         public const string ProvisionServiceDefinitionNotActive = "The service definition of the provision is not active.";
-        public const string ProvisionConditionNotFound = "The provision condition row was not found.";
-        public const string ProvisionConditionAlreadyExists = "The provision already has this condition row.";
         public const string ProvisionActivePricingRequired = "A paid provision needs exactly one active pricing.";
         public const string ProvisionActivePricingNotAllowed = "A free or not available provision cannot have an active pricing.";
         public const string ProvisionQuantityUnitIncompatible = "Pricing unit {0} cannot be sold with quantity unit {1}.";

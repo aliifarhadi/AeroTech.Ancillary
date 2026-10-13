@@ -38,21 +38,22 @@ public class V122ProfileRuleAcceptanceTests
             await request(scope);
         });
 
-    private async Task<(long DefinitionId, long ProvisionId)> DraftRuleAsync(string code)
+    private async Task<(long DefinitionId, long ProvisionId, TestDefineProvisionCommand Command)> DraftRuleAsync(string code)
     {
         var variant = V122Catalog.Case(code);
         var airlineId = _database.NextAirlineId();
         var supplierId = await _proof.SupplierAsync(
             V122Catalog.NeedsExternalSupplier(variant) ? M1Commands.ExternalSupplier(airlineId, V122Catalog.QuoteProvider) : M1Commands.LocalSupplier(airlineId));
         var definition = await _proof.DefinitionAsync(V122Catalog.Define(variant, airlineId, supplierId));
-        var provision = await RequestAsync(scope => scope.DefineProvision.DefineAsync(V122Catalog.Rule(variant, definition.Id) with
+        var command = V122Catalog.Rule(variant, definition.Id) with
         {
             PetRule = null,
             AssistedTravelRule = null,
             AirportServiceRule = null
-        }));
+        };
+        var provision = await RequestAsync(scope => scope.DefineProvision.DefineAsync(command));
 
-        return (definition.Id, provision.Id);
+        return (definition.Id, provision.Id, command);
     }
 
     private Task<BackofficeProvisionDto> ReadAsync(long provisionId) => RequestAsync(scope => scope.GetProvisionById.ExecuteAsync(provisionId));
@@ -60,28 +61,26 @@ public class V122ProfileRuleAcceptanceTests
     [Fact]
     public async Task V122_a_pet_rule_is_edited_and_removed_on_a_draft_of_a_pet_product_only()
     {
-        var (_, pet) = await DraftRuleAsync("A13");
-        var (_, priority) = await DraftRuleAsync("A23");
+        var (_, pet, petCommand) = await DraftRuleAsync("A13");
+        var (_, priority, priorityCommand) = await DraftRuleAsync("A23");
         var rule = new ProvisionPetRuleInput("EU_ENTRY", 16, 6m, ConfirmationRequirement.SubjectToConfirmation);
 
         Assert.Null((await ReadAsync(pet)).PetRule);
 
-        await RequestAsync(scope => scope.ChangePetRule.ChangeAsync(new TestChangeProvisionPetRuleCommand(pet, rule)));
+        await RequestAsync(scope => scope.ChangeProvision.ChangeAsync(P1Commands.Change(pet, petCommand with { PetRule = rule })));
 
         var authored = (await ReadAsync(pet)).PetRule!;
 
         Assert.Equal(("EU_ENTRY", 16, 6m, "SubjectToConfirmation"), (authored.CountryExceptionCode, authored.MinAnimalAgeWeeksOverride!.Value, authored.MaxCombinedKgOverride!.Value, authored.AcceptanceMode.Name));
 
-        await RequestAsync(scope => scope.ChangePetRule.ChangeAsync(new TestChangeProvisionPetRuleCommand(pet, rule with { MaxCombinedKgOverride = 5m })));
+        await RequestAsync(scope => scope.ChangeProvision.ChangeAsync(P1Commands.Change(pet, petCommand with { PetRule = rule with { MaxCombinedKgOverride = 5m } })));
 
-        var edited = (await ReadAsync(pet)).PetRule!;
-
-        Assert.Equal((authored.Id, 5m), (edited.Id, edited.MaxCombinedKgOverride!.Value));
-        await RefusedAsync(16321, 409, scope => scope.ChangePetRule.ChangeAsync(new TestChangeProvisionPetRuleCommand(priority, rule)));
-        await RefusedAsync(16302, 422, scope => scope.ChangePetRule.ChangeAsync(new TestChangeProvisionPetRuleCommand(pet, rule with { MaxCombinedKgOverride = 0m })));
-        await RefusedAsync(16301, 404, scope => scope.ChangePetRule.ChangeAsync(new TestChangeProvisionPetRuleCommand(999_999_999, rule)));
-        await RequestAsync(scope => scope.ChangePetRule.ChangeAsync(new TestChangeProvisionPetRuleCommand(pet, null)));
-        await RequestAsync(scope => scope.ChangePetRule.ChangeAsync(new TestChangeProvisionPetRuleCommand(priority, null)));
+        Assert.Equal(5m, (await ReadAsync(pet)).PetRule!.MaxCombinedKgOverride!.Value);
+        await RefusedAsync(16321, 409, scope => scope.ChangeProvision.ChangeAsync(P1Commands.Change(priority, priorityCommand with { PetRule = rule })));
+        await RefusedAsync(16302, 422, scope => scope.ChangeProvision.ChangeAsync(P1Commands.Change(pet, petCommand with { PetRule = rule with { MaxCombinedKgOverride = 0m } })));
+        await RefusedAsync(16301, 404, scope => scope.ChangeProvision.ChangeAsync(P1Commands.Change(999_999_999, petCommand with { PetRule = rule })));
+        await RequestAsync(scope => scope.ChangeProvision.ChangeAsync(P1Commands.Change(pet, petCommand)));
+        await RequestAsync(scope => scope.ChangeProvision.ChangeAsync(P1Commands.Change(priority, priorityCommand)));
 
         Assert.Null((await ReadAsync(pet)).PetRule);
         Assert.Equal(
@@ -92,16 +91,16 @@ public class V122ProfileRuleAcceptanceTests
     [Fact]
     public async Task V122_an_assisted_travel_rule_and_an_airport_service_rule_follow_their_own_profile_and_the_draft_lifecycle()
     {
-        var (_, medical) = await DraftRuleAsync("A17");
-        var (_, lounge) = await DraftRuleAsync("A20");
+        var (_, medical, medicalCommand) = await DraftRuleAsync("A17");
+        var (_, lounge, loungeCommand) = await DraftRuleAsync("A20");
         var assisted = new ProvisionAssistedTravelRuleInput(2880, null, true);
         var airport = new ProvisionAirportServiceRuleInput("T1", AirportServiceDirection.Departure, new TimeOnly(6, 0), new TimeOnly(20, 0), null, 1);
 
-        await RequestAsync(scope => scope.ChangeAssistedTravelRule.ChangeAsync(new TestChangeProvisionAssistedTravelRuleCommand(medical, assisted)));
-        await RequestAsync(scope => scope.ChangeAirportServiceRule.ChangeAsync(new TestChangeProvisionAirportServiceRuleCommand(lounge, airport)));
-        await RefusedAsync(16321, 409, scope => scope.ChangeAssistedTravelRule.ChangeAsync(new TestChangeProvisionAssistedTravelRuleCommand(lounge, assisted)));
-        await RefusedAsync(16321, 409, scope => scope.ChangeAirportServiceRule.ChangeAsync(new TestChangeProvisionAirportServiceRuleCommand(medical, airport)));
-        await RefusedAsync(16302, 422, scope => scope.ChangeAirportServiceRule.ChangeAsync(new TestChangeProvisionAirportServiceRuleCommand(lounge, airport with { MaxGuestsPerPrimary = -1 })));
+        await RequestAsync(scope => scope.ChangeProvision.ChangeAsync(P1Commands.Change(medical, medicalCommand with { AssistedTravelRule = assisted })));
+        await RequestAsync(scope => scope.ChangeProvision.ChangeAsync(P1Commands.Change(lounge, loungeCommand with { AirportServiceRule = airport })));
+        await RefusedAsync(16321, 409, scope => scope.ChangeProvision.ChangeAsync(P1Commands.Change(lounge, loungeCommand with { AssistedTravelRule = assisted })));
+        await RefusedAsync(16321, 409, scope => scope.ChangeProvision.ChangeAsync(P1Commands.Change(medical, medicalCommand with { AirportServiceRule = airport })));
+        await RefusedAsync(16302, 422, scope => scope.ChangeProvision.ChangeAsync(P1Commands.Change(lounge, loungeCommand with { AirportServiceRule = airport with { MaxGuestsPerPrimary = -1 } })));
 
         var medicalRule = (await ReadAsync(medical)).AssistedTravelRule!;
         var loungeRule = (await ReadAsync(lounge)).AirportServiceRule!;
@@ -112,7 +111,7 @@ public class V122ProfileRuleAcceptanceTests
 
         await RequestAsync(scope => scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(medical)));
 
-        await RefusedAsync(16303, 409, scope => scope.ChangeAssistedTravelRule.ChangeAsync(new TestChangeProvisionAssistedTravelRuleCommand(medical, null)));
+        await RefusedAsync(16303, 409, scope => scope.ChangeProvision.ChangeAsync(P1Commands.Change(medical, medicalCommand)));
         Assert.Equal("Active", (await ReadAsync(medical)).Status.Name);
         Assert.NotNull((await ReadAsync(medical)).AssistedTravelRule);
     }
@@ -152,7 +151,7 @@ public class V122ProfileRuleAcceptanceTests
     [InlineData("A24", "FlightApplication,FareApplication")]
     public async Task V122_the_provision_detail_names_only_the_rule_sections_of_its_profile(string code, string own)
     {
-        var (_, provisionId) = await DraftRuleAsync(code);
+        var (_, provisionId, _) = await DraftRuleAsync(code);
         var detail = await ReadAsync(provisionId);
 
         Assert.Equal((V122Catalog.Case(code).Profile.ToString(), code), (detail.Profile!.Name, detail.VariantCode));

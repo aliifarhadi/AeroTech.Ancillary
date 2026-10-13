@@ -106,7 +106,7 @@ namespace AeroTech.Ancillary.Synchronizer._Shared
                 return ExceptionFactory.ConcurrentChangeDetected();
 
             if (duplicate.Message.Contains("unique index 'IX_Provision", StringComparison.Ordinal))
-                return ExceptionFactory.ProvisionConditionAlreadyExists();
+                return ExceptionFactory.ConcurrentChangeDetected();
 
             return null;
         }

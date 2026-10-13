@@ -308,7 +308,7 @@ public class V121LegacyChainMigrationAcceptanceTests : IAsyncLifetime
 
         Assert.Equal("Active", (await RequestAsync(scope => scope.GetPricingById.ExecuteAsync(FullRule))).Status.Name);
         Assert.Equal("Active", (await RequestAsync(scope => scope.GetProvisionById.ExecuteAsync(FullRule))).Status.Name);
-        await RefusedAsync(16303, 409, scope => scope.AddPermittedTravelPeriod.AddAsync(new TestPermittedTravelPeriodRowCommand(FreeRule, 0, new DateOnly(2027, 1, 1), new DateOnly(2027, 1, 2))));
+        await RefusedAsync(16303, 409, scope => scope.ChangeProvision.ChangeAsync(Change(FreeRule, Provision(0, 10, CommercialDisposition.Free))));
         Assert.Empty(await ParityDifferencesAsync());
     }
 }

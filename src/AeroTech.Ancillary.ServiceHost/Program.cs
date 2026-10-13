@@ -45,7 +45,7 @@ builder.Services.AddScoped<IOperatorAirlineResolver, ReferenceDataOperatorAirlin
 builder.Services.AddScoped<IAirportReference, ReferenceDataAirportReference>();
 builder.Services.AddScoped<ICurrencyReference, ReferenceDataCurrencyReference>();
 builder.Services.AddScoped<IAirFareReference, ReferenceDataAirFareReference>();
-builder.Services.AddScoped<IPointOfSaleEligibilityReference, ReferenceDataPointOfSaleEligibilityReference>();
+builder.Services.AddScoped<IPointOfSaleConditionReference, ReferenceDataPointOfSaleConditionReference>();
 builder.Services.Replace(ServiceDescriptor.Scoped<IActorResolver, CallerContextActorResolver>());
 
 var app = builder.Build();

@@ -26,8 +26,6 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
 
         public IReadOnlyCollection<ProvisionBlackoutPeriod> BlackoutPeriods => _blackoutPeriods.AsReadOnly();
 
-        internal bool IsEmpty => _permittedPeriods.Count == 0 && _blackoutPeriods.Count == 0;
-
         internal bool IsUnsatisfiable
         {
             get
@@ -39,9 +37,6 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
                     : _permittedPeriods.All(period => blackouts.Any(blackout => blackout.Start <= period.StartDate && blackout.End >= period.EndDate));
             }
         }
-
-        internal static ProvisionTravelDateRule Open(long ancillaryProvisionId, IIdGenerator idGenerator)
-            => new(idGenerator.NewId(), ancillaryProvisionId);
 
         internal static Func<ProvisionTravelDateRule?> Plan(
             ProvisionTravelDateRule? stored,
@@ -69,92 +64,6 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
 
                 return rule;
             };
-        }
-
-        internal ProvisionPermittedTravelPeriod AddPermittedPeriod(ProvisionDatePeriodArgs period, IIdGenerator idGenerator)
-        {
-            var row = new ProvisionPermittedTravelPeriod(idGenerator.NewId(), AncillaryProvisionId, Id, period);
-
-            if (_permittedPeriods.Any(other => other.SameAs(period)))
-                throw ExceptionFactory.ProvisionConditionAlreadyExists();
-
-            _permittedPeriods.Add(row);
-
-            return Canonicalize(_permittedPeriods, period.StartDate);
-        }
-
-        internal ProvisionPermittedTravelPeriod ChangePermittedPeriod(long rowId, ProvisionDatePeriodArgs period)
-        {
-            var row = _permittedPeriods.FirstOrDefault(other => other.Id == rowId) ?? throw ExceptionFactory.ProvisionConditionNotFound();
-
-            if (_permittedPeriods.Any(other => other.Id != rowId && other.SameAs(period)))
-                throw ExceptionFactory.ProvisionConditionAlreadyExists();
-
-            row.Change(period);
-
-            return Canonicalize(_permittedPeriods, period.StartDate);
-        }
-
-        internal void RemovePermittedPeriod(long rowId)
-            => _permittedPeriods.Remove(
-                _permittedPeriods.FirstOrDefault(other => other.Id == rowId) ?? throw ExceptionFactory.ProvisionConditionNotFound());
-
-        private static ProvisionPermittedTravelPeriod Canonicalize(List<ProvisionPermittedTravelPeriod> rows, DateOnly anchor)
-        {
-            foreach (var (start, end) in Union(rows.Select(row => (row.StartDate, row.EndDate))))
-            {
-                var covered = rows.Where(row => row.StartDate >= start && row.EndDate <= end).OrderBy(row => row.Id).ToList();
-
-                covered[0].Change(new ProvisionDatePeriodArgs(start, end));
-
-                foreach (var absorbed in covered.Skip(1))
-                    rows.Remove(absorbed);
-            }
-
-            return rows.First(row => row.StartDate <= anchor && row.EndDate >= anchor);
-        }
-
-        internal ProvisionBlackoutPeriod AddBlackoutPeriod(ProvisionDatePeriodArgs period, IIdGenerator idGenerator)
-        {
-            var row = new ProvisionBlackoutPeriod(idGenerator.NewId(), AncillaryProvisionId, Id, period);
-
-            if (_blackoutPeriods.Any(other => other.SameAs(period)))
-                throw ExceptionFactory.ProvisionConditionAlreadyExists();
-
-            _blackoutPeriods.Add(row);
-
-            return Canonicalize(_blackoutPeriods, period.StartDate);
-        }
-
-        internal ProvisionBlackoutPeriod ChangeBlackoutPeriod(long rowId, ProvisionDatePeriodArgs period)
-        {
-            var row = _blackoutPeriods.FirstOrDefault(other => other.Id == rowId) ?? throw ExceptionFactory.ProvisionConditionNotFound();
-
-            if (_blackoutPeriods.Any(other => other.Id != rowId && other.SameAs(period)))
-                throw ExceptionFactory.ProvisionConditionAlreadyExists();
-
-            row.Change(period);
-
-            return Canonicalize(_blackoutPeriods, period.StartDate);
-        }
-
-        internal void RemoveBlackoutPeriod(long rowId)
-            => _blackoutPeriods.Remove(
-                _blackoutPeriods.FirstOrDefault(other => other.Id == rowId) ?? throw ExceptionFactory.ProvisionConditionNotFound());
-
-        private static ProvisionBlackoutPeriod Canonicalize(List<ProvisionBlackoutPeriod> rows, DateOnly anchor)
-        {
-            foreach (var (start, end) in Union(rows.Select(row => (row.StartDate, row.EndDate))))
-            {
-                var covered = rows.Where(row => row.StartDate >= start && row.EndDate <= end).OrderBy(row => row.Id).ToList();
-
-                covered[0].Change(new ProvisionDatePeriodArgs(start, end));
-
-                foreach (var absorbed in covered.Skip(1))
-                    rows.Remove(absorbed);
-            }
-
-            return rows.First(row => row.StartDate <= anchor && row.EndDate >= anchor);
         }
 
         private static List<ProvisionDatePeriodArgs> Canonical(IReadOnlyList<ProvisionDatePeriodArgs> periods, string field)

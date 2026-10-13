@@ -57,7 +57,7 @@ public static class M1Fixtures
         ServiceCoverageScope coverageScope = ServiceCoverageScope.Sector)
         => AncillaryProvision.Define(
             id,
-            serviceDefinitionId,
+            LoungeDefinition(serviceDefinitionId),
             sequence,
             coverageScope,
             PurchaseStage.Both,

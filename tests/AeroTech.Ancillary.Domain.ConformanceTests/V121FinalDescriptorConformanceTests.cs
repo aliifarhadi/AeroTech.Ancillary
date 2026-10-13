@@ -18,7 +18,7 @@ public class V121FinalDescriptorConformanceTests
     private static AncillaryProvision Staged(PurchaseStage purchaseStage)
         => AncillaryProvision.Define(
             5001,
-            1001,
+            CarrierDefinition(),
             10,
             ServiceCoverageScope.Sector,
             purchaseStage,
