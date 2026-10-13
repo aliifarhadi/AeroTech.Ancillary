@@ -412,7 +412,7 @@ public class V122VariantMatrixAcceptanceTests : IClassFixture<VariantMatrixCache
         Assert.Equal(
             (ruled.Command.AirportServiceRule?.TerminalRef, ruled.Command.AirportServiceRule?.Direction?.ToString(), ruled.Command.AirportServiceRule?.FacilityId, ruled.Command.AirportServiceRule?.MaxGuestsPerPrimary),
             (draft.AirportServiceRule?.TerminalRef, draft.AirportServiceRule?.Direction?.Name, draft.AirportServiceRule?.FacilityId, draft.AirportServiceRule?.MaxGuestsPerPrimary));
-        Assert.Equal((16319, 16319), (ruled.TwoPointsOfSale, ruled.NoPointOfSale));
+        Assert.Equal((0, 0), (ruled.TwoPointsOfSale, ruled.NoPointOfSale));
     }
 
     [Theory]

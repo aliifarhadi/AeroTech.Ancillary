@@ -65,7 +65,6 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public const string PricingSwitchExpectationFailed = "The active pricing of the provision is not the expected one.";
         public const string ProvisionPurchaseStageRequired = "The provision has no purchase stage; file a successor that states PreOrder, PostTicketed or Both.";
         public const string ProvisionDefinitionNotClassified = "The service definition of this provision is not classified; no provision of it can be published.";
-        public const string ProvisionSinglePointOfSaleRequired = "A published provision needs exactly one point of sale.";
         public const string ProvisionPriceOriginMismatch = "Outcome {0} cannot be combined with price origin {1}.";
         public const string ProvisionProfileRuleNotAllowed = "{0} is not allowed for variant {1} or widens its specification.";
         public const string ProvisionQuoteAuthorityRequired = "Quote provider {0} is not the recorded external supplier of this service.";

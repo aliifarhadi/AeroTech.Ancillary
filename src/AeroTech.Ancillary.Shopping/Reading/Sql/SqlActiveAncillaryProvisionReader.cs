@@ -25,8 +25,9 @@ namespace AeroTech.Ancillary.Shopping.Reading.Sql
                 .WithChildren(_dbContext)
                 .Where(provision => serviceDefinitionIds.Contains(provision.ServiceDefinitionId)
                                     && provision.Status == ProvisionStatus.Active
-                                    && provision.SalesRestrictions!.PointsOfSale.Count == 1
-                                    && provision.SalesRestrictions.PointsOfSale.Any(pointOfSale => pointOfSale.PointOfSaleId == pointOfSaleId))
+                                    && (provision.SalesRestrictions == null
+                                        || !provision.SalesRestrictions.PointsOfSale.Any()
+                                        || provision.SalesRestrictions.PointsOfSale.Any(pointOfSale => pointOfSale.PointOfSaleId == pointOfSaleId)))
                 .OrderBy(provision => provision.ServiceDefinitionId)
                 .ThenBy(provision => provision.Sequence)
                 .ToListAsync(cancellationToken);

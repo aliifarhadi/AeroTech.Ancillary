@@ -82,9 +82,6 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             if (PriceOrigin == PriceOrigin.LegacyUnspecified)
                 throw ExceptionFactory.ProvisionPriceOriginMismatch(Outcome.Disposition, PriceOrigin);
 
-            if (SalesRestrictions is not { PointsOfSale.Count: 1 })
-                throw ExceptionFactory.ProvisionSinglePointOfSaleRequired();
-
             var onBoardOnly = definition.Connectivity is { DeliveryStage: PurchaseStage.OnBoard };
 
             if ((PurchaseStage == PurchaseStage.OnBoard) != onBoardOnly)

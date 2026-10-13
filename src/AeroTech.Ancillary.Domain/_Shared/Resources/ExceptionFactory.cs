@@ -136,9 +136,6 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public static BusinessException ProvisionDefinitionNotClassified(params object?[] args) =>
             new(16318, ExceptionMessages.ProvisionDefinitionNotClassified, args) { HttpStatus = 409 };
 
-        public static BusinessException ProvisionSinglePointOfSaleRequired(params object?[] args) =>
-            new(16319, ExceptionMessages.ProvisionSinglePointOfSaleRequired, args) { HttpStatus = 409 };
-
         public static BusinessException ProvisionPriceOriginMismatch(params object?[] args) =>
             new(16320, ExceptionMessages.ProvisionPriceOriginMismatch, args) { HttpStatus = 422 };
 

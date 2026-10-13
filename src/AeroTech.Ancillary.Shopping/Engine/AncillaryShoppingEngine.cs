@@ -258,8 +258,8 @@ namespace AeroTech.Ancillary.Shopping.Engine
             var provisions = (await _provisions.ListActiveAsync(definitionIds, context.PointOfSaleId, cancellationToken))
                 .Where(provision => provision.Status == ProvisionStatus.Active
                                     && definitionIds.Contains(provision.ServiceDefinitionId)
-                                    && provision.SalesRestrictions is { PointsOfSale.Count: 1 } sales
-                                    && sales.PointsOfSale.Single().PointOfSaleId == context.PointOfSaleId)
+                                    && (provision.SalesRestrictions is not { PointsOfSale.Count: > 0 } sales
+                                        || sales.PointsOfSale.Any(pointOfSale => pointOfSale.PointOfSaleId == context.PointOfSaleId)))
                 .ToList();
             var filed = provisions.Where(provision => provision.PriceOrigin == PriceOrigin.Filed).Select(provision => provision.Id).ToList();
             var pricings = (await _pricings.ListActiveAsync(filed, cancellationToken))

@@ -155,12 +155,12 @@ public class SeatProvisionFacadeAcceptanceTests
             new[] { "PassengerEligibility", "SalesRestrictions", "Geography", "TravelDate", "DayTimeApplication", "AdvancePurchase", "FlightApplication", "FareApplication", "SeatApplication" },
             descriptor["allowedRuleSections"]!.AsArray().Select(section => section!.GetValue<string>()));
         Assert.Equal(
-            new[] { "quantityUnit", "maxQuantity", "requiresSeatNumberOrCharacteristic", "seatNumberFilterRequiresAircraft", "publishedPointOfSaleCount", "requiresPreferredCharacteristic" },
+            new[] { "quantityUnit", "maxQuantity", "requiresSeatNumberOrCharacteristic", "seatNumberFilterRequiresAircraft", "requiresPreferredCharacteristic" },
             Members(constraints));
         Assert.Equal(
-            ("Each", maxQuantity, true, true, 1, preferred),
+            ("Each", maxQuantity, true, true, preferred),
             (constraints["quantityUnit"]!["name"]!.GetValue<string>(), constraints["maxQuantity"]?.GetValue<int>(), constraints["requiresSeatNumberOrCharacteristic"]!.GetValue<bool>(),
-                constraints["seatNumberFilterRequiresAircraft"]!.GetValue<bool>(), constraints["publishedPointOfSaleCount"]!.GetValue<int>(),
+                constraints["seatNumberFilterRequiresAircraft"]!.GetValue<bool>(),
                 constraints["requiresPreferredCharacteristic"]!.GetValue<bool>()));
     }
 

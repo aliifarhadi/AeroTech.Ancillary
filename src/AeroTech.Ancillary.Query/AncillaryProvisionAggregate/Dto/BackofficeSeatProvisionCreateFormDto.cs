@@ -18,6 +18,5 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Dto
         int? MaxQuantity,
         bool RequiresSeatNumberOrCharacteristic,
         bool SeatNumberFilterRequiresAircraft,
-        int PublishedPointOfSaleCount,
         bool RequiresPreferredCharacteristic);
 }

@@ -7,15 +7,12 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetSeatPr
 {
     public static class SeatProvisionFormMapper
     {
-        private const int PublishedPointOfSaleCount = 1;
-
         public static SeatProvisionConstraintsDto Constraints(string variantCode)
             => new(
                 EnumValueDto.Of(AncillaryQuantityUnit.Each),
                 variantCode is AncillaryVariant.StandardSeat or AncillaryVariant.PreferredSeat ? 1 : null,
                 true,
                 true,
-                PublishedPointOfSaleCount,
                 variantCode == AncillaryVariant.PreferredSeat);
 
         public static BackofficeSeatProvisionFormDto ToSeatForm(BackofficeProvisionFormDto provision, EnumValueDto profile, string variantCode)

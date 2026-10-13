@@ -12932,7 +12932,6 @@
     },
     "SeatProvisionConstraintsDto": {
       "required": [
-        "publishedPointOfSaleCount",
         "quantityUnit",
         "requiresPreferredCharacteristic",
         "requiresSeatNumberOrCharacteristic",
@@ -12957,10 +12956,6 @@
         },
         "seatNumberFilterRequiresAircraft": {
           "type": "boolean"
-        },
-        "publishedPointOfSaleCount": {
-          "type": "integer",
-          "format": "int32"
         },
         "requiresPreferredCharacteristic": {
           "type": "boolean"

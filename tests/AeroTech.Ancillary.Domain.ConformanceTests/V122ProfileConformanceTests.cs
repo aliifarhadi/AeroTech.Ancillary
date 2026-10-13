@@ -148,15 +148,15 @@ public class V122ProfileConformanceTests
     }
 
     [Fact]
-    public void CT07_CT08_a_published_provision_has_one_point_of_sale_and_an_accepted_quantity_of_at_least_one()
+    public void CT07_CT08_a_provision_is_published_with_any_number_of_points_of_sale_and_an_accepted_quantity_of_at_least_one()
     {
         var two = Provision(Groups(salesRestrictions: Sales(pointsOfSale: [V122Fixtures.PointOfSale, 9002])), disposition: CommercialDisposition.Free);
         var one = Provision(disposition: CommercialDisposition.Free);
 
-        BusinessAssert.Throws(16319, 409, () => two.Activate(CarrierDefinition(), null, Now));
+        two.Activate(CarrierDefinition(), null, Now);
         one.Activate(CarrierDefinition(), null, Now);
 
-        Assert.Equal((ProvisionStatus.Draft, ProvisionStatus.Active), (two.Status, one.Status));
+        Assert.Equal((ProvisionStatus.Active, ProvisionStatus.Active), (two.Status, one.Status));
         BusinessAssert.Throws(16302, 422, () => QuantityRule.Create(AncillaryQuantityUnit.Piece, 0, 6));
         Assert.Equal((1, 6), (QuantityRule.Create(AncillaryQuantityUnit.Piece, 1, 6).MinQuantity, QuantityRule.Create(AncillaryQuantityUnit.Piece, 1, 6).MaxQuantity));
     }
