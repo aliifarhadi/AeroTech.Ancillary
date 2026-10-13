@@ -1,3 +1,4 @@
+using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Query.AncillaryOffers.Dto.Backoffice;
 using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto;
@@ -98,6 +99,8 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Ba
                 EnumValueDto.Of(price.Origin),
                 EnumValueDto.Of(price.Status),
                 price.CurrencyId,
+                price.FiledCurrencyId,
+                RateOfExchange(price.RateOfExchange),
                 EnumValueDto.OfNullable(price.PricingUnit),
                 price.BaseAmount,
                 price.CompleteUnitTotal,
@@ -108,6 +111,9 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Ba
                 price.IsOrderLevelTotalComplete,
                 price.QuoteProviderKey,
                 price.ReasonCodes);
+
+        public static OfferRateOfExchangeDto? RateOfExchange(PublishedRateOfExchange? rate)
+            => rate is null ? null : new OfferRateOfExchangeDto(rate.RateOfExchangeTableId, rate.FromCurrencyId, rate.ToCurrencyId, rate.Rate);
 
         private static OfferPriceLineDto Line(PriceComponentLine line)
             => new(line.Code, line.Amount, line.CurrencyId, line.CountryId, line.StationAirportId, EnumValueDto.OfNullable(line.FeeApplicationUnit));

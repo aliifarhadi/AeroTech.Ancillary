@@ -23,22 +23,15 @@ namespace AeroTech.Ancillary.Query.SeatOffers.Queries.GetSeatOffers.Backoffice
                 offer.OfferId,
                 scope.SalesInstantUtc,
                 new OfferCurrencyDto(snapshot.CurrencyId, snapshot.CurrencyId == offer.CurrencyId ? offer.CurrencyCode : null),
-                new FlightOfferSummaryDto(offer.LastTicketingDate, offer.PricedAt, offer.CurrencyId, offer.BaseAmount, offer.ChargeAmount, offer.TotalAmount),
                 new OfferScopeDto(
                     scope.OwnerAirlineId,
                     snapshot.PointsOfSale.Count == 1 ? snapshot.PointsOfSale[0].PointOfSaleId : null,
                     snapshot.PointsOfSale.Select(pointOfSale => pointOfSale.PointOfSaleId).ToList(),
                     EnumValueDto.Of(FlightOfferShoppingContextMapper.Stage)),
-                new OfferJourneyDto(offer.Bounds.Select(BackofficeAncillaryOffersMapper.Portion).ToList()),
-                offer.Tickets.Select(ticket => BackofficeAncillaryOffersMapper.Traveller(ticket, snapshot.Facts)).ToList(),
                 offers.Select(Offer).ToList(),
                 blocked.Select(Offer).ToList(),
                 BackofficeAncillaryOffersMapper.Diagnostics(snapshot),
-                new OfferCompletenessDto(
-                    true,
-                    snapshot.PointsOfSale.Count > 0 && snapshot.PointsOfSale.All(pointOfSale => BackofficeAncillaryOffersMapper.IsComplete(pointOfSale.Context)),
-                    blocked.Count > 0,
-                    false));
+                BackofficeAncillaryOffersMapper.RatesOfExchange(snapshot));
         }
 
         public static BackofficeSeatOfferDetailDto Detail(AncillaryOfferDetailSnapshot detail)

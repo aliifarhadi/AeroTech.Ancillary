@@ -27,6 +27,7 @@ namespace AeroTech.Ancillary.ReferenceData.Persistence
         public DbSet<AirFareReadModel> AirFares => Set<AirFareReadModel>();
         public DbSet<PointOfSaleReadModel> PointOfSales => Set<PointOfSaleReadModel>();
         public DbSet<PointOfSaleConditionReadModel> PointOfSaleConditions => Set<PointOfSaleConditionReadModel>();
+        public DbSet<RateOfExchangeReadModel> RatesOfExchange => Set<RateOfExchangeReadModel>();
         public DbSet<ReferenceSyncState> SyncStates => Set<ReferenceSyncState>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -78,6 +79,7 @@ namespace AeroTech.Ancillary.ReferenceData.Persistence
                 entity.Property(airport => airport.Id).ValueGeneratedNever();
                 entity.Property(airport => airport.IataCode).HasMaxLength(8);
                 entity.Property(airport => airport.IkaoCode).HasMaxLength(8);
+                entity.Property(airport => airport.TimeZoneId).HasMaxLength(64);
                 entity.HasIndex(airport => airport.IataCode);
             });
 
@@ -184,6 +186,17 @@ namespace AeroTech.Ancillary.ReferenceData.Persistence
                 entity.HasKey(condition => condition.Id);
                 entity.Property(condition => condition.Id).ValueGeneratedNever();
                 entity.HasIndex(condition => condition.PointOfSaleId);
+            });
+
+            modelBuilder.Entity<RateOfExchangeReadModel>(entity =>
+            {
+                entity.ToTable("RateOfExchanges");
+                entity.HasKey(rate => rate.Id);
+                entity.Property(rate => rate.Id).ValueGeneratedNever();
+                entity.Property(rate => rate.RateOfExchangeTableId).HasMaxLength(30);
+                entity.Property(rate => rate.TableCode).HasMaxLength(50);
+                entity.Property(rate => rate.Rate).HasPrecision(18, 10);
+                entity.HasIndex(rate => new { rate.ToCurrencyId, rate.Application });
             });
 
             modelBuilder.Entity<ReferenceSyncState>(entity =>

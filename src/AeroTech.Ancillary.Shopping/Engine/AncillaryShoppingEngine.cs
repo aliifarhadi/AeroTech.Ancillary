@@ -17,6 +17,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
         private readonly IActiveAncillaryPricingReader _pricings;
         private readonly IInventoryConfigurationReader _inventory;
         private readonly ICurrencyReference _currencies;
+        private readonly IRateOfExchangeReference _ratesOfExchange;
         private readonly IInventoryResourceReference _resources;
         private readonly IAirportFacilityReference _facilities;
         private readonly ICountingFamilyReference _families;
@@ -27,6 +28,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
             IActiveAncillaryPricingReader pricings,
             IInventoryConfigurationReader inventory,
             ICurrencyReference currencies,
+            IRateOfExchangeReference ratesOfExchange,
             IInventoryResourceReference resources,
             IAirportFacilityReference facilities,
             ICountingFamilyReference families)
@@ -36,6 +38,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
             _pricings = pricings;
             _inventory = inventory;
             _currencies = currencies;
+            _ratesOfExchange = ratesOfExchange;
             _resources = resources;
             _facilities = facilities;
             _families = families;
@@ -114,7 +117,13 @@ namespace AeroTech.Ancillary.Shopping.Engine
                 context.SourceIdentity.TrustedSourceVersion,
                 candidates,
                 diagnostics,
-                diagnostics.Any(diagnostic => diagnostic.Severity == ShoppingDiagnosticSeverity.Blocker));
+                diagnostics.Any(diagnostic => diagnostic.Severity == ShoppingDiagnosticSeverity.Blocker),
+                candidates
+                    .Select(candidate => candidate.Price.RateOfExchange)
+                    .OfType<PublishedRateOfExchange>()
+                    .DistinctBy(rate => rate.RateOfExchangeTableId, StringComparer.Ordinal)
+                    .OrderBy(rate => rate.FromCurrencyId)
+                    .ToList());
         }
 
         public async Task<CanonicalAncillarySelectionEvaluation> EvaluateSelectionAsync(
@@ -268,7 +277,10 @@ namespace AeroTech.Ancillary.Shopping.Engine
                 context.Flights.Select(flight => flight.FlightId).Distinct().ToList(),
                 context.EvaluatedAtUtc,
                 cancellationToken);
-            var decimals = await _currencies.FindDecimalPlacesAsync([context.CurrencyId], cancellationToken);
+            var ratesOfExchange = await _ratesOfExchange.FindRatesAsync(context.CurrencyId, context.EvaluatedAtUtc, cancellationToken);
+            var decimals = await _currencies.FindDecimalPlacesAsync(
+                pricings.SelectMany(pricing => pricing.Rates.Select(rate => rate.CurrencyId)).Append(context.CurrencyId).Distinct().ToList(),
+                cancellationToken);
 
             return new ShoppingCatalog(
                 definitions,
@@ -276,6 +288,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
                 pricings,
                 inventory.Where(configuration => configuration.Policy.OwnerAirlineId == context.OwnerAirlineId),
                 decimals,
+                ratesOfExchange,
                 new InventoryReferenceProbe(_resources, _facilities, _families, context.OwnerAirlineId));
         }
 
@@ -318,7 +331,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
             var outcome = evaluation.Outcome;
             var expired = Expired(unit.Context);
             var configuration = catalog.InventoryOf(definition.ServiceDefinitionRef);
-            var price = PriceAssessor.Assess(provision, catalog.PricingOf(provision.Id), unit, evaluation.Timeline, catalog.CurrencyDecimalPlaces);
+            var price = PriceAssessor.Assess(provision, catalog.PricingOf(provision.Id), unit, evaluation.Timeline, catalog.CurrencyDecimalPlaces, catalog.RatesOfExchange);
             var availability = await AvailabilityAssessor.AssessAsync(definition, provision, configuration, unit, catalog.References, cancellationToken);
             var quantity = await QuantityAssessor.AssessAsync(definition, provision, configuration?.Policy, unit, evaluation.Timeline, catalog.References, cancellationToken);
             var identity = new CandidateIdentity(definition.Id, provision.Id, unit.Scope, unit.Traveller.TravellerRef, unit.CoverageRef, price.PricingRevisionId);

@@ -33,8 +33,17 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Ot
                         ticket.PassengerTypeCode.ToString(),
                         offer.Bounds.SelectMany(bound => bound.Flights.Select(flight => FlightGroup(snapshot, ticket, bound, flight, flightRefs, shown))).ToList()))
                     .ToList(),
-                snapshot.Items.Count() - shown.Count);
+                snapshot.Items.Count() - shown.Count,
+                RatesOfExchange(snapshot));
         }
+
+        public static IReadOnlyList<OtaPanelRateOfExchangeDto> RatesOfExchange(AncillaryShoppingSnapshot snapshot)
+            => snapshot.PointsOfSale
+                .SelectMany(pointOfSale => pointOfSale.Result.RatesOfExchange)
+                .DistinctBy(rate => rate.RateOfExchangeTableId, StringComparer.Ordinal)
+                .OrderBy(rate => rate.FromCurrencyId)
+                .Select(rate => new OtaPanelRateOfExchangeDto(rate.RateOfExchangeTableId, rate.FromCurrencyId, rate.ToCurrencyId, rate.Rate))
+                .ToList();
 
         public static OtaPanelServiceDto Service(string offerItemRef, CanonicalAncillaryOfferCandidate candidate)
             => new(
@@ -48,6 +57,7 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Ot
                 candidate.Price.Status.ToString(),
                 candidate.Price.PricingUnit?.ToString(),
                 Money(candidate.Price.CompleteUnitTotal, candidate.Price.CurrencyId),
+                candidate.Price.RateOfExchange?.RateOfExchangeTableId,
                 candidate.Price.UnappliedFeeLines.Select(Fee).ToList(),
                 candidate.Quantity.Unit.ToString(),
                 candidate.Quantity.MinPerSelection,

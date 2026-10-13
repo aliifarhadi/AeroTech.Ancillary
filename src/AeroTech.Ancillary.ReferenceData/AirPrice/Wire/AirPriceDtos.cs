@@ -47,6 +47,20 @@ namespace AeroTech.Ancillary.ReferenceData.AirPrice.Wire
         public string? FareFamily { get; set; }
     }
 
+    public sealed class RateOfExchangeDto : ISyncSourceDto<long>
+    {
+        public long Id { get; set; }
+        public string RateOfExchangeTableId { get; set; } = default!;
+        public string TableCode { get; set; } = default!;
+        public int Application { get; set; }
+        public int FromCurrencyId { get; set; }
+        public int ToCurrencyId { get; set; }
+        public decimal Rate { get; set; }
+        public DateTimeOffset EffectiveFrom { get; set; }
+        public DateTimeOffset? EffectiveTo { get; set; }
+        public DateTimeOffset LastUpdateTime { get; set; }
+    }
+
     public sealed class PointOfSaleDto : ISyncSourceDto<long>
     {
         public long Id { get; set; }

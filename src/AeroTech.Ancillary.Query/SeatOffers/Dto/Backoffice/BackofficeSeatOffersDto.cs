@@ -8,14 +8,11 @@ namespace AeroTech.Ancillary.Query.SeatOffers.Dto.Backoffice
         string OfferId,
         DateTimeOffset EvaluatedAtUtc,
         OfferCurrencyDto Currency,
-        FlightOfferSummaryDto FlightOffer,
         OfferScopeDto Scope,
-        OfferJourneyDto Journey,
-        IReadOnlyList<OfferTravellerDto> Travellers,
         IReadOnlyList<BackofficeSeatOfferDto> Offers,
         IReadOnlyList<BackofficeSeatOfferDto> BlockedOffers,
         IReadOnlyList<OfferDiagnosticDto> Diagnostics,
-        OfferCompletenessDto Completeness);
+        IReadOnlyList<OfferRateOfExchangeDto> RatesOfExchange);
 
     public sealed record BackofficeSeatOfferDto(
         string OfferItemRef,

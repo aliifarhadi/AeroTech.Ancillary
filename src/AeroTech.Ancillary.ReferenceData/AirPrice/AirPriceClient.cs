@@ -9,6 +9,7 @@ namespace AeroTech.Ancillary.ReferenceData.AirPrice
     {
         private const string AirFaresRoute = "v1";
         private const string PointOfSalesRoute = "v1/PointOfSales";
+        private const string RateOfExchangesRoute = "v1/RateOfExchangeTables";
 
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
@@ -26,6 +27,9 @@ namespace AeroTech.Ancillary.ReferenceData.AirPrice
 
         public Task<List<PointOfSaleDto>> GetPointOfSalesAsync(CancellationToken cancellationToken = default)
             => GetAsync<PointOfSaleDto>(PointOfSalesRoute, cancellationToken);
+
+        public Task<List<RateOfExchangeDto>> GetRateOfExchangesAsync(CancellationToken cancellationToken = default)
+            => GetAsync<RateOfExchangeDto>(RateOfExchangesRoute, cancellationToken);
 
         private async Task<List<T>> GetAsync<T>(string route, CancellationToken cancellationToken)
         {

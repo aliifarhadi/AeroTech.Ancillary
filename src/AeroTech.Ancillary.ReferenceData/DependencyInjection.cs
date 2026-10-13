@@ -60,6 +60,7 @@ namespace AeroTech.Ancillary.ReferenceData
             services.AddScoped<TravelAgencyOfficeSyncer>();
             services.AddScoped<AirFareSyncer>();
             services.AddScoped<PointOfSaleSyncer>();
+            services.AddScoped<RateOfExchangeSyncer>();
 
             return services;
         }

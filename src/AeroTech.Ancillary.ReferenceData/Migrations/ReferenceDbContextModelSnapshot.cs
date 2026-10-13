@@ -196,6 +196,10 @@ namespace AeroTech.Ancillary.ReferenceData.Migrations
                     b.Property<DateTimeOffset>("LastUpdateTime")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("TimeZoneId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("IataCode");
@@ -488,6 +492,50 @@ namespace AeroTech.Ancillary.ReferenceData.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("PointOfSales", "ReferenceData");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.ReferenceData.ReadModels.RateOfExchangeReadModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Application")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("EffectiveFrom")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("EffectiveTo")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("FromCurrencyId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<decimal>("Rate")
+                        .HasPrecision(18, 10)
+                        .HasColumnType("decimal(18,10)");
+
+                    b.Property<string>("RateOfExchangeTableId")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("TableCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("ToCurrencyId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ToCurrencyId", "Application");
+
+                    b.ToTable("RateOfExchanges", "ReferenceData");
                 });
 
             modelBuilder.Entity("AeroTech.Ancillary.ReferenceData.ReadModels.ReferenceSyncState", b =>

@@ -36,6 +36,7 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Ba
                 offers.Select(BackofficeAncillaryOfferMapper.Map).ToList(),
                 blocked.Select(BackofficeAncillaryOfferMapper.Map).ToList(),
                 Diagnostics(snapshot),
+                RatesOfExchange(snapshot),
                 new OfferCompletenessDto(
                     true,
                     snapshot.PointsOfSale.Count > 0 && snapshot.PointsOfSale.All(pointOfSale => IsComplete(pointOfSale.Context)),
@@ -103,6 +104,14 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Ba
                 .GroupBy(candidate => candidate.Profile)
                 .OrderBy(group => group.Key)
                 .Select(group => new OfferCategoryDto(EnumValueDto.Of(group.Key), EnumValueDto.Of(group.Key).Title, group.Count()))
+                .ToList();
+
+        public static IReadOnlyList<OfferRateOfExchangeDto> RatesOfExchange(AncillaryShoppingSnapshot snapshot)
+            => snapshot.PointsOfSale
+                .SelectMany(pointOfSale => pointOfSale.Result.RatesOfExchange)
+                .DistinctBy(rate => rate.RateOfExchangeTableId, StringComparer.Ordinal)
+                .OrderBy(rate => rate.FromCurrencyId)
+                .Select(rate => BackofficeAncillaryOfferMapper.RateOfExchange(rate)!)
                 .ToList();
 
         public static IReadOnlyList<OfferDiagnosticDto> Diagnostics(AncillaryShoppingSnapshot snapshot)

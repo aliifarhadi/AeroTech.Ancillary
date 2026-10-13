@@ -50,6 +50,7 @@ public class SqlShoppingReaderTests
             references,
             references,
             references,
+            references,
             references);
 
     private async Task<int> PublishedCatalogAsync(params string[] codes)
@@ -79,6 +80,7 @@ public class SqlShoppingReaderTests
         var services = new ServiceCollection()
             .AddScoped(_ => context)
             .AddSingleton<ICurrencyReference>(references)
+            .AddSingleton<IRateOfExchangeReference>(references)
             .AddSingleton<IInventoryResourceReference>(references)
             .AddSingleton<IAirportFacilityReference>(references)
             .AddSingleton<ICountingFamilyReference>(references)

@@ -1,3 +1,4 @@
+using AeroTech.Ancillary.Domain._Shared.Contracts;
 namespace AeroTech.Ancillary.Shopping.Results
 {
     public sealed record CanonicalAncillaryOfferResult(
@@ -9,5 +10,6 @@ namespace AeroTech.Ancillary.Shopping.Results
         string? SourceVersion,
         IReadOnlyList<CanonicalAncillaryOfferCandidate> Candidates,
         IReadOnlyList<ShoppingDiagnostic> Diagnostics,
-        bool HasBlockedCandidates);
+        bool HasBlockedCandidates,
+        IReadOnlyList<PublishedRateOfExchange> RatesOfExchange);
 }

@@ -120,6 +120,7 @@ namespace AeroTech.Ancillary.Shopping.Results
         public const string PricingNotActive = "PricingNotActive";
         public const string RateNotFound = "RateNotFound";
         public const string RateAmbiguous = "RateAmbiguous";
+        public const string RateOfExchangeNotFound = "RateOfExchangeNotFound";
         public const string CurrencyScaleUnknown = "CurrencyScaleUnknown";
         public const string AmountScaleNotAllowed = "AmountScaleNotAllowed";
         public const string FeeUnitNotSupported = "FeeUnitNotSupported";
@@ -272,6 +273,7 @@ namespace AeroTech.Ancillary.Shopping.Results
             PricingNotActive,
             RateNotFound,
             RateAmbiguous,
+            RateOfExchangeNotFound,
             CurrencyScaleUnknown,
             AmountScaleNotAllowed,
             FeeUnitNotSupported,

@@ -7,7 +7,8 @@ namespace AeroTech.Ancillary.Query.SeatOffers.Dto.OtaPanel
         int CurrencyId,
         string? CurrencyCode,
         IReadOnlyList<OtaPanelSeatTravellerGroupDto> TravellerGroups,
-        int BlockedCount);
+        int BlockedCount,
+        IReadOnlyList<OtaPanelRateOfExchangeDto> RatesOfExchange);
 
     public sealed record OtaPanelSeatTravellerGroupDto(
         string TravellerRef,
@@ -33,6 +34,7 @@ namespace AeroTech.Ancillary.Query.SeatOffers.Dto.OtaPanel
         string PriceStatus,
         string? PriceUnit,
         OtaPanelMoneyDto? UnitPrice,
+        string? RateOfExchangeTableId,
         IReadOnlyList<OtaPanelFeeDto> OrderLevelFees,
         int MinQuantity,
         int MaxQuantity,

@@ -26,7 +26,8 @@ namespace AeroTech.Ancillary.Query.SeatOffers.Queries.GetSeatOffers.OtaPanel
                         ticket.PassengerTypeCode.ToString(),
                         offer.Bounds.SelectMany(bound => bound.Flights.Select(flight => FlightGroup(ticket, bound, flight, flightRefs, shown))).ToList()))
                     .ToList(),
-                snapshot.Items.Count() - shown.Count);
+                snapshot.Items.Count() - shown.Count,
+                OtaPanelAncillaryOffersMapper.RatesOfExchange(snapshot));
         }
 
         public static OtaPanelSeatOfferDetailDto Detail(AncillaryOfferDetailSnapshot detail)
@@ -75,6 +76,7 @@ namespace AeroTech.Ancillary.Query.SeatOffers.Queries.GetSeatOffers.OtaPanel
                 candidate.Price.Status.ToString(),
                 candidate.Price.PricingUnit?.ToString(),
                 OtaPanelAncillaryOffersMapper.Money(candidate.Price.CompleteUnitTotal, candidate.Price.CurrencyId),
+                candidate.Price.RateOfExchange?.RateOfExchangeTableId,
                 candidate.Price.UnappliedFeeLines.Select(OtaPanelAncillaryOffersMapper.Fee).ToList(),
                 candidate.Quantity.MinPerSelection,
                 candidate.Quantity.MaxPerSelection,

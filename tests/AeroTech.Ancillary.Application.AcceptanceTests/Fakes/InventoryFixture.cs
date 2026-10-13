@@ -82,6 +82,9 @@ public sealed class InventoryFixture
 
     public Task<bool> ExistsAsync(int airportId, CancellationToken cancellationToken = default) => Task.FromResult(Airports.Contains(airportId));
 
+    public Task<IReadOnlyDictionary<int, string>> FindTimeZoneIdsAsync(IReadOnlyCollection<int> airportIds, CancellationToken cancellationToken = default)
+        => Task.FromResult<IReadOnlyDictionary<int, string>>(new Dictionary<int, string>());
+
     public Task<IReadOnlyDictionary<int, int>> FindCountryIdsAsync(IReadOnlyCollection<int> airportIds, CancellationToken cancellationToken = default)
         => Task.FromResult<IReadOnlyDictionary<int, int>>(new Dictionary<int, int>());
 

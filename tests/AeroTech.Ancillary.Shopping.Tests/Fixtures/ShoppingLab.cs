@@ -41,7 +41,7 @@ public sealed class ShoppingLab
 
     public InMemoryCatalog Catalog { get; } = new();
 
-    public AncillaryShoppingEngine Engine => new(Catalog, Catalog, Catalog, Catalog, Catalog, Catalog, Catalog, Catalog);
+    public AncillaryShoppingEngine Engine => new(Catalog, Catalog, Catalog, Catalog, Catalog, Catalog, Catalog, Catalog, Catalog);
 
     public AncillaryServiceDefinition Definition(
         string code,

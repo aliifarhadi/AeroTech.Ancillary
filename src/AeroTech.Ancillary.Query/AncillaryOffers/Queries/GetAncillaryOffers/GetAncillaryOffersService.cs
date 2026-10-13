@@ -48,11 +48,12 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers
                 .Distinct()
                 .ToList();
             var airportCountryIds = await _airports.FindCountryIdsAsync(airportIds, cancellationToken);
+            var airportTimeZoneIds = await _airports.FindTimeZoneIdsAsync(airportIds, cancellationToken);
             var pointsOfSale = new List<PointOfSaleShopping>();
 
             foreach (var pointOfSaleId in scope.PointOfSaleIds.Distinct().Order())
             {
-                var context = FlightOfferShoppingContextMapper.Map(offer, facts, scope, pointOfSaleId, airportCountryIds);
+                var context = FlightOfferShoppingContextMapper.Map(offer, facts, scope, pointOfSaleId, airportCountryIds, airportTimeZoneIds);
                 var result = await _engine.ShopAsync(context, family, cancellationToken);
 
                 pointsOfSale.Add(new PointOfSaleShopping(

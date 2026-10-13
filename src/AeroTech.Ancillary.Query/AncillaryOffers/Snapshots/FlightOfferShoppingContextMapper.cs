@@ -42,7 +42,8 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Snapshots
             FlightOfferFacts facts,
             AncillarySalesScope scope,
             long pointOfSaleId,
-            IReadOnlyDictionary<int, int> airportCountryIds)
+            IReadOnlyDictionary<int, int> airportCountryIds,
+            IReadOnlyDictionary<int, string> airportTimeZoneIds)
             => new()
             {
                 OwnerAirlineId = scope.OwnerAirlineId,
@@ -56,7 +57,7 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Snapshots
                     .Select(ticket => new ShoppingTraveller { TravellerRef = ticket.TravellerRef, PassengerTypeCode = ticket.PassengerTypeCode })
                     .ToList(),
                 Portions = offer.Bounds.Select(Portion).ToList(),
-                Flights = offer.Bounds.SelectMany(bound => bound.Flights.Select(flight => Flight(bound, flight, airportCountryIds))).ToList(),
+                Flights = offer.Bounds.SelectMany(bound => bound.Flights.Select(flight => Flight(bound, flight, airportCountryIds, airportTimeZoneIds))).ToList(),
                 TravellerFareFacts = facts.Fares,
                 TravellerBaggageFacts = facts.Baggage,
                 CoverageCompleteness = facts.Completeness
@@ -80,7 +81,11 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Snapshots
                 ViaAirportIds = bound.Flights.SkipLast(1).Select(flight => flight.DestinationAirportId).ToList()
             };
 
-        private static ShoppingFlight Flight(FlightOfferBound bound, FlightOfferFlight flight, IReadOnlyDictionary<int, int> airportCountryIds)
+        private static ShoppingFlight Flight(
+            FlightOfferBound bound,
+            FlightOfferFlight flight,
+            IReadOnlyDictionary<int, int> airportCountryIds,
+            IReadOnlyDictionary<int, string> airportTimeZoneIds)
             => new()
             {
                 FlightRef = FlightRef(bound, flight),
@@ -94,6 +99,7 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Snapshots
                 ViaAirportIds = flight.Legs.SkipLast(1).Select(leg => leg.DestinationAirportId).ToList(),
                 OriginCountryId = airportCountryIds.TryGetValue(flight.OriginAirportId, out var origin) ? origin : null,
                 DestinationCountryId = airportCountryIds.TryGetValue(flight.DestinationAirportId, out var destination) ? destination : null,
+                OriginIanaTimeZoneId = airportTimeZoneIds.GetValueOrDefault(flight.OriginAirportId),
                 OriginTerminalId = flight.OriginAirportTerminalId,
                 DestinationTerminalId = flight.DestinationAirportTerminalId,
                 DepartureAt = flight.DepartureAt,

@@ -43,7 +43,7 @@ public static class BackofficeDesk
         => BackofficeAncillaryOffersMapper.Map(await SnapshotAsync(lab, wire, airports, scope ?? Sale, airFares));
 
     public static AncillaryShoppingContext ContextOf(FlightOffer offer, DeskScope scope, IReadOnlyDictionary<int, int> airportCountryIds)
-        => FlightOfferShoppingContextMapper.Map(offer, FlightOfferShoppingContextMapper.Facts(offer, new Dictionary<long, long>()), scope, scope.PointOfSaleId, airportCountryIds);
+        => FlightOfferShoppingContextMapper.Map(offer, FlightOfferShoppingContextMapper.Facts(offer, new Dictionary<long, long>()), scope, scope.PointOfSaleId, airportCountryIds, new Dictionary<int, string>());
 
     public static BackofficeSalesScopeResolver Resolver(Caller? caller = null, HomeAirline? home = null, Eligibility? eligibility = null, FixedClock? clock = null)
         => new(caller ?? new Caller(), home ?? new HomeAirline(), eligibility ?? new Eligibility(), clock ?? new FixedClock());

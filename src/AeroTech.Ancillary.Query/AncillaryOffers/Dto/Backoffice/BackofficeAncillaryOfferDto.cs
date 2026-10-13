@@ -69,6 +69,8 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Dto.Backoffice
         EnumValueDto Origin,
         EnumValueDto Status,
         int? CurrencyId,
+        int? FiledCurrencyId,
+        OfferRateOfExchangeDto? RateOfExchange,
         EnumValueDto? PricingUnit,
         decimal? BaseAmount,
         decimal? CompleteUnitTotal,
@@ -79,6 +81,8 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Dto.Backoffice
         bool IsOrderLevelTotalComplete,
         string? QuoteProviderKey,
         IReadOnlyList<string> ReasonCodes);
+
+    public sealed record OfferRateOfExchangeDto(string RateOfExchangeTableId, int FromCurrencyId, int ToCurrencyId, decimal Rate);
 
     public sealed record OfferPriceLineDto(
         string? Code,

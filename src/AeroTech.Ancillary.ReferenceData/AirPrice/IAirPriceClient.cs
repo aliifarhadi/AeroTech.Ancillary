@@ -7,5 +7,7 @@ namespace AeroTech.Ancillary.ReferenceData.AirPrice
         Task<List<AirFareDto>> GetAirFaresAsync(CancellationToken cancellationToken = default);
 
         Task<List<PointOfSaleDto>> GetPointOfSalesAsync(CancellationToken cancellationToken = default);
+
+        Task<List<RateOfExchangeDto>> GetRateOfExchangesAsync(CancellationToken cancellationToken = default);
     }
 }

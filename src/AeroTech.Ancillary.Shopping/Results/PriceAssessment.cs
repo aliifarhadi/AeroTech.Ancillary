@@ -1,3 +1,4 @@
+using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Shopping.Results
@@ -9,6 +10,10 @@ namespace AeroTech.Ancillary.Shopping.Results
         public required PriceAssessmentStatus Status { get; init; }
 
         public int? CurrencyId { get; init; }
+
+        public int? FiledCurrencyId { get; init; }
+
+        public PublishedRateOfExchange? RateOfExchange { get; init; }
 
         public long? PricingRevisionId { get; init; }
 

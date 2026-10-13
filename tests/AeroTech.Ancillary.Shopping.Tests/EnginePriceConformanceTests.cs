@@ -121,7 +121,7 @@ public class EnginePriceConformanceTests
         Assert.Equal((Usd, 45.50m), (dollar.CurrencyId, dollar.CompleteUnitTotal));
         Assert.Equal((Kwd, 12.345m), (dinar.CurrencyId, dinar.CompleteUnitTotal));
         Assert.Equal((PriceAssessmentStatus.Unavailable, null, null), (yen.Price.Status, yen.Price.CurrencyId, yen.Price.CompleteUnitTotal));
-        Assert.Contains(ShoppingReasonCodes.RateNotFound, yen.Price.ReasonCodes);
+        Assert.Contains(ShoppingReasonCodes.RateOfExchangeNotFound, yen.Price.ReasonCodes);
         Assert.Equal(OfferReadiness.Unavailable, yen.OfferReadiness);
     }
 

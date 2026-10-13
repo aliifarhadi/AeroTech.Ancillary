@@ -381,6 +381,13 @@
             "title": "Complete"
           },
           "currencyId": 70,
+          "filedCurrencyId": 70,
+          "rateOfExchange": {
+            "rateOfExchangeTableId": "70",
+            "fromCurrencyId": 70,
+            "toCurrencyId": 70,
+            "rate": 1
+          },
           "pricingUnit": {
             "value": 6,
             "name": "PerPiece",
@@ -586,6 +593,13 @@
             "title": "Complete"
           },
           "currencyId": 70,
+          "filedCurrencyId": 70,
+          "rateOfExchange": {
+            "rateOfExchangeTableId": "70",
+            "fromCurrencyId": 70,
+            "toCurrencyId": 70,
+            "rate": 1
+          },
           "pricingUnit": {
             "value": 6,
             "name": "PerPiece",
@@ -791,6 +805,13 @@
             "title": "Complete"
           },
           "currencyId": 70,
+          "filedCurrencyId": 70,
+          "rateOfExchange": {
+            "rateOfExchangeTableId": "70",
+            "fromCurrencyId": 70,
+            "toCurrencyId": 70,
+            "rate": 1
+          },
           "pricingUnit": {
             "value": 6,
             "name": "PerPiece",
@@ -996,6 +1017,13 @@
             "title": "Complete"
           },
           "currencyId": 70,
+          "filedCurrencyId": 70,
+          "rateOfExchange": {
+            "rateOfExchangeTableId": "70",
+            "fromCurrencyId": 70,
+            "toCurrencyId": 70,
+            "rate": 1
+          },
           "pricingUnit": {
             "value": 6,
             "name": "PerPiece",
@@ -1207,6 +1235,13 @@
             "title": "Complete"
           },
           "currencyId": 70,
+          "filedCurrencyId": 70,
+          "rateOfExchange": {
+            "rateOfExchangeTableId": "70",
+            "fromCurrencyId": 70,
+            "toCurrencyId": 70,
+            "rate": 1
+          },
           "pricingUnit": {
             "value": 5,
             "name": "PerSeat",
@@ -1408,6 +1443,13 @@
             "title": "Complete"
           },
           "currencyId": 70,
+          "filedCurrencyId": 70,
+          "rateOfExchange": {
+            "rateOfExchangeTableId": "70",
+            "fromCurrencyId": 70,
+            "toCurrencyId": 70,
+            "rate": 1
+          },
           "pricingUnit": {
             "value": 5,
             "name": "PerSeat",
@@ -1609,6 +1651,13 @@
             "title": "Complete"
           },
           "currencyId": 70,
+          "filedCurrencyId": 70,
+          "rateOfExchange": {
+            "rateOfExchangeTableId": "70",
+            "fromCurrencyId": 70,
+            "toCurrencyId": 70,
+            "rate": 1
+          },
           "pricingUnit": {
             "value": 5,
             "name": "PerSeat",
@@ -1810,6 +1859,13 @@
             "title": "Complete"
           },
           "currencyId": 70,
+          "filedCurrencyId": 70,
+          "rateOfExchange": {
+            "rateOfExchangeTableId": "70",
+            "fromCurrencyId": 70,
+            "toCurrencyId": 70,
+            "rate": 1
+          },
           "pricingUnit": {
             "value": 5,
             "name": "PerSeat",
@@ -2018,6 +2074,13 @@
             "title": "Complete"
           },
           "currencyId": 70,
+          "filedCurrencyId": 70,
+          "rateOfExchange": {
+            "rateOfExchangeTableId": "70",
+            "fromCurrencyId": 70,
+            "toCurrencyId": 70,
+            "rate": 1
+          },
           "pricingUnit": {
             "value": 3,
             "name": "PerItem",
@@ -2253,6 +2316,13 @@
             "title": "Complete"
           },
           "currencyId": 70,
+          "filedCurrencyId": 70,
+          "rateOfExchange": {
+            "rateOfExchangeTableId": "70",
+            "fromCurrencyId": 70,
+            "toCurrencyId": 70,
+            "rate": 1
+          },
           "pricingUnit": {
             "value": 3,
             "name": "PerItem",
@@ -2488,6 +2558,13 @@
             "title": "Complete"
           },
           "currencyId": 70,
+          "filedCurrencyId": 70,
+          "rateOfExchange": {
+            "rateOfExchangeTableId": "70",
+            "fromCurrencyId": 70,
+            "toCurrencyId": 70,
+            "rate": 1
+          },
           "pricingUnit": {
             "value": 3,
             "name": "PerItem",
@@ -2723,6 +2800,13 @@
             "title": "Complete"
           },
           "currencyId": 70,
+          "filedCurrencyId": 70,
+          "rateOfExchange": {
+            "rateOfExchangeTableId": "70",
+            "fromCurrencyId": 70,
+            "toCurrencyId": 70,
+            "rate": 1
+          },
           "pricingUnit": {
             "value": 3,
             "name": "PerItem",
@@ -2960,6 +3044,8 @@
             "title": "Quote Required"
           },
           "currencyId": null,
+          "filedCurrencyId": null,
+          "rateOfExchange": null,
           "pricingUnit": null,
           "baseAmount": null,
           "completeUnitTotal": null,
@@ -3169,6 +3255,8 @@
             "title": "Quote Required"
           },
           "currencyId": null,
+          "filedCurrencyId": null,
+          "rateOfExchange": null,
           "pricingUnit": null,
           "baseAmount": null,
           "completeUnitTotal": null,
@@ -3378,6 +3466,8 @@
             "title": "Quote Required"
           },
           "currencyId": null,
+          "filedCurrencyId": null,
+          "rateOfExchange": null,
           "pricingUnit": null,
           "baseAmount": null,
           "completeUnitTotal": null,
@@ -3587,6 +3677,8 @@
             "title": "Quote Required"
           },
           "currencyId": null,
+          "filedCurrencyId": null,
+          "rateOfExchange": null,
           "pricingUnit": null,
           "baseAmount": null,
           "completeUnitTotal": null,
@@ -3717,6 +3809,14 @@
           "TravellerFareFacts[CHD-1,B2:F1].FareFamilyId"
         ],
         "source": null
+      }
+    ],
+    "ratesOfExchange": [
+      {
+        "rateOfExchangeTableId": "70",
+        "fromCurrencyId": 70,
+        "toCurrencyId": 70,
+        "rate": 1
       }
     ],
     "completeness": {

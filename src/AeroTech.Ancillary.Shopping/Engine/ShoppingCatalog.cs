@@ -1,6 +1,7 @@
 using AeroTech.Ancillary.Domain.AncillaryPricingAggregate;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
+using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Shopping.Reading;
 
 namespace AeroTech.Ancillary.Shopping.Engine
@@ -17,6 +18,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
             IEnumerable<AncillaryPricing> pricings,
             IEnumerable<InventoryConfiguration> inventory,
             IReadOnlyDictionary<int, int> currencyDecimalPlaces,
+            IReadOnlyList<PublishedRateOfExchange> ratesOfExchange,
             InventoryReferenceProbe references)
         {
             Definitions = definitions;
@@ -26,12 +28,15 @@ namespace AeroTech.Ancillary.Shopping.Engine
                 .GroupBy(configuration => configuration.Policy.ServiceDefinitionRef, StringComparer.Ordinal)
                 .ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
             CurrencyDecimalPlaces = currencyDecimalPlaces;
+            RatesOfExchange = ratesOfExchange;
             References = references;
         }
 
         public IReadOnlyList<AncillaryServiceDefinition> Definitions { get; }
 
         public IReadOnlyDictionary<int, int> CurrencyDecimalPlaces { get; }
+
+        public IReadOnlyList<PublishedRateOfExchange> RatesOfExchange { get; }
 
         public InventoryReferenceProbe References { get; }
 

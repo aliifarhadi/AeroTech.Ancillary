@@ -21,6 +21,7 @@
         "amount": 5450000,
         "currencyId": 70
       },
+      "rateOfExchangeTableId": "70",
       "orderLevelFees": [],
       "quantityUnit": "Piece",
       "minQuantity": 1,

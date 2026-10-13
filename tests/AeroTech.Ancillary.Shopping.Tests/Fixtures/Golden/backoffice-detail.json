@@ -116,6 +116,13 @@
           "title": "Complete"
         },
         "currencyId": 70,
+        "filedCurrencyId": 70,
+        "rateOfExchange": {
+          "rateOfExchangeTableId": "70",
+          "fromCurrencyId": 70,
+          "toCurrencyId": 70,
+          "rate": 1
+        },
         "pricingUnit": {
           "value": 6,
           "name": "PerPiece",

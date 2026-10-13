@@ -21,6 +21,7 @@ namespace AeroTech.Ancillary.ReferenceData.Api
         private readonly TravelAgencyOfficeSyncer _travelAgencyOfficeSyncer;
         private readonly AirFareSyncer _airFareSyncer;
         private readonly PointOfSaleSyncer _pointOfSaleSyncer;
+        private readonly RateOfExchangeSyncer _rateOfExchangeSyncer;
 
         public ReferenceSyncController(
             CurrencySyncer currencySyncer,
@@ -34,7 +35,8 @@ namespace AeroTech.Ancillary.ReferenceData.Api
             TravelAgencySyncer travelAgencySyncer,
             TravelAgencyOfficeSyncer travelAgencyOfficeSyncer,
             AirFareSyncer airFareSyncer,
-            PointOfSaleSyncer pointOfSaleSyncer)
+            PointOfSaleSyncer pointOfSaleSyncer,
+            RateOfExchangeSyncer rateOfExchangeSyncer)
         {
             _currencySyncer = currencySyncer;
             _airlineSyncer = airlineSyncer;
@@ -48,6 +50,7 @@ namespace AeroTech.Ancillary.ReferenceData.Api
             _travelAgencyOfficeSyncer = travelAgencyOfficeSyncer;
             _airFareSyncer = airFareSyncer;
             _pointOfSaleSyncer = pointOfSaleSyncer;
+            _rateOfExchangeSyncer = rateOfExchangeSyncer;
         }
 
         [HttpPost("Currencies")]
@@ -131,6 +134,13 @@ namespace AeroTech.Ancillary.ReferenceData.Api
         public async Task<IActionResult> SyncPointOfSales(CancellationToken cancellationToken)
         {
             await _pointOfSaleSyncer.SyncAsync(cancellationToken);
+            return Ok();
+        }
+
+        [HttpPost("RateOfExchanges")]
+        public async Task<IActionResult> SyncRateOfExchanges(CancellationToken cancellationToken)
+        {
+            await _rateOfExchangeSyncer.SyncAsync(cancellationToken);
             return Ok();
         }
     }

@@ -144,7 +144,7 @@ public class EnginePriceInventoryTests
         var (_, other) = await PricedAsync("A24", [Rate(100m, Eur)], Trip.Context(currencyId: Usd));
 
         Assert.Equal((PriceAssessmentStatus.Unavailable, OfferReadiness.Unavailable), (other.Price.Status, other.OfferReadiness));
-        Assert.Contains(ShoppingReasonCodes.RateNotFound, other.Price.ReasonCodes);
+        Assert.Contains(ShoppingReasonCodes.RateOfExchangeNotFound, other.Price.ReasonCodes);
         Assert.Null(other.Price.CompleteUnitTotal);
     }
 

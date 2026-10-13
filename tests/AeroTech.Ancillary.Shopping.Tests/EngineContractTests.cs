@@ -228,7 +228,7 @@ public class EngineContractTests
 
         await lab.Engine.ShopAsync(RoundTrip(Trip.Adult("T1"), Trip.Adult("T2"), Trip.Child("T3")));
 
-        Assert.Equal(5, lab.Catalog.Reads - reads);
+        Assert.Equal(6, lab.Catalog.Reads - reads);
         Assert.Equal(before, lab.Catalog.Provisions.Select(provision => (provision.Id, provision.Status, provision.Sequence)));
 
         var source = Directory

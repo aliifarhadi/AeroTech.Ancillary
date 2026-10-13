@@ -190,7 +190,7 @@ public class ThreeSurfaceTests
         Assert.Equal(3, new[] { backoffice.GetType(), api.GetType(), panel.GetType() }.Distinct().Count());
         Assert.Empty(Members(typeof(ApiAncillaryOffersDto)).Intersect(Members(typeof(BackofficeAncillaryOffersDto))));
         Assert.Equal(new[] { "Data", "Included", "Meta" }, Members(typeof(ApiAncillaryOffersDto)));
-        Assert.Equal(new[] { "BlockedCount", "CurrencyCode", "CurrencyId", "OfferId", "TravellerGroups" }, Members(typeof(OtaPanelAncillaryOffersDto)));
+        Assert.Equal(new[] { "BlockedCount", "CurrencyCode", "CurrencyId", "OfferId", "RatesOfExchange", "TravellerGroups" }, Members(typeof(OtaPanelAncillaryOffersDto)));
     }
 
     [Fact]

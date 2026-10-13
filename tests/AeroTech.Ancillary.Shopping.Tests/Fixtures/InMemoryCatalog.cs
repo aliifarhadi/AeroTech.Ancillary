@@ -13,6 +13,7 @@ public sealed class InMemoryCatalog :
     IActiveAncillaryPricingReader,
     IInventoryConfigurationReader,
     ICurrencyReference,
+    IRateOfExchangeReference,
     IInventoryResourceReference,
     IAirportFacilityReference,
     ICountingFamilyReference
@@ -26,6 +27,8 @@ public sealed class InMemoryCatalog :
     public List<InventoryConfiguration> Inventory { get; } = [];
 
     public Dictionary<int, int> CurrencyScales { get; } = new() { [47] = 2, [155] = 2, [75] = 0, [82] = 3 };
+
+    public List<PublishedRateOfExchange> RatesOfExchange { get; } = [];
 
     public InventoryReferenceCheck ResourceAnswer { get; set; } = InventoryReferenceCheck.SourceUnavailable;
 
@@ -91,6 +94,19 @@ public sealed class InMemoryCatalog :
 
         return Task.FromResult<IReadOnlyDictionary<int, int>>(
             CurrencyScales.Where(scale => currencyIds.Contains(scale.Key)).ToDictionary(scale => scale.Key, scale => scale.Value));
+    }
+
+    public Task<IReadOnlyList<PublishedRateOfExchange>> FindRatesAsync(int toCurrencyId, DateTimeOffset at, CancellationToken cancellationToken = default)
+    {
+        Reads++;
+
+        var decimals = CurrencyScales.GetValueOrDefault(toCurrencyId, 2);
+
+        return Task.FromResult<IReadOnlyList<PublishedRateOfExchange>>(
+            RatesOfExchange
+                .Where(rate => rate.ToCurrencyId == toCurrencyId)
+                .Append(new PublishedRateOfExchange(toCurrencyId.ToString(), toCurrencyId, toCurrencyId, 1m, decimals, 1d))
+                .ToList());
     }
 
     Task<InventoryReferenceCheck> IInventoryResourceReference.CheckAsync(int ownerAirlineId, InventoryResourceKind kind, long resourceId, CancellationToken cancellationToken)

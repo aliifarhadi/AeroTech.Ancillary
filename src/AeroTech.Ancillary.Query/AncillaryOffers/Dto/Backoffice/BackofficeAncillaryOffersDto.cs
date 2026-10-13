@@ -14,6 +14,7 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Dto.Backoffice
         IReadOnlyList<BackofficeAncillaryOfferDto> Offers,
         IReadOnlyList<BackofficeAncillaryOfferDto> BlockedOffers,
         IReadOnlyList<OfferDiagnosticDto> Diagnostics,
+        IReadOnlyList<OfferRateOfExchangeDto> RatesOfExchange,
         OfferCompletenessDto Completeness);
 
     public sealed record OfferCurrencyDto(int CurrencyId, string? CurrencyCode);
