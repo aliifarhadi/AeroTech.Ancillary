@@ -1,5 +1,6 @@
 using AeroTech.Ancillary.Query.AncillaryOffers.Dto.Backoffice;
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
+using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
 using MediatR;
 
 namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.EvaluateSelection.Backoffice
@@ -21,6 +22,7 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.EvaluateSelection.Bac
                     query,
                     BackofficeSelectionInputMapper.ToSelection(query.Selection),
                     await _salesScope.ResolveAsync(query.Options, cancellationToken),
+                    OfferFamilyFilters.Services,
                     cancellationToken));
     }
 }

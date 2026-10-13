@@ -15,8 +15,7 @@ public sealed class InMemoryCatalog :
     ICurrencyReference,
     IInventoryResourceReference,
     IAirportFacilityReference,
-    ICountingFamilyReference,
-    IFlightFlowDelegationReference
+    ICountingFamilyReference
 {
     public List<AncillaryServiceDefinition> Definitions { get; } = [];
 
@@ -35,8 +34,6 @@ public sealed class InMemoryCatalog :
     public int? FacilityAirportId { get; set; }
 
     public InventoryReferenceCheck FamilyAnswer { get; set; } = InventoryReferenceCheck.SourceUnavailable;
-
-    public InventoryReferenceCheck FlightFlowAnswer { get; set; } = InventoryReferenceCheck.SourceUnavailable;
 
     public bool Unfiltered { get; set; }
 
@@ -104,7 +101,4 @@ public sealed class InMemoryCatalog :
 
     Task<InventoryReferenceCheck> ICountingFamilyReference.CheckAsync(int ownerAirlineId, string countingFamilyCode, CancellationToken cancellationToken)
         => Task.FromResult(FamilyAnswer);
-
-    Task<InventoryReferenceCheck> IFlightFlowDelegationReference.CheckAsync(int ownerAirlineId, string providerKey, CancellationToken cancellationToken)
-        => Task.FromResult(FlightFlowAnswer);
 }

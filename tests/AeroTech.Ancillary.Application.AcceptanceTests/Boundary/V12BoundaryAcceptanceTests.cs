@@ -99,8 +99,7 @@ public class V12BoundaryAcceptanceTests
             {
                 "DependencyInjection.cs", "FlightFlowEnvelope.cs", "FlightFlowFlight.cs", "FlightFlowFlightOccurrenceReference.cs", "FlightFlowJson.cs",
                 "FlightOfferDetailResponse.cs", "FlightOfferProvider.cs", "FlightOfferResponseMapper.cs",
-                "NotConnectedAirportFacilityReference.cs", "NotConnectedCountingFamilyReference.cs", "NotConnectedFlightFlowDelegationReference.cs",
-                "NotConnectedFlightSeatMapReference.cs", "NotConnectedInventoryResourceReference.cs",
+                "NotConnectedAirportFacilityReference.cs", "NotConnectedCountingFamilyReference.cs", "NotConnectedInventoryResourceReference.cs",
                 "OfferJson.cs"
             },
             Files(Path.Combine(Source, "AeroTech.Ancillary.Providers")).Select(Path.GetFileName).OrderBy(name => name, StringComparer.Ordinal));
@@ -179,8 +178,6 @@ public class V12BoundaryAcceptanceTests
                 offending.Contains("Inventory", StringComparison.Ordinal)
                 || offending.Contains("AeroTech.Ancillary.Providers/FlightFlow/", StringComparison.Ordinal)
                 || offending.Contains("AeroTech.Ancillary.Shopping/", StringComparison.Ordinal)
-                || offending.Contains("_Shared/Contracts/IFlightFlowDelegationReference.cs", StringComparison.Ordinal)
-                || offending.Contains("_Shared/Resources/ExceptionMessages.cs", StringComparison.Ordinal)
                 || offending.Contains("DependencyInjection.cs", StringComparison.Ordinal),
                 offending));
     }
@@ -241,15 +238,21 @@ public class V12BoundaryAcceptanceTests
             "POST Backoffice/AncillaryOffers",
             "POST Backoffice/AncillaryOffers/Details",
             "POST Backoffice/AncillaryOffers/Selections/Evaluate",
-            "POST Backoffice/AncillaryOffers/SeatMaps",
+            "POST Backoffice/SeatOffers",
+            "POST Backoffice/SeatOffers/Details",
+            "POST Backoffice/SeatOffers/Selections/Evaluate",
             "POST Api/AncillaryOffers",
             "POST Api/AncillaryOffers/Details",
             "POST Api/AncillaryOffers/Selections/Evaluate",
-            "POST Api/AncillaryOffers/SeatMaps",
+            "POST Api/SeatOffers",
+            "POST Api/SeatOffers/Details",
+            "POST Api/SeatOffers/Selections/Evaluate",
             "POST OtaPanel/AncillaryOffers",
             "POST OtaPanel/AncillaryOffers/Details",
             "POST OtaPanel/AncillaryOffers/Selections/Evaluate",
-            "POST OtaPanel/AncillaryOffers/SeatMaps",
+            "POST OtaPanel/SeatOffers",
+            "POST OtaPanel/SeatOffers/Details",
+            "POST OtaPanel/SeatOffers/Selections/Evaluate",
             "POST Backoffice/AncillaryPricings",
             "GET Backoffice/AncillaryPricings/Paginated",
             "GET Backoffice/AncillaryPricings/{pricingId:long}",
@@ -320,7 +323,7 @@ public class V12BoundaryAcceptanceTests
         Assert.Equal(
             preserved.Concat(added).Concat(typed).Concat(forms).Concat(inventory).OrderBy(route => route, StringComparer.Ordinal),
             routes.OrderBy(route => route, StringComparer.Ordinal));
-        Assert.Equal(118, routes.Count);
+        Assert.Equal(124, routes.Count);
         Assert.Equal(36, inventory.Length);
         Assert.DoesNotContain(routes, route => new[] { "Sell", "Reserve", "Release", "Expire" }.Any(term => route.Contains(term, StringComparison.Ordinal)));
         Assert.Equal(

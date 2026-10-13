@@ -6,6 +6,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.Contracts
         long ServiceDefinitionId,
         int OwnerAirlineId,
         string ServiceDefinitionRef,
+        AncillaryProfile? Profile,
         PricingUnit? PricingUnit,
         string? ActiveExternalSupplierProviderKey);
 

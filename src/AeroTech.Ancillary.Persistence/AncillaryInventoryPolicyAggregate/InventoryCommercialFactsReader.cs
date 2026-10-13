@@ -15,7 +15,7 @@ namespace AeroTech.Ancillary.Persistence.AncillaryInventoryPolicyAggregate
             var definition = await _dbContext.AncillaryServiceDefinitions
                 .AsNoTracking()
                 .Where(row => row.Id == serviceDefinitionId)
-                .Select(row => new { row.Id, row.OwnerAirlineId, row.ServiceDefinitionRef, row.PricingUnit, row.SupplierId })
+                .Select(row => new { row.Id, row.OwnerAirlineId, row.ServiceDefinitionRef, row.Profile, row.PricingUnit, row.SupplierId })
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (definition is null)
@@ -33,6 +33,7 @@ namespace AeroTech.Ancillary.Persistence.AncillaryInventoryPolicyAggregate
                 definition.Id,
                 definition.OwnerAirlineId,
                 definition.ServiceDefinitionRef,
+                definition.Profile,
                 definition.PricingUnit,
                 providerKey);
         }

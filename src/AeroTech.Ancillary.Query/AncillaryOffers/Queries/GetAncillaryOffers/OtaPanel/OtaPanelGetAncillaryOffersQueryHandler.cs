@@ -1,4 +1,5 @@
 using AeroTech.Ancillary.Query.AncillaryOffers.Dto.OtaPanel;
+using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
 using MediatR;
 
 namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.OtaPanel
@@ -15,6 +16,6 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Ot
         }
 
         public async Task<OtaPanelAncillaryOffersDto> Handle(OtaPanelGetAncillaryOffersQuery query, CancellationToken cancellationToken)
-            => OtaPanelAncillaryOffersMapper.Map(await _service.ExecuteAsync(query, await _salesScope.ResolveAsync(cancellationToken), cancellationToken));
+            => OtaPanelAncillaryOffersMapper.Map(await _service.ExecuteAsync(query, await _salesScope.ResolveAsync(cancellationToken), OfferFamilyFilters.Services, cancellationToken));
     }
 }

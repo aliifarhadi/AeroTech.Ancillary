@@ -363,47 +363,40 @@ public class BackofficeSurfaceParityTests
     }
 
     [Fact]
-    public async Task INV_02_supplier_and_flightflow_stock_is_a_check_still_to_be_made_and_never_a_held_or_guaranteed_unit()
+    public async Task INV_02_supplier_stock_is_a_check_still_to_be_made_and_a_seat_has_no_inventory_in_this_service()
     {
         var lab = new ShoppingLab();
         var (wifi, _) = lab.Sellable("A24");
         var (seat, _) = lab.Sellable("A07");
 
         lab.Policy(wifi, InventoryAuthority.Supplier);
-        lab.Policy(seat, InventoryAuthority.FlightFlow);
 
-        var blockedSource = await ShopAsync(lab);
+        var response = await ShopAsync(lab);
 
-        lab.Catalog.FlightFlowAnswer = InventoryReferenceCheck.Verified;
-
-        var connected = await ShopAsync(lab);
-
-        Assert.All(Of(blockedSource, wifi.ServiceDefinitionRef).Concat(Of(connected, wifi.ServiceDefinitionRef)), offer => Assert.Equal(
-            ("Supplier", "DelegatedCheckRequired", "NotChecked", false, true),
-            (offer.Availability.Authority?.Name, offer.Availability.ConfigState.Name, offer.Availability.CheckedState.Name, offer.Availability.IsGuaranteed, offer.Availability.RequiresCheckAtReserve)));
-        Assert.All(Of(blockedSource, seat.ServiceDefinitionRef), offer =>
+        Assert.All(Of(response, wifi.ServiceDefinitionRef), offer =>
         {
             Assert.Equal(
-                ("FlightFlow", "DelegatedCheckRequired", "SourceUnavailable", false, true),
+                ("Supplier", "DelegatedCheckRequired", "NotChecked", false, true),
                 (offer.Availability.Authority?.Name, offer.Availability.ConfigState.Name, offer.Availability.CheckedState.Name, offer.Availability.IsGuaranteed, offer.Availability.RequiresCheckAtReserve));
-            Assert.Contains(ShoppingReasonCodes.BlockedExternalReference, offer.Availability.ReasonCodes);
+            Assert.Contains(ShoppingReasonCodes.InventoryDelegatedCheckRequired, offer.Availability.ReasonCodes);
         });
-        Assert.All(Of(connected, seat.ServiceDefinitionRef), offer => Assert.Equal(
-            ("FlightFlow", "DelegatedCheckRequired", "NotChecked", false, true),
-            (offer.Availability.Authority?.Name, offer.Availability.ConfigState.Name, offer.Availability.CheckedState.Name, offer.Availability.IsGuaranteed, offer.Availability.RequiresCheckAtReserve)));
-
-        foreach (var response in new[] { blockedSource, connected })
+        Assert.All(Of(response, seat.ServiceDefinitionRef), offer =>
         {
-            Assert.Equal(4, Of(response, wifi.ServiceDefinitionRef).Count());
-            Assert.Equal(4, Of(response, seat.ServiceDefinitionRef).Count());
-            Assert.All(response.Offers.Concat(response.BlockedOffers), offer =>
-            {
-                Assert.Contains(ShoppingReasonCodes.InventoryDelegatedCheckRequired, offer.Availability.ReasonCodes);
-                Assert.Null(offer.Availability.ConsumptionPreview);
-                Assert.False(offer.CanPurchase);
-                Assert.NotEqual("AvailableAsOf", offer.Availability.CheckedState.Name);
-            });
-            Assert.False(response.Completeness.LiveSupplierAvailabilityChecked);
-        }
+            Assert.Null(offer.Availability.Authority);
+            Assert.Equal(
+                ("NotApplicable", "NotChecked", false),
+                (offer.Availability.ConfigState.Name, offer.Availability.CheckedState.Name, offer.Availability.IsGuaranteed));
+            Assert.DoesNotContain(ShoppingReasonCodes.BlockedExternalReference, offer.Availability.ReasonCodes);
+            Assert.DoesNotContain(ShoppingReasonCodes.InventoryNotConfigured, offer.Availability.ReasonCodes);
+        });
+        Assert.Equal(4, Of(response, wifi.ServiceDefinitionRef).Count());
+        Assert.Equal(4, Of(response, seat.ServiceDefinitionRef).Count());
+        Assert.All(response.Offers.Concat(response.BlockedOffers), offer =>
+        {
+            Assert.Null(offer.Availability.ConsumptionPreview);
+            Assert.False(offer.CanPurchase);
+            Assert.NotEqual("AvailableAsOf", offer.Availability.CheckedState.Name);
+        });
+        Assert.False(response.Completeness.LiveSupplierAvailabilityChecked);
     }
 }

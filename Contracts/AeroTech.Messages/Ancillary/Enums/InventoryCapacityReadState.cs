@@ -10,6 +10,7 @@ namespace AeroTech.Messages.Ancillary.Enums
         [Display(Name = "Closed For Sale")] ClosedForSale = 4,
         [Display(Name = "Delegated Check Required")] DelegatedCheckRequired = 5,
         [Display(Name = "Unknown")] Unknown = 6,
-        [Display(Name = "Unsupported Pattern")] UnsupportedPattern = 7
+        [Display(Name = "Unsupported Pattern")] UnsupportedPattern = 7,
+        [Display(Name = "Not Applicable")] NotApplicable = 8
     }
 }

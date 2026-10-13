@@ -24,6 +24,9 @@ namespace AeroTech.Ancillary.Shopping.Engine
             if (mustCheck)
                 reasons.Add(ShoppingReasonCodes.AvailabilityMustBeChecked);
 
+            if (definition.Profile == AncillaryProfile.Seat)
+                return Assessment(null, InventoryCapacityReadState.NotApplicable, AvailabilityCheckState.NotChecked, mustCheck, null, reasons);
+
             if (configuration is null)
                 return Assessment(null, InventoryCapacityReadState.NotConfigured, AvailabilityCheckState.NotChecked, mustCheck, null, reasons, ShoppingReasonCodes.InventoryNotConfigured);
 
@@ -49,17 +52,6 @@ namespace AeroTech.Ancillary.Shopping.Engine
                         policy.Authority,
                         InventoryCapacityReadState.DelegatedCheckRequired,
                         AvailabilityCheckState.NotChecked,
-                        true,
-                        null,
-                        reasons,
-                        ShoppingReasonCodes.InventoryDelegatedCheckRequired);
-                case InventoryAuthority.FlightFlow:
-                    var delegation = await references.FlightFlowAsync(policy.ProviderKey!, cancellationToken);
-
-                    return Assessment(
-                        policy.Authority,
-                        InventoryCapacityReadState.DelegatedCheckRequired,
-                        Checked(delegation, reasons),
                         true,
                         null,
                         reasons,

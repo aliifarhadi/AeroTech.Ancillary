@@ -32,8 +32,10 @@ namespace AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Queries.Get
         public async Task<InventoryConfigurationSnapshotDto> ExecuteAsync(IGetInventoryConfigurationSnapshotQuery query, CancellationToken cancellationToken = default)
         {
             var ownerAirlineId = await _scope.RequireOwnerAirlineIdAsync(cancellationToken);
-            var snapshot = await ResolveAsync(ownerAirlineId, query, cancellationToken);
             var current = await _facts.FindCurrentAsync(ownerAirlineId, query.ServiceDefinitionRef, cancellationToken);
+            var snapshot = current?.Profile == AncillaryProfile.Seat
+                ? Snapshot(ownerAirlineId, query.ServiceDefinitionRef, null, InventoryCapacityReadState.NotApplicable, "SeatCapacityOwnedExternally")
+                : await ResolveAsync(ownerAirlineId, query, cancellationToken);
             var requiresAvailabilityCheck = current is not null
                                             && await _dbContext.AncillaryProvisions
                                                 .AsNoTracking()

@@ -1,5 +1,6 @@
 using AeroTech.Ancillary.Query.AncillaryOffers.Dto.Api;
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Api;
+using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
 using MediatR;
 
 namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOfferDetail.Api
@@ -22,7 +23,7 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOfferDeta
 
         public async Task<ApiAncillaryOfferDetailDto> Handle(ApiGetAncillaryOfferDetailQuery query, CancellationToken cancellationToken)
         {
-            var detail = await _service.ExecuteAsync(query, await _salesScope.ResolveAsync(cancellationToken), cancellationToken);
+            var detail = await _service.ExecuteAsync(query, await _salesScope.ResolveAsync(cancellationToken), OfferFamilyFilters.Services, cancellationToken);
 
             return ApiAncillaryOfferDetailMapper.Map(detail, await _references.ReadAsync(detail.Shopping, cancellationToken));
         }

@@ -97,6 +97,7 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public const string InventoryPolicyServiceDefinitionMismatch = "The service definition does not belong to the policy identity.";
         public const string InventoryUnitMismatch = "The inventory unit does not match: {0}.";
         public const string InventoryFacilityBusy = "Another slot of this facility is being written; try again.";
+        public const string InventoryPolicyNotApplicable = "Service {0} is a seat product; its capacity is owned by the flight seat map, not by an inventory policy.";
         public const string ShoppingContextIsInvalid = "The ancillary shopping context is not valid: {0}.";
         public const string ShoppingCandidateNotFound = "The ancillary shopping candidate does not exist in this context.";
         public const string FlightOfferIdIsRequired = "A priced flight offer id is required.";
@@ -108,6 +109,5 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public const string ShoppingCallerNotAuthorized = "The caller is not allowed to shop ancillary offers on this surface.";
         public const string OfferItemRefIsRequired = "An offer item reference of a previous ancillary offers answer is required.";
         public const string OfferItemWasNotFound = "OFFER_ITEM_NOT_FOUND: the offer item does not exist for this flight offer and sales scope any more; ask for the ancillary offers again.";
-        public const string SeatMapSourceUnavailable = "SEAT_MAP_SOURCE_UNAVAILABLE: no trusted seat map source is connected ({0}).";
     }
 }

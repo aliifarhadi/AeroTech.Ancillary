@@ -76,7 +76,7 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Ba
                 false,
                 candidate.ReasonCodes);
 
-        private static OfferQuantityDto Quantity(QuantityAssessment quantity)
+        public static OfferQuantityDto Quantity(QuantityAssessment quantity)
             => new(
                 EnumValueDto.Of(quantity.Unit),
                 quantity.MinPerSelection,
@@ -93,7 +93,7 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Ba
                         limit.VerifiedRemaining))
                     .ToList());
 
-        private static OfferPricingDto Pricing(PriceAssessment price)
+        public static OfferPricingDto Pricing(PriceAssessment price)
             => new(
                 EnumValueDto.Of(price.Origin),
                 EnumValueDto.Of(price.Status),

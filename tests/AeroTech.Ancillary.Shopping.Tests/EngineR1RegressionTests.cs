@@ -104,7 +104,7 @@ public class EngineR1RegressionTests
         var blockedReference = await ChosenAsync((lab, definition) =>
         {
             Sell(lab, definition);
-            lab.Policy(definition, InventoryAuthority.FlightFlow);
+            lab.Policy(definition, InventoryAuthority.Local, LocalInventoryPattern.FlightCount, FlightCountConsumption.Create(990001, 1, InventoryCountUnit.Item));
         });
         var incompletePrice = await ChosenAsync((lab, definition) =>
         {

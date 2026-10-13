@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.Query.AncillaryOffers.Dto.Api;
 using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
+using AeroTech.Ancillary.Query.SeatOffers.Queries.GetSeatOffers.Api;
 using AeroTech.Ancillary.Shopping.Results;
 using AeroTech.Messages.Ancillary.Enums;
 
@@ -66,7 +67,7 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Ap
         public static ApiElementaryPriceDto? Price(decimal? amount, int? currencyId, ApiOfferReferences references)
             => amount is { } value ? new ApiElementaryPriceDto(ApiOfferReferences.Amount(value), references.CurrencyCode(currencyId)) : null;
 
-        private static string Name(CanonicalAncillaryOfferCandidate candidate)
+        public static string Name(CanonicalAncillaryOfferCandidate candidate)
             => Separators().Replace(AncillaryVariant.Find(candidate.VariantCode)!.Name, "_").Trim('_').ToUpperInvariant();
 
         private static ApiAncillaryDto Ancillary(CanonicalAncillaryOfferCandidate candidate, ApiOfferReferences references)
@@ -75,32 +76,41 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Ap
                 {
                     AncillaryProfile.Baggage => "CHECKED_BAGS",
                     AncillaryProfile.Meal => "MEALS",
-                    AncillaryProfile.Seat => "SEATS",
+                    AncillaryProfile.Seat => ApiSeatOffersMapper.Seats,
                     _ => "OTHER_SERVICES"
                 },
-                new ApiServiceDto(
-                    candidate.ServiceDefinitionRef,
-                    candidate.CommercialName,
-                    candidate.Description,
-                    candidate.Profile.ToString(),
-                    candidate.VariantCode,
-                    candidate.ServiceTypeCode,
-                    candidate.ServiceSubCode,
-                    candidate.Document.Rfic,
-                    candidate.Document.Rfisc,
-                    candidate.Document.DocumentType.ToString(),
-                    candidate.Booking.Method.ToString(),
-                    candidate.Booking.SsrCode),
+                Service(candidate),
                 Pricing(candidate.Price, references),
-                new ApiQuantityDto(candidate.Quantity.Unit.ToString(), candidate.Quantity.MinPerSelection, candidate.Quantity.MaxPerSelection),
-                candidate.Selection.Fields.Select(field => new ApiSelectionRequirementDto(field.Name, field.Type.ToString(), field.Required)).ToList(),
+                Quantity(candidate),
+                SelectionRequirements(candidate),
                 new ApiAvailabilityDto(candidate.Availability.CheckedState.ToString(), candidate.Availability.IsGuaranteed, candidate.Availability.RequiresCheckAtReserve),
                 candidate.Confirmation.ConfirmationRequirement.ToString(),
                 candidate.OfferReadiness.ToString(),
                 false,
                 candidate.ReasonCodes);
 
-        private static ApiPricingDto Pricing(PriceAssessment price, ApiOfferReferences references)
+        public static ApiServiceDto Service(CanonicalAncillaryOfferCandidate candidate)
+            => new(
+                candidate.ServiceDefinitionRef,
+                candidate.CommercialName,
+                candidate.Description,
+                candidate.Profile.ToString(),
+                candidate.VariantCode,
+                candidate.ServiceTypeCode,
+                candidate.ServiceSubCode,
+                candidate.Document.Rfic,
+                candidate.Document.Rfisc,
+                candidate.Document.DocumentType.ToString(),
+                candidate.Booking.Method.ToString(),
+                candidate.Booking.SsrCode);
+
+        public static ApiQuantityDto Quantity(CanonicalAncillaryOfferCandidate candidate)
+            => new(candidate.Quantity.Unit.ToString(), candidate.Quantity.MinPerSelection, candidate.Quantity.MaxPerSelection);
+
+        public static IReadOnlyList<ApiSelectionRequirementDto> SelectionRequirements(CanonicalAncillaryOfferCandidate candidate)
+            => candidate.Selection.Fields.Select(field => new ApiSelectionRequirementDto(field.Name, field.Type.ToString(), field.Required)).ToList();
+
+        public static ApiPricingDto Pricing(PriceAssessment price, ApiOfferReferences references)
             => new(
                 price.Origin.ToString(),
                 price.Status.ToString(),

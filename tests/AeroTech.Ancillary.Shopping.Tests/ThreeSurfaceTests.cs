@@ -3,7 +3,6 @@ using System.Text.Json.Serialization;
 using AeroTech.Ancillary.Application.AcceptanceTests.Fakes;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Arguments;
 using AeroTech.Ancillary.Domain._Shared.Contracts;
-using AeroTech.Ancillary.Providers.SeatMap;
 using AeroTech.Ancillary.Query.AncillaryOffers.Dto.Api;
 using AeroTech.Ancillary.Query.AncillaryOffers.Dto.Backoffice;
 using AeroTech.Ancillary.Query.AncillaryOffers.Dto.OtaPanel;
@@ -19,12 +18,21 @@ using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers;
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Api;
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.OtaPanel;
-using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetSeatMap;
-using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetSeatMap.Api;
-using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetSeatMap.Backoffice;
-using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetSeatMap.OtaPanel;
 using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
+using AeroTech.Ancillary.Query.SeatOffers.Dto.Api;
+using AeroTech.Ancillary.Query.SeatOffers.Dto.Backoffice;
+using AeroTech.Ancillary.Query.SeatOffers.Dto.OtaPanel;
+using AeroTech.Ancillary.Query.SeatOffers.Queries.EvaluateSeatSelection.Api;
+using AeroTech.Ancillary.Query.SeatOffers.Queries.EvaluateSeatSelection.Backoffice;
+using AeroTech.Ancillary.Query.SeatOffers.Queries.EvaluateSeatSelection.OtaPanel;
+using AeroTech.Ancillary.Query.SeatOffers.Queries.GetSeatOfferDetail.Api;
+using AeroTech.Ancillary.Query.SeatOffers.Queries.GetSeatOfferDetail.Backoffice;
+using AeroTech.Ancillary.Query.SeatOffers.Queries.GetSeatOfferDetail.OtaPanel;
+using AeroTech.Ancillary.Query.SeatOffers.Queries.GetSeatOffers.Api;
+using AeroTech.Ancillary.Query.SeatOffers.Queries.GetSeatOffers.Backoffice;
+using AeroTech.Ancillary.Query.SeatOffers.Queries.GetSeatOffers.OtaPanel;
 using AeroTech.Ancillary.RestApi.V1.AncillaryOffers.Controllers;
+using SeatControllers = AeroTech.Ancillary.RestApi.V1.SeatOffers.Controllers;
 using AeroTech.Ancillary.RestApi.V1._Shared;
 using AeroTech.Ancillary.Shopping.Results;
 using AeroTech.Ancillary.Shopping.Selection;
@@ -360,9 +368,15 @@ public class ThreeSurfaceTests
         Assert.Equal(new[] { "OfferId", "OfferItemRef", "Selection" }, Members(typeof(ApiEvaluateSelectionQuery)));
         Assert.Equal(new[] { "OfferId", "OfferItemRef", "Selection" }, Members(typeof(OtaPanelEvaluateSelectionQuery)));
         Assert.Equal(new[] { "OfferId", "OfferItemRef", "Options", "Selection" }, Members(typeof(BackofficeEvaluateSelectionQuery)));
-        Assert.Equal(new[] { "OfferId", "OfferItemRef" }, Members(typeof(ApiGetSeatMapQuery)));
-        Assert.Equal(new[] { "OfferId", "OfferItemRef" }, Members(typeof(OtaPanelGetSeatMapQuery)));
-        Assert.Equal(new[] { "OfferId", "OfferItemRef", "Options" }, Members(typeof(BackofficeGetSeatMapQuery)));
+        Assert.Equal(new[] { "OfferId" }, Members(typeof(ApiGetSeatOffersQuery)));
+        Assert.Equal(new[] { "OfferId" }, Members(typeof(OtaPanelGetSeatOffersQuery)));
+        Assert.Equal(new[] { "OfferId", "Options" }, Members(typeof(BackofficeGetSeatOffersQuery)));
+        Assert.Equal(new[] { "OfferId", "OfferItemRef" }, Members(typeof(ApiGetSeatOfferDetailQuery)));
+        Assert.Equal(new[] { "OfferId", "OfferItemRef" }, Members(typeof(OtaPanelGetSeatOfferDetailQuery)));
+        Assert.Equal(new[] { "OfferId", "OfferItemRef", "Options" }, Members(typeof(BackofficeGetSeatOfferDetailQuery)));
+        Assert.Equal(new[] { "OfferId", "OfferItemRef", "Selection" }, Members(typeof(ApiEvaluateSeatSelectionQuery)));
+        Assert.Equal(new[] { "OfferId", "OfferItemRef", "Selection" }, Members(typeof(OtaPanelEvaluateSeatSelectionQuery)));
+        Assert.Equal(new[] { "OfferId", "OfferItemRef", "Options", "Selection" }, Members(typeof(BackofficeEvaluateSeatSelectionQuery)));
         Assert.Equal("X", JsonSerializer.Deserialize<ApiGetAncillaryOffersQuery>(Forged, Json)!.OfferId);
         Assert.Equal("X", JsonSerializer.Deserialize<OtaPanelGetAncillaryOffersQuery>(Forged, Json)!.OfferId);
         Assert.Equal(77, JsonSerializer.Deserialize<BackofficeGetAncillaryOffersQuery>(Forged, Json)!.Options!.PointOfSaleId);
@@ -380,7 +394,7 @@ public class ThreeSurfaceTests
     }
 
     [Fact]
-    public void P32B_SRF_05_three_controllers_expose_the_same_four_operations_on_three_routes_under_three_policies()
+    public void P32B_SRF_05_three_controllers_expose_the_same_three_operations_on_three_routes_under_three_policies()
     {
         var controllers = new[] { typeof(BackofficeController), typeof(OtaController), typeof(OtaPanelController) }
             .Select(type => (
@@ -400,8 +414,8 @@ public class ThreeSurfaceTests
                 ("OtaPanel/v{version:apiVersion}/AncillaryOffers", SurfaceAuthorization.OtaPanel)
             },
             controllers.Select(controller => (controller.Route, controller.Policy!)));
-        Assert.All(controllers, controller => Assert.Equal(new[] { "", "Details", "SeatMaps", "Selections/Evaluate" }, controller.Actions.Select(action => action.Item1)));
-        Assert.Equal(12, controllers.SelectMany(controller => controller.Actions.Select(action => action.Item2)).Distinct().Count());
+        Assert.All(controllers, controller => Assert.Equal(new[] { "", "Details", "Selections/Evaluate" }, controller.Actions.Select(action => action.Item1)));
+        Assert.Equal(9, controllers.SelectMany(controller => controller.Actions.Select(action => action.Item2)).Distinct().Count());
         Assert.Equal(3, new[] { SurfaceAuthorization.Backoffice, SurfaceAuthorization.Ota, SurfaceAuthorization.OtaPanel }.Distinct().Count());
     }
 
@@ -559,7 +573,7 @@ public class ThreeSurfaceTests
     [InlineData("A07")]
     [InlineData("A08")]
     [InlineData("A09")]
-    public async Task P32B_DET_02_a_seat_detail_states_the_published_seat_rules_and_the_seat_map_source_is_reported_unavailable(string code)
+    public async Task P32B_DET_02_a_seat_detail_states_the_published_seat_rules_and_never_a_seat_map(string code)
     {
         var lab = IrrLab();
         var definition = lab.Definition(code);
@@ -590,17 +604,12 @@ public class ThreeSurfaceTests
         Assert.False(api.OtherService!.Ancillary.Availability.Guaranteed);
         Assert.Null(api.Bag);
         Assert.Equal("NotChecked", api.OtherService.Ancillary.Availability.State);
-
-        var seatMaps = new GetSeatMapService(offers, new NotConnectedFlightSeatMapReference());
-        var unavailable = await Assert.ThrowsAsync<BusinessException>(() => seatMaps.ExecuteAsync(query, Desk));
-
-        Assert.Equal((16812, 503), (unavailable.Code, unavailable.HttpStatus));
-        Assert.StartsWith("SEAT_MAP_SOURCE_UNAVAILABLE", unavailable.Message, StringComparison.Ordinal);
-        Assert.Contains("SourceUnavailable", unavailable.Message, StringComparison.Ordinal);
+        Assert.Equal("NotApplicable", backoffice.Offer.Availability.ConfigState.Name);
+        Assert.Null(backoffice.Offer.Availability.Authority);
     }
 
     [Fact]
-    public async Task P32B_DET_03_other_profiles_show_only_their_own_published_section_and_a_seat_map_is_refused_for_them()
+    public async Task P32B_DET_03_other_profiles_show_only_their_own_published_section()
     {
         var lab = IrrLab();
 
@@ -637,12 +646,6 @@ public class ThreeSurfaceTests
                 ["A11"] = "Meal", ["A13"] = "Pet", ["A15"] = "AssistedTravel", ["A23"] = "Priority", ["A24"] = "Connectivity"
             },
             sections);
-
-        var wifi = snapshot.Items.First(item => item.Candidate.VariantCode == "A24");
-        var refused = await Assert.ThrowsAsync<BusinessException>(
-            () => new GetSeatMapService(offers, new NotConnectedFlightSeatMapReference()).ExecuteAsync(new OfferQuery(OfferWire.OfferId, wifi.OfferItemRef), Desk));
-
-        Assert.Equal((16801, 422), (refused.Code, refused.HttpStatus));
     }
 
     [Fact]
@@ -683,6 +686,106 @@ public class ThreeSurfaceTests
         Assert.Equal((981_000m, null), (withFee.Evaluation.Candidate.Price.CompleteUnitTotal, withFee.Evaluation.Candidate.Price.RequestedQuantityTotal));
         Assert.Null(ApiSelectionResultMapper.Map(withFee, References(withFee.Shopping)).Data.SelectedPrice);
         Assert.Equal("100000.00", ApiSelectionResultMapper.Map(withFee, References(withFee.Shopping)).Data.OtherService!.Ancillary.Pricing.Fees.Single(fee => fee.OrderLevel).Amount);
+    }
+
+    [Fact]
+    public async Task V123_SH_01_seat_offers_hold_only_the_seat_family_and_ancillary_offers_hold_every_other_family()
+    {
+        var lab = Shop();
+        var offers = await ServiceAsync(lab);
+        var seats = await offers.ExecuteAsync(new OfferQuery(OfferWire.OfferId), Desk, OfferFamilyFilters.Seat);
+        var services = await offers.ExecuteAsync(new OfferQuery(OfferWire.OfferId), Desk, OfferFamilyFilters.Services);
+        var api = ApiSeatOffersMapper.Map(seats, References(seats));
+        var panel = OtaPanelSeatOffersMapper.Map(seats);
+        var backoffice = BackofficeSeatOffersMapper.Map(seats);
+
+        Assert.Equal(4, seats.Items.Count());
+        Assert.All(seats.Items, item => Assert.Equal((AncillaryProfile.Seat, "A07", SeatPurpose.Standard), (item.Candidate.Profile, item.Candidate.VariantCode, item.Candidate.Seat!.Purpose)));
+        Assert.Equal(8, services.Items.Count());
+        Assert.DoesNotContain(services.Items, item => item.Candidate.Profile == AncillaryProfile.Seat);
+        Assert.All(services.Items, item => Assert.Null(item.Candidate.Seat));
+        Assert.Equal((ApiSeatOffersMapper.SeatOffers, 4, 0), (api.Data.Type, api.Included.SeatOffers.Count, api.Meta.WithheldCount));
+        Assert.All(api.Included.SeatOffers.Values, offer => Assert.Equal(("SEATS", "Standard", "1500000.00", "IRR"), (offer.Ancillary.Type, offer.Seat.Purpose, offer.Price!.Amount, offer.Price.CurrencyCode)));
+        Assert.Equal(4, panel.TravellerGroups.SelectMany(group => group.FlightGroups).Sum(group => group.SeatOffers.Count));
+        Assert.Equal((4, 0), (backoffice.Offers.Count, backoffice.BlockedOffers.Count));
+        Assert.All(backoffice.Offers, offer => Assert.Equal(("Seat", "Standard", 1_500_000m), (offer.Service.Profile.Name, offer.Seat.Purpose.Name, offer.Pricing.CompleteUnitTotal)));
+        Assert.DoesNotContain("\"availability\":", JsonSerializer.Serialize(api, Json), StringComparison.Ordinal);
+        Assert.DoesNotContain("\"availability\":", JsonSerializer.Serialize(backoffice, Json), StringComparison.Ordinal);
+        Assert.DoesNotContain("\"availability\":", JsonSerializer.Serialize(panel, Json), StringComparison.Ordinal);
+        Assert.DoesNotContain(ApiAncillaryOffersMapper.Map(services, References(services)).Included.OtherServices.Values, service => service.Ancillary.Type == "SEATS");
+    }
+
+    [Fact]
+    public async Task V123_SH_11_an_offer_item_ref_of_one_family_is_not_found_by_the_other_family_on_any_operation()
+    {
+        var lab = Shop();
+        var offers = await ServiceAsync(lab);
+        var details = new GetAncillaryOfferDetailService(offers, lab.Catalog, lab.Catalog, lab.Catalog);
+        var selections = new EvaluateSelectionService(offers, lab.Engine);
+        var seat = (await offers.ExecuteAsync(new OfferQuery(OfferWire.OfferId), Desk, OfferFamilyFilters.Seat)).Items.First();
+        var bag = (await offers.ExecuteAsync(new OfferQuery(OfferWire.OfferId), Desk, OfferFamilyFilters.Services)).Items.First(item => item.Candidate.VariantCode == "A01");
+        var seatQuery = new OfferQuery(OfferWire.OfferId, seat.OfferItemRef);
+        var bagQuery = new OfferQuery(OfferWire.OfferId, bag.OfferItemRef);
+
+        foreach (var crossed in new Func<Task>[]
+                 {
+                     () => offers.FindItemAsync(seatQuery, Desk, OfferFamilyFilters.Services),
+                     () => offers.FindItemAsync(bagQuery, Desk, OfferFamilyFilters.Seat),
+                     () => details.ExecuteAsync(seatQuery, Desk, OfferFamilyFilters.Services),
+                     () => details.ExecuteAsync(bagQuery, Desk, OfferFamilyFilters.Seat),
+                     () => selections.ExecuteAsync(seatQuery, new AncillarySelection { SeatNumber = "12A" }, Desk, OfferFamilyFilters.Services),
+                     () => selections.ExecuteAsync(bagQuery, new AncillarySelection { Quantity = 1 }, Desk, OfferFamilyFilters.Seat)
+                 })
+        {
+            var missing = await Assert.ThrowsAsync<BusinessException>(crossed);
+
+            Assert.Equal((16811, 404), (missing.Code, missing.HttpStatus));
+        }
+
+        var detail = await details.ExecuteAsync(seatQuery, Desk, OfferFamilyFilters.Seat);
+        var selection = await selections.ExecuteAsync(seatQuery, ApiSelectionInputMapper.ToSelection(new ApiAncillarySelectionInput { SeatNumber = "12A" }), Desk, OfferFamilyFilters.Seat);
+        var api = ApiSeatOffersMapper.Detail(detail, References(detail.Shopping, detail)).Data;
+        var chosen = ApiSeatOffersMapper.Selection(selection, References(selection.Shopping)).Data;
+
+        Assert.Equal((ApiSeatOffersMapper.SeatOffer, seat.OfferItemRef, "Standard"), (api.Type, api.Id, api.Specification.SeatPurpose));
+        Assert.Equal("Standard", BackofficeSeatOffersMapper.Detail(detail).Specification.SeatPurpose.Name);
+        Assert.Equal("Standard", OtaPanelSeatOffersMapper.Detail(detail).Specification.SeatPurpose);
+        Assert.Equal((ApiSeatOffersMapper.SeatSelection, "Incomplete", "NeedsVerification", false), (chosen.Type, chosen.Status, chosen.SeatOffer.Ancillary.Readiness, chosen.CanPurchase));
+        Assert.Null(chosen.SelectedPrice);
+        Assert.Contains(ShoppingReasonCodes.SeatMapNotVerified, selection.Evaluation.Candidate.ReasonCodes);
+        Assert.Equal("Incomplete", BackofficeSeatOffersMapper.Selection(selection).Status.Name);
+        Assert.Equal("Incomplete", OtaPanelSeatOffersMapper.Selection(selection).Status);
+        Assert.Null(BackofficeSeatOffersMapper.Selection(selection).SelectedQuantityTotal);
+
+        var verified = await selections.ExecuteAsync(seatQuery, new AncillarySelection { SeatNumber = "12A" }, Desk, OfferFamilyFilters.Seat);
+
+        Assert.Equal(SelectionEvaluationStatus.Incomplete, verified.Evaluation.Status);
+    }
+
+    [Fact]
+    public void V123_SRF_06_three_seat_controllers_expose_three_operations_on_three_seat_routes_under_the_same_three_policies()
+    {
+        var controllers = new[] { typeof(SeatControllers.BackofficeController), typeof(SeatControllers.OtaController), typeof(SeatControllers.OtaPanelController) }
+            .Select(type => (
+                Route: type.GetCustomAttributes(typeof(RouteAttribute), false).Cast<RouteAttribute>().Single().Template,
+                Policy: type.GetCustomAttributes(typeof(AuthorizeAttribute), false).Cast<AuthorizeAttribute>().Single().Policy,
+                Actions: type.GetMethods()
+                    .SelectMany(method => method.GetCustomAttributes(typeof(HttpPostAttribute), false).Cast<HttpPostAttribute>().Select(post => (post.Template ?? string.Empty, method.GetParameters()[0].ParameterType)))
+                    .OrderBy(action => action.Item1, StringComparer.Ordinal)
+                    .ToList()))
+            .ToList();
+
+        Assert.Equal(
+            new[]
+            {
+                ("Backoffice/v{version:apiVersion}/SeatOffers", SurfaceAuthorization.Backoffice),
+                ("Api/v{version:apiVersion}/SeatOffers", SurfaceAuthorization.Ota),
+                ("OtaPanel/v{version:apiVersion}/SeatOffers", SurfaceAuthorization.OtaPanel)
+            },
+            controllers.Select(controller => (controller.Route, controller.Policy!)));
+        Assert.All(controllers, controller => Assert.Equal(new[] { "", "Details", "Selections/Evaluate" }, controller.Actions.Select(action => action.Item1)));
+        Assert.Equal(9, controllers.SelectMany(controller => controller.Actions.Select(action => action.Item2)).Distinct().Count());
+        Assert.All(controllers.SelectMany(controller => controller.Actions), action => Assert.Contains("Seat", action.Item2.Name, StringComparison.Ordinal));
     }
 
     [Theory]

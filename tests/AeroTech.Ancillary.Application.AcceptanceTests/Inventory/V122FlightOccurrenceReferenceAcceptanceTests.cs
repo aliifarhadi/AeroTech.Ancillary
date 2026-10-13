@@ -98,7 +98,7 @@ public class V122FlightOccurrenceReferenceAcceptanceTests
     }
 
     [Fact]
-    public void V122_FF05_the_host_registers_the_flightflow_reference_for_flights_and_keeps_the_four_other_references_unconnected()
+    public void V122_FF05_the_host_registers_the_flight_occurrence_reference_and_keeps_the_three_other_references_unconnected()
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?> { ["FlightFlow:BaseUrl"] = "https://flightflow.test/service/" })
@@ -111,13 +111,12 @@ public class V122FlightOccurrenceReferenceAcceptanceTests
         Assert.Equal(
             new[]
             {
-                "NotConnectedAirportFacilityReference", "NotConnectedCountingFamilyReference", "NotConnectedFlightFlowDelegationReference", "NotConnectedInventoryResourceReference"
+                "NotConnectedAirportFacilityReference", "NotConnectedCountingFamilyReference", "NotConnectedInventoryResourceReference"
             },
             new object[]
                 {
                     scope.ServiceProvider.GetRequiredService<IAirportFacilityReference>(),
                     scope.ServiceProvider.GetRequiredService<ICountingFamilyReference>(),
-                    scope.ServiceProvider.GetRequiredService<IFlightFlowDelegationReference>(),
                     scope.ServiceProvider.GetRequiredService<IInventoryResourceReference>()
                 }
                 .Select(reference => reference.GetType().Name));

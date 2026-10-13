@@ -33,7 +33,6 @@ public class V122VariantMatrixAcceptanceTests : IClassFixture<VariantMatrixCache
 {
     private const long Flight = 81234;
     private const int Usd = 155;
-    private const string FlightFlowKey = "FlightFlow";
 
     private static readonly DateTimeOffset At = Utc(10, 15);
 
@@ -49,13 +48,6 @@ public class V122VariantMatrixAcceptanceTests : IClassFixture<VariantMatrixCache
     private sealed record Ruled(Defined Definition, TestDefineProvisionCommand Command, long ProvisionId, BackofficeProvisionDto Draft, int TwoPointsOfSale, int NoPointOfSale);
 
     private sealed record Priced(Ruled Rule, BackofficeProvisionDto Provision, BackofficePricingDto? Pricing, int PricingRefusal, int ActivePricings, int ForeignQuoteAuthority);
-
-    private sealed record Stocked(
-        int OfflineRefusal,
-        InventoryConfigurationSnapshotDto Before,
-        InventoryConfigurationSnapshotDto Snapshot,
-        BackofficeInventoryPolicyDto Policy,
-        string SourceRows);
 
     private sealed record Read(
         BackofficeServiceDefinitionDto Detail,
@@ -268,54 +260,6 @@ public class V122VariantMatrixAcceptanceTests : IClassFixture<VariantMatrixCache
             pricingRefusal,
             await RequestAsync(scope => scope.Command.AncillaryPricings.AsNoTracking().CountAsync(row => row.AncillaryProvisionId == rule.ProvisionId)),
             foreignQuoteAuthority);
-    });
-
-    private static PassengerUsageLimitInput LimitOf(VariantCase variant)
-        => variant.Code == AncillaryVariant.ExtraWeightPackage
-            ? new(PassengerUsageLimitScope.PerPortion, 20, variant.Reference, UsageConsumptionUnit.Kilogram, 10m)
-            : new(
-                variant.CoverageScope == ServiceCoverageScope.Portion ? PassengerUsageLimitScope.PerPortion : PassengerUsageLimitScope.PerFlightOccurrence,
-                variant.MaxQuantity,
-                variant.Reference);
-
-    private Task<Stocked> StockedAsync(string code) => _cache.GetAsync($"{code}-I", async () =>
-    {
-        var variant = V122Catalog.Case(code);
-        var price = await PricedAsync(code);
-        var definition = price.Rule.Definition;
-        var harness = new InventoryHarness(_database, _clock);
-        var fixture = new InventoryFixture(definition.AirlineId);
-        var command = new TestDefineInventoryPolicyCommand(
-            definition.AirlineId,
-            variant.Reference,
-            definition.DefinitionId,
-            variant.Authority,
-            ProviderKey: variant.Authority switch
-            {
-                InventoryAuthority.Supplier => V122Catalog.QuoteProvider,
-                InventoryAuthority.FlightFlow => FlightFlowKey,
-                _ => null
-            },
-            PassengerUsageLimits: [LimitOf(variant)]);
-        var draft = await harness.RequestAsync(fixture, scope => scope.DefineInventoryPolicy.DefineAsync(command));
-        var offline = await CodeAsync(() => harness.RequestAsync(fixture, scope => scope.ActivateInventoryPolicy.ActivateAsync(new TestInventoryPolicyLifecycleCommand(draft.Id, 1))));
-        var before = await harness.SnapshotAsync(fixture, variant.Reference, Flight, At);
-
-        fixture.CountingFamilies = [variant.Reference];
-        fixture.FlightFlowProviderKeys = [FlightFlowKey];
-        await harness.RequestAsync(fixture, scope => scope.ActivateInventoryPolicy.ActivateAsync(new TestInventoryPolicyLifecycleCommand(draft.Id, 1)));
-
-        return new Stocked(
-            offline,
-            before,
-            await harness.SnapshotAsync(fixture, variant.Reference, Flight, At),
-            await harness.RequestAsync(fixture, scope => scope.GetInventoryPolicyById.ExecuteAsync(draft.Id)),
-            (await harness.RowsAsync($"""
-                SELECT CONCAT(
-                    (SELECT COUNT(*) FROM Ancillary.FlightCountInventories WHERE OwnerAirlineId = {definition.AirlineId}), '|',
-                    (SELECT COUNT(*) FROM Ancillary.FlightWeightInventories WHERE OwnerAirlineId = {definition.AirlineId}), '|',
-                    (SELECT COUNT(*) FROM Ancillary.AirportSlotInventories WHERE OwnerAirlineId = {definition.AirlineId})) AS Value
-                """)).Single());
     });
 
     private Task<Read> ReadAsync(string code) => _cache.GetAsync($"{code}-Q", async () =>

@@ -1,5 +1,6 @@
 using AeroTech.Ancillary.Query.AncillaryOffers.Dto.Api;
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Api;
+using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
 using MediatR;
 
 namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.EvaluateSelection.Api
@@ -26,6 +27,7 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.EvaluateSelection.Api
                 query,
                 ApiSelectionInputMapper.ToSelection(query.Selection),
                 await _salesScope.ResolveAsync(cancellationToken),
+                OfferFamilyFilters.Services,
                 cancellationToken);
 
             return ApiSelectionResultMapper.Map(selection, await _references.ReadAsync(selection.Shopping, cancellationToken));

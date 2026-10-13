@@ -9,7 +9,6 @@ public sealed class InventoryFixture
         IFlightOccurrenceReference,
         IInventoryResourceReference,
         IAirportFacilityReference,
-        IFlightFlowDelegationReference,
         ICountingFamilyReference,
         IAirportReference
 {
@@ -45,8 +44,6 @@ public sealed class InventoryFixture
 
     public Dictionary<long, (int AirportId, string TimeZoneId)>? Facilities { get; set; }
 
-    public HashSet<string>? FlightFlowProviderKeys { get; set; }
-
     public HashSet<string>? CountingFamilies { get; set; }
 
     public HashSet<int> Airports { get; } = [];
@@ -57,7 +54,6 @@ public sealed class InventoryFixture
             Flights = [],
             Resources = [],
             Facilities = [],
-            FlightFlowProviderKeys = [],
             CountingFamilies = []
         };
 
@@ -80,9 +76,6 @@ public sealed class InventoryFixture
                 : Facilities.TryGetValue(facilityId, out var facility)
                     ? new AirportFacilityCheck(InventoryReferenceCheck.Verified, facility.AirportId, facility.TimeZoneId)
                     : new AirportFacilityCheck(InventoryReferenceCheck.NotFound, null, null));
-
-    Task<InventoryReferenceCheck> IFlightFlowDelegationReference.CheckAsync(int ownerAirlineId, string providerKey, CancellationToken cancellationToken)
-        => Task.FromResult(Check(FlightFlowProviderKeys, providerKey));
 
     Task<InventoryReferenceCheck> ICountingFamilyReference.CheckAsync(int ownerAirlineId, string countingFamilyCode, CancellationToken cancellationToken)
         => Task.FromResult(Check(CountingFamilies, countingFamilyCode));

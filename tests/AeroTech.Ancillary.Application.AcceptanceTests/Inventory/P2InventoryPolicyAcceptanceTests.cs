@@ -187,7 +187,7 @@ public class P2InventoryPolicyAcceptanceTests
             properties.OrderBy(name => name, StringComparer.Ordinal));
         Assert.DoesNotContain(properties, name => OperationalTerms.Any(term => name.Contains(term, StringComparison.Ordinal)));
         Assert.Equal(
-            new[] { "NotConfigured", "Unlimited", "ConfiguredNotGuaranteed", "ClosedForSale", "DelegatedCheckRequired", "Unknown", "UnsupportedPattern" },
+            new[] { "NotConfigured", "Unlimited", "ConfiguredNotGuaranteed", "ClosedForSale", "DelegatedCheckRequired", "Unknown", "UnsupportedPattern", "NotApplicable" },
             Enum.GetNames<InventoryCapacityReadState>());
         Assert.DoesNotContain(Enum.GetNames<InventoryCapacityReadState>(), name => name is "Available" or "SoldOut" or "Reserved");
     }

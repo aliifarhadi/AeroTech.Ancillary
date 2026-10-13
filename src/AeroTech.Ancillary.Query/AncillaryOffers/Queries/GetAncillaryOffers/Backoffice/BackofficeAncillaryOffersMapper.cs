@@ -43,7 +43,7 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Ba
                     false));
         }
 
-        private static OfferPortionDto Portion(FlightOfferBound bound)
+        public static OfferPortionDto Portion(FlightOfferBound bound)
             => new(
                 bound.BoundId,
                 bound.Sequence,
@@ -70,7 +70,7 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Ba
                             .ToList()))
                     .ToList());
 
-        private static OfferTravellerDto Traveller(FlightOfferTicket ticket, FlightOfferFacts facts)
+        public static OfferTravellerDto Traveller(FlightOfferTicket ticket, FlightOfferFacts facts)
             => new(
                 ticket.TravellerRef,
                 ticket.TravellerIndex,
@@ -105,7 +105,7 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Ba
                 .Select(group => new OfferCategoryDto(EnumValueDto.Of(group.Key), EnumValueDto.Of(group.Key).Title, group.Count()))
                 .ToList();
 
-        private static IReadOnlyList<OfferDiagnosticDto> Diagnostics(AncillaryShoppingSnapshot snapshot)
+        public static IReadOnlyList<OfferDiagnosticDto> Diagnostics(AncillaryShoppingSnapshot snapshot)
         {
             var diagnostics = snapshot.PointsOfSale
                 .SelectMany(pointOfSale => pointOfSale.Result.Diagnostics)
@@ -125,7 +125,7 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Ba
             return diagnostics;
         }
 
-        private static bool IsComplete(AncillaryShoppingContext context)
+        public static bool IsComplete(AncillaryShoppingContext context)
             => context.CoverageCompleteness is
                {
                    TravellersComplete: true,

@@ -74,19 +74,11 @@ public class P2InventoryPolicyConformanceTests
     }
 
     [Fact]
-    public void P2_C04_X12_flightflow_policy_owns_no_local_counter_and_activates_only_with_a_verified_delegation()
+    public void P2_C04_X12_a_delegated_flight_authority_no_longer_exists_and_is_refused_as_an_unknown_authority()
     {
-        var policy = Policy(Args(InventoryAuthority.FlightFlow, providerKey: "FlightFlow"), "SEAT_SELECTION");
-
-        BusinessAssert.Throws(16602, 422, () => Policy(Args(InventoryAuthority.FlightFlow, LocalInventoryPattern.FlightCount, "FlightFlow", Count())));
-        BusinessAssert.Throws(16608, 409, () => policy.Activate(Evidence(PricingUnit.PerSeat), 1, Now));
-        BusinessAssert.Throws(16609, 422, () => policy.Activate(Evidence(PricingUnit.PerSeat, flightFlow: InventoryReferenceCheck.NotFound), 1, Now));
-        Assert.Equal(InventoryRecordStatus.Draft, policy.Status);
-
-        policy.Activate(Evidence(PricingUnit.PerSeat, flightFlow: Ok), 1, Now);
-
-        Assert.Equal(InventoryRecordStatus.Active, policy.Status);
-        Assert.Null(policy.CountConsumption);
+        BusinessAssert.Throws(16602, 422, () => Policy(Args((InventoryAuthority)4, providerKey: "FlightFlow"), "SEAT_SELECTION"));
+        BusinessAssert.Throws(16602, 422, () => Policy(Args((InventoryAuthority)4, LocalInventoryPattern.FlightCount, "FlightFlow", Count())));
+        Assert.DoesNotContain(typeof(InventoryPolicyEvidence).GetProperties(), property => property.Name.Contains("FlightFlow", StringComparison.Ordinal));
     }
 
     [Fact]

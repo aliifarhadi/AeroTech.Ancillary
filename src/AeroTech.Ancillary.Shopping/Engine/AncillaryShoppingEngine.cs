@@ -20,7 +20,6 @@ namespace AeroTech.Ancillary.Shopping.Engine
         private readonly IInventoryResourceReference _resources;
         private readonly IAirportFacilityReference _facilities;
         private readonly ICountingFamilyReference _families;
-        private readonly IFlightFlowDelegationReference _flightFlow;
 
         public AncillaryShoppingEngine(
             IActiveAncillaryDefinitionReader definitions,
@@ -30,8 +29,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
             ICurrencyReference currencies,
             IInventoryResourceReference resources,
             IAirportFacilityReference facilities,
-            ICountingFamilyReference families,
-            IFlightFlowDelegationReference flightFlow)
+            ICountingFamilyReference families)
         {
             _definitions = definitions;
             _provisions = provisions;
@@ -41,7 +39,6 @@ namespace AeroTech.Ancillary.Shopping.Engine
             _resources = resources;
             _facilities = facilities;
             _families = families;
-            _flightFlow = flightFlow;
         }
 
         public async Task<CanonicalAncillaryOfferResult> ShopAsync(
@@ -267,7 +264,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
                 .ToList();
             var inventory = await _inventory.ListAsync(
                 context.OwnerAirlineId,
-                definitions.Select(definition => definition.ServiceDefinitionRef).Distinct(StringComparer.Ordinal).ToList(),
+                definitions.Where(definition => definition.Profile != AncillaryProfile.Seat).Select(definition => definition.ServiceDefinitionRef).Distinct(StringComparer.Ordinal).ToList(),
                 context.Flights.Select(flight => flight.FlightId).Distinct().ToList(),
                 context.EvaluatedAtUtc,
                 cancellationToken);
@@ -279,7 +276,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
                 pricings,
                 inventory.Where(configuration => configuration.Policy.OwnerAirlineId == context.OwnerAirlineId),
                 decimals,
-                new InventoryReferenceProbe(_resources, _facilities, _families, _flightFlow, context.OwnerAirlineId));
+                new InventoryReferenceProbe(_resources, _facilities, _families, context.OwnerAirlineId));
         }
 
         private async Task<Decision?> DecideAsync(
@@ -373,6 +370,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
                     provision.PetRule?.AcceptanceMode ?? definition.Booking.ConfirmationRequirement,
                     provision.Fulfillment.FulfillmentProviderKey,
                     ProviderConfirmationStatus.NotRequested),
+                Seat = definition.Seat is { } seat ? SeatOfferTerms.Of(seat, provision.SeatApplication) : null,
                 OfferReadiness = Readiness(provision, outcome, price, availability, quantity, expired),
                 ExpiresAtUtc = unit.Context.SourceIdentity.ValidUntilUtc,
                 ReasonCodes = outcome.ReasonCodes

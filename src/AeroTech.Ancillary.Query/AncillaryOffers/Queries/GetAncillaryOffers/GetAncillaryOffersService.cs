@@ -2,6 +2,7 @@ using AeroTech.Ancillary.Application.FlightOffers;
 using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
+using AeroTech.Ancillary.Shopping.Context;
 using AeroTech.Ancillary.Shopping.Engine;
 
 namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers
@@ -25,7 +26,14 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers
             _engine = engine;
         }
 
-        public async Task<AncillaryShoppingSnapshot> ExecuteAsync(IAncillaryOffersQuery query, AncillarySalesScope scope, CancellationToken cancellationToken = default)
+        public Task<AncillaryShoppingSnapshot> ExecuteAsync(IAncillaryOffersQuery query, AncillarySalesScope scope, CancellationToken cancellationToken = default)
+            => ExecuteAsync(query, scope, ShoppingFilter.None, cancellationToken);
+
+        public async Task<AncillaryShoppingSnapshot> ExecuteAsync(
+            IAncillaryOffersQuery query,
+            AncillarySalesScope scope,
+            ShoppingFilter family,
+            CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(query.OfferId))
                 throw ExceptionFactory.FlightOfferIdIsRequired();
@@ -45,7 +53,7 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers
             foreach (var pointOfSaleId in scope.PointOfSaleIds.Distinct().Order())
             {
                 var context = FlightOfferShoppingContextMapper.Map(offer, facts, scope, pointOfSaleId, airportCountryIds);
-                var result = await _engine.ShopAsync(context, cancellationToken: cancellationToken);
+                var result = await _engine.ShopAsync(context, family, cancellationToken);
 
                 pointsOfSale.Add(new PointOfSaleShopping(
                     pointOfSaleId,
@@ -63,15 +71,22 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers
             return new AncillaryShoppingSnapshot(offer, scope, facts, FlightOfferShoppingContextMapper.CurrencyOf(offer, scope), pointsOfSale);
         }
 
+        public Task<(AncillaryShoppingSnapshot Shopping, AncillaryOfferItem Item)> FindItemAsync(
+            IAncillaryOfferItemQuery query,
+            AncillarySalesScope scope,
+            CancellationToken cancellationToken = default)
+            => FindItemAsync(query, scope, ShoppingFilter.None, cancellationToken);
+
         public async Task<(AncillaryShoppingSnapshot Shopping, AncillaryOfferItem Item)> FindItemAsync(
             IAncillaryOfferItemQuery query,
             AncillarySalesScope scope,
+            ShoppingFilter family,
             CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(query.OfferItemRef))
                 throw ExceptionFactory.OfferItemRefIsRequired();
 
-            var shopping = await ExecuteAsync(query, scope, cancellationToken);
+            var shopping = await ExecuteAsync(query, scope, family, cancellationToken);
             var item = shopping.Items.SingleOrDefault(candidate => string.Equals(candidate.OfferItemRef, query.OfferItemRef, StringComparison.Ordinal))
                        ?? throw ExceptionFactory.OfferItemWasNotFound();
 

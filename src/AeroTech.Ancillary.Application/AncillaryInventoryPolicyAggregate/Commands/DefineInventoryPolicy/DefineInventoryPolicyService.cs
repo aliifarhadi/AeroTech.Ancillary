@@ -6,6 +6,7 @@ using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Framework.Core.Domain.Repository;
 using AeroTech.Framework.Core.ServiceContracts;
+using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Application.AncillaryInventoryPolicyAggregate.Commands.DefineInventoryPolicy
 {
@@ -45,6 +46,9 @@ namespace AeroTech.Ancillary.Application.AncillaryInventoryPolicyAggregate.Comma
 
             if (facts is null || facts.OwnerAirlineId != command.OwnerAirlineId || facts.ServiceDefinitionRef != command.ServiceDefinitionRef)
                 throw ExceptionFactory.InventoryPolicyServiceDefinitionMismatch();
+
+            if (facts.Profile == AncillaryProfile.Seat)
+                throw ExceptionFactory.InventoryPolicyNotApplicable(facts.ServiceDefinitionRef);
 
             if (await _policies.HasCurrentAsync(command.OwnerAirlineId, command.ServiceDefinitionRef, cancellationToken))
                 throw ExceptionFactory.InventoryPolicyAlreadyExists(command.ServiceDefinitionRef);

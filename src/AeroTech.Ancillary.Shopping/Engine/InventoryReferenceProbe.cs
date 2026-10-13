@@ -8,7 +8,6 @@ namespace AeroTech.Ancillary.Shopping.Engine
         private readonly IInventoryResourceReference _resources;
         private readonly IAirportFacilityReference _facilities;
         private readonly ICountingFamilyReference _families;
-        private readonly IFlightFlowDelegationReference _flightFlow;
         private readonly int _ownerAirlineId;
         private readonly Dictionary<string, InventoryReferenceCheck> _answers = new(StringComparer.Ordinal);
         private readonly Dictionary<long, AirportFacilityCheck> _facilityAnswers = [];
@@ -17,13 +16,11 @@ namespace AeroTech.Ancillary.Shopping.Engine
             IInventoryResourceReference resources,
             IAirportFacilityReference facilities,
             ICountingFamilyReference families,
-            IFlightFlowDelegationReference flightFlow,
             int ownerAirlineId)
         {
             _resources = resources;
             _facilities = facilities;
             _families = families;
-            _flightFlow = flightFlow;
             _ownerAirlineId = ownerAirlineId;
         }
 
@@ -40,9 +37,6 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
         public Task<InventoryReferenceCheck> FamilyAsync(string countingFamilyCode, CancellationToken cancellationToken)
             => OnceAsync($"C:{countingFamilyCode}", () => _families.CheckAsync(_ownerAirlineId, countingFamilyCode, cancellationToken));
-
-        public Task<InventoryReferenceCheck> FlightFlowAsync(string providerKey, CancellationToken cancellationToken)
-            => OnceAsync($"D:{providerKey}", () => _flightFlow.CheckAsync(_ownerAirlineId, providerKey, cancellationToken));
 
         private async Task<InventoryReferenceCheck> OnceAsync(string key, Func<Task<InventoryReferenceCheck>> check)
         {

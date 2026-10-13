@@ -1,5 +1,6 @@
 using AeroTech.Ancillary.Query.AncillaryOffers.Dto.Backoffice;
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
+using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
 using MediatR;
 
 namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOfferDetail.Backoffice
@@ -16,6 +17,6 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOfferDeta
         }
 
         public async Task<BackofficeAncillaryOfferDetailDto> Handle(BackofficeGetAncillaryOfferDetailQuery query, CancellationToken cancellationToken)
-            => BackofficeAncillaryOfferDetailMapper.Map(await _service.ExecuteAsync(query, await _salesScope.ResolveAsync(query.Options, cancellationToken), cancellationToken));
+            => BackofficeAncillaryOfferDetailMapper.Map(await _service.ExecuteAsync(query, await _salesScope.ResolveAsync(query.Options, cancellationToken), OfferFamilyFilters.Services, cancellationToken));
     }
 }

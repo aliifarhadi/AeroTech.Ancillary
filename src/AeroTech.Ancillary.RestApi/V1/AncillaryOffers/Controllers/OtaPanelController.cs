@@ -1,7 +1,6 @@
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.EvaluateSelection.OtaPanel;
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOfferDetail.OtaPanel;
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.OtaPanel;
-using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetSeatMap.OtaPanel;
 using AeroTech.Ancillary.RestApi.V1._Shared;
 using Asp.Versioning;
 using MediatR;
@@ -33,13 +32,5 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryOffers.Controllers
         [HttpPost("Selections/Evaluate")]
         public async Task<IActionResult> EvaluateSelection([FromBody] OtaPanelEvaluateSelectionQuery query, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(query, cancellationToken));
-
-        [HttpPost("SeatMaps")]
-        public async Task<IActionResult> GetSeatMap([FromBody] OtaPanelGetSeatMapQuery query, CancellationToken cancellationToken)
-        {
-            await _mediator.Send(query, cancellationToken);
-
-            return NoContent();
-        }
     }
 }

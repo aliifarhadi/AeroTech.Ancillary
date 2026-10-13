@@ -112,20 +112,21 @@ public class V121FinalCrossPhaseAcceptanceTests
     }
 
     [Fact]
-    public async Task X04_a_seat_product_never_owns_a_local_occupancy_source()
+    public async Task X04_a_seat_product_never_owns_an_inventory_policy_or_a_local_occupancy_source()
     {
         var (fixture, airlineId, supplierId) = await _harness.OperatorAsync();
-        var seat = await _harness.ProductAsync(airlineId, supplierId, "SEAT_SELECTION", PricingUnit.PerSeat);
+        var seat = await _harness.Proof.DefinitionAsync(CarrierDefinition(airlineId, supplierId, "SEAT_SELECTION", "SXL", "F", "SA", "SEAT_SELECTION", pricingUnit: PricingUnit.PerSeat, variant: "A07"));
 
-        fixture.FlightFlowProviderKeys!.Add("FlightFlow");
-        await _harness.RefusedAsync(16602, 422, fixture, scope => scope.DefineInventoryPolicy.DefineAsync(
-            new TestDefineInventoryPolicyCommand(airlineId, "SEAT_SELECTION", seat.Id, InventoryAuthority.FlightFlow, LocalInventoryPattern.FlightCount, "FlightFlow", Count())));
-
-        await ActivePolicyAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, "SEAT_SELECTION", seat.Id, InventoryAuthority.FlightFlow, ProviderKey: "FlightFlow"));
+        await _harness.RefusedAsync(16620, 422, fixture, scope => scope.DefineInventoryPolicy.DefineAsync(
+            new TestDefineInventoryPolicyCommand(airlineId, "SEAT_SELECTION", seat.Id, InventoryAuthority.Local, LocalInventoryPattern.FlightCount, null, Count())));
+        await _harness.RefusedAsync(16620, 422, fixture, scope => scope.DefineInventoryPolicy.DefineAsync(
+            new TestDefineInventoryPolicyCommand(airlineId, "SEAT_SELECTION", seat.Id, InventoryAuthority.Unlimited)));
 
         var snapshot = await _harness.SnapshotAsync(fixture, "SEAT_SELECTION", Flight);
 
-        Assert.Equal(("DelegatedCheckRequired", "FlightFlow", false), (snapshot.State.Name, snapshot.Authority!.Name, snapshot.IsGuaranteed));
+        Assert.Equal(("NotApplicable", "SeatCapacityOwnedExternally", false, seat.Id), (snapshot.State.Name, snapshot.ReasonCode, snapshot.IsGuaranteed, snapshot.CurrentServiceDefinitionId));
+        Assert.Null(snapshot.Authority);
+        Assert.Null(snapshot.PolicyId);
         Assert.Null(snapshot.ConfiguredCount);
         Assert.Null(snapshot.Resource);
         Assert.Equal(NoSources, await SourceRowsAsync(airlineId));

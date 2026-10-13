@@ -7,7 +7,6 @@ namespace AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.Contracts
         long? CurrentServiceDefinitionId,
         PricingUnit? PricingUnit,
         string? SupplierProviderKey,
-        InventoryReferenceCheck FlightFlowDelegation,
         InventoryReferenceCheck CountResource,
         InventoryCountUnit? CountUnitOfLiveSources,
         InventoryReferenceCheck WeightResource,

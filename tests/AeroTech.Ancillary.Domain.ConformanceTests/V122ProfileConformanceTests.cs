@@ -52,7 +52,7 @@ public class V122ProfileConformanceTests
         Assert.Equal(new[] { "Standard=1", "Baggage=2", "Seat=3" }, Members<ProvisionApplicationType>());
         Assert.Equal(new[] { "ExtraPiece=1", "WeightPackage=2", "Overweight=3", "Oversize=4", "SpecialEquipment=5" }, Members<BaggageChargeKind>());
         Assert.Equal(new[] { "None=1", "EmdAssociated=2", "EmdStandalone=3" }, Members<AncillaryDocumentType>());
-        Assert.Equal(new[] { "Unlimited=1", "Local=2", "Supplier=3", "FlightFlow=4" }, Members<InventoryAuthority>());
+        Assert.Equal(new[] { "Unlimited=1", "Local=2", "Supplier=3" }, Members<InventoryAuthority>());
         Assert.Equal(new[] { "PerOrder=1", "PerFlightOccurrence=2", "PerServiceDate=3", "PerPortion=4" }, Members<PassengerUsageLimitScope>());
         Assert.Equal(new[] { "FlightDeparture=1", "ServiceStart=2", "CheckIn=3", "CoverageStart=4", "Activation=5" }, Members<ServiceDateBasis>());
         Assert.Equal(

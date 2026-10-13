@@ -289,6 +289,9 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public static BusinessException InventoryFacilityBusy(params object?[] args) =>
             new(16619, ExceptionMessages.InventoryFacilityBusy, args) { HttpStatus = 409 };
 
+        public static BusinessException InventoryPolicyNotApplicable(params object?[] args) =>
+            new(16620, ExceptionMessages.InventoryPolicyNotApplicable, args) { HttpStatus = 422 };
+
         public static BusinessException ShoppingContextIsInvalid(params object?[] args) =>
             new(16801, ExceptionMessages.ShoppingContextIsInvalid, args) { HttpStatus = 422 };
 
@@ -321,8 +324,5 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
 
         public static BusinessException OfferItemWasNotFound(params object?[] args) =>
             new(16811, ExceptionMessages.OfferItemWasNotFound, args) { HttpStatus = 404 };
-
-        public static BusinessException SeatMapSourceUnavailable(params object?[] args) =>
-            new(16812, ExceptionMessages.SeatMapSourceUnavailable, args) { HttpStatus = 503 };
     }
 }

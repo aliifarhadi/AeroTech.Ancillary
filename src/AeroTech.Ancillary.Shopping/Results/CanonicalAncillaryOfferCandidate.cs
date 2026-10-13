@@ -49,6 +49,8 @@ namespace AeroTech.Ancillary.Shopping.Results
 
         public required ConfirmationAssessment Confirmation { get; init; }
 
+        public SeatOfferTerms? Seat { get; init; }
+
         public required OfferReadiness OfferReadiness { get; init; }
 
         public DateTimeOffset? ExpiresAtUtc { get; init; }

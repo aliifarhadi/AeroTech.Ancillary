@@ -1,6 +1,7 @@
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers;
 using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
+using AeroTech.Ancillary.Shopping.Context;
 using AeroTech.Ancillary.Shopping.Reading;
 
 namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOfferDetail
@@ -24,9 +25,16 @@ namespace AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOfferDeta
             _pricings = pricings;
         }
 
-        public async Task<AncillaryOfferDetailSnapshot> ExecuteAsync(IAncillaryOfferItemQuery query, AncillarySalesScope scope, CancellationToken cancellationToken = default)
+        public Task<AncillaryOfferDetailSnapshot> ExecuteAsync(IAncillaryOfferItemQuery query, AncillarySalesScope scope, CancellationToken cancellationToken = default)
+            => ExecuteAsync(query, scope, ShoppingFilter.None, cancellationToken);
+
+        public async Task<AncillaryOfferDetailSnapshot> ExecuteAsync(
+            IAncillaryOfferItemQuery query,
+            AncillarySalesScope scope,
+            ShoppingFilter family,
+            CancellationToken cancellationToken = default)
         {
-            var (shopping, item) = await _offers.FindItemAsync(query, scope, cancellationToken);
+            var (shopping, item) = await _offers.FindItemAsync(query, scope, family, cancellationToken);
             var candidate = item.Candidate;
             var definition = (await _definitions.ListActiveAsync(scope.OwnerAirlineId, cancellationToken))
                              .SingleOrDefault(row => row.Id == candidate.DefinitionVersionId)

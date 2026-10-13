@@ -50,7 +50,6 @@ public class SqlShoppingReaderTests
             references,
             references,
             references,
-            references,
             references);
 
     private async Task<int> PublishedCatalogAsync(params string[] codes)
@@ -83,7 +82,6 @@ public class SqlShoppingReaderTests
             .AddSingleton<IInventoryResourceReference>(references)
             .AddSingleton<IAirportFacilityReference>(references)
             .AddSingleton<ICountingFamilyReference>(references)
-            .AddSingleton<IFlightFlowDelegationReference>(references)
             .AddAncillaryShopping();
 
         await using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true });

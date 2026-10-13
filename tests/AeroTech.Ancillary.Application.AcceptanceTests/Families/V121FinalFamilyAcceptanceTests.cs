@@ -159,13 +159,11 @@ public class V121FinalFamilyAcceptanceTests : IClassFixture<FinalFamilyCache>
                 SeatApplication = Seat(["18A"], ["L"])
             },
             [Rate(18m, Eur)],
-            InventoryAuthority.FlightFlow,
+            InventoryAuthority.Unlimited,
             "PerSeat FlightDeparture NoBookingProcessRequired/- Immediate None wrongUnit=16312",
             "Both Paid Sector 1-1Each book=False check=False | ACFT=3; SEAT=18A; SEATCHAR=L",
             "*[-] 18 EUR = 18 EUR",
-            "FlightFlow offline=16608>NotConfigured state=DelegatedCheckRequired/DelegatedSourceNotConnected check=False guaranteed=False configured=/ sources=" + NoSources,
-            "FlightFlow",
-            Connect: fixture => fixture.FlightFlowProviderKeys = ["FlightFlow"]),
+            "- refused=16620 state=NotApplicable/SeatCapacityOwnedExternally check=False guaranteed=False configured=/ sources=" + NoSources),
         ["F07"] = new(
             "MEAL_VGML", "MVG", "F", "ML", PricingUnit.PerPassenger, ServiceDateBasis.FlightDeparture, Ssr("VGML"),
             id => Provision(id, 10, CommercialDisposition.Free, bookingRequired: true) with
@@ -372,7 +370,24 @@ public class V121FinalFamilyAcceptanceTests : IClassFixture<FinalFamilyCache>
         TestDefineInventoryPolicyCommand command,
         Action<InventoryFixture>? connect)
     {
-        var draft = await harness.RequestAsync(fixture, scope => scope.DefineInventoryPolicy.DefineAsync(command));
+        InventoryPolicyResult draft;
+
+        try
+        {
+            draft = await harness.RequestAsync(fixture, scope => scope.DefineInventoryPolicy.DefineAsync(command));
+        }
+        catch (BusinessException refusal)
+        {
+            var refused = await harness.SnapshotAsync(fixture, command.ServiceDefinitionRef, Flight, At);
+            var refusedSources = await SourceRowsAsync(harness, command.OwnerAirlineId);
+
+            return string.Create(
+                CultureInfo.InvariantCulture,
+                $"- refused={refusal.Code} state={refused.State.Name}/{refused.ReasonCode} " +
+                $"check={refused.RequiresAvailabilityCheck} guaranteed={refused.IsGuaranteed} configured={refused.ConfiguredCount}/{refused.ConfiguredKg} " +
+                $"sources={refusedSources}");
+        }
+
         var offline = await OutcomeAsync(() => ActivatePolicyAsync(harness, fixture, draft.Id));
 
         if (offline != "Active")

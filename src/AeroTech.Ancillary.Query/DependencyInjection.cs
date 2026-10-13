@@ -10,7 +10,6 @@ using AeroTech.Ancillary.Query.AirportSlotInventoryAggregate.Queries.GetAirportS
 using AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Queries.GetInventoryConfigurationSnapshot;
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers;
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
-using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetSeatMap;
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.OtaPanel;
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Api;
 using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOfferDetail;
@@ -63,7 +62,6 @@ namespace AeroTech.Ancillary.Query
             services.AddScoped<IGetAncillaryOffersService, GetAncillaryOffersService>();
             services.AddScoped<IGetAncillaryOfferDetailService, GetAncillaryOfferDetailService>();
             services.AddScoped<IEvaluateSelectionService, EvaluateSelectionService>();
-            services.AddScoped<IGetSeatMapService, GetSeatMapService>();
             services.AddScoped<IPointOfSaleEligibilityReference, PointOfSaleEligibilityService>();
             services.AddScoped<IAgencySalesScopeService, AgencySalesScopeService>();
             services.AddScoped<IBackofficeSalesScopeResolver, BackofficeSalesScopeResolver>();

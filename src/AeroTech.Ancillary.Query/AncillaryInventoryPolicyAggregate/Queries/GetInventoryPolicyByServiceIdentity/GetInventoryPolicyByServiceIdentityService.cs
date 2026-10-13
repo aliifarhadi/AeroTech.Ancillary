@@ -25,6 +25,11 @@ namespace AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Queries.Get
         public async Task<BackofficeInventoryPolicyDto> ExecuteAsync(string serviceDefinitionRef, CancellationToken cancellationToken = default)
         {
             var ownerAirlineId = await _scope.RequireOwnerAirlineIdAsync(cancellationToken);
+            var current = await _facts.FindCurrentAsync(ownerAirlineId, serviceDefinitionRef, cancellationToken);
+
+            if (current?.Profile == AncillaryProfile.Seat)
+                throw ExceptionFactory.InventoryPolicyNotApplicable(serviceDefinitionRef);
+
             var policy = await _dbContext.AncillaryInventoryPolicies
                              .AsNoTracking()
                              .FirstOrDefaultAsync(
@@ -37,7 +42,6 @@ namespace AeroTech.Ancillary.Query.AncillaryInventoryPolicyAggregate.Queries.Get
                 .AsNoTracking()
                 .Where(row => row.InventoryPolicyId == policy.Id)
                 .ToListAsync(cancellationToken);
-            var current = await _facts.FindCurrentAsync(policy.OwnerAirlineId, policy.ServiceDefinitionRef, cancellationToken);
 
             return InventoryPolicyMapper.ToBackofficePolicy(policy, limits, current?.ServiceDefinitionId);
         }

@@ -41,7 +41,7 @@ public sealed class ShoppingLab
 
     public InMemoryCatalog Catalog { get; } = new();
 
-    public AncillaryShoppingEngine Engine => new(Catalog, Catalog, Catalog, Catalog, Catalog, Catalog, Catalog, Catalog, Catalog);
+    public AncillaryShoppingEngine Engine => new(Catalog, Catalog, Catalog, Catalog, Catalog, Catalog, Catalog, Catalog);
 
     public AncillaryServiceDefinition Definition(
         string code,
@@ -207,7 +207,6 @@ public sealed class ShoppingLab
         var providerKey = authority switch
         {
             InventoryAuthority.Supplier => Quote,
-            InventoryAuthority.FlightFlow => "FlightFlow",
             _ => null
         };
         var policy = AncillaryInventoryPolicy.Define(
@@ -224,7 +223,6 @@ public sealed class ShoppingLab
                     definition.Id,
                     definition.PricingUnit,
                     providerKey,
-                    InventoryReferenceCheck.Verified,
                     InventoryReferenceCheck.Verified,
                     count?.CountUnit,
                     InventoryReferenceCheck.Verified,

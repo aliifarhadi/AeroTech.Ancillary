@@ -475,8 +475,7 @@
             "canPurchase": false,
             "reasons": [
               "SeatSelectionPending",
-              "SelectionRequired",
-              "InventoryNotConfigured"
+              "SelectionRequired"
             ]
           }
         },
@@ -554,8 +553,7 @@
             "canPurchase": false,
             "reasons": [
               "SeatSelectionPending",
-              "SelectionRequired",
-              "InventoryNotConfigured"
+              "SelectionRequired"
             ]
           }
         },
@@ -633,8 +631,7 @@
             "canPurchase": false,
             "reasons": [
               "SeatSelectionPending",
-              "SelectionRequired",
-              "InventoryNotConfigured"
+              "SelectionRequired"
             ]
           }
         },
@@ -712,8 +709,7 @@
             "canPurchase": false,
             "reasons": [
               "SeatSelectionPending",
-              "SelectionRequired",
-              "InventoryNotConfigured"
+              "SelectionRequired"
             ]
           }
         },

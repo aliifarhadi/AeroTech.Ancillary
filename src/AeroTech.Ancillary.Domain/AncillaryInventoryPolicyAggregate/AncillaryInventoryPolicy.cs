@@ -108,9 +108,6 @@ namespace AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate
                 case InventoryAuthority.Supplier:
                     EnsureSupplierIsRecorded(evidence);
                     break;
-                case InventoryAuthority.FlightFlow:
-                    EnsureFlightFlowIsDelegated(evidence);
-                    break;
                 default:
                     EnsureLocalIsComplete(evidence);
                     break;
@@ -232,14 +229,6 @@ namespace AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate
 
             if (!string.Equals(evidence.SupplierProviderKey, ProviderKey, StringComparison.Ordinal))
                 throw ExceptionFactory.InventoryPolicyActivationRefused("the provider key is not the recorded key of the active external supplier of this service");
-        }
-
-        private void EnsureFlightFlowIsDelegated(InventoryPolicyEvidence evidence)
-        {
-            if (ProviderKey is null)
-                throw ExceptionFactory.InventoryPolicyActivationRefused("a FlightFlow-managed policy needs the delegated provider key");
-
-            InventoryRules.EnsureVerified(evidence.FlightFlowDelegation, "FlightFlow delegated source");
         }
 
         private void EnsureLocalIsComplete(InventoryPolicyEvidence evidence)

@@ -1225,9 +1225,9 @@
         "availability": {
           "authority": null,
           "configState": {
-            "value": 1,
-            "name": "NotConfigured",
-            "title": "Not Configured"
+            "value": 8,
+            "name": "NotApplicable",
+            "title": "Not Applicable"
           },
           "checkedState": {
             "value": 1,
@@ -1237,9 +1237,7 @@
           "isGuaranteed": false,
           "requiresCheckAtReserve": false,
           "consumptionPreview": null,
-          "reasonCodes": [
-            "InventoryNotConfigured"
-          ]
+          "reasonCodes": []
         },
         "confirmation": {
           "bookingMethod": {
@@ -1286,8 +1284,7 @@
         "canPurchase": false,
         "reasonCodes": [
           "SeatSelectionPending",
-          "SelectionRequired",
-          "InventoryNotConfigured"
+          "SelectionRequired"
         ]
       },
       {
@@ -1429,9 +1426,9 @@
         "availability": {
           "authority": null,
           "configState": {
-            "value": 1,
-            "name": "NotConfigured",
-            "title": "Not Configured"
+            "value": 8,
+            "name": "NotApplicable",
+            "title": "Not Applicable"
           },
           "checkedState": {
             "value": 1,
@@ -1441,9 +1438,7 @@
           "isGuaranteed": false,
           "requiresCheckAtReserve": false,
           "consumptionPreview": null,
-          "reasonCodes": [
-            "InventoryNotConfigured"
-          ]
+          "reasonCodes": []
         },
         "confirmation": {
           "bookingMethod": {
@@ -1490,8 +1485,7 @@
         "canPurchase": false,
         "reasonCodes": [
           "SeatSelectionPending",
-          "SelectionRequired",
-          "InventoryNotConfigured"
+          "SelectionRequired"
         ]
       },
       {
@@ -1633,9 +1627,9 @@
         "availability": {
           "authority": null,
           "configState": {
-            "value": 1,
-            "name": "NotConfigured",
-            "title": "Not Configured"
+            "value": 8,
+            "name": "NotApplicable",
+            "title": "Not Applicable"
           },
           "checkedState": {
             "value": 1,
@@ -1645,9 +1639,7 @@
           "isGuaranteed": false,
           "requiresCheckAtReserve": false,
           "consumptionPreview": null,
-          "reasonCodes": [
-            "InventoryNotConfigured"
-          ]
+          "reasonCodes": []
         },
         "confirmation": {
           "bookingMethod": {
@@ -1694,8 +1686,7 @@
         "canPurchase": false,
         "reasonCodes": [
           "SeatSelectionPending",
-          "SelectionRequired",
-          "InventoryNotConfigured"
+          "SelectionRequired"
         ]
       },
       {
@@ -1837,9 +1828,9 @@
         "availability": {
           "authority": null,
           "configState": {
-            "value": 1,
-            "name": "NotConfigured",
-            "title": "Not Configured"
+            "value": 8,
+            "name": "NotApplicable",
+            "title": "Not Applicable"
           },
           "checkedState": {
             "value": 1,
@@ -1849,9 +1840,7 @@
           "isGuaranteed": false,
           "requiresCheckAtReserve": false,
           "consumptionPreview": null,
-          "reasonCodes": [
-            "InventoryNotConfigured"
-          ]
+          "reasonCodes": []
         },
         "confirmation": {
           "bookingMethod": {
@@ -1898,8 +1887,7 @@
         "canPurchase": false,
         "reasonCodes": [
           "SeatSelectionPending",
-          "SelectionRequired",
-          "InventoryNotConfigured"
+          "SelectionRequired"
         ]
       },
       {

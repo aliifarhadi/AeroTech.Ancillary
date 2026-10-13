@@ -9,7 +9,6 @@ namespace AeroTech.Ancillary.Application.AncillaryInventoryPolicyAggregate.Servi
     public sealed class InventoryPolicyEvidenceBuilder : IInventoryPolicyEvidenceBuilder
     {
         private readonly IInventoryCommercialFactsReader _facts;
-        private readonly IFlightFlowDelegationReference _flightFlow;
         private readonly IInventoryResourceReference _resources;
         private readonly IAirportFacilityReference _facilities;
         private readonly ICountingFamilyReference _families;
@@ -18,7 +17,6 @@ namespace AeroTech.Ancillary.Application.AncillaryInventoryPolicyAggregate.Servi
 
         public InventoryPolicyEvidenceBuilder(
             IInventoryCommercialFactsReader facts,
-            IFlightFlowDelegationReference flightFlow,
             IInventoryResourceReference resources,
             IAirportFacilityReference facilities,
             ICountingFamilyReference families,
@@ -26,7 +24,6 @@ namespace AeroTech.Ancillary.Application.AncillaryInventoryPolicyAggregate.Servi
             IInventoryPolicyRepository policies)
         {
             _facts = facts;
-            _flightFlow = flightFlow;
             _resources = resources;
             _facilities = facilities;
             _families = families;
@@ -51,9 +48,6 @@ namespace AeroTech.Ancillary.Application.AncillaryInventoryPolicyAggregate.Servi
                 facts?.ServiceDefinitionId,
                 facts?.PricingUnit,
                 facts?.ActiveExternalSupplierProviderKey,
-                policy is { Authority: InventoryAuthority.FlightFlow, ProviderKey: not null }
-                    ? await _flightFlow.CheckAsync(owner, policy.ProviderKey, cancellationToken)
-                    : InventoryReferenceCheck.SourceUnavailable,
                 policy.CountConsumption is { } count
                     ? await _resources.CheckAsync(owner, InventoryResourceKind.FlightCount, count.ResourceId, cancellationToken)
                     : InventoryReferenceCheck.SourceUnavailable,

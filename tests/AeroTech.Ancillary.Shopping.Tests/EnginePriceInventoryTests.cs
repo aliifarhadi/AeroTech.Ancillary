@@ -289,37 +289,35 @@ public class EnginePriceInventoryTests
     }
 
     [Fact]
-    public async Task INVENTORY_02_supplier_and_flightflow_authority_are_delegated_checks_without_any_local_bucket()
+    public async Task INVENTORY_02_supplier_authority_is_a_delegated_check_and_a_seat_has_no_inventory_in_this_service()
     {
         var lab = new ShoppingLab();
         var pet = lab.Definition("A13");
         var seat = lab.Definition("A07");
 
         lab.Price(pet, lab.Provision(pet), Rate(80m));
-        lab.Price(seat, lab.Provision(seat), Rate(15m));
+        lab.Price(seat, lab.Provision(seat, mustCheck: true), Rate(15m));
         lab.Policy(pet, InventoryAuthority.Supplier);
-        lab.Policy(seat, InventoryAuthority.FlightFlow);
 
         var result = await lab.Engine.ShopAsync(Trip.Context());
         var supplier = result.One(pet.ServiceDefinitionRef).Availability;
-        var flightFlow = result.One(seat.ServiceDefinitionRef).Availability;
+        var shown = result.One(seat.ServiceDefinitionRef);
+        var seatAvailability = shown.Availability;
 
         Assert.Equal(
             (InventoryAuthority.Supplier, InventoryCapacityReadState.DelegatedCheckRequired, AvailabilityCheckState.NotChecked, false, true),
             (supplier.InventoryAuthority, supplier.ConfigState, supplier.CheckedState, supplier.IsGuaranteed, supplier.RequiresCheckAtReserve));
+        Assert.Null(seatAvailability.InventoryAuthority);
         Assert.Equal(
-            (InventoryAuthority.FlightFlow, InventoryCapacityReadState.DelegatedCheckRequired, AvailabilityCheckState.SourceUnavailable, false, true),
-            (flightFlow.InventoryAuthority, flightFlow.ConfigState, flightFlow.CheckedState, flightFlow.IsGuaranteed, flightFlow.RequiresCheckAtReserve));
-        Assert.Contains(ShoppingReasonCodes.BlockedExternalReference, flightFlow.ReasonCodes);
+            (InventoryCapacityReadState.NotApplicable, AvailabilityCheckState.NotChecked, false, true, OfferReadiness.NeedsSelection),
+            (seatAvailability.ConfigState, seatAvailability.CheckedState, seatAvailability.IsGuaranteed, seatAvailability.RequiresCheckAtReserve, shown.OfferReadiness));
+        Assert.DoesNotContain(ShoppingReasonCodes.BlockedExternalReference, seatAvailability.ReasonCodes);
+        Assert.DoesNotContain(ShoppingReasonCodes.InventoryNotConfigured, seatAvailability.ReasonCodes);
         Assert.Null(supplier.ConsumptionPreview);
-        Assert.Null(flightFlow.ConsumptionPreview);
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic is { Code: ShoppingReasonCodes.BlockedExternalReference, EvidenceKind: ShoppingEvidenceKind.Blocked });
-
-        lab.Catalog.FlightFlowAnswer = InventoryReferenceCheck.Verified;
-
-        var connected = (await lab.Engine.ShopAsync(Trip.Context())).One(seat.ServiceDefinitionRef).Availability;
-
-        Assert.Equal((InventoryCapacityReadState.DelegatedCheckRequired, AvailabilityCheckState.NotChecked, false), (connected.ConfigState, connected.CheckedState, connected.IsGuaranteed));
+        Assert.Null(seatAvailability.ConsumptionPreview);
+        Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Code == ShoppingReasonCodes.BlockedExternalReference);
+        Assert.Equal(SeatPurpose.Standard, shown.Seat!.Purpose);
+        Assert.Null(result.One(pet.ServiceDefinitionRef).Seat);
     }
 
     [Fact]

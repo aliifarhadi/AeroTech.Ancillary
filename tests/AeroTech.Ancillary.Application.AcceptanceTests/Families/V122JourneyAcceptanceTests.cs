@@ -16,7 +16,6 @@ namespace AeroTech.Ancillary.Application.AcceptanceTests.Families;
 public class V122JourneyAcceptanceTests
 {
     private const long Flight = 81234;
-    private const string FlightFlowKey = "FlightFlow";
     private const string WeightFamily = "XBAG_WEIGHT";
 
     private static readonly DateTimeOffset At = Utc(10, 15);
@@ -249,7 +248,7 @@ public class V122JourneyAcceptanceTests
     }
 
     [Fact]
-    public async Task J5_CT19_seats_and_an_extra_seat_delegate_their_availability_to_flightflow_and_never_take_a_local_count()
+    public async Task J5_CT19_seats_and_an_extra_seat_own_no_inventory_policy_and_never_take_a_local_count()
     {
         var (airlineId, supplierId) = await OperatorAsync();
         var fixture = InventoryFixture.Connected(airlineId);
@@ -258,19 +257,19 @@ public class V122JourneyAcceptanceTests
         var extra = await ProductAsync("A09", airlineId, supplierId);
         var extraRule = await _harness.Proof.RuleAsync(Rule("A09", extra.Id), Euro(150m));
 
-        fixture.FlightFlowProviderKeys!.Add(FlightFlowKey);
-        await _harness.RefusedAsync(16602, 422, fixture, scope => scope.DefineInventoryPolicy.DefineAsync(new TestDefineInventoryPolicyCommand(
-            airlineId, standard.ServiceDefinitionRef, standard.Id, InventoryAuthority.FlightFlow, LocalInventoryPattern.FlightCount, FlightFlowKey, Count())));
+        await _harness.RefusedAsync(16620, 422, fixture, scope => scope.DefineInventoryPolicy.DefineAsync(new TestDefineInventoryPolicyCommand(
+            airlineId, standard.ServiceDefinitionRef, standard.Id, InventoryAuthority.Local, LocalInventoryPattern.FlightCount, null, Count())));
 
         foreach (var seat in new[] { standard, preferred, extra })
         {
-            await ActivateAsync(fixture, await PolicyAsync(
-                fixture,
-                new TestDefineInventoryPolicyCommand(airlineId, seat.ServiceDefinitionRef, seat.Id, InventoryAuthority.FlightFlow, ProviderKey: FlightFlowKey)));
+            await _harness.RefusedAsync(16620, 422, fixture, scope => scope.DefineInventoryPolicy.DefineAsync(
+                new TestDefineInventoryPolicyCommand(airlineId, seat.ServiceDefinitionRef, seat.Id, InventoryAuthority.Unlimited)));
 
             var snapshot = await _harness.SnapshotAsync(fixture, seat.ServiceDefinitionRef, Flight, At);
 
-            Assert.Equal(("DelegatedCheckRequired", "FlightFlow", false), (snapshot.State.Name, snapshot.Authority!.Name, snapshot.IsGuaranteed));
+            Assert.Equal(("NotApplicable", "SeatCapacityOwnedExternally", false), (snapshot.State.Name, snapshot.ReasonCode, snapshot.IsGuaranteed));
+            Assert.Null(snapshot.Authority);
+            Assert.Null(snapshot.PolicyId);
             Assert.Null(snapshot.ConfiguredCount);
             Assert.Equal("SeatMapSelection", seat.SelectionContract!.Kind.Name);
         }

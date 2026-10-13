@@ -6,7 +6,6 @@ namespace AeroTech.Messages.Ancillary.Enums
     {
         [Display(Name = "Unlimited")] Unlimited = 1,
         [Display(Name = "Local")] Local = 2,
-        [Display(Name = "Supplier")] Supplier = 3,
-        [Display(Name = "Flight Flow")] FlightFlow = 4
+        [Display(Name = "Supplier")] Supplier = 3
     }
 }
