@@ -16,6 +16,7 @@ namespace AeroTech.Ancillary.Providers.Offer.Services
                 throw ExceptionFactory.FlightOfferNotFound();
 
             Require(source.CurrencyId > 0, nameof(source.CurrencyId));
+            Require(PricedOfferId.TryReadCustomerId(source.OfferId, out var customerId), nameof(source.OfferId));
             Unique(source.AirTransports.Select(transport => transport.BoundId), nameof(OfferAirTransport.BoundId));
             Unique(source.AirTransports.Select(transport => transport.BoundOfferId), nameof(OfferAirTransport.BoundOfferId));
             Unique(source.AirTransports.Select(transport => transport.Sequence.ToString(CultureInfo.InvariantCulture)), nameof(OfferAirTransport.Sequence));
@@ -32,6 +33,7 @@ namespace AeroTech.Ancillary.Providers.Offer.Services
                 source.OfferId,
                 source.PricedAt,
                 source.LastTicketingDate,
+                customerId,
                 source.CurrencyId,
                 string.IsNullOrWhiteSpace(source.CurrencyCode) ? null : source.CurrencyCode,
                 source.BaseAmount,

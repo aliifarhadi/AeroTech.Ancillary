@@ -1,7 +1,5 @@
-using System.Globalization;
 using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Domain._Shared.Resources;
-using AeroTech.Framework.Core.ServiceContracts;
 using AeroTech.Messages.Core.Enums;
 
 namespace AeroTech.Ancillary.Query.Shopping.Common.SalesScope
@@ -11,18 +9,15 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.SalesScope
         private readonly ICallerContext _caller;
         private readonly IOperatorAirlineResolver _operatorAirline;
         private readonly IPointOfSaleEligibilityReference _pointsOfSale;
-        private readonly IClock _clock;
 
         public BackofficeSalesScopeResolver(
             ICallerContext caller,
             IOperatorAirlineResolver operatorAirline,
-            IPointOfSaleEligibilityReference pointsOfSale,
-            IClock clock)
+            IPointOfSaleEligibilityReference pointsOfSale)
         {
             _caller = caller;
             _operatorAirline = operatorAirline;
             _pointsOfSale = pointsOfSale;
-            _clock = clock;
         }
 
         public async Task<AncillarySalesScope> ResolveAsync(BackofficeAncillaryOfferOptions? options, CancellationToken cancellationToken = default)
@@ -43,10 +38,7 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.SalesScope
                     : await AuthorizedPointsOfSale.ResolveAsync(
                         _pointsOfSale,
                         new PointOfSaleEligibilityQuery(Channel.BackOffice, options?.CountryId, [_caller.AirlineOfficeId.Value], null),
-                        cancellationToken),
-                long.TryParse(options?.CustomerId, NumberStyles.Integer, CultureInfo.InvariantCulture, out var customerId) ? customerId : null,
-                options?.PreferredCurrencyId is 0 ? null : options?.PreferredCurrencyId,
-                (options?.SalesDate ?? _clock.GetDateTime()).ToUniversalTime());
+                        cancellationToken));
         }
     }
 }

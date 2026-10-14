@@ -13,6 +13,10 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Snapshots
     public sealed record FlightSeatMap(
         string FlightRef,
         FlightOfferFlight Flight,
+        FlightEndpoint Departure,
+        FlightEndpoint Arrival,
+        string? CarrierCode,
+        string? OperatingCarrierCode,
         int AircraftId,
         AircraftSeatMap Map,
         IReadOnlyList<SeatTravellerOffer> Offers)
@@ -20,6 +24,8 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Snapshots
         public IReadOnlyList<SeatTravellerOffer> OffersOf(string seatNumber)
             => Offers.Where(offer => string.Equals(offer.SeatNumber, seatNumber.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
     }
+
+    public sealed record FlightEndpoint(string? IataCode, string? Terminal, DateTimeOffset At);
 
     public sealed record SeatTravellerOffer(
         string TravellerRef,

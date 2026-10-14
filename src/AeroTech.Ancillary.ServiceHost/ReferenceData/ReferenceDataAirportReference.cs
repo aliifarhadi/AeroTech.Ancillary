@@ -27,5 +27,15 @@ namespace AeroTech.Ancillary.ServiceHost.ReferenceData
             => await _referenceData.Airports.AsNoTracking()
                 .Where(airport => airportIds.Contains(airport.Id) && airport.TimeZoneId != null)
                 .ToDictionaryAsync(airport => airport.Id, airport => airport.TimeZoneId!, cancellationToken);
+
+        public async Task<IReadOnlyDictionary<int, string>> FindIataCodesAsync(IReadOnlyCollection<int> airportIds, CancellationToken cancellationToken = default)
+            => await _referenceData.Airports.AsNoTracking()
+                .Where(airport => airportIds.Contains(airport.Id))
+                .ToDictionaryAsync(airport => airport.Id, airport => airport.IataCode, cancellationToken);
+
+        public async Task<IReadOnlyDictionary<int, string>> FindTerminalNumbersAsync(IReadOnlyCollection<int> terminalIds, CancellationToken cancellationToken = default)
+            => await _referenceData.AirportTerminals.AsNoTracking()
+                .Where(terminal => terminalIds.Contains(terminal.Id))
+                .ToDictionaryAsync(terminal => terminal.Id, terminal => terminal.Number, cancellationToken);
     }
 }

@@ -13,6 +13,7 @@ public sealed class InMemoryCatalog :
     IActiveAncillaryPricingReader,
     IInventoryConfigurationReader,
     ICurrencyReference,
+    IAirlineReference,
     IRateOfExchangeReference,
     IInventoryResourceReference,
     IAirportFacilityReference,
@@ -31,6 +32,8 @@ public sealed class InMemoryCatalog :
     public List<PublishedRateOfExchange> RatesOfExchange { get; } = [];
 
     public Dictionary<int, string> CurrencyCodes { get; } = new() { [47] = "EUR", [155] = "USD", [75] = "JPY", [82] = "KWD", [70] = "IRR" };
+
+    public Dictionary<int, string> AirlineCodes { get; } = [];
 
     public InventoryReferenceCheck ResourceAnswer { get; set; } = InventoryReferenceCheck.SourceUnavailable;
 
@@ -100,6 +103,9 @@ public sealed class InMemoryCatalog :
 
     public Task<IReadOnlyDictionary<int, string>> FindCodesAsync(IReadOnlyCollection<int> currencyIds, CancellationToken cancellationToken = default)
         => Task.FromResult<IReadOnlyDictionary<int, string>>(CurrencyCodes.Where(code => currencyIds.Contains(code.Key)).ToDictionary(code => code.Key, code => code.Value));
+
+    public Task<IReadOnlyDictionary<int, string>> FindIataCodesAsync(IReadOnlyCollection<int> airlineIds, CancellationToken cancellationToken = default)
+        => Task.FromResult<IReadOnlyDictionary<int, string>>(AirlineCodes.Where(code => airlineIds.Contains(code.Key)).ToDictionary(code => code.Key, code => code.Value));
 
     public Task<IReadOnlyList<PublishedRateOfExchange>> FindRatesAsync(int toCurrencyId, DateTimeOffset at, CancellationToken cancellationToken = default)
     {

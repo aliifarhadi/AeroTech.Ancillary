@@ -19,19 +19,25 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap
         private readonly IOccupiedSeatProvider _occupiedSeats;
         private readonly ISeatMapPricingEngine _engine;
         private readonly ICurrencyReference _currencies;
+        private readonly IAirportReference _airports;
+        private readonly IAirlineReference _airlines;
 
         public GetSeatMapService(
             IFlightOfferShoppingSource source,
             IAircraftSeatMapProvider seatMaps,
             IOccupiedSeatProvider occupiedSeats,
             ISeatMapPricingEngine engine,
-            ICurrencyReference currencies)
+            ICurrencyReference currencies,
+            IAirportReference airports,
+            IAirlineReference airlines)
         {
             _source = source;
             _seatMaps = seatMaps;
             _occupiedSeats = occupiedSeats;
             _engine = engine;
             _currencies = currencies;
+            _airports = airports;
+            _airlines = airlines;
         }
 
         public async Task<SeatMapSnapshot> ExecuteAsync(ISeatMapQuery query, AncillarySalesScope scope, CancellationToken cancellationToken = default)
@@ -91,6 +97,15 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap
             }
 
             var currencyCodes = await _currencies.FindCodesAsync([shopping.CurrencyId], cancellationToken);
+            var airportCodes = await _airports.FindIataCodesAsync(
+                flights.SelectMany(row => new[] { row.Flight.OriginAirportId, row.Flight.DestinationAirportId }).Distinct().ToList(),
+                cancellationToken);
+            var terminalNumbers = await _airports.FindTerminalNumbersAsync(
+                flights.SelectMany(row => new[] { row.Flight.OriginAirportTerminalId, row.Flight.DestinationAirportTerminalId }).OfType<int>().Distinct().ToList(),
+                cancellationToken);
+            var airlineCodes = await _airlines.FindIataCodesAsync(
+                flights.SelectMany(row => new[] { row.Flight.MarketingAirlineId, row.Flight.OperatingAirlineId }).Distinct().ToList(),
+                cancellationToken);
 
             return new SeatMapSnapshot(
                 shopping.Offer,
@@ -100,11 +115,24 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap
                     .Select(row => new FlightSeatMap(
                         row.FlightRef,
                         row.Flight,
+                        new FlightEndpoint(
+                            airportCodes.GetValueOrDefault(row.Flight.OriginAirportId),
+                            Terminal(terminalNumbers, row.Flight.OriginAirportTerminalId),
+                            row.Flight.DepartureAt),
+                        new FlightEndpoint(
+                            airportCodes.GetValueOrDefault(row.Flight.DestinationAirportId),
+                            Terminal(terminalNumbers, row.Flight.DestinationAirportTerminalId),
+                            row.Flight.ArrivalAt),
+                        airlineCodes.GetValueOrDefault(row.Flight.MarketingAirlineId),
+                        airlineCodes.GetValueOrDefault(row.Flight.OperatingAirlineId),
                         row.Flight.AircraftId!.Value,
                         maps[row.Flight.AircraftId!.Value],
                         offers.Values.Where(value => value.FlightRef == row.FlightRef).Select(value => value.Offer).ToList()))
                     .ToList());
         }
+
+        private static string? Terminal(IReadOnlyDictionary<int, string> terminalNumbers, int? terminalId)
+            => terminalId is { } id ? terminalNumbers.GetValueOrDefault(id) : null;
 
         private static IEnumerable<(SeatMapSeat Seat, IReadOnlyList<string> CharacteristicCodes)> Seats(string flightRef, AircraftSeatMap map, IReadOnlySet<string>? occupied)
             => map.Decks

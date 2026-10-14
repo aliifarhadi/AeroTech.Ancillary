@@ -13,8 +13,6 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.FlightOffers
 
         public static string FlightRef(FlightOfferBound bound, FlightOfferFlight flight) => $"{bound.BoundId}:F{flight.Sequence}";
 
-        public static int CurrencyOf(FlightOffer offer, AncillarySalesScope scope) => scope.PreferredCurrencyId ?? offer.CurrencyId;
-
         public static FlightOfferFacts Facts(FlightOffer offer, IReadOnlyDictionary<long, long> fareFamilyIds)
         {
             var coupons = offer.Tickets
@@ -49,10 +47,10 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.FlightOffers
             {
                 OwnerAirlineId = scope.OwnerAirlineId,
                 PointOfSaleId = pointOfSaleId,
-                CustomerId = scope.CustomerId,
+                CustomerId = offer.CustomerId,
                 ShoppingStage = Stage,
-                EvaluatedAtUtc = scope.SalesInstantUtc,
-                CurrencyId = CurrencyOf(offer, scope),
+                EvaluatedAtUtc = offer.PricedAt.ToUniversalTime(),
+                CurrencyId = offer.CurrencyId,
                 SourceIdentity = new SourceIdentityContext { SourceKind = ShoppingSourceKind.Offer, TrustedSourceReference = offer.OfferId },
                 Travellers = offer.Tickets
                     .Select(ticket => new ShoppingTraveller { TravellerRef = ticket.TravellerRef, PassengerTypeCode = ticket.PassengerTypeCode })

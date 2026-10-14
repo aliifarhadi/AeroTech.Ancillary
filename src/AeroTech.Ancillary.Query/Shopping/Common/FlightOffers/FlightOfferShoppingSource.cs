@@ -38,7 +38,7 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.FlightOffers
             return new FlightOfferShopping(
                 offer,
                 facts,
-                FlightOfferShoppingContextMapper.CurrencyOf(offer, scope),
+                offer.CurrencyId,
                 scope.PointOfSaleIds
                     .Distinct()
                     .Order()

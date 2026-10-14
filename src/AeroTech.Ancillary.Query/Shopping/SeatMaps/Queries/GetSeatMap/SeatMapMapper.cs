@@ -13,7 +13,7 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap
 
         private const string Zero = "0";
 
-        public static SeatMapsDto Map(SeatMapSnapshot snapshot, Func<string, string> travelerId, Func<string, string> segmentId)
+        public static SeatMapsDto Map(SeatMapSnapshot snapshot, Func<string, string> travelerId, Func<FlightSeatMap, string> segmentId)
         {
             var travellers = snapshot.Offer.Tickets.OrderBy(ticket => ticket.TravellerIndex).Select(ticket => ticket.TravellerRef).ToList();
             var maps = snapshot.Flights.Select(flight => SeatMap(snapshot, flight, travellers, travelerId, segmentId)).ToList();
@@ -31,7 +31,7 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap
             FlightSeatMap flight,
             IReadOnlyList<string> travellers,
             Func<string, string> travelerId,
-            Func<string, string> segmentId)
+            Func<FlightSeatMap, string> segmentId)
         {
             var decks = flight.Map.Decks
                 .Select(deck => new SeatMapDeckDto(
@@ -59,9 +59,15 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap
             return new SeatMapDto(
                 SeatMapType,
                 snapshot.Offer.OfferId,
-                segmentId(flight.FlightRef),
+                segmentId(flight),
+                Endpoint(flight.Departure),
+                Endpoint(flight.Arrival),
+                flight.CarrierCode,
                 flight.Flight.FlightNumber,
+                new SeatMapOperatingDto(flight.OperatingCarrierCode),
                 flight.AircraftId,
+                flight.Flight.BookingClass,
+                flight.Flight.CabinClassId,
                 decks,
                 travellers
                     .Select(traveller => new SeatMapAvailableSeatsCounterDto(
@@ -69,6 +75,8 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap
                         flight.Offers.Count(offer => offer.TravellerRef == traveller && offer.Status == SeatAvailabilityStatus.Available)))
                     .ToList());
         }
+
+        private static SeatMapEndpointDto Endpoint(FlightEndpoint endpoint) => new(endpoint.IataCode, endpoint.Terminal, endpoint.At);
 
         private static SeatMapItemDto Item(
             SeatMapSnapshot snapshot,

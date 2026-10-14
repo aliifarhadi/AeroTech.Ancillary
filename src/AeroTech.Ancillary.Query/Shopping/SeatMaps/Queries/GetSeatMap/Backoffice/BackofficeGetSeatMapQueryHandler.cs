@@ -1,3 +1,4 @@
+using System.Globalization;
 using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
 using AeroTech.Ancillary.Query.Shopping.SeatMaps.Dto;
 using MediatR;
@@ -19,7 +20,7 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap.Backoffi
         {
             var snapshot = await _service.ExecuteAsync(query, await _salesScope.ResolveAsync(query.Options, cancellationToken), cancellationToken);
 
-            return SeatMapMapper.Map(snapshot, travellerRef => travellerRef, flightRef => flightRef);
+            return SeatMapMapper.Map(snapshot, travellerRef => travellerRef, flight => flight.Flight.FlightId.ToString(CultureInfo.InvariantCulture));
         }
     }
 }

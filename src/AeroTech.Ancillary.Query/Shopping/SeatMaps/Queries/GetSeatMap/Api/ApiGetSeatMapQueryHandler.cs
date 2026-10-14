@@ -25,7 +25,7 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap.Api
                 .GroupBy(segment => segment.FlightRef, StringComparer.Ordinal)
                 .ToDictionary(group => group.Key, group => group.First().Id, StringComparer.Ordinal);
 
-            return SeatMapMapper.Map(snapshot, travellerRef => travelerIds[travellerRef], flightRef => segmentIds[flightRef]);
+            return SeatMapMapper.Map(snapshot, travellerRef => travelerIds[travellerRef], flight => segmentIds[flight.FlightRef]);
         }
     }
 }

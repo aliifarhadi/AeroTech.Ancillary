@@ -19,7 +19,7 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap.OtaPanel
         {
             var snapshot = await _service.ExecuteAsync(query, await _salesScope.ResolveAsync(cancellationToken), cancellationToken);
 
-            return SeatMapMapper.Map(snapshot, travellerRef => travellerRef, flightRef => flightRef);
+            return SeatMapMapper.Map(snapshot, travellerRef => travellerRef, flight => flight.FlightRef);
         }
     }
 }

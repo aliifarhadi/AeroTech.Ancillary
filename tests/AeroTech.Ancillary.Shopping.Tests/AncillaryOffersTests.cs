@@ -41,6 +41,7 @@ public class AncillaryOffersTests
             "OFFER",
             Now,
             Now.AddDays(1),
+            null,
             Eur,
             "EUR",
             300m,
@@ -72,7 +73,7 @@ public class AncillaryOffersTests
                 new FlightOfferTicket("CHD-1", 2, PassengerTypeCode.CHD, [Coupon("B1", 501, true, 9002), Coupon("B1", 502, true, 9002), Coupon("B2", 503, true, 9003)]),
                 new FlightOfferTicket("INF-1", 3, PassengerTypeCode.INF, [Coupon("B1", 501, false, 9001, 9002), Coupon("B1", 502, false, 9003), Coupon("B2", 503, false)])
             ]);
-        var context = ContextOf(offer, Sale with { PreferredCurrencyId = null }, new Dictionary<int, int> { [Trip.Thr] = 100, [Trip.Ist] = 200 });
+        var context = ContextOf(offer, Sale with { CurrencyId = null }, new Dictionary<int, int> { [Trip.Thr] = 100, [Trip.Ist] = 200 });
 
         Assert.Equal(new[] { ("B1", "B1:F1,B1:F2", Trip.Ika), ("B2", "B2:F1", 0) }, context.Portions.Select(portion => (portion.PortionRef, string.Join(',', portion.FlightRefs), portion.ViaAirportIds!.SingleOrDefault())));
         Assert.Equal(new[] { 501L, 502L, 503L }, context.Flights.Select(flight => flight.FlightId));
@@ -117,7 +118,7 @@ public class AncillaryOffersTests
 
         Assert.Equal((OfferWire.OfferId, Now, Eur), (response.OfferId, response.EvaluatedAtUtc, response.Currency.CurrencyId));
         Assert.Null(response.Currency.CurrencyCode);
-        Assert.Equal((70, 480000000m, 528010024m), (response.FlightOffer.CurrencyId, response.FlightOffer.BaseAmount, response.FlightOffer.TotalAmount));
+        Assert.Equal((Eur, 480000000m, 528010024m), (response.FlightOffer.CurrencyId, response.FlightOffer.BaseAmount, response.FlightOffer.TotalAmount));
         Assert.Null(response.FlightOffer.LastTicketingDate);
         Assert.Equal((Airline, Pos, "PreOrder"), (response.Scope.OwnerAirlineId, response.Scope.PointOfSaleId!.Value, response.Scope.ShoppingStage.Name));
         Assert.Equal(new[] { ("B1", "Outbound", "B1:F1"), ("B2", "Inbound", "B2:F1") }, response.Journey.Portions.Select(portion => (portion.PortionRef, portion.Direction!.Name, portion.Flights.Single().FlightRef)));
@@ -329,14 +330,13 @@ public class AncillaryOffersTests
     public async Task CT_04_the_points_of_sale_are_the_named_one_or_the_whole_eligible_set_and_never_a_default()
     {
         var named = new Eligibility();
-        var explicitScope = await Resolver(eligibility: named).ResolveAsync(new BackofficeAncillaryOfferOptions { PointOfSaleId = 77, CustomerId = "501", PreferredCurrencyId = Eur, SalesDate = new DateTimeOffset(2026, 11, 1, 12, 0, 0, TimeSpan.FromHours(2)) });
+        var explicitScope = await Resolver(eligibility: named).ResolveAsync(new BackofficeAncillaryOfferOptions { PointOfSaleId = 77 });
         var single = new Eligibility { Result = InventoryReferenceCheck.Verified, Allowed = [88] };
-        var resolvedScope = await Resolver(eligibility: single).ResolveAsync(new BackofficeAncillaryOfferOptions { CountryId = 5, CustomerId = "not-a-number" });
+        var resolvedScope = await Resolver(eligibility: single).ResolveAsync(new BackofficeAncillaryOfferOptions { CountryId = 5 });
 
-        Assert.Equal(new DeskScope(Airline, 77, 501, Eur, new DateTimeOffset(2026, 11, 1, 10, 0, 0, TimeSpan.Zero)), DeskScope.Of(explicitScope));
-        Assert.Equal((TimeSpan.Zero, Channel.BackOffice), (explicitScope.SalesInstantUtc.Offset, explicitScope.Channel));
+        Assert.Equal((Airline, Channel.BackOffice, 77L), (explicitScope.OwnerAirlineId, explicitScope.Channel, explicitScope.PointOfSaleIds.Single()));
         Assert.Null(named.Asked);
-        Assert.Equal(new DeskScope(Airline, 88, null, null, new FixedClock().Now), DeskScope.Of(resolvedScope));
+        Assert.Equal((Airline, Channel.BackOffice, 88L), (resolvedScope.OwnerAirlineId, resolvedScope.Channel, resolvedScope.PointOfSaleIds.Single()));
         Assert.Equal((Channel.BackOffice, 5L, 9200L, (long?)null), (single.Asked!.Channel, single.Asked.CountryId, single.Asked.AirlineOfficeIds.Single(), single.Asked.TravelAgencyOfficeId));
 
         Assert.Empty((await Resolver(eligibility: new Eligibility { Result = InventoryReferenceCheck.Verified }).ResolveAsync(null)).PointOfSaleIds);
@@ -384,7 +384,7 @@ public class AncillaryOffersTests
         Assert.Equal((16803, 422), (failure.Code, failure.HttpStatus));
         Assert.Equal(new[] { "OfferId", "Options" }, typeof(BackofficeGetAncillaryOffersQuery).GetProperties().Select(property => property.Name).Order());
         Assert.Equal(
-            new[] { "CountryId", "CustomerId", "PointOfSaleId", "PreferredCurrencyId", "SalesDate" },
+            new[] { "CountryId", "PointOfSaleId" },
             typeof(BackofficeAncillaryOfferOptions).GetProperties().Select(property => property.Name).Order());
     }
 }

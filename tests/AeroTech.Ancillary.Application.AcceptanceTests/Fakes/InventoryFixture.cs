@@ -88,6 +88,12 @@ public sealed class InventoryFixture
     public Task<IReadOnlyDictionary<int, int>> FindCountryIdsAsync(IReadOnlyCollection<int> airportIds, CancellationToken cancellationToken = default)
         => Task.FromResult<IReadOnlyDictionary<int, int>>(new Dictionary<int, int>());
 
+    public Task<IReadOnlyDictionary<int, string>> FindIataCodesAsync(IReadOnlyCollection<int> airportIds, CancellationToken cancellationToken = default)
+        => Task.FromResult<IReadOnlyDictionary<int, string>>(new Dictionary<int, string>());
+
+    public Task<IReadOnlyDictionary<int, string>> FindTerminalNumbersAsync(IReadOnlyCollection<int> terminalIds, CancellationToken cancellationToken = default)
+        => Task.FromResult<IReadOnlyDictionary<int, string>>(new Dictionary<int, string>());
+
     private static InventoryReferenceCheck Check<TValue>(HashSet<TValue>? known, TValue value)
         => known is null
             ? InventoryReferenceCheck.SourceUnavailable

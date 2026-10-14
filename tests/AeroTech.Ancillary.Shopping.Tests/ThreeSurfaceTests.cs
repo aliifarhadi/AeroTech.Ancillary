@@ -76,13 +76,12 @@ public class ThreeSurfaceTests
         return lab;
     }
 
-    private static AgencySalesScopeService Agency(Caller? caller = null, Country? country = null, Eligibility? eligibility = null, FixedClock? clock = null, HomeAirline? home = null)
+    private static AgencySalesScopeService Agency(Caller? caller = null, Country? country = null, Eligibility? eligibility = null, HomeAirline? home = null)
         => new(
             caller ?? new Caller { ContextType = CallerContextType.TravelAgency, AirlineUserId = null, AirlineOfficeId = null, TravelAgencyId = 31, TravelAgencyOfficeIds = [33, 34], CustomerId = 4040 },
             country ?? new Country { CountryId = 98 },
             home ?? new HomeAirline(),
-            eligibility ?? new Eligibility { Result = InventoryReferenceCheck.Verified, Allowed = [Pos] },
-            clock ?? new FixedClock());
+            eligibility ?? new Eligibility { Result = InventoryReferenceCheck.Verified, Allowed = [Pos] });
 
     private static readonly Dictionary<int, string> CurrencyCodes = new() { [Irr] = "IRR", [155] = "USD" };
 
@@ -125,10 +124,10 @@ public class ThreeSurfaceTests
 
     private static async Task<(GetAncillaryOffersService Offers, AncillaryShoppingSnapshot Snapshot)> ShoppedAsync(
         ShoppingLab lab,
-        AncillarySalesScope scope,
+        DeskSale scope,
         string? wire = null)
     {
-        var offers = await ServiceAsync(lab, wire);
+        var offers = await ServiceAsync(lab, wire, desk: scope.Desk);
 
         return (offers, await offers.ExecuteAsync(new OfferQuery(OfferWire.OfferId), scope));
     }
@@ -305,22 +304,19 @@ public class ThreeSurfaceTests
     }
 
     [Fact]
-    public async Task P32B_AGY_01_the_agency_scope_is_the_agency_claims_the_country_header_the_api_channel_currency_70_and_the_clock()
+    public async Task P32B_AGY_01_the_agency_scope_is_the_home_airline_the_api_channel_and_the_points_of_sale_of_the_agency_office_and_country_header()
     {
         var eligibility = new Eligibility { Result = InventoryReferenceCheck.Verified, Allowed = [6, 5, 6] };
-        var clock = new FixedClock();
-        var scope = await Agency(eligibility: eligibility, clock: clock).ResolveAsync();
+        var scope = await Agency(eligibility: eligibility).ResolveAsync();
         var noOffice = new Eligibility { Result = InventoryReferenceCheck.Verified };
         var officeless = await Agency(
             new Caller { ContextType = CallerContextType.TravelAgency, AirlineUserId = null, AirlineOfficeId = null, TravelAgencyId = 31 },
             new Country(),
             noOffice).ResolveAsync();
 
-        Assert.Equal(
-            (Airline, Channel.PartnerAPI, (long?)4040, (int?)AgencySalesPolicy.CurrencyId, clock.Now),
-            (scope.OwnerAirlineId, scope.Channel, scope.CustomerId, scope.PreferredCurrencyId, scope.SalesInstantUtc));
+        Assert.Equal((Airline, Channel.PartnerAPI), (scope.OwnerAirlineId, scope.Channel));
         Assert.Equal(new long[] { 5, 6 }, scope.PointOfSaleIds);
-        Assert.Equal((70, "PartnerAPI"), (AgencySalesPolicy.CurrencyId, AgencySalesPolicy.SalesChannel.ToString()));
+        Assert.Equal("PartnerAPI", AgencySalesPolicy.SalesChannel.ToString());
         Assert.Equal(
             (Channel.PartnerAPI, (long?)98, 0, (long?)33),
             (eligibility.Asked!.Channel, eligibility.Asked.CountryId, eligibility.Asked.AirlineOfficeIds.Count, eligibility.Asked.TravelAgencyOfficeId));
@@ -339,8 +335,7 @@ public class ThreeSurfaceTests
         var apiScope = await new ApiSalesScopeResolver(Agency(eligibility: new Eligibility { Result = InventoryReferenceCheck.Verified, Allowed = [5] })).ResolveAsync();
         var panelScope = await new OtaPanelSalesScopeResolver(Agency(eligibility: new Eligibility { Result = InventoryReferenceCheck.Verified, Allowed = [5] })).ResolveAsync();
 
-        Assert.Equal(DeskScope.Of(apiScope), DeskScope.Of(panelScope));
-        Assert.Equal(apiScope.Channel, panelScope.Channel);
+        Assert.Equal((apiScope.OwnerAirlineId, apiScope.Channel, apiScope.PointOfSaleIds.Single()), (panelScope.OwnerAirlineId, panelScope.Channel, panelScope.PointOfSaleIds.Single()));
     }
 
     [Fact]
@@ -361,7 +356,7 @@ public class ThreeSurfaceTests
         Assert.Equal("X", JsonSerializer.Deserialize<OtaPanelGetAncillaryOffersQuery>(Forged, Json)!.OfferId);
         Assert.Equal(77, JsonSerializer.Deserialize<BackofficeGetAncillaryOffersQuery>(Forged, Json)!.Options!.PointOfSaleId);
         Assert.Equal(
-            new[] { typeof(ICallerContext), typeof(IRequestCountry), typeof(IOperatorAirlineResolver), typeof(IPointOfSaleEligibilityReference), typeof(AeroTech.Framework.Core.ServiceContracts.IClock) },
+            new[] { typeof(ICallerContext), typeof(IRequestCountry), typeof(IOperatorAirlineResolver), typeof(IPointOfSaleEligibilityReference) },
             typeof(AgencySalesScopeService).GetConstructors().Single().GetParameters().Select(parameter => parameter.ParameterType));
         Assert.Equal(new[] { typeof(IAgencySalesScopeService) }, typeof(ApiSalesScopeResolver).GetConstructors().Single().GetParameters().Select(parameter => parameter.ParameterType));
         Assert.Equal(new[] { typeof(IAgencySalesScopeService) }, typeof(OtaPanelSalesScopeResolver).GetConstructors().Single().GetParameters().Select(parameter => parameter.ParameterType));
@@ -678,7 +673,7 @@ public class ThreeSurfaceTests
 
         lab.Sellable("A10");
 
-        var scope = surface == "backoffice" ? (AncillarySalesScope)Desk : Desk.On(AgencySalesPolicy.SalesChannel, Pos);
+        var scope = surface == "backoffice" ? (DeskSale)Desk : Desk.On(AgencySalesPolicy.SalesChannel, Pos);
         var (offers, snapshot) = await ShoppedAsync(lab, scope);
         var bag = snapshot.Items.First(item => item.Candidate.VariantCode == "A01");
         var query = new OfferQuery(OfferWire.OfferId, bag.OfferItemRef);

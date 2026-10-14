@@ -1,6 +1,5 @@
 using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Domain._Shared.Resources;
-using AeroTech.Framework.Core.ServiceContracts;
 
 namespace AeroTech.Ancillary.Query.Shopping.Common.SalesScope
 {
@@ -10,20 +9,17 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.SalesScope
         private readonly IRequestCountry _country;
         private readonly IOperatorAirlineResolver _operatorAirline;
         private readonly IPointOfSaleEligibilityReference _pointsOfSale;
-        private readonly IClock _clock;
 
         public AgencySalesScopeService(
             ICallerContext caller,
             IRequestCountry country,
             IOperatorAirlineResolver operatorAirline,
-            IPointOfSaleEligibilityReference pointsOfSale,
-            IClock clock)
+            IPointOfSaleEligibilityReference pointsOfSale)
         {
             _caller = caller;
             _country = country;
             _operatorAirline = operatorAirline;
             _pointsOfSale = pointsOfSale;
-            _clock = clock;
         }
 
         public async Task<AncillarySalesScope> ResolveAsync(CancellationToken cancellationToken = default)
@@ -42,10 +38,7 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.SalesScope
                 await AuthorizedPointsOfSale.ResolveAsync(
                     _pointsOfSale,
                     new PointOfSaleEligibilityQuery(AgencySalesPolicy.SalesChannel, _country.CountryId, [], _caller.TravelAgencyOfficeIds.FirstOrDefault()),
-                    cancellationToken),
-                _caller.CustomerId,
-                AgencySalesPolicy.CurrencyId,
-                _clock.GetDateTime().ToUniversalTime());
+                    cancellationToken));
         }
     }
 }

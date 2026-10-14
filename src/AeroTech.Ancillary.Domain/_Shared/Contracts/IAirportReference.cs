@@ -7,5 +7,9 @@ namespace AeroTech.Ancillary.Domain._Shared.Contracts
         Task<IReadOnlyDictionary<int, int>> FindCountryIdsAsync(IReadOnlyCollection<int> airportIds, CancellationToken cancellationToken = default);
 
         Task<IReadOnlyDictionary<int, string>> FindTimeZoneIdsAsync(IReadOnlyCollection<int> airportIds, CancellationToken cancellationToken = default);
+
+        Task<IReadOnlyDictionary<int, string>> FindIataCodesAsync(IReadOnlyCollection<int> airportIds, CancellationToken cancellationToken = default);
+
+        Task<IReadOnlyDictionary<int, string>> FindTerminalNumbersAsync(IReadOnlyCollection<int> terminalIds, CancellationToken cancellationToken = default);
     }
 }

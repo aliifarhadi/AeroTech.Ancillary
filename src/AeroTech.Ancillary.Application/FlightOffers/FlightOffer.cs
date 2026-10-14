@@ -6,6 +6,7 @@ namespace AeroTech.Ancillary.Application.FlightOffers
         string OfferId,
         DateTimeOffset PricedAt,
         DateTimeOffset? LastTicketingDate,
+        long? CustomerId,
         int CurrencyId,
         string? CurrencyCode,
         decimal BaseAmount,

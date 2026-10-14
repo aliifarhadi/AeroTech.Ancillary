@@ -8,7 +8,7 @@
     },
     "flightOffer": {
       "lastTicketingDate": null,
-      "sourcePricedAt": "2026-10-11T08:12:52+00:00",
+      "sourcePricedAt": "2026-10-01T10:00:00+00:00",
       "currencyId": 70,
       "baseAmount": 480000000,
       "chargeAmount": 48010024.00,

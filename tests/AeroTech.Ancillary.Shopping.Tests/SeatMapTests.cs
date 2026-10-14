@@ -1,3 +1,4 @@
+using System.Globalization;
 using AeroTech.Ancillary.Application.AcceptanceTests.Fakes;
 using AeroTech.Ancillary.Application.FlightOffers;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments;
@@ -83,12 +84,20 @@ public class SeatMapTests
     private static async Task<(GetSeatMapService Service, FixedSeatMaps Maps)> SeatMapServiceAsync(ShoppingLab lab, IOccupiedSeatProvider? occupied = null)
     {
         var maps = new FixedSeatMaps(Aircraft());
+        var airports = new TestOnlyAirportReference();
         var source = new FlightOfferShoppingSource(
-            new FixedOffers(await OfferWire.ReadAsync(OfferWire.Captured())),
-            new TestOnlyAirportReference(),
+            new FixedOffers(Sale.Sell(await OfferWire.ReadAsync(OfferWire.Captured()))),
+            airports,
             new TestOnlyAirFareReference());
 
-        return (new GetSeatMapService(source, maps, occupied ?? new FixedOccupiedSeats("3C"), lab.Engine, lab.Catalog), maps);
+        airports.IataCodes[2] = "IKA";
+        airports.IataCodes[6] = "IST";
+        airports.TerminalNumbers[2] = "1";
+        airports.TerminalNumbers[6] = "2";
+        lab.Catalog.AirlineCodes[1] = "DA";
+        lab.Catalog.AirlineCodes[3] = "IR";
+
+        return (new GetSeatMapService(source, maps, occupied ?? new FixedOccupiedSeats("3C"), lab.Engine, lab.Catalog, airports, lab.Catalog), maps);
     }
 
     [Fact]
@@ -191,7 +200,7 @@ public class SeatMapTests
 
         var (service, maps) = await SeatMapServiceAsync(lab);
         var snapshot = await service.ExecuteAsync(new BackofficeGetSeatMapQuery { OfferId = OfferWire.OfferId }, Sale);
-        var map = SeatMapMapper.Map(snapshot, travellerRef => travellerRef, flightRef => flightRef);
+        var map = SeatMapMapper.Map(snapshot, travellerRef => travellerRef, flight => flight.FlightRef);
         var first = map.Data[0];
         var economy = first.Decks.Single().Cabins.Single(cabin => cabin.CabinClassId == 1);
 
@@ -216,7 +225,7 @@ public class SeatMapTests
         Assert.Equal(ids.Count, ids.Distinct(StringComparer.Ordinal).Count());
         Assert.All(ids, id => Assert.Matches("^[A-Za-z0-9_-]{43}$", id));
 
-        var again = SeatMapMapper.Map(await service.ExecuteAsync(new BackofficeGetSeatMapQuery { OfferId = OfferWire.OfferId }, Sale), travellerRef => travellerRef, flightRef => flightRef);
+        var again = SeatMapMapper.Map(await service.ExecuteAsync(new BackofficeGetSeatMapQuery { OfferId = OfferWire.OfferId }, Sale), travellerRef => travellerRef, flight => flight.FlightRef);
 
         Assert.Equal(Seat("3A", "ADT-1").Id, again.Data[0].Decks.SelectMany(deck => deck.Cabins).SelectMany(cabin => cabin.Items).Single(item => item.Number == "3A").TravelerPricing.Single(row => row.TravelerId == "ADT-1").Id);
         Assert.NotEqual(Seat("3A", "ADT-1").Id, Seat("3A", "CHD-1").Id);
@@ -234,10 +243,31 @@ public class SeatMapTests
         var snapshot = await service.ExecuteAsync(new ApiGetSeatMapQuery { OfferId = OfferWire.OfferId }, Sale);
         var travelerIds = ApiOfferIdentifiers.TravelerIds(snapshot.Offer);
         var segmentIds = ApiOfferIdentifiers.Segments(snapshot.Offer).GroupBy(segment => segment.FlightRef).ToDictionary(group => group.Key, group => group.First().Id);
-        var map = SeatMapMapper.Map(snapshot, travellerRef => travelerIds[travellerRef], flightRef => segmentIds[flightRef]);
+        var map = SeatMapMapper.Map(snapshot, travellerRef => travelerIds[travellerRef], flight => segmentIds[flight.FlightRef]);
 
         Assert.Equal(new[] { "1", "2" }, map.Data.Select(data => data.SegmentId));
         Assert.All(map.Data, data => Assert.Equal(new[] { "1", "2" }, data.AvailableSeatsCounters.Select(counter => counter.TravelerId)));
+    }
+
+    [Fact]
+    public async Task SM_08_each_seat_map_names_its_flight_with_its_endpoints_carriers_and_booking_class()
+    {
+        var lab = new ShoppingLab();
+        var (service, _) = await SeatMapServiceAsync(lab);
+        var snapshot = await service.ExecuteAsync(new BackofficeGetSeatMapQuery { OfferId = OfferWire.OfferId }, Sale);
+        var map = SeatMapMapper.Map(snapshot, travellerRef => travellerRef, flight => flight.Flight.FlightId.ToString(CultureInfo.InvariantCulture));
+
+        Assert.Equal(
+            new[]
+            {
+                ("1558420526869774453", "IKA", "1", "IST", "2", "DA", "1124", "DA", "Y", (int?)1),
+                ("1550116065952923910", "IST", "2", "IKA", "1", "IR", "1598", "DA", "Y", (int?)1)
+            },
+            map.Data.Select(data => (data.SegmentId, data.Departure.IataCode, data.Departure.Terminal, data.Arrival.IataCode, data.Arrival.Terminal, data.CarrierCode, data.Number, data.Operating.CarrierCode, data.Class, data.CabinClassId)));
+        Assert.Equal(
+            new[] { (new DateTimeOffset(2026, 10, 15, 8, 15, 0, TimeSpan.FromHours(3.5)), new DateTimeOffset(2026, 10, 15, 11, 11, 0, TimeSpan.FromHours(3))) },
+            map.Data.Take(1).Select(data => (data.Departure.At, data.Arrival.At)));
+        Assert.All(map.Data, data => Assert.Equal(OfferWire.OfferId, data.FlightOfferId));
     }
 
     [Fact]

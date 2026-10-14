@@ -22,10 +22,11 @@ public static class BackofficeDesk
         ShoppingLab lab,
         string? wire = null,
         TestOnlyAirportReference? airports = null,
-        TestOnlyAirFareReference? airFares = null)
+        TestOnlyAirFareReference? airFares = null,
+        DeskScope? desk = null)
         => new(
             new FlightOfferShoppingSource(
-                new FixedOffers(await OfferWire.ReadAsync(wire ?? OfferWire.Captured())),
+                new FixedOffers((desk ?? Sale).Sell(await OfferWire.ReadAsync(wire ?? OfferWire.Captured()))),
                 airports ?? new TestOnlyAirportReference(),
                 airFares ?? new TestOnlyAirFareReference()),
             lab.Engine);
@@ -34,9 +35,13 @@ public static class BackofficeDesk
         ShoppingLab lab,
         string? wire = null,
         TestOnlyAirportReference? airports = null,
-        AncillarySalesScope? scope = null,
+        DeskSale? scope = null,
         TestOnlyAirFareReference? airFares = null)
-        => await (await ServiceAsync(lab, wire, airports, airFares)).ExecuteAsync(new OfferQuery(OfferWire.OfferId), scope ?? (AncillarySalesScope)Sale);
+    {
+        var sale = scope ?? Sale;
+
+        return await (await ServiceAsync(lab, wire, airports, airFares, sale.Desk)).ExecuteAsync(new OfferQuery(OfferWire.OfferId), sale.Scope);
+    }
 
     public static async Task<BackofficeAncillaryOffersDto> ShopAsync(
         ShoppingLab lab,
@@ -47,20 +52,36 @@ public static class BackofficeDesk
         => BackofficeAncillaryOffersMapper.Map(await SnapshotAsync(lab, wire, airports, scope ?? Sale, airFares));
 
     public static AncillaryShoppingContext ContextOf(FlightOffer offer, DeskScope scope, IReadOnlyDictionary<int, int> airportCountryIds)
-        => FlightOfferShoppingContextMapper.Map(offer, FlightOfferShoppingContextMapper.Facts(offer, new Dictionary<long, long>()), scope, scope.PointOfSaleId, airportCountryIds, new Dictionary<int, string>());
-
-    public static BackofficeSalesScopeResolver Resolver(Caller? caller = null, HomeAirline? home = null, Eligibility? eligibility = null, FixedClock? clock = null)
-        => new(caller ?? new Caller(), home ?? new HomeAirline(), eligibility ?? new Eligibility(), clock ?? new FixedClock());
-
-    public sealed record DeskScope(int OwnerAirlineId, long PointOfSaleId, long? CustomerId, int? PreferredCurrencyId, DateTimeOffset EvaluatedAtUtc)
     {
-        public static DeskScope Of(AncillarySalesScope scope)
-            => new(scope.OwnerAirlineId, scope.PointOfSaleIds.Single(), scope.CustomerId, scope.PreferredCurrencyId, scope.SalesInstantUtc);
+        var sold = scope.Sell(offer);
 
-        public AncillarySalesScope On(Channel channel, params long[] pointOfSaleIds)
-            => new(OwnerAirlineId, channel, pointOfSaleIds, CustomerId, PreferredCurrencyId, EvaluatedAtUtc);
+        return FlightOfferShoppingContextMapper.Map(sold, FlightOfferShoppingContextMapper.Facts(sold, new Dictionary<long, long>()), scope, scope.PointOfSaleId, airportCountryIds, new Dictionary<int, string>());
+    }
 
-        public static implicit operator AncillarySalesScope(DeskScope scope) => scope.On(Channel.BackOffice, scope.PointOfSaleId);
+    public static BackofficeSalesScopeResolver Resolver(Caller? caller = null, HomeAirline? home = null, Eligibility? eligibility = null)
+        => new(caller ?? new Caller(), home ?? new HomeAirline(), eligibility ?? new Eligibility());
+
+    public sealed record DeskScope(int OwnerAirlineId, long PointOfSaleId, long? CustomerId, int? CurrencyId, DateTimeOffset EvaluatedAtUtc)
+    {
+        public DeskSale On(Channel channel, params long[] pointOfSaleIds) => new(this, new AncillarySalesScope(OwnerAirlineId, channel, pointOfSaleIds));
+
+        public FlightOffer Sell(FlightOffer offer)
+            => offer with
+            {
+                CustomerId = CustomerId,
+                CurrencyId = CurrencyId ?? offer.CurrencyId,
+                CurrencyCode = CurrencyId is { } currencyId && currencyId != offer.CurrencyId ? null : offer.CurrencyCode,
+                PricedAt = EvaluatedAtUtc
+            };
+
+        public static implicit operator DeskSale(DeskScope scope) => scope.On(Channel.BackOffice, scope.PointOfSaleId);
+
+        public static implicit operator AncillarySalesScope(DeskScope scope) => scope.On(Channel.BackOffice, scope.PointOfSaleId).Scope;
+    }
+
+    public sealed record DeskSale(DeskScope Desk, AncillarySalesScope Scope)
+    {
+        public static implicit operator AncillarySalesScope(DeskSale sale) => sale.Scope;
     }
 
     public sealed record OfferQuery(string? OfferId, string? OfferItemRef = null) : IAncillaryOfferItemQuery;

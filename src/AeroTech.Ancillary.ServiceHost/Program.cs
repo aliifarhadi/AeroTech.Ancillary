@@ -43,6 +43,7 @@ builder.Services.AddScoped<ICountryCodeResolver, ReferenceDataCountryCodeResolve
 builder.Services.AddScoped<IAirlineOfficeTimeZoneResolver, ReferenceDataAirlineOfficeTimeZoneResolver>();
 builder.Services.AddScoped<IOperatorAirlineResolver, ReferenceDataOperatorAirlineResolver>();
 builder.Services.AddScoped<IAirportReference, ReferenceDataAirportReference>();
+builder.Services.AddScoped<IAirlineReference, ReferenceDataAirlineReference>();
 builder.Services.AddScoped<ICurrencyReference, ReferenceDataCurrencyReference>();
 builder.Services.AddScoped<IRateOfExchangeReference, ReferenceDataRateOfExchangeReference>();
 builder.Services.AddScoped<IAirFareReference, ReferenceDataAirFareReference>();

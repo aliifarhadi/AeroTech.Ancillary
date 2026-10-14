@@ -11,10 +11,20 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Dto
         string Type,
         string FlightOfferId,
         string SegmentId,
+        SeatMapEndpointDto Departure,
+        SeatMapEndpointDto Arrival,
+        string? CarrierCode,
         string? Number,
+        SeatMapOperatingDto Operating,
         int AircraftId,
+        string? Class,
+        int? CabinClassId,
         IReadOnlyList<SeatMapDeckDto> Decks,
         IReadOnlyList<SeatMapAvailableSeatsCounterDto> AvailableSeatsCounters);
+
+    public sealed record SeatMapEndpointDto(string? IataCode, string? Terminal, DateTimeOffset At);
+
+    public sealed record SeatMapOperatingDto(string? CarrierCode);
 
     public sealed record SeatMapDeckDto(
         string? DeckType,
