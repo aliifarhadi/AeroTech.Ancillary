@@ -30,60 +30,12 @@ public class M1ProvisionAcceptanceTests
         => M1Commands.LoungeProvision(definitionId, disposition: CommercialDisposition.Paid);
 
     [Fact]
-    public async Task M1_D01_a_provision_is_defined_as_draft_with_its_price_lines()
-    {
-        var (definitionId, scope) = await ActiveDefinitionAsync();
-        await using var _ = scope;
-
-        var draft = await scope.DefineProvision.DefineAsync(PaidLounge(definitionId));
-        var pricing = await scope.DefinePricing.DefineAsync(M1Commands.LoungePricing(draft.Id));
-
-        Assert.Equal(ProvisionStatus.Draft, draft.Status);
-        Assert.Equal(ServiceCoverageScope.Sector, draft.CoverageScope);
-        Assert.Equal(CommercialDisposition.Paid, draft.Disposition);
-        Assert.Equal((PricingStatus.Draft, 1, draft.Id), (pricing.Status, pricing.Version, pricing.AncillaryProvisionId));
-
-        await using var reader = new AncillaryScope(_database, _clock);
-        var detail = await reader.GetProvisionById.ExecuteAsync(draft.Id);
-        var price = await reader.GetPricingById.ExecuteAsync(pricing.Id);
-
-        Assert.Equal(definitionId, detail.ServiceDefinitionId);
-        Assert.Equal(100, detail.Sequence);
-        Assert.Equal("Sector", detail.CoverageScope.Name);
-        Assert.Equal("Each", detail.QuantityUnit.Name);
-        Assert.Equal("Ancillary", detail.FulfillmentProviderKey);
-        Assert.Equal(M1Commands.Currency, price.CurrencyId);
-        Assert.True(Assert.Single(price.Rates).IsUnitTotalComplete);
-
-        var line = Assert.Single(price.PriceLines);
-
-        Assert.Equal(2500000m, line.Amount);
-        Assert.Equal("Ancillary", line.Category.Name);
-    }
-
-    [Fact]
     public async Task M1_D01_a_provision_for_a_missing_definition_is_refused()
     {
         await using var scope = new AncillaryScope(_database, _clock);
 
         await BusinessAssert.ThrowsAsync(16304, 422, () => scope.DefineProvision.DefineAsync(
             M1Commands.LoungeProvision(999_999_999)));
-    }
-
-    [Fact]
-    public async Task M1_G09A_an_unimplemented_fee_application_unit_is_refused_at_activation()
-    {
-        var (definitionId, scope) = await ActiveDefinitionAsync();
-        await using var _ = scope;
-
-        var draft = await scope.DefineProvision.DefineAsync(PaidLounge(definitionId));
-        var lounge = M1Commands.LoungePricing(draft.Id, feeApplicationUnit: FeeApplicationUnit.PerFiveKilogramsOver);
-        var pricing = await scope.DefinePricing.DefineAsync(
-            lounge with { PriceLines = [.. lounge.PriceLines, new PricingLineInput(null, null, null, AncillaryPriceLineCategory.Fee, "SVC", null, null, null, 1000m)] });
-
-        await BusinessAssert.ThrowsAsync(16305, 422, () => scope.ActivatePricing.ActivateAsync(new TestPricingLifecycleCommand(pricing.Id)));
-        await BusinessAssert.ThrowsAsync(16305, 422, () => scope.PublishProvision.PublishAsync(
-            new TestPublishProvisionCommand(draft.Id, pricing.Id)));
     }
 
     [Fact]

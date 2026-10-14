@@ -15,6 +15,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
         private readonly List<string> _notes = [];
         private readonly List<string> _missing = [];
         private readonly List<SelectionFieldIssue> _issues = [];
+        private readonly List<string> _rejections = [];
         private bool _unknown;
         private bool _noMatch;
         private bool _pending;
@@ -32,10 +33,13 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
         public IReadOnlyList<SelectionFieldIssue> FieldIssues => _issues.Distinct().ToList();
 
+        public IReadOnlyList<string> RejectionCodes => _rejections.Distinct(StringComparer.Ordinal).ToList();
+
         public void Fail(string reasonCode)
         {
             _noMatch = true;
             _reasons.Add(reasonCode);
+            _rejections.Add(reasonCode);
         }
 
         public void Unknown(string reasonCode, string field)
@@ -63,6 +67,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
         {
             _noMatch = true;
             _reasons.Add(reasonCode);
+            _rejections.Add(reasonCode);
             _issues.Add(new SelectionFieldIssue(field, reasonCode));
         }
 

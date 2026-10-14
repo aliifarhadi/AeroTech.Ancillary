@@ -316,8 +316,6 @@ public class EnginePriceInventoryTests
         Assert.Null(supplier.ConsumptionPreview);
         Assert.Null(seatAvailability.ConsumptionPreview);
         Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Code == ShoppingReasonCodes.BlockedExternalReference);
-        Assert.Equal(SeatPurpose.Standard, shown.Seat!.Purpose);
-        Assert.Null(result.One(pet.ServiceDefinitionRef).Seat);
     }
 
     [Fact]

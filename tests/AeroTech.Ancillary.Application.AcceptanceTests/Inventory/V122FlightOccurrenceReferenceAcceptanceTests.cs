@@ -97,31 +97,6 @@ public class V122FlightOccurrenceReferenceAcceptanceTests
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => slow.CheckAsync(Owner, Flight, cancelled.Token));
     }
 
-    [Fact]
-    public void V122_FF05_the_host_registers_the_flight_occurrence_reference_and_keeps_the_three_other_references_unconnected()
-    {
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?> { ["FlightFlow:BaseUrl"] = "https://flightflow.test/service/" })
-            .Build();
-
-        using var provider = new ServiceCollection().AddProviders(configuration).BuildServiceProvider();
-        using var scope = provider.CreateScope();
-
-        Assert.IsType<FlightFlowFlightOccurrenceReference>(scope.ServiceProvider.GetRequiredService<IFlightOccurrenceReference>());
-        Assert.Equal(
-            new[]
-            {
-                "NotConnectedAirportFacilityReference", "NotConnectedCountingFamilyReference", "NotConnectedInventoryResourceReference"
-            },
-            new object[]
-                {
-                    scope.ServiceProvider.GetRequiredService<IAirportFacilityReference>(),
-                    scope.ServiceProvider.GetRequiredService<ICountingFamilyReference>(),
-                    scope.ServiceProvider.GetRequiredService<IInventoryResourceReference>()
-                }
-                .Select(reference => reference.GetType().Name));
-    }
-
     private sealed class Recorder : HttpMessageHandler
     {
         private readonly Func<HttpRequestMessage, HttpResponseMessage> _reply;

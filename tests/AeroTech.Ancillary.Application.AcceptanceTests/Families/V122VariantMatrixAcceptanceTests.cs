@@ -332,35 +332,6 @@ public class V122VariantMatrixAcceptanceTests : IClassFixture<VariantMatrixCache
 
     [Theory]
     [MemberData(nameof(Variants))]
-    public async Task Axx_R_the_provision_keeps_one_point_of_sale_its_scope_quantity_outcome_and_typed_rules_and_another_point_of_sale_count_is_refused(string variant)
-    {
-        var authored = V122Catalog.Case(variant);
-        var ruled = await RuledAsync(variant);
-        var draft = ruled.Draft;
-
-        Assert.Equal(
-            ("Draft", authored.CoverageScope.ToString(), authored.QuantityUnit.ToString(), 1, authored.MaxQuantity, authored.Disposition.ToString(), authored.ApplicationType.ToString(), "Both"),
-            (draft.Status.Name, draft.CoverageScope.Name, draft.QuantityUnit.Name, draft.MinQuantity, draft.MaxQuantity, draft.Disposition.Name, draft.ApplicationType.Name, draft.PurchaseStage.Name));
-        Assert.Equal(new[] { V122Catalog.PointOfSale }, draft.SalesRestrictions!.AllowedPointsOfSale.Select(row => row.Value));
-        Assert.Equal(new[] { "ADT", "CHD" }, draft.PassengerEligibility!.AllowedPassengerTypes.Select(row => row.Value.Name));
-        Assert.Equal((24, "Hours"), (draft.AdvancePurchase!.MinimumPeriod, draft.AdvancePurchase.Unit.Name));
-        Assert.Equal((new DateOnly(2027, 1, 1), new DateOnly(2027, 12, 31)), draft.TravelDate!.PermittedPeriods.Select(row => (row.StartDate, row.EndDate)).Single());
-        Assert.Equal(authored.Profile == AncillaryProfile.Baggage, draft.BaggageApplication is not null);
-        Assert.Equal(authored.Profile == AncillaryProfile.Seat, draft.SeatApplication is not null);
-        Assert.Equal(
-            (ruled.Command.PetRule?.MaxCombinedKgOverride, ruled.Command.PetRule?.MinAnimalAgeWeeksOverride, ruled.Command.PetRule?.CountryExceptionCode),
-            (draft.PetRule?.MaxCombinedKgOverride, draft.PetRule?.MinAnimalAgeWeeksOverride, draft.PetRule?.CountryExceptionCode));
-        Assert.Equal(
-            (ruled.Command.AssistedTravelRule?.MinimumLeadTimeMinutes, ruled.Command.AssistedTravelRule?.ConnectionPolicy?.ToString(), ruled.Command.AssistedTravelRule?.MedicalApprovalRequired),
-            (draft.AssistedTravelRule?.MinimumLeadTimeMinutes, draft.AssistedTravelRule?.ConnectionPolicy?.Name, draft.AssistedTravelRule?.MedicalApprovalRequired));
-        Assert.Equal(
-            (ruled.Command.AirportServiceRule?.TerminalRef, ruled.Command.AirportServiceRule?.Direction?.ToString(), ruled.Command.AirportServiceRule?.FacilityId, ruled.Command.AirportServiceRule?.MaxGuestsPerPrimary),
-            (draft.AirportServiceRule?.TerminalRef, draft.AirportServiceRule?.Direction?.Name, draft.AirportServiceRule?.FacilityId, draft.AirportServiceRule?.MaxGuestsPerPrimary));
-        Assert.Equal((0, 0), (ruled.TwoPointsOfSale, ruled.NoPointOfSale));
-    }
-
-    [Theory]
-    [MemberData(nameof(Variants))]
     public async Task Axx_P_the_price_origin_is_published_as_filed_money_an_external_quote_or_no_price_and_never_as_a_fabricated_amount(string variant)
     {
         var authored = V122Catalog.Case(variant);

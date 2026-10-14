@@ -1,6 +1,6 @@
 using AeroTech.Ancillary.Application.FlightOffers;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Arguments;
-using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Api;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers.Api;
 using AeroTech.Messages.AirPrice.Enums;
 using Xunit;
 

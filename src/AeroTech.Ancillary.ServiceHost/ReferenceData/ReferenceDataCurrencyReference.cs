@@ -14,5 +14,10 @@ namespace AeroTech.Ancillary.ServiceHost.ReferenceData
             => await _referenceData.Currencies.AsNoTracking()
                 .Where(currency => currencyIds.Contains(currency.Id))
                 .ToDictionaryAsync(currency => currency.Id, currency => currency.DecimalPlaces, cancellationToken);
+
+        public async Task<IReadOnlyDictionary<int, string>> FindCodesAsync(IReadOnlyCollection<int> currencyIds, CancellationToken cancellationToken = default)
+            => await _referenceData.Currencies.AsNoTracking()
+                .Where(currency => currencyIds.Contains(currency.Id))
+                .ToDictionaryAsync(currency => currency.Id, currency => currency.Code, cancellationToken);
     }
 }

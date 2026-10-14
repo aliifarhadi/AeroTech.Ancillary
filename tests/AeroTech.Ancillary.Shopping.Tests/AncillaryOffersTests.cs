@@ -3,11 +3,12 @@ using AeroTech.Ancillary.Application.AcceptanceTests.Fakes;
 using AeroTech.Ancillary.Application.AcceptanceTests.Fixtures;
 using AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.Arguments;
 using AeroTech.Ancillary.Domain._Shared.Contracts;
-using AeroTech.Ancillary.Query.AncillaryOffers.Dto.Backoffice;
-using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers;
-using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
-using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
 using AeroTech.Ancillary.Application.FlightOffers;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Backoffice;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers;
+using AeroTech.Ancillary.Query.Shopping.Common.FlightOffers;
+using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
 using AeroTech.Ancillary.Shopping.Results;
 using AeroTech.Ancillary.Shopping.Tests.Fixtures;
 using AeroTech.Framework.Core.Domain.Exceptions;
@@ -378,7 +379,7 @@ public class AncillaryOffersTests
     public async Task CT_22_an_empty_offer_id_is_refused_before_the_provider_is_called()
     {
         var failure = await Assert.ThrowsAsync<BusinessException>(
-            () => new GetAncillaryOffersService(new FixedOffers(null!), new TestOnlyAirportReference(), new TestOnlyAirFareReference(), new ShoppingLab().Engine).ExecuteAsync(new OfferQuery(" "), Sale));
+            () => new GetAncillaryOffersService(new FlightOfferShoppingSource(new FixedOffers(null!), new TestOnlyAirportReference(), new TestOnlyAirFareReference()), new ShoppingLab().Engine).ExecuteAsync(new OfferQuery(" "), Sale));
 
         Assert.Equal((16803, 422), (failure.Code, failure.HttpStatus));
         Assert.Equal(new[] { "OfferId", "Options" }, typeof(BackofficeGetAncillaryOffersQuery).GetProperties().Select(property => property.Name).Order());

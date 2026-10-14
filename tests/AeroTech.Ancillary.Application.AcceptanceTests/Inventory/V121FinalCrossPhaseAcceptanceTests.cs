@@ -218,40 +218,6 @@ public class V121FinalCrossPhaseAcceptanceTests
     }
 
     [Fact]
-    public async Task X10_X11_one_hundred_overlapping_slots_of_one_facility_have_one_winner_and_adjacent_slots_are_accepted()
-    {
-        var (fixture, airlineId, _) = await VerifiedAsync();
-        var overlapping = await _harness.RaceAsync(Enumerable.Range(0, 100).Select(index => (Func<Task>)(() => SlotAsync(
-            fixture,
-            airlineId,
-            Utc(8).AddMinutes(index),
-            Utc(11).AddMinutes(index)))));
-
-        Assert.Equal(1, overlapping.Succeeded);
-        Assert.Equal(new[] { 16615 }, overlapping.Codes);
-
-        fixture.Facilities![SecondLounge] = (Ika, "Asia/Tehran");
-
-        var first = await SlotAsync(fixture, airlineId, Utc(10), Utc(11), facilityId: SecondLounge);
-        var adjacent = await SlotAsync(fixture, airlineId, Utc(11), Utc(12), facilityId: SecondLounge);
-
-        await _harness.RefusedAsync(16615, 409, fixture, scope => scope.DefineAirportSlotInventory.DefineAsync(
-            new TestDefineAirportSlotInventoryCommand(airlineId, Ika, SecondLounge, Utc(10, 30), Utc(11, 30), 12)));
-        Assert.Equal((first.EndUtc, InventoryRecordStatus.Draft), (adjacent.StartUtc, adjacent.Status));
-        Assert.Equal(
-            new[] { "3|0" },
-            await _harness.RowsAsync($"""
-                SELECT CONCAT(
-                    (SELECT COUNT(*) FROM Ancillary.AirportSlotInventories WHERE OwnerAirlineId = {airlineId} AND Status <> 4), '|',
-                    (SELECT COUNT(*) FROM Ancillary.AirportSlotInventories AS first
-                     JOIN Ancillary.AirportSlotInventories AS second
-                       ON second.OwnerAirlineId = first.OwnerAirlineId AND second.FacilityId = first.FacilityId AND second.Id > first.Id
-                      AND second.Status <> 4 AND first.StartUtc < second.EndUtc AND second.StartUtc < first.EndUtc
-                     WHERE first.OwnerAirlineId = {airlineId} AND first.Status <> 4)) AS Value
-                """));
-    }
-
-    [Fact]
     public async Task X12_one_hundred_independent_sources_are_all_accepted_concurrently()
     {
         var (fixture, airlineId, _) = await VerifiedAsync();

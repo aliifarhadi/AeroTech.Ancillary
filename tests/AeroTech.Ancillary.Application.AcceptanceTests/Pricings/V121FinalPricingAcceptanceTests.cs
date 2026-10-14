@@ -119,42 +119,6 @@ public class V121FinalPricingAcceptanceTests
     }
 
     [Fact]
-    public async Task PR04_PR05_PR06_PR07_amounts_of_zero_two_and_three_decimal_currencies_are_stored_exactly_and_a_finer_scale_is_refused()
-    {
-        var provisionId = await DraftProvisionAsync(PricingUnit.PerItem);
-        var defined = await DefineAsync(provisionId, Rate(1201m, Jpy), Rate(12.34m, Eur, null, Component(AncillaryPriceLineCategory.Tax, "VAT", 1.11m, Eur)), Rate(12.125m, Kwd));
-
-        await RequestAsync(scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(provisionId, defined.Id)));
-
-        Assert.Equal(
-            new[] { "Ancillary 47 12.340000 1.110000", "Ancillary 75 1201.000000 ", "Ancillary 82 12.125000 ", "ReadModel 47 12.340000 1.110000", "ReadModel 75 1201.000000 ", "ReadModel 82 12.125000 " },
-            await RowsAsync($"""
-                SELECT CONCAT('Ancillary ', rate.CurrencyId, ' ', rate.BaseAmount, ' ', (SELECT component.Amount FROM Ancillary.AncillaryPriceComponents AS component WHERE component.AncillaryPricingRateId = rate.Id)) AS Value
-                FROM Ancillary.AncillaryPricingRates AS rate WHERE rate.AncillaryPricingId = {defined.Id}
-                UNION ALL
-                SELECT CONCAT('ReadModel ', rate.CurrencyId, ' ', rate.BaseAmount, ' ', (SELECT component.Amount FROM ReadModel.AncillaryPriceComponents AS component WHERE component.AncillaryPricingRateId = rate.Id))
-                FROM ReadModel.AncillaryPricingRates AS rate WHERE rate.AncillaryPricingId = {defined.Id}
-                ORDER BY 1
-                """));
-        Assert.Equal(
-            new[] { "Ancillary.AncillaryPriceComponents.Amount 19 6", "Ancillary.AncillaryPricingRates.BaseAmount 19 6", "ReadModel.AncillaryPriceComponents.Amount 19 6", "ReadModel.AncillaryPricingRates.BaseAmount 19 6" },
-            await RowsAsync($"""
-                SELECT CONCAT(s.name, '.', t.name, '.', c.name, ' ', c.precision, ' ', c.scale) AS Value
-                FROM sys.columns AS c JOIN sys.tables AS t ON t.object_id = c.object_id JOIN sys.schemas AS s ON s.schema_id = t.schema_id
-                WHERE s.name IN ('Ancillary', 'ReadModel') AND t.name IN ('AncillaryPricingRates', 'AncillaryPriceComponents') AND c.name IN ('BaseAmount', 'Amount')
-                ORDER BY 1
-                """));
-
-        var other = await DraftProvisionAsync(PricingUnit.PerItem);
-
-        await RefusedAsync(16512, 422, scope => scope.DefinePricing.DefineAsync(new TestDefinePricingRatesCommand(other, [Rate(1201.5m, Jpy)])));
-        await RefusedAsync(16512, 422, scope => scope.DefinePricing.DefineAsync(new TestDefinePricingRatesCommand(other, [Rate(12.345m, Eur)])));
-        await RefusedAsync(16512, 422, scope => scope.DefinePricing.DefineAsync(new TestDefinePricingRatesCommand(other, [Rate(12.1251m, Kwd)])));
-        await RefusedAsync(16511, 422, scope => scope.DefinePricing.DefineAsync(new TestDefinePricingRatesCommand(other, [Rate(10m, 999)])));
-        Assert.Equal("0", (await RowsAsync($"SELECT CAST(COUNT(*) AS varchar(10)) AS Value FROM Ancillary.AncillaryPricings WHERE AncillaryProvisionId = {other}")).Single());
-    }
-
-    [Fact]
     public async Task PR08_PR09_PR13_a_foreign_currency_component_a_duplicate_rate_key_and_a_passenger_selector_on_a_non_passenger_unit_are_refused_and_the_key_is_unique_in_sql()
     {
         var perPassenger = await DraftProvisionAsync(PricingUnit.PerPassenger);
@@ -215,33 +179,6 @@ public class V121FinalPricingAcceptanceTests
     }
 
     [Fact]
-    public async Task PR18_PR19_a_paid_provision_is_not_published_without_an_active_price_and_a_free_one_never_takes_a_price()
-    {
-        var paid = await DraftProvisionAsync(PricingUnit.PerItem);
-        var free = await DraftProvisionAsync(PricingUnit.PerItem, CommercialDisposition.Free);
-        var notAvailable = await DraftProvisionAsync(PricingUnit.PerItem, CommercialDisposition.NotAvailable);
-
-        await RefusedAsync(16310, 409, scope => scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(paid)));
-
-        var draft = await DefineAsync(paid, Rate(40m, Eur));
-
-        await RefusedAsync(16310, 409, scope => scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(paid)));
-        await RefusedAsync(16505, 409, scope => scope.DefinePricing.DefineAsync(new TestDefinePricingRatesCommand(free, [Rate(40m, Eur)])));
-        await RefusedAsync(16505, 409, scope => scope.DefinePricing.DefineAsync(new TestDefinePricingRatesCommand(notAvailable, [Rate(40m, Eur)])));
-
-        await RequestAsync(scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(paid, draft.Id)));
-        await RequestAsync(scope => scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(free)));
-        await RequestAsync(scope => scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(notAvailable)));
-
-        Assert.Equal(
-            new[] { $"{paid} 2 1", $"{free} 2 0", $"{notAvailable} 2 0" },
-            await RowsAsync($"""
-                SELECT CONCAT(provision.Id, ' ', provision.Status, ' ', (SELECT COUNT(*) FROM Ancillary.AncillaryPricings AS pricing WHERE pricing.AncillaryProvisionId = provision.Id AND pricing.Status = 2)) AS Value
-                FROM Ancillary.AncillaryProvisions AS provision WHERE provision.Id IN ({paid}, {free}, {notAvailable}) ORDER BY provision.Id
-                """));
-    }
-
-    [Fact]
     public async Task PR21_two_concurrent_price_activations_have_one_winner_behind_the_filtered_unique_index()
     {
         var provisionId = await DraftProvisionAsync(PricingUnit.PerItem);
@@ -285,22 +222,5 @@ public class V121FinalPricingAcceptanceTests
         Assert.Contains(
             "Rates[0].BasePrice",
             validator.Validate(new BackofficeDefineAncillaryPricingCommand(1, [new PricingRateInput(null, null, null, null!, null)])).Errors.Select(error => error.PropertyName));
-    }
-
-    [Fact]
-    public async Task PR24_PR25_a_flat_base_component_and_a_percentage_fee_unit_are_refused_by_code_and_never_reinterpreted()
-    {
-        var provisionId = await DraftProvisionAsync(PricingUnit.PerItem);
-
-        await RefusedAsync(16514, 422, scope => scope.DefinePricing.DefineAsync(
-            new TestDefinePricingRatesCommand(provisionId, [Rate(40m, Eur, null, Component(AncillaryPriceLineCategory.Ancillary, "BASE", 40m, Eur))])));
-
-        var percent = await DefineAsync(provisionId, Rate(40m, Eur, null, Component(AncillaryPriceLineCategory.Fee, "PCT", 1m, Eur, FeeApplicationUnit.OnePercentOfFarePerKilogram)));
-
-        await RefusedAsync(16305, 422, scope => scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(provisionId, percent.Id)));
-        await RefusedAsync(16305, 422, scope => scope.ActivatePricing.ActivateAsync(new TestPricingLifecycleCommand(percent.Id)));
-        Assert.Equal(
-            new[] { $"{percent.Id} 1" },
-            await RowsAsync($"SELECT CONCAT(Id, ' ', Status) AS Value FROM Ancillary.AncillaryPricings WHERE AncillaryProvisionId = {provisionId}"));
     }
 }

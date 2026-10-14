@@ -324,5 +324,11 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
 
         public static BusinessException OfferItemWasNotFound(params object?[] args) =>
             new(16811, ExceptionMessages.OfferItemWasNotFound, args) { HttpStatus = 404 };
+
+        public static BusinessException AircraftSeatMapCouldNotBeRetrieved(params object?[] args) =>
+            new(16813, ExceptionMessages.AircraftSeatMapCouldNotBeRetrieved, args) { HttpStatus = 502 };
+
+        public static BusinessException OccupiedSeatsCouldNotBeRetrieved(params object?[] args) =>
+            new(16814, ExceptionMessages.OccupiedSeatsCouldNotBeRetrieved, args) { HttpStatus = 502 };
     }
 }

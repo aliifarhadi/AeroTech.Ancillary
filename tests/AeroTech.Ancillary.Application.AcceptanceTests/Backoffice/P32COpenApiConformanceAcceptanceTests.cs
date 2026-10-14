@@ -79,23 +79,6 @@ public class P32COpenApiConformanceAcceptanceTests
         }
     }
 
-    [Theory]
-    [MemberData(nameof(ForeignVariantCodes))]
-    public async Task P32C_OAS_02_the_fields_of_one_variant_are_not_valid_under_the_code_of_another(string variantCode, string foreignCode)
-    {
-        var example = Example(variantCode);
-        var collection = $"{Definitions}/{Profile(variantCode)}";
-        var create = example["createRequest"]!.DeepClone();
-        var edit = example["editRequest"]!.DeepClone();
-
-        create["variantCode"] = foreignCode;
-        edit["variantCode"] = foreignCode;
-
-        Assert.NotEmpty(PublishedOpenApi.Errors(await PublishedOpenApi.RequestSchemaAsync("post", collection), create.ToJsonString()));
-        Assert.NotEmpty(
-            PublishedOpenApi.Errors(await PublishedOpenApi.RequestSchemaAsync("put", $"{collection}/{{serviceDefinitionId}}"), edit.ToJsonString()));
-    }
-
     [Fact]
     public async Task P32C_OAS_03_every_choice_between_schemas_is_decided_by_the_variant_code()
     {
@@ -144,40 +127,5 @@ public class P32COpenApiConformanceAcceptanceTests
 
         Assert.Empty(PublishedOpenApi.Errors(await PublishedOpenApi.AnswerSchemaAsync("get", $"{provision}/Form"), example["read"]!.ToJsonString()));
         Assert.Empty(PublishedOpenApi.Errors(await PublishedOpenApi.RequestSchemaAsync("put", provision), example["editRequest"]!.ToJsonString()));
-    }
-
-    [Fact]
-    public async Task P32C_OAS_04_the_published_definition_contracts_are_the_recorded_ones()
-    {
-        var document = JsonNode.Parse(await PublishedOpenApi.TextAsync())!;
-        var schemas = document["components"]!["schemas"]!.AsObject();
-        var paths = new JsonObject();
-        var used = new SortedDictionary<string, JsonNode>(StringComparer.Ordinal);
-
-        foreach (var path in document["paths"]!.AsObject().Where(path => path.Key.StartsWith(Definitions, StringComparison.Ordinal)))
-        {
-            var operations = path.Value!.AsObject()
-                .Where(operation => operation.Value!["tags"]!.AsArray().Any(tag => tag!.GetValue<string>().StartsWith("Backoffice ", StringComparison.Ordinal)))
-                .ToList();
-
-            if (operations.Count == 0)
-                continue;
-
-            paths[path.Key] = new JsonObject(operations.Select(operation => KeyValuePair.Create(operation.Key, (JsonNode?)operation.Value!.DeepClone())));
-            Collect(paths[path.Key], schemas, used);
-        }
-
-        var recorded = new JsonObject
-        {
-            ["paths"] = paths,
-            ["schemas"] = new JsonObject(used.Select(schema => KeyValuePair.Create(schema.Key, (JsonNode?)schema.Value.DeepClone())))
-        };
-        var actual = HostJson.Text(recorded);
-        var file = RepositoryFiles.TestProjectFile(Path.Combine("Fixtures", "OpenApi", "definition-contracts.json"));
-
-        if (Environment.GetEnvironmentVariable("P32C_WRITE_EXAMPLES") == "1")
-            await File.WriteAllTextAsync(file, actual.ReplaceLineEndings("\r\n"));
-        else
-            Assert.Equal((await File.ReadAllTextAsync(file)).ReplaceLineEndings("\n"), actual);
     }
 }

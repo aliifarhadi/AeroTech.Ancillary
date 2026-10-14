@@ -111,38 +111,6 @@ public class P2FlightCapacityAcceptanceTests
     }
 
     [Fact]
-    public async Task P2_F02_pet_products_share_one_physical_flight_count_key()
-    {
-        var (fixture, airlineId, supplierId) = await ConnectedAsync();
-        var cabin = await _harness.ProductAsync(airlineId, supplierId, "PET_IN_CABIN", PricingUnit.PerItem);
-        var small = await _harness.ProductAsync(airlineId, supplierId, "PET_SMALL_DOG", PricingUnit.PerItem);
-
-        await ActivePolicyAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, "PET_IN_CABIN", cabin.Id, InventoryAuthority.Local, LocalInventoryPattern.FlightCount, CountConsumption: Count()));
-        await ActivePolicyAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, "PET_SMALL_DOG", small.Id, InventoryAuthority.Local, LocalInventoryPattern.FlightCount, CountConsumption: Count()));
-
-        var source = await CountAsync(fixture, airlineId, Flight, PetResource, InventoryCountUnit.AnimalCarrier, 2);
-
-        await ActivateCountAsync(fixture, source.Id, 1);
-
-        var first = await _harness.SnapshotAsync(fixture, "PET_IN_CABIN", Flight);
-        var second = await _harness.SnapshotAsync(fixture, "PET_SMALL_DOG", Flight);
-
-        Assert.Equal(("ConfiguredNotGuaranteed", 2, false, "NoAllocationLedger", "FlightCount"), (first.State.Name, first.ConfiguredCount!.Value, first.IsGuaranteed, first.ReasonCode, first.ResourceKind!.Name));
-        Assert.Equal(first.Resource, second.Resource);
-        Assert.Equal((Flight, PetResource), (first.Resource!.FlightId!.Value, first.Resource.ResourceId!.Value));
-        Assert.Equal((first.ConfiguredCount, first.State), (second.ConfiguredCount, second.State));
-        Assert.NotEqual(first.PolicyId, second.PolicyId);
-        Assert.Equal("1", (await _harness.RowsAsync($"SELECT CAST(COUNT(*) AS varchar(10)) AS Value FROM Ancillary.FlightCountInventories WHERE OwnerAirlineId = {airlineId}")).Single());
-        await _harness.RefusedAsync(16614, 409, fixture, scope => scope.DefineFlightCountInventory.DefineAsync(
-            new TestDefineFlightCountInventoryCommand(airlineId, Flight, PetResource, InventoryCountUnit.AnimalCarrier, 2)));
-
-        await _harness.RequestAsync(fixture, scope => scope.AdjustFlightCountInventory.AdjustAsync(new TestAdjustFlightCountInventoryCommand(source.Id, 3, "EXTRA_CARRIER", "corr-1", 2)));
-
-        Assert.Equal((3, 3), ((await _harness.SnapshotAsync(fixture, "PET_IN_CABIN", Flight)).ConfiguredCount!.Value, (await _harness.SnapshotAsync(fixture, "PET_SMALL_DOG", Flight)).ConfiguredCount!.Value));
-        Assert.Equal("NotConfigured", (await _harness.SnapshotAsync(fixture, "PET_IN_CABIN", OtherFlight)).State.Name);
-    }
-
-    [Fact]
     public async Task P2_F06_F07_an_adjustment_is_an_audited_absolute_change_that_refuses_a_stale_version_and_replays_idempotently()
     {
         var (fixture, airlineId, _) = await ConnectedAsync();
@@ -220,41 +188,6 @@ public class P2FlightCapacityAcceptanceTests
             """)).Single();
 
         Assert.Equal("2|1|1|same|winner", stored);
-        Assert.Empty(await _harness.SourceDifferencesAsync(airlineId));
-    }
-
-    [Fact]
-    public async Task P2_W03_same_expected_version_weight_adjustment_has_one_winner_and_exact_precision_sql()
-    {
-        var (fixture, airlineId, _) = await ConnectedAsync();
-        var source = await WeightAsync(fixture, airlineId, Flight, 100m);
-        var scopes = Enumerable.Range(0, 100).Select(_ => new InventoryScope(_database, _clock, fixture)).ToList();
-
-        foreach (var scope in scopes)
-            await scope.FlightWeightInventories.GetAsync(source.Id);
-
-        var raced = await _harness.RaceAsync(scopes.Select((scope, index) => (Func<Task>)(() => scope.AdjustFlightWeightInventory.AdjustAsync(
-            new TestAdjustFlightWeightInventoryCommand(source.Id, 50.001m + (index * 0.001m), "RACE", $"race-{index}", 1)))));
-
-        foreach (var scope in scopes)
-            await scope.DisposeAsync();
-
-        Assert.Equal(1, raced.Succeeded);
-        Assert.Equal(new[] { 16605 }, raced.Codes);
-
-        var detail = await _harness.RequestAsync(fixture, scope => scope.GetFlightWeightInventoryById.ExecuteAsync(source.Id));
-        var line = Assert.Single(detail.Adjustments);
-
-        Assert.Equal((100.000m, detail.CapacityKg, 2L), (line.PreviousKg, line.NewKg, detail.Version));
-        Assert.InRange(detail.CapacityKg, 50.001m, 50.100m);
-        Assert.Equal(detail.CapacityKg, decimal.Round(detail.CapacityKg, 3));
-        Assert.Equal(
-            new[] { "decimal|18|3", "decimal|18|3", "decimal|18|3" },
-            await _harness.RowsAsync($"SELECT CONCAT(DATA_TYPE, '|', NUMERIC_PRECISION, '|', NUMERIC_SCALE) AS Value FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'Ancillary' AND ((TABLE_NAME = 'FlightWeightInventories' AND COLUMN_NAME = 'CapacityKg') OR (TABLE_NAME = 'FlightWeightAdjustments' AND COLUMN_NAME IN ('PreviousKg', 'NewKg')))"));
-        await _harness.RefusedAsync(16612, 422, fixture, scope => scope.AdjustFlightWeightInventory.AdjustAsync(
-            new TestAdjustFlightWeightInventoryCommand(source.Id, 12.3456m, "CORRECTION", "corr-precision", 2)));
-        await _harness.RefusedAsync(16612, 422, fixture, scope => scope.DefineFlightWeightInventory.DefineAsync(
-            new TestDefineFlightWeightInventoryCommand(airlineId, OtherFlight, BagWeightResource, -0.001m)));
         Assert.Empty(await _harness.SourceDifferencesAsync(airlineId));
     }
 

@@ -30,6 +30,8 @@ public sealed class InMemoryCatalog :
 
     public List<PublishedRateOfExchange> RatesOfExchange { get; } = [];
 
+    public Dictionary<int, string> CurrencyCodes { get; } = new() { [47] = "EUR", [155] = "USD", [75] = "JPY", [82] = "KWD", [70] = "IRR" };
+
     public InventoryReferenceCheck ResourceAnswer { get; set; } = InventoryReferenceCheck.SourceUnavailable;
 
     public InventoryReferenceCheck FacilityAnswer { get; set; } = InventoryReferenceCheck.SourceUnavailable;
@@ -95,6 +97,9 @@ public sealed class InMemoryCatalog :
         return Task.FromResult<IReadOnlyDictionary<int, int>>(
             CurrencyScales.Where(scale => currencyIds.Contains(scale.Key)).ToDictionary(scale => scale.Key, scale => scale.Value));
     }
+
+    public Task<IReadOnlyDictionary<int, string>> FindCodesAsync(IReadOnlyCollection<int> currencyIds, CancellationToken cancellationToken = default)
+        => Task.FromResult<IReadOnlyDictionary<int, string>>(CurrencyCodes.Where(code => currencyIds.Contains(code.Key)).ToDictionary(code => code.Key, code => code.Value));
 
     public Task<IReadOnlyList<PublishedRateOfExchange>> FindRatesAsync(int toCurrencyId, DateTimeOffset at, CancellationToken cancellationToken = default)
     {

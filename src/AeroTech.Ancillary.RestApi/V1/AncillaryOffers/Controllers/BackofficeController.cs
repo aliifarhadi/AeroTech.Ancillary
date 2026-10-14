@@ -1,6 +1,6 @@
-using AeroTech.Ancillary.Query.AncillaryOffers.Queries.EvaluateSelection.Backoffice;
-using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOfferDetail.Backoffice;
-using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSelection.Backoffice;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOfferDetail.Backoffice;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
 using AeroTech.Ancillary.RestApi.V1._Shared;
 using Asp.Versioning;
 using MediatR;

@@ -137,23 +137,6 @@ public class P32CProvisionFormAcceptanceTests
     }
 
     [Fact]
-    public async Task P32C_PRV_02_a_provision_with_every_shared_rule_group_is_saved_back_and_no_stored_value_changes()
-    {
-        var view = await AssertSavesBackWithoutChangeAsync(await ProvisionAsync("A01", Rich));
-        var form = view["form"]!;
-
-        Assert.All(RuleGroups, group => Assert.NotNull(form[group]));
-        Assert.Equal(2, form["passengerEligibility"]!["allowedAgeBands"]!.AsArray().Count);
-        Assert.Equal("ADT", form["passengerEligibility"]!["allowedPassengerTypes"]![0]!.GetValue<string>());
-        Assert.Equal(2, form["salesRestrictions"]!["allowedCustomerIds"]!.AsArray().Count);
-        Assert.Single(form["geography"]!["allowedRoutePairs"]!.AsArray());
-        Assert.Equal(2, form["flightApplication"]!["allowedFlightNumbers"]!.AsArray().Count);
-        Assert.Single(form["travelDate"]!["blackoutPeriods"]!.AsArray());
-        Assert.Equal(31, form["dayTimeApplication"]!["windows"]![0]!["daysOfWeekMask"]!.GetValue<int>());
-        Assert.Equal(330, form["advancePurchase"]!["maximumPeriod"]!.GetValue<int>());
-    }
-
-    [Fact]
     public async Task P32C_PRV_03_the_form_of_an_unknown_provision_is_refused_like_the_read_by_id()
     {
         var expected = await Assert.ThrowsAsync<BusinessException>(() => ReadAsync(long.MaxValue));

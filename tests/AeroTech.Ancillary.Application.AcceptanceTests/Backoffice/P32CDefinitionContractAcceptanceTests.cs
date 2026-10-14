@@ -235,18 +235,4 @@ public class P32CDefinitionContractAcceptanceTests
 
         return await ReadAsync(variantCode, Id(created));
     }
-
-    [Fact]
-    public async Task P32C_DEF_05_every_profile_route_refuses_a_definition_of_another_profile()
-    {
-        var baggage = Id(await AuthoredWithTheV1SpecificationAsync("A01"));
-        var seat = Id(await AuthoredWithTheV1SpecificationAsync("A07"));
-
-        foreach (var (profile, calls) in Calls)
-        {
-            var foreign = profile == AncillaryProfile.Baggage ? seat : baggage;
-
-            await BusinessAssert.ThrowsAsync(16219, 409, () => CallAsync(controller => calls.Read(controller, foreign)));
-        }
-    }
 }

@@ -1,9 +1,9 @@
 using AeroTech.Ancillary.Application.AcceptanceTests.Fakes;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments;
 using AeroTech.Ancillary.Domain._Shared.Contracts;
-using AeroTech.Ancillary.Query.AncillaryOffers.Dto.Backoffice;
-using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
-using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Backoffice;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
+using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
 using AeroTech.Ancillary.Shopping.Context;
 using AeroTech.Ancillary.Application.FlightOffers;
 using AeroTech.Ancillary.Shopping.Results;

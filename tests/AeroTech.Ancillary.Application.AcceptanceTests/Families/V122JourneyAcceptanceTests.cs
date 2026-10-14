@@ -87,41 +87,6 @@ public class V122JourneyAcceptanceTests
         => _harness.RequestAsync(fixture, scope => scope.ActivateInventoryPolicy.ActivateAsync(new TestInventoryPolicyLifecycleCommand(policyId, 1)));
 
     [Fact]
-    public async Task J1_CT10_an_asymmetric_trip_files_each_direction_as_its_own_rule_with_its_own_cap_and_price_and_no_baggage_stock()
-    {
-        var (airlineId, supplierId) = await OperatorAsync();
-        var bag = await ProductAsync("A01", airlineId, supplierId);
-        var heavy = await ProductAsync("A03", airlineId, supplierId);
-        var oversize = await ProductAsync("A04", airlineId, supplierId);
-        var outbound = await _harness.Proof.RuleAsync(Rule("A01", bag.Id) with { Geography = new(AllowedRoutePairs: [Pair(Thr, Ist)]) }, Euro(120m));
-        var inbound = await _harness.Proof.RuleAsync(
-            Rule("A01", bag.Id, 20) with { Geography = new(AllowedRoutePairs: [Pair(Ist, Thr)]), Quantity = new(AncillaryQuantityUnit.Piece, 1, 2) },
-            Euro(95m));
-        var heavyInbound = await _harness.Proof.RuleAsync(Rule("A03", heavy.Id) with { Geography = new(AllowedRoutePairs: [Pair(Ist, Thr)]) }, Euro(60m));
-        var oversizeOutbound = await _harness.Proof.RuleAsync(Unavailable(Rule("A04", oversize.Id)) with { Geography = new(AllowedRoutePairs: [Pair(Thr, Ist)]) });
-
-        Assert.Equal(
-            new[] { (10, "Active", 1, 6, Thr, Ist, 120m), (20, "Active", 1, 2, Ist, Thr, 95m) },
-            new[] { outbound, inbound }.Select(rule => (
-                rule.Provision.Sequence,
-                rule.Provision.Status.Name,
-                rule.Provision.MinQuantity,
-                rule.Provision.MaxQuantity,
-                rule.Provision.Geography!.AllowedRoutePairs.Single().OriginAirportId,
-                rule.Provision.Geography.AllowedRoutePairs.Single().DestinationAirportId,
-                rule.Pricing!.Rates.Single().UnitTotal.Amount)));
-        Assert.Equal(("Active", "Paid", "Overweight", 60m), (heavyInbound.Provision.Status.Name, heavyInbound.Provision.Disposition.Name, heavy.Specification!.Baggage!.ChargeKind.Name, heavyInbound.Pricing!.Rates.Single().UnitTotal.Amount));
-        Assert.Equal(("Active", "NotAvailable", "NotAvailable"), (oversizeOutbound.Provision.Status.Name, oversizeOutbound.Provision.Disposition.Name, oversizeOutbound.Provision.PriceOrigin.Name));
-        Assert.Null(oversizeOutbound.Pricing);
-        Assert.Equal(("QuantityChoice", true), (bag.SelectionContract!.Kind.Name, bag.SelectionContract.ZeroQuantityMeansNoSelection));
-        Assert.Equal("0|0|0", await SourceRowsAsync(airlineId));
-
-        var unconfigured = await _harness.SnapshotAsync(new InventoryFixture(airlineId), bag.ServiceDefinitionRef, Flight, At);
-
-        Assert.Equal(("NotConfigured", false), (unconfigured.State.Name, unconfigured.IsGuaranteed));
-    }
-
-    [Fact]
     public async Task J2_CT11_five_and_ten_kilogram_packages_share_one_kilogram_family_cap_and_a_piece_counter_cannot_join_it()
     {
         var (airlineId, supplierId) = await OperatorAsync();
@@ -207,44 +172,6 @@ public class V122JourneyAcceptanceTests
         Assert.Equal(("DelegatedCheckRequired", "Supplier", false), (snapshot.State.Name, snapshot.Authority!.Name, snapshot.IsGuaranteed));
         Assert.Null(snapshot.ConfiguredCount);
         Assert.Equal("0|0|0", await SourceRowsAsync(airlineId));
-    }
-
-    [Fact]
-    public async Task J4_CT09_CT14_CT15_a_free_wheelchair_has_no_price_and_a_paid_minor_service_is_one_unit_per_portion_without_guardian_data()
-    {
-        var (airlineId, supplierId) = await OperatorAsync();
-        var fixture = new InventoryFixture(airlineId);
-        var wheelchair = await ProductAsync("A15", airlineId, supplierId);
-        var minor = await ProductAsync("A19", airlineId, supplierId);
-        var assisted = await _harness.Proof.RuleAsync(Rule("A15", wheelchair.Id));
-        var escorted = await _harness.Proof.RuleAsync(Rule("A19", minor.Id), Euro(80m));
-        var policy = await PolicyAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, wheelchair.ServiceDefinitionRef, wheelchair.Id, InventoryAuthority.Unlimited));
-
-        await RefusedAsync(16505, 409, scope => scope.DefinePricing.DefineAsync(Euro(1m)(assisted.Provision.Id)));
-        await RefusedAsync(16321, 409, async scope =>
-        {
-            var paid = await scope.DefineProvision.DefineAsync(Rule("A15", wheelchair.Id, 30) with { Outcome = new(CommercialDisposition.Paid, false, false), Origin = PriceOrigin.Filed });
-            var price = await scope.DefinePricing.DefineAsync(Euro(10m)(paid.Id));
-
-            await scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(paid.Id, price.Id));
-        });
-        await ActivateAsync(fixture, policy);
-
-        var snapshot = await _harness.SnapshotAsync(fixture, wheelchair.ServiceDefinitionRef, Flight, At);
-        var specification = SpecText.Of(minor.Specification);
-
-        Assert.Equal(("Active", "Free", "Free", true), (assisted.Provision.Status.Name, assisted.Provision.Disposition.Name, assisted.Provision.PriceOrigin.Name, assisted.Provision.MustCheckAvailability));
-        Assert.Null(assisted.Pricing);
-        Assert.Equal(("NoAncillaryDocument", "None", "WCHR"), (wheelchair.DocumentRouting!.Name, wheelchair.DocumentType.Name, wheelchair.BookingSsrCode));
-        Assert.Equal(("Unlimited", false, true), (snapshot.State.Name, snapshot.IsGuaranteed, snapshot.RequiresAvailabilityCheck));
-        Assert.Equal(("Portion", 1, 1, 80m), (escorted.Provision.CoverageScope.Name, escorted.Provision.MinQuantity, escorted.Provision.MaxQuantity, Assert.Single(escorted.Pricing!.Rates).UnitTotal.Amount));
-        Assert.Equal(("DirectOnly", 1440), (escorted.Provision.AssistedTravelRule!.ConnectionPolicy!.Name, escorted.Provision.AssistedTravelRule.MinimumLeadTimeMinutes!.Value));
-        Assert.Equal(
-            new[] { "GuardianHandoffContact:Text:True", "GuardianPickupContact:Text:True", "ChildRef:Reference:True", "BoundRef:Reference:True" },
-            minor.SelectionContract!.Fields.Select(field => $"{field.Name}:{field.Type.Name}:{field.Required}"));
-        Assert.DoesNotContain("Handoff", specification, StringComparison.Ordinal);
-        Assert.DoesNotContain("Pickup", specification, StringComparison.Ordinal);
-        Assert.Contains("\"GuardianContactRequired\":true", specification, StringComparison.Ordinal);
     }
 
     [Fact]

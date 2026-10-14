@@ -3,8 +3,6 @@ using AeroTech.Ancillary.Application.AcceptanceTests.Fixtures;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.DefineAncillaryProvision;
 using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Persistence;
-using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers;
-using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
 using AeroTech.Ancillary.Shopping.Context;
 using AeroTech.Ancillary.Shopping.Engine;
 using AeroTech.Ancillary.Application.FlightOffers;

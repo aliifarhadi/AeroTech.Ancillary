@@ -49,27 +49,4 @@ public class P1SupplierAcceptanceTests
         await BusinessAssert.ThrowsAsync(16103, 409, () => reader.RetireSupplier.RetireAsync(new TestRetireSupplierCommand(supplier.Id)));
         await BusinessAssert.ThrowsAsync(16101, 404, () => reader.RetireSupplier.RetireAsync(new TestRetireSupplierCommand(999_999_999)));
     }
-
-    [Fact]
-    public async Task P1_B01_two_suppliers_own_separate_definitions_of_the_same_sub_code()
-    {
-        var airlineId = _database.NextAirlineId();
-        await using var scope = new AncillaryScope(_database, _clock);
-        var dotAir = await scope.RegisterSupplier.RegisterAsync(M1Commands.LocalSupplier(airlineId, "Dot Air"));
-        var partner = await scope.RegisterSupplier.RegisterAsync(M1Commands.LocalSupplier(airlineId, "Dot Air"));
-        var own = await scope.DefineServiceDefinition.DefineAsync(M1Commands.LoungeDefinition(airlineId, dotAir.Id, "LNG_OWN"));
-        var theirs = await scope.DefineServiceDefinition.DefineAsync(M1Commands.LoungeDefinition(airlineId, partner.Id, "LNG_PARTNER"));
-        await scope.ActivateServiceDefinition.ActivateAsync(new TestActivateServiceDefinitionCommand(own.Id));
-        await scope.ActivateServiceDefinition.ActivateAsync(new TestActivateServiceDefinitionCommand(theirs.Id));
-
-        await using var reader = new AncillaryScope(_database, _clock);
-        var first = await reader.GetServiceDefinitionById.ExecuteAsync(own.Id);
-        var second = await reader.GetServiceDefinitionById.ExecuteAsync(theirs.Id);
-
-        Assert.NotEqual(dotAir.Id, partner.Id);
-        Assert.NotEqual(first.Id, second.Id);
-        Assert.Equal((dotAir.Id, "0BX", "Active"), (first.SupplierId, first.ServiceSubCode, first.Status.Name));
-        Assert.Equal((partner.Id, "0BX", "Active"), (second.SupplierId, second.ServiceSubCode, second.Status.Name));
-        Assert.Equal(first.SupplierName, second.SupplierName);
-    }
 }

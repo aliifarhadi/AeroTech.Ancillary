@@ -1,5 +1,5 @@
 using AeroTech.Ancillary.Domain._Shared.Contracts;
-using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
+using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
 using AeroTech.Messages.Core.Enums;
 using Xunit;
 

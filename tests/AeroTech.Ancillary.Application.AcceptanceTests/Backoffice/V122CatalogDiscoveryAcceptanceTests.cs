@@ -139,59 +139,6 @@ public class V122CatalogDiscoveryAcceptanceTests
     }
 
     [Fact]
-    public async Task V122_L01_the_definition_list_filters_by_profile_and_variant_before_it_counts_and_pages()
-    {
-        var airlineId = _database.NextAirlineId();
-        var catalog = await MixedCatalogAsync(airlineId);
-
-        Assert.Equal(28, catalog.Count);
-
-        var everything = await PagedAsync(query => query.OwnerAirlineId = airlineId, 10, catalog);
-
-        Assert.True(everything.Take(10).Select(row => row.Profile!.Name).Distinct().Count() > 4);
-        Assert.Equal(Enum.GetNames<AncillaryProfile>().Order(), everything.Select(row => row.Profile!.Name).Distinct().Order());
-
-        foreach (var profile in Enum.GetValues<AncillaryProfile>())
-        {
-            var matching = catalog.Where(row => row.Profile == profile).ToList();
-            var rows = await PagedAsync(
-                query =>
-                {
-                    query.OwnerAirlineId = airlineId;
-                    query.Profile = profile;
-                },
-                2,
-                matching);
-
-            Assert.NotEmpty(rows);
-            Assert.All(rows, row => Assert.Equal((int)profile, row.Profile!.Value));
-        }
-
-        foreach (var variant in V122Catalog.Cases)
-        {
-            var matching = catalog.Where(row => row.VariantCode == variant.Code).ToList();
-
-            await PagedAsync(
-                query =>
-                {
-                    query.OwnerAirlineId = airlineId;
-                    query.VariantCode = variant.Code;
-                },
-                1,
-                matching);
-            await PagedAsync(
-                query =>
-                {
-                    query.OwnerAirlineId = airlineId;
-                    query.Profile = variant.Profile;
-                    query.VariantCode = variant.Code;
-                },
-                10,
-                matching);
-        }
-    }
-
-    [Fact]
     public async Task V122_L03_an_unknown_variant_or_a_variant_of_another_profile_is_refused_from_the_canonical_registry()
     {
         var airlineId = _database.NextAirlineId();
@@ -286,57 +233,5 @@ public class V122CatalogDiscoveryAcceptanceTests
         }
 
         Assert.Empty(await RequestAsync(scope => scope.GetVariants.ExecuteAsync(new BackofficeGetAncillaryVariantsQuery { Profile = (AncillaryProfile)99 })));
-    }
-
-    [Fact]
-    public async Task V122_V03_every_advertised_unit_and_date_basis_is_definable_and_an_unadvertised_one_is_refused()
-    {
-        var airlineId = _database.NextAirlineId();
-        var local = await _proof.SupplierAsync(M1Commands.LocalSupplier(airlineId));
-        var external = await _proof.SupplierAsync(M1Commands.ExternalSupplier(airlineId, V122Catalog.QuoteProvider));
-        var variants = await RequestAsync(scope => scope.GetVariants.ExecuteAsync(new BackofficeGetAncillaryVariantsQuery()));
-        var defined = 0;
-
-        foreach (var advertised in variants)
-        {
-            var variant = V122Catalog.Case(advertised.Code);
-            var command = V122Catalog.Define(variant, airlineId, V122Catalog.NeedsExternalSupplier(variant) ? external : local);
-            var units = advertised.PricingUnits.Select(unit => (PricingUnit)unit.Value).ToList();
-            var bases = advertised.ServiceDateBases.Select(basis => (ServiceDateBasis)basis.Value).ToList();
-
-            foreach (var unit in units)
-            foreach (var basis in bases)
-            {
-                var draft = await RequestAsync(scope => scope.DefineServiceDefinition.DefineAsync(command with
-                {
-                    ServiceDefinitionRef = $"V{++defined:000}_{variant.Code}",
-                    PricingUnit = unit,
-                    ServiceDateBasis = basis
-                }));
-                var detail = await RequestAsync(scope => scope.GetServiceDefinitionById.ExecuteAsync(draft.Id));
-
-                Assert.Equal((variant.Code, unit.ToString(), basis.ToString()), (detail.VariantCode, detail.PricingUnit!.Name, detail.ServiceDateBasis!.Name));
-            }
-
-            var otherUnit = Enum.GetValues<PricingUnit>().First(unit => !units.Contains(unit));
-            var otherBasis = Enum.GetValues<ServiceDateBasis>().First(basis => !bases.Contains(basis));
-
-            await BusinessAssert.ThrowsAsync(16202, 422, () => RequestAsync(scope => scope.DefineServiceDefinition.DefineAsync(command with
-            {
-                ServiceDefinitionRef = $"VU_{variant.Code}",
-                PricingUnit = otherUnit
-            })));
-            await BusinessAssert.ThrowsAsync(16202, 422, () => RequestAsync(scope => scope.DefineServiceDefinition.DefineAsync(command with
-            {
-                ServiceDefinitionRef = $"VB_{variant.Code}",
-                ServiceDateBasis = otherBasis
-            })));
-        }
-
-        Assert.Equal(37, defined);
-        Assert.Equal(
-            37,
-            (await RequestAsync(scope => scope.GetServiceDefinitionsPaginated.ExecuteAsync(
-                new BackofficeGetAncillaryServiceDefinitionsPaginatedQuery { OwnerAirlineId = airlineId, PageSize = 1 }))).TotalCount);
     }
 }

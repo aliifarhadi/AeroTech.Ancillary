@@ -70,7 +70,7 @@ public class V12BoundaryAcceptanceTests
         ];
 
         var files = Files(Source)
-            .Where(path => !InFolder(path, "AeroTech.Ancillary.Shopping") && !InFolder(path, Path.Combine("AeroTech.Ancillary.Query", "AncillaryOffers")))
+            .Where(path => !InFolder(path, "AeroTech.Ancillary.Shopping") && !InFolder(path, Path.Combine("AeroTech.Ancillary.Query", "Shopping")))
             .Concat(Files(AncillaryContracts))
             .ToList();
         var authored = files.Where(path => !InFolder(path, "Migrations") && !InFolder(path, "AeroTech.Ancillary.ReferenceData")).ToList();
@@ -97,7 +97,9 @@ public class V12BoundaryAcceptanceTests
         Assert.Equal(
             new[]
             {
+                "AirInfoAircraftSeatMapProvider.cs", "AirInfoEnvelope.cs", "AirInfoJson.cs", "AirInfoSeatMap.cs",
                 "DependencyInjection.cs", "FlightFlowEnvelope.cs", "FlightFlowFlight.cs", "FlightFlowFlightOccurrenceReference.cs", "FlightFlowJson.cs",
+                "FlightFlowOccupiedSeatProvider.cs", "FlightFlowOccupiedSeats.cs",
                 "FlightOfferDetailResponse.cs", "FlightOfferProvider.cs", "FlightOfferResponseMapper.cs",
                 "NotConnectedAirportFacilityReference.cs", "NotConnectedCountingFamilyReference.cs", "NotConnectedInventoryResourceReference.cs",
                 "OfferJson.cs"
@@ -167,8 +169,10 @@ public class V12BoundaryAcceptanceTests
         Assert.Equal(
             new[]
             {
+                "src/AeroTech.Ancillary.Providers/AirInfo/Services/AirInfoAircraftSeatMapProvider.cs: HttpClient",
                 "src/AeroTech.Ancillary.Providers/DependencyInjection.cs: HttpClient",
                 "src/AeroTech.Ancillary.Providers/FlightFlow/Services/FlightFlowFlightOccurrenceReference.cs: HttpClient",
+                "src/AeroTech.Ancillary.Providers/FlightFlow/Services/FlightFlowOccupiedSeatProvider.cs: HttpClient",
                 "src/AeroTech.Ancillary.Providers/Offer/Services/FlightOfferProvider.cs: HttpClient"
             },
             Offending(external, ["HttpClient"]).OrderBy(offending => offending, StringComparer.Ordinal));
@@ -238,21 +242,15 @@ public class V12BoundaryAcceptanceTests
             "POST Backoffice/AncillaryOffers",
             "POST Backoffice/AncillaryOffers/Details",
             "POST Backoffice/AncillaryOffers/Selections/Evaluate",
-            "POST Backoffice/SeatOffers",
-            "POST Backoffice/SeatOffers/Details",
-            "POST Backoffice/SeatOffers/Selections/Evaluate",
+            "POST Backoffice/SeatMaps",
             "POST Api/AncillaryOffers",
             "POST Api/AncillaryOffers/Details",
             "POST Api/AncillaryOffers/Selections/Evaluate",
-            "POST Api/SeatOffers",
-            "POST Api/SeatOffers/Details",
-            "POST Api/SeatOffers/Selections/Evaluate",
+            "POST Api/SeatMaps",
             "POST OtaPanel/AncillaryOffers",
             "POST OtaPanel/AncillaryOffers/Details",
             "POST OtaPanel/AncillaryOffers/Selections/Evaluate",
-            "POST OtaPanel/SeatOffers",
-            "POST OtaPanel/SeatOffers/Details",
-            "POST OtaPanel/SeatOffers/Selections/Evaluate",
+            "POST OtaPanel/SeatMaps",
             "POST Backoffice/AncillaryPricings",
             "GET Backoffice/AncillaryPricings/Paginated",
             "GET Backoffice/AncillaryPricings/{pricingId:long}",
@@ -323,7 +321,7 @@ public class V12BoundaryAcceptanceTests
         Assert.Equal(
             preserved.Concat(added).Concat(typed).Concat(forms).Concat(inventory).OrderBy(route => route, StringComparer.Ordinal),
             routes.OrderBy(route => route, StringComparer.Ordinal));
-        Assert.Equal(124, routes.Count);
+        Assert.Equal(118, routes.Count);
         Assert.Equal(36, inventory.Length);
         Assert.DoesNotContain(routes, route => new[] { "Sell", "Reserve", "Release", "Expire" }.Any(term => route.Contains(term, StringComparison.Ordinal)));
         Assert.Equal(

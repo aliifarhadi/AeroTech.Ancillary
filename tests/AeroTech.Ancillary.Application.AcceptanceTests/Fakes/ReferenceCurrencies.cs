@@ -18,4 +18,13 @@ public sealed class ReferenceCurrencies : ICurrencyReference
             .Where(currency => currencyIds.Contains(currency.Id))
             .ToDictionaryAsync(currency => currency.Id, currency => currency.DecimalPlaces, cancellationToken);
     }
+
+    public async Task<IReadOnlyDictionary<int, string>> FindCodesAsync(IReadOnlyCollection<int> currencyIds, CancellationToken cancellationToken = default)
+    {
+        await using var reference = _database.NewReferenceContext();
+
+        return await reference.Currencies.AsNoTracking()
+            .Where(currency => currencyIds.Contains(currency.Id))
+            .ToDictionaryAsync(currency => currency.Id, currency => currency.Code, cancellationToken);
+    }
 }

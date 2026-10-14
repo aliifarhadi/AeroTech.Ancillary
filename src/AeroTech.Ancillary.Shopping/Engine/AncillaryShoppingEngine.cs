@@ -10,7 +10,7 @@ using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Shopping.Engine
 {
-    public sealed class AncillaryShoppingEngine : IAncillaryShoppingEngine
+    public sealed partial class AncillaryShoppingEngine : IAncillaryShoppingEngine
     {
         private readonly IActiveAncillaryDefinitionReader _definitions;
         private readonly IActiveAncillaryProvisionReader _provisions;
@@ -383,7 +383,6 @@ namespace AeroTech.Ancillary.Shopping.Engine
                     provision.PetRule?.AcceptanceMode ?? definition.Booking.ConfirmationRequirement,
                     provision.Fulfillment.FulfillmentProviderKey,
                     ProviderConfirmationStatus.NotRequested),
-                Seat = definition.Seat is { } seat ? SeatOfferTerms.Of(seat, provision.SeatApplication) : null,
                 OfferReadiness = Readiness(provision, outcome, price, availability, quantity, expired),
                 ExpiresAtUtc = unit.Context.SourceIdentity.ValidUntilUtc,
                 ReasonCodes = outcome.ReasonCodes

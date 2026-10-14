@@ -1,6 +1,7 @@
 using AeroTech.Ancillary.Shopping.Engine;
 using AeroTech.Ancillary.Shopping.Reading;
 using AeroTech.Ancillary.Shopping.Reading.Sql;
+using AeroTech.Ancillary.Shopping.SeatMaps;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AeroTech.Ancillary.Shopping
@@ -14,6 +15,7 @@ namespace AeroTech.Ancillary.Shopping
             services.AddScoped<IActiveAncillaryPricingReader, SqlActiveAncillaryPricingReader>();
             services.AddScoped<IInventoryConfigurationReader, SqlInventoryConfigurationReader>();
             services.AddScoped<IAncillaryShoppingEngine, AncillaryShoppingEngine>();
+            services.AddScoped<ISeatMapPricingEngine, AncillaryShoppingEngine>();
 
             return services;
         }

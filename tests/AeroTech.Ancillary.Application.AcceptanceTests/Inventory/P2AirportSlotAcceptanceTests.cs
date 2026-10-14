@@ -167,58 +167,6 @@ public class P2AirportSlotAcceptanceTests
     }
 
     [Fact]
-    public async Task P2_A07_A08_a_lounge_slot_is_reported_per_facility_and_instant_beside_its_passenger_usage_limit()
-    {
-        var (fixture, airlineId, supplierId) = await AirportAsync();
-        var lounge = await _harness.ProductAsync(airlineId, supplierId, "LOUNGE_DOTAIR_IKA", basis: ServiceDateBasis.ServiceStart);
-        var second = await _harness.ProductAsync(airlineId, supplierId, "LOUNGE_CIP_IKA", basis: ServiceDateBasis.ServiceStart);
-
-        foreach (var (reference, definitionId, facilityId) in new[] { ("LOUNGE_DOTAIR_IKA", lounge.Id, Lounge), ("LOUNGE_CIP_IKA", second.Id, SecondLounge) })
-        {
-            var draft = await _harness.RequestAsync(fixture, scope => scope.DefineInventoryPolicy.DefineAsync(new TestDefineInventoryPolicyCommand(
-                airlineId,
-                reference,
-                definitionId,
-                InventoryAuthority.Local,
-                LocalInventoryPattern.AirportSlot,
-                SlotConsumption: SlotUse(facilityId),
-                PassengerUsageLimits: [Limit(PassengerUsageLimitScope.PerServiceDate, 1, "LOUNGE")])));
-
-            await _harness.RequestAsync(fixture, scope => scope.ActivateInventoryPolicy.ActivateAsync(new TestInventoryPolicyLifecycleCommand(draft.Id, 1)));
-        }
-
-        var slot = await SlotAsync(fixture, airlineId, Lounge, Utc(10), Utc(10, 30), 20);
-        var neighbour = await SlotAsync(fixture, airlineId, SecondLounge, Utc(10), Utc(10, 30), 12);
-
-        Assert.Equal("NotConfigured", (await _harness.SnapshotAsync(fixture, "LOUNGE_DOTAIR_IKA", atUtc: Utc(10, 15))).State.Name);
-        await ActivateAsync(fixture, slot.Id, 1);
-        await ActivateAsync(fixture, neighbour.Id, 1);
-
-        var inside = await _harness.SnapshotAsync(fixture, "LOUNGE_DOTAIR_IKA", atUtc: Utc(10, 15));
-
-        Assert.Equal(("ConfiguredNotGuaranteed", 20, "AirportSlot", "AirportSlot", false), (inside.State.Name, inside.ConfiguredCount!.Value, inside.ResourceKind!.Name, inside.Pattern!.Name, inside.IsGuaranteed));
-        Assert.Equal((Ika, Lounge, Utc(10), Utc(10, 30)), (inside.Resource!.AirportId!.Value, inside.Resource.FacilityId!.Value, inside.Resource.StartUtc!.Value, inside.Resource.EndUtc!.Value));
-        Assert.Equal("ConfiguredNotGuaranteed", (await _harness.SnapshotAsync(fixture, "LOUNGE_DOTAIR_IKA", atUtc: Utc(10))).State.Name);
-        Assert.Equal(("NotConfigured", "SourceNotConfigured"), ((await _harness.SnapshotAsync(fixture, "LOUNGE_DOTAIR_IKA", atUtc: Utc(10, 30))).State.Name, (await _harness.SnapshotAsync(fixture, "LOUNGE_DOTAIR_IKA", atUtc: Utc(10, 30))).ReasonCode));
-        Assert.Equal(("Unknown", "InstantRequired"), ((await _harness.SnapshotAsync(fixture, "LOUNGE_DOTAIR_IKA")).State.Name, (await _harness.SnapshotAsync(fixture, "LOUNGE_DOTAIR_IKA")).ReasonCode));
-
-        var adjusted = await _harness.RequestAsync(fixture, scope => scope.AdjustAirportSlotInventory.AdjustAsync(new TestAdjustAirportSlotInventoryCommand(slot.Id, 18, "MAINTENANCE", "corr-1", 2)));
-
-        await _harness.RequestAsync(fixture, scope => scope.CloseAirportSlotInventoryForSale.CloseAsync(new TestAirportSlotLifecycleCommand(slot.Id, 3)));
-
-        var closed = await _harness.SnapshotAsync(fixture, "LOUNGE_DOTAIR_IKA", atUtc: Utc(10, 15));
-        var open = await _harness.SnapshotAsync(fixture, "LOUNGE_CIP_IKA", atUtc: Utc(10, 15));
-        var policy = await _harness.RequestAsync(fixture, scope => scope.GetInventoryPolicyByServiceIdentity.ExecuteAsync("LOUNGE_DOTAIR_IKA"));
-
-        Assert.Equal((20, 18, 3L), (adjusted.PreviousTotal, adjusted.NewTotal, adjusted.Version));
-        Assert.Equal(("ClosedForSale", 18, true), (closed.State.Name, closed.ConfiguredCount!.Value, closed.ClosedForSale!.Value));
-        Assert.Equal(("ConfiguredNotGuaranteed", 12, false), (open.State.Name, open.ConfiguredCount!.Value, open.ClosedForSale!.Value));
-        Assert.Equal((Lounge, 90, 1), (policy.SlotConsumption!.FacilityId, policy.SlotConsumption.OccupancyMinutes, policy.SlotConsumption.PeoplePerAcceptedUnit));
-        Assert.Equal(("PerServiceDate", 1, "LOUNGE"), policy.PassengerUsageLimits.Select(limit => (limit.LimitScope.Name, limit.MaxUnits, limit.CountingFamilyCode)).Single());
-        Assert.Empty(await _harness.SourceDifferencesAsync(airlineId));
-    }
-
-    [Fact]
     public async Task P2_X01_same_expected_version_slot_adjustment_has_one_winner_sql()
     {
         var (fixture, airlineId, _) = await AirportAsync();

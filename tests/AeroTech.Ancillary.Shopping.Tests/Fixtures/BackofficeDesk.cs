@@ -1,10 +1,13 @@
 using AeroTech.Ancillary.Application.AcceptanceTests.Fakes;
 using AeroTech.Ancillary.Application.FlightOffers;
 using AeroTech.Ancillary.Domain._Shared.Contracts;
-using AeroTech.Ancillary.Query.AncillaryOffers.Dto.Backoffice;
-using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers;
-using AeroTech.Ancillary.Query.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
-using AeroTech.Ancillary.Query.AncillaryOffers.Snapshots;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Backoffice;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Snapshots;
+using AeroTech.Ancillary.Query.Shopping.Common.FlightOffers;
+using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
+using AeroTech.Ancillary.Query.Shopping.Common;
 using AeroTech.Ancillary.Shopping.Context;
 using AeroTech.Messages.Core.Enums;
 using static AeroTech.Ancillary.Shopping.Tests.Fixtures.ShoppingLab;
@@ -21,9 +24,10 @@ public static class BackofficeDesk
         TestOnlyAirportReference? airports = null,
         TestOnlyAirFareReference? airFares = null)
         => new(
-            new FixedOffers(await OfferWire.ReadAsync(wire ?? OfferWire.Captured())),
-            airports ?? new TestOnlyAirportReference(),
-            airFares ?? new TestOnlyAirFareReference(),
+            new FlightOfferShoppingSource(
+                new FixedOffers(await OfferWire.ReadAsync(wire ?? OfferWire.Captured())),
+                airports ?? new TestOnlyAirportReference(),
+                airFares ?? new TestOnlyAirFareReference()),
             lab.Engine);
 
     public static async Task<AncillaryShoppingSnapshot> SnapshotAsync(

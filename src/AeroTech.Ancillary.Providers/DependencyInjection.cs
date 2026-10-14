@@ -1,5 +1,6 @@
 using AeroTech.Ancillary.Application.FlightOffers;
 using AeroTech.Ancillary.Domain._Shared.Contracts;
+using AeroTech.Ancillary.Providers.AirInfo.Services;
 using AeroTech.Ancillary.Providers.FlightFlow.Services;
 using AeroTech.Ancillary.Providers.InventoryReferences;
 using AeroTech.Ancillary.Providers.Offer.Services;
@@ -18,6 +19,20 @@ namespace AeroTech.Ancillary.Providers
             {
                 if (!string.IsNullOrWhiteSpace(flightFlowBaseUrl))
                     client.BaseAddress = new Uri(flightFlowBaseUrl);
+            });
+
+            services.AddHttpClient<IOccupiedSeatProvider, FlightFlowOccupiedSeatProvider>(client =>
+            {
+                if (!string.IsNullOrWhiteSpace(flightFlowBaseUrl))
+                    client.BaseAddress = new Uri(flightFlowBaseUrl);
+            });
+
+            var airInfoBaseUrl = configuration["AirInfo:BaseUrl"];
+
+            services.AddHttpClient<IAircraftSeatMapProvider, AirInfoAircraftSeatMapProvider>(client =>
+            {
+                if (!string.IsNullOrWhiteSpace(airInfoBaseUrl))
+                    client.BaseAddress = new Uri(airInfoBaseUrl);
             });
 
             var offerBaseUrl = configuration["Offer:BaseUrl"];

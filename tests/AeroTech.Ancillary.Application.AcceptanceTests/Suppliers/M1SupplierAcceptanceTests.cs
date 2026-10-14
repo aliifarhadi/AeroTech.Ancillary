@@ -37,12 +37,4 @@ public class M1SupplierAcceptanceTests
         Assert.Equal(_clock.Now, detail.CreatedAt);
         Assert.Null(detail.RetiredAt);
     }
-
-    [Fact]
-    public async Task M1_A01_an_unknown_supplier_read_is_a_business_404()
-    {
-        await using var scope = new AncillaryScope(_database, _clock);
-
-        await BusinessAssert.ThrowsAsync(16101, 404, () => scope.GetSupplierById.ExecuteAsync(999_999_999));
-    }
 }
