@@ -1,0 +1,39 @@
+# فایل‌های Pack v13.1
+
+**Authority:** `00-START-HERE-AND-SINGLE-AUTHORITY.md`; نسخه یکپارچه نیز همان محتوای ۲۲ فصل را دارد.
+
+**نسخه:** `v13.1 FINAL` · **تاریخ:** 2026-10-16 · **محدوده:** فقط Ancillary Source، قراردادهای بین‌سرویسی، سناریوهای E2E و انتقال Context.
+
+| فصل | سند | حجم (بایت) |
+|---|---|---:|
+| 00 | `00-START-HERE-AND-SINGLE-AUTHORITY.md` | 8,463 |
+| 01 | `01-CLOSED-ARCHITECTURE-ADRS.md` | 8,234 |
+| 02 | `02-SOURCE-VERIFIED-BASELINE-AND-DELTAS.md` | 6,907 |
+| 03 | `03-DOMAIN-TYPES-AND-FIELD-DICTIONARY.md` | 9,355 |
+| 04 | `04-S1-BACKOFFICE-EXACT-API.md` | 7,376 |
+| 05 | `05-S1-PROVISIONS-PRICING-STOCK-SUPPLIERS.md` | 7,428 |
+| 06 | `06-A01-A24-BUSINESS-AND-SELECTION-MATRIX.md` | 6,588 |
+| 07 | `07-S2-SHOPPING-EXACT-SURFACES-AND-OPTIONS.md` | 8,194 |
+| 08 | `08-S2-PRICED-SELECTION-IDENTITY-AND-VALIDITY.md` | 6,917 |
+| 09 | `09-S2-SEATMAP-FROZEN-AND-VERIFIED-BEHAVIOR.md` | 5,263 |
+| 10 | `10-S3-RESERVATION-AGGREGATE-LIFECYCLE.md` | 8,929 |
+| 11 | `11-S3-INTERNAL-SERVICE-ENDPOINTS-AND-DTO.md` | 7,820 |
+| 12 | `12-S3-LOCAL-SUPPLIER-MANUAL-COMPENSATION.md` | 6,821 |
+| 13 | `13-CANCELLATION-PENALTY-REFUND-AND-DOCUMENTS.md` | 11,091 |
+| 14 | `14-INTERSERVICE-CONTRACTS-AND-OWNERSHIP.md` | 9,137 |
+| 15 | `15-END-TO-END-WIRE-EXAMPLES.md` | 7,548 |
+| 16 | `16-END-TO-END-SCENARIO-COVERAGE-MATRIX.md` | 8,935 |
+| 17 | `17-THREE-STAGE-EXECUTION-AND-BUSINESS-CLOSURE.md` | 6,973 |
+| 18 | `18-PUBLIC-BENCHMARK-AND-DESIGN-EVIDENCE.md` | 7,570 |
+| 19 | `19-BACKEND-AGENT-MASTER-EXECUTION-PROMPT.md` | 10,120 |
+| 20 | `20-CHATGPT-CONTINUATION-PROMPT-FULL-CONTEXT.md` | 11,379 |
+| 21 | `21-ENUMS-TRACEABILITY-OPEN-INTERFACES.md` | 8,366 |
+
+## فایل‌های آماده استفاده
+
+- سند مرجع یکپارچه: `AeroTech-Ancillary-v13.1-COMPLETE.md`
+- راهنمای اجرا برای Agent: `19-BACKEND-AGENT-MASTER-EXECUTION-PROMPT.md`
+- پرامپت ادامه ChatGPT با Context کامل: `20-CHATGPT-CONTINUATION-PROMPT-FULL-CONTEXT.md`
+- نقشه سه Stage: `17-THREE-STAGE-EXECUTION-AND-BUSINESS-CLOSURE.md`
+
+**نکته:** سه Stage طراحی‌شده، معادل ادعای پیاده‌سازی یا استقرار آنها نیستند. FlightFlow/Ordering/Payment متعلق به سایر تیم‌ها هستند.
