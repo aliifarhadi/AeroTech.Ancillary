@@ -131,7 +131,7 @@ public class V122ProfileConformanceTests
     }
 
     [Fact]
-    public void CT03_a_rule_of_another_family_is_refused_when_it_is_authored_and_another_application_type_at_publication()
+    public void CT03_a_rule_of_another_family_and_another_application_type_are_refused_when_authored()
     {
         BusinessAssert.Throws(16321, 409, () => Provision(
             Groups() with { PetRule = new ProvisionPetRuleArgs(null, null, null, ConfirmationRequirement.SubjectToConfirmation) },
@@ -141,10 +141,14 @@ public class V122ProfileConformanceTests
             Groups() with { AirportServiceRule = new ProvisionAirportServiceRuleArgs("T1", null, null, null, null, null) },
             disposition: CommercialDisposition.Free));
 
-        var baggage = Provision(applicationType: ProvisionApplicationType.Baggage, disposition: CommercialDisposition.Free);
-
-        BusinessAssert.Throws(16321, 409, () => baggage.Activate(CarrierDefinition(), null, Now));
-        Assert.Equal(ProvisionStatus.Draft, baggage.Status);
+        BusinessAssert.Throws(
+            16321,
+            409,
+            () => Provision(applicationType: ProvisionApplicationType.Baggage, disposition: CommercialDisposition.Free, definition: CarrierDefinition()));
+        BusinessAssert.Throws(
+            16321,
+            409,
+            () => Provision(Groups(seatApplication: Seats(characteristics: ["W"])), ProvisionApplicationType.Seat, CommercialDisposition.Free, definition: CarrierDefinition()));
     }
 
     [Fact]

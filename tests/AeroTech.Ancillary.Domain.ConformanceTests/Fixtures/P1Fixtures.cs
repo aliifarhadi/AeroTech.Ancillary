@@ -54,6 +54,14 @@ public static class P1Fixtures
             new DateOnly(2027, 3, 31),
             Now);
 
+    public static AncillaryServiceDefinition DefinitionFor(ProvisionApplicationType applicationType)
+        => applicationType switch
+        {
+            ProvisionApplicationType.Baggage => CarrierDefinition(pricingUnit: PricingUnit.PerPiece),
+            ProvisionApplicationType.Seat => CarrierDefinition(pricingUnit: PricingUnit.PerSeat),
+            _ => CarrierDefinition()
+        };
+
     public static AncillaryProvision Provision(
         ProvisionRulesArgs? rules = null,
         ProvisionApplicationType applicationType = ProvisionApplicationType.Standard,
@@ -61,16 +69,17 @@ public static class P1Fixtures
         long id = 5001,
         int sequence = 10,
         SequentialIdGenerator? ids = null,
-        AncillaryQuantityUnit quantityUnit = AncillaryQuantityUnit.Each)
+        AncillaryQuantityUnit? quantityUnit = null,
+        AncillaryServiceDefinition? definition = null)
         => AncillaryProvision.Define(
             id,
-            CarrierDefinition(),
+            definition ?? DefinitionFor(applicationType),
             sequence,
             ServiceCoverageScope.Sector,
             PurchaseStage.Both,
             V122Fixtures.Origin(disposition),
             null,
-            QuantityRule.Create(quantityUnit, 1, 1),
+            QuantityRule.Create(quantityUnit ?? AncillaryProvision.QuantityUnitOf(definition ?? DefinitionFor(applicationType))!.Value, 1, 1),
             applicationType,
             CommercialOutcome.Create(disposition, disposition == CommercialDisposition.Paid, false),
             SettlementDefinition.Create(ReissueRefundPolicy.NonRefundable, null, false, false),
@@ -83,7 +92,7 @@ public static class P1Fixtures
 
     public static void Replace(AncillaryProvision provision, ProvisionRulesArgs rules, SequentialIdGenerator ids)
         => provision.Change(
-            CarrierDefinition(),
+            DefinitionFor(provision.ApplicationType),
             provision.Sequence,
             provision.CoverageScope,
             provision.PurchaseStage,

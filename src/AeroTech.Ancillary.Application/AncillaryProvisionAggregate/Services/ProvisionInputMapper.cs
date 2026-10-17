@@ -69,9 +69,6 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Services
                 input.WaiverPermitted,
                 input.SourceReference);
 
-        public static IReadOnlyCollection<int> PenaltyCurrencyIds(this ProvisionSettlementInput settlement)
-            => settlement.CancellationRules?.Select(rule => rule.PenaltyCurrencyId).OfType<int>().Distinct().ToList() ?? [];
-
         public static ProvisionPassengerEligibilityArgs? ToArgs(this ProvisionPassengerEligibilityInput? input)
             => input is null
                 ? null

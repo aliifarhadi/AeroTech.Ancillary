@@ -201,4 +201,138 @@ public class V132ProvisionCancellationRuleConformanceTests
         BusinessAssert.Throws(16313, 409, () => Define(null, lounge, groups: flightRules));
         Assert.Null(Define(null, lounge).FlightApplication);
     }
+
+    [Fact]
+    public void S1R1_CR06_a_rule_changed_under_the_same_reference_keeps_its_id_and_the_reference_ignores_case()
+    {
+        var ids = new SequentialIdGenerator();
+        var provision = Define([Fixed(), Percent(percentage: 40m)], ids: ids);
+        var stored = provision.CancellationRules.ToDictionary(rule => rule.RuleRef, rule => rule.Id);
+
+        Change(provision, [Fixed(amount: 12.50m), Percent(reference: "vol-late", percentage: 50m) with { WaiverPermitted = true, SourceReference = "CARRIER-TERMS-2" }], ids);
+
+        Assert.Equal(
+            new[]
+            {
+                (stored["VOL-24H"], "VOL-24H", (decimal?)12.50m, (decimal?)null, true, "CARRIER-TERMS"),
+                (stored["VOL-LATE"], "vol-late", null, 50m, true, "CARRIER-TERMS-2")
+            },
+            provision.CancellationRules.Select(rule => (rule.Id, rule.RuleRef, rule.PenaltyFixedAmount, rule.PenaltyPercentage, rule.WaiverPermitted, rule.SourceReference!)));
+
+        var twice = BusinessAssert.Throws(16302, 422, () => Change(provision, [Percent(reference: "NOSHOW"), Manual("noshow", CancellationReasonKind.NoShow)], ids));
+
+        Assert.Contains("ProvisionCancellationRule.RuleRef", twice.Message, StringComparison.Ordinal);
+
+        Change(provision, [Manual()], ids);
+
+        Assert.DoesNotContain(provision.CancellationRules.Single().Id, stored.Values);
+    }
+
+    [Fact]
+    public void S1R1_CR07_a_refused_change_leaves_every_field_rule_group_and_cancellation_rule_of_the_draft_as_it_was()
+    {
+        var ids = new SequentialIdGenerator();
+        var freeMeal = CarrierDefinition(variant: AncillaryVariant.FreeSpecialMeal);
+        var seat = CarrierDefinition(variant: AncillaryVariant.StandardSeat, pricingUnit: PricingUnit.PerSeat);
+        var lounge = CarrierDefinition(variant: AncillaryVariant.Lounge, serviceDateBasis: ServiceDateBasis.ServiceStart);
+        var wifi = CarrierDefinition(variant: AncillaryVariant.OnboardWifi, pricingUnit: PricingUnit.PerItem);
+        var seatRules = new ProvisionRulesArgs(null, null, null, null, null, null, null, null, null, new ProvisionSeatApplicationArgs([], ["W"]));
+        var flightRules = new ProvisionRulesArgs(null, null, null, new ProvisionFlightApplicationArgs([], [], ["1124"], [], []), null, null, null, null, null, null);
+        var dated = new ProvisionRulesArgs(
+            null,
+            null,
+            null,
+            null,
+            null,
+            new ProvisionTravelDateArgs([new ProvisionDatePeriodArgs(new DateOnly(2027, 1, 1), new DateOnly(2027, 1, 31))], []),
+            null,
+            null,
+            null,
+            null);
+
+        (AncillaryProvision Draft, AncillaryServiceDefinition Definition, Action<AncillaryProvision> Refused, int Code)[] cases =
+        [
+            (Define([Fixed(), Percent()], freeMeal, CommercialDisposition.Free, groups: dated, ids: ids), freeMeal,
+                draft => ChangeTo(draft, freeMeal, ids, disposition: CommercialDisposition.Paid, groups: dated with { CancellationRules = [Fixed(amount: 99m)] }), 16321),
+            (Define([Fixed()], wifi, groups: dated, ids: ids), wifi,
+                draft => ChangeTo(draft, wifi, ids, purchaseStage: PurchaseStage.OnBoard, groups: dated with { CancellationRules = [] }), 16323),
+            (Define([Fixed()], seat, applicationType: ProvisionApplicationType.Seat, groups: seatRules, ids: ids), seat,
+                draft => ChangeTo(draft, seat, ids, maxQuantity: 2, groups: seatRules with { CancellationRules = [Percent()] }), 16321),
+            (Define([Fixed()], lounge, groups: dated, ids: ids), lounge,
+                draft => ChangeTo(draft, lounge, ids, groups: flightRules with { CancellationRules = [Manual()] }), 16313),
+            (Define([Fixed()], groups: dated, ids: ids), CarrierDefinition(),
+                draft => ChangeTo(draft, CarrierDefinition(), ids, groups: dated with { CancellationRules = [Fixed(amount: 1m), Percent(percentage: 0m)] }), 16302),
+            (Define([Fixed()], groups: dated, ids: ids), CarrierDefinition(),
+                draft => ChangeTo(draft, CarrierDefinition(), ids, groups: dated with { CancellationRules = [Fixed(from: 0, to: 10), Percent(from: 5, to: 20)] }), 16302),
+            (Define([Fixed()], groups: dated, ids: ids), CarrierDefinition(),
+                draft => ChangeTo(draft, CarrierDefinition(), ids, applicationType: ProvisionApplicationType.Seat, groups: seatRules with { CancellationRules = [] }), 16321)
+        ];
+
+        foreach (var (draft, _, refused, code) in cases)
+        {
+            var before = Picture(draft);
+
+            BusinessAssert.Throws(code, code == 16302 ? 422 : 409, () => refused(draft));
+
+            Assert.Equal(before, Picture(draft));
+        }
+
+        var accepted = cases[0];
+
+        ChangeTo(accepted.Draft, accepted.Definition, ids, disposition: CommercialDisposition.NotAvailable, groups: dated with { CancellationRules = [Fixed(amount: 99m)] });
+
+        Assert.Equal(
+            (CommercialDisposition.NotAvailable, 99m),
+            (accepted.Draft.Outcome.Disposition, accepted.Draft.CancellationRules.Single().PenaltyFixedAmount!.Value));
+    }
+
+    private static void ChangeTo(
+        AncillaryProvision provision,
+        AncillaryServiceDefinition definition,
+        SequentialIdGenerator ids,
+        CommercialDisposition? disposition = null,
+        PurchaseStage? purchaseStage = null,
+        int? maxQuantity = null,
+        ProvisionApplicationType? applicationType = null,
+        ProvisionRulesArgs? groups = null)
+    {
+        var outcome = disposition ?? provision.Outcome.Disposition;
+        var type = applicationType ?? provision.ApplicationType;
+
+        provision.Change(
+            definition,
+            provision.Sequence + 1,
+            provision.CoverageScope,
+            purchaseStage ?? provision.PurchaseStage,
+            V122Fixtures.Origin(outcome),
+            provision.QuoteProviderKey,
+            QuantityRule.Create(provision.Quantity.Unit, 1, maxQuantity ?? provision.Quantity.MaxQuantity),
+            type,
+            CommercialOutcome.Create(outcome, outcome == CommercialDisposition.Paid, false),
+            provision.Settlement,
+            provision.Availability,
+            provision.Fulfillment,
+            Rules(groups, type),
+            Currencies,
+            ids);
+    }
+
+    private static string Picture(AncillaryProvision provision)
+        => string.Join(
+            "|",
+            provision.Sequence,
+            provision.PurchaseStage,
+            provision.PriceOrigin,
+            provision.Outcome.Disposition,
+            provision.Quantity.MaxQuantity,
+            provision.ApplicationType,
+            provision.SalesRestrictions?.Id,
+            provision.FlightApplication?.Id,
+            provision.SeatApplication?.Id,
+            provision.TravelDate?.Id,
+            string.Join(",", provision.TravelDate?.PermittedPeriods.Select(period => $"{period.Id}:{period.StartDate}:{period.EndDate}") ?? []),
+            string.Join(
+                ",",
+                provision.CancellationRules.Select(rule =>
+                    $"{rule.Id}:{rule.RuleRef}:{rule.ReasonKind}:{rule.BeforeStartMinutesFrom}:{rule.BeforeStartMinutesTo}:{rule.PenaltyKind}:{rule.PenaltyFixedAmount}:{rule.PenaltyPercentage}:{rule.PenaltyCurrencyId}:{rule.WaiverPermitted}:{rule.SourceReference}")));
 }

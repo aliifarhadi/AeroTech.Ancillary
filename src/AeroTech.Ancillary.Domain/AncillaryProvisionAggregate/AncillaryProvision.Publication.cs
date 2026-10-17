@@ -1,3 +1,5 @@
+using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments;
+using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.ValueObjects;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Messages.AirPrice.Enums;
@@ -28,14 +30,15 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
         ];
 
         private bool IsFlightBound
-            => ApplicationType != ProvisionApplicationType.Standard
-               || FlightApplication is not null
-               || FareApplication is not null
-               || AdvancePurchase is { SameTimeAsTicketed: true }
-               || Geography is { OriginAirports.Count: > 0 }
-                   or { DestinationAirports.Count: > 0 }
-                   or { ViaAirports.Count: > 0 }
-                   or { RoutePairs.Count: > 0 };
+            => IsFlightBoundBy(
+                ApplicationType,
+                FlightApplication is not null,
+                FareApplication is not null,
+                AdvancePurchase is { SameTimeAsTicketed: true },
+                Geography is { OriginAirports.Count: > 0 }
+                    or { DestinationAirports.Count: > 0 }
+                    or { ViaAirports.Count: > 0 }
+                    or { RoutePairs.Count: > 0 });
 
         private bool NeedsServiceOccurrence
             => IsFlightBound
@@ -53,17 +56,13 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
 
             var pricingUnit = definition.PricingUnit ?? throw ExceptionFactory.ServiceDefinitionPricingUnitNotAssigned();
 
-            if (QuantityUnits[pricingUnit] != Quantity.Unit)
-                throw ExceptionFactory.ProvisionQuantityUnitIncompatible(pricingUnit, Quantity.Unit);
+            EnsureQuantityUnitOf(pricingUnit, Quantity.Unit);
 
             if (NeedsServiceOccurrence && definition.ServiceDateBasis is null)
                 throw ExceptionFactory.ServiceDefinitionServiceDateBasisNotAssigned();
 
-            if (IsFlightBound && definition.ServiceDateBasis != ServiceDateBasis.FlightDeparture)
-                throw ExceptionFactory.ProvisionRuleContextNotSupported(definition.ServiceDateBasis);
-
-            if (AdvancePurchase is not null && !ActivatableAdvancePurchaseUnits.Contains(AdvancePurchase.Unit))
-                throw ExceptionFactory.ProvisionAdvancePurchaseUnitNotSupported(AdvancePurchase.Unit);
+            EnsureRuleContextOf(definition.ServiceDateBasis, IsFlightBound);
+            EnsureAdvancePurchaseUnitOf(AdvancePurchase?.Unit);
 
             if (TravelDate is { IsUnsatisfiable: true })
                 throw ExceptionFactory.ProvisionRuleUnreachable(nameof(TravelDate));
@@ -75,58 +74,154 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
         private void EnsureProfileConformance(AncillaryServiceDefinition definition, string? recordedQuoteProviderKey)
         {
             var variant = definition.Variant!;
+            var facts = StoredFacts();
 
-            EnsureApplicationTypeOf(variant);
+            EnsureApplicationTypeOf(variant, facts.ApplicationType);
 
             if (PriceOrigin == PriceOrigin.LegacyUnspecified)
                 throw ExceptionFactory.ProvisionPriceOriginMismatch(Outcome.Disposition, PriceOrigin);
 
-            EnsurePurchaseStageOf(definition, variant);
+            EnsurePurchaseStageOf(definition, variant, facts.PurchaseStage);
 
             if (PriceOrigin == PriceOrigin.ExternalQuote && (recordedQuoteProviderKey is null || !string.Equals(recordedQuoteProviderKey, QuoteProviderKey, StringComparison.Ordinal)))
                 throw ExceptionFactory.ProvisionQuoteAuthorityRequired(QuoteProviderKey);
 
-            EnsureOutcomeOf(definition, variant);
-            EnsureRulesOf(definition, variant);
+            EnsureOutcomeOf(definition, variant, facts);
+            EnsureRulesOf(definition, variant, facts);
         }
 
-        private void EnsureAuthoringConformance(AncillaryServiceDefinition definition)
+        private static void EnsureAuthoringConformance(AncillaryServiceDefinition definition, AuthoringFacts facts)
         {
             if (definition.Variant is not { } variant)
                 return;
 
-            EnsurePurchaseStageOf(definition, variant);
-            EnsureOutcomeOf(definition, variant);
+            EnsureApplicationTypeOf(variant, facts.ApplicationType);
 
-            if (IsFlightBound && definition.ServiceDateBasis == ServiceDateBasis.ServiceStart)
-                throw ExceptionFactory.ProvisionRuleContextNotSupported(definition.ServiceDateBasis);
+            if (definition.PricingUnit is { } pricingUnit)
+                EnsureQuantityUnitOf(pricingUnit, facts.QuantityUnit);
+
+            EnsurePurchaseStageOf(definition, variant, facts.PurchaseStage);
+            EnsureOutcomeOf(definition, variant, facts);
+            EnsureRuleContextOf(definition.ServiceDateBasis, facts.IsFlightBound);
+            EnsureAdvancePurchaseUnitOf(facts.AdvancePurchaseUnit);
+            EnsureRulesOf(definition, variant, facts);
         }
 
-        private void EnsureApplicationTypeOf(AncillaryVariant variant)
+        private static AuthoringFacts CandidateFacts(
+            ProvisionApplicationType applicationType,
+            PurchaseStage purchaseStage,
+            PriceOrigin priceOrigin,
+            QuantityRule quantity,
+            CommercialOutcome outcome,
+            ProvisionRulesArgs rules)
+            => new(
+                applicationType,
+                purchaseStage,
+                outcome.Disposition,
+                priceOrigin,
+                quantity.Unit,
+                quantity.MaxQuantity,
+                IsFlightBoundBy(
+                    applicationType,
+                    rules.FlightApplication is { IsEmpty: false },
+                    rules.FareApplication is { IsEmpty: false },
+                    rules.AdvancePurchase is { SameTimeAsTicketed: true },
+                    rules.Geography is { OriginAirportIds.Count: > 0 }
+                        or { DestinationAirportIds.Count: > 0 }
+                        or { ViaAirportIds.Count: > 0 }
+                        or { RoutePairs.Count: > 0 }),
+                rules.AdvancePurchase?.Unit,
+                rules.BaggageApplication?.ChargeKind,
+                rules.BaggageApplication?.AllowanceConcept,
+                rules.FareApplication?.CabinClassIds ?? [],
+                rules.PetRule,
+                rules.AssistedTravelRule,
+                rules.AirportServiceRule);
+
+        private AuthoringFacts StoredFacts()
+            => new(
+                ApplicationType,
+                PurchaseStage,
+                Outcome.Disposition,
+                PriceOrigin,
+                Quantity.Unit,
+                Quantity.MaxQuantity,
+                IsFlightBound,
+                AdvancePurchase?.Unit,
+                BaggageApplication?.ChargeKind,
+                BaggageApplication?.AllowanceConcept,
+                FareApplication?.CabinClasses.Select(cabin => cabin.CabinClassId).ToList() ?? [],
+                PetRule is { } petRule
+                    ? new ProvisionPetRuleArgs(petRule.CountryExceptionCode, petRule.MinAnimalAgeWeeksOverride, petRule.MaxCombinedKgOverride, petRule.AcceptanceMode)
+                    : null,
+                AssistedTravelRule is { } assistedRule
+                    ? new ProvisionAssistedTravelRuleArgs(assistedRule.MinimumLeadTimeMinutes, assistedRule.ConnectionPolicy, assistedRule.MedicalApprovalRequired)
+                    : null,
+                AirportServiceRule is { } airportRule
+                    ? new ProvisionAirportServiceRuleArgs(
+                        airportRule.TerminalRef,
+                        airportRule.Direction,
+                        airportRule.ServiceWindowStart,
+                        airportRule.ServiceWindowEnd,
+                        airportRule.FacilityId,
+                        airportRule.MaxGuestsPerPrimary)
+                    : null);
+
+        private static bool IsFlightBoundBy(
+            ProvisionApplicationType applicationType,
+            bool flightApplication,
+            bool fareApplication,
+            bool sameTimeAsTicketed,
+            bool routedGeography)
+            => applicationType != ProvisionApplicationType.Standard
+               || flightApplication
+               || fareApplication
+               || sameTimeAsTicketed
+               || routedGeography;
+
+        private static void EnsureQuantityUnitOf(PricingUnit pricingUnit, AncillaryQuantityUnit quantityUnit)
         {
-            if (ApplicationType != variant.ApplicationType)
+            if (QuantityUnits[pricingUnit] != quantityUnit)
+                throw ExceptionFactory.ProvisionQuantityUnitIncompatible(pricingUnit, quantityUnit);
+        }
+
+        private static void EnsureRuleContextOf(ServiceDateBasis? serviceDateBasis, bool flightBound)
+        {
+            if (flightBound && serviceDateBasis is { } basis && basis != ServiceDateBasis.FlightDeparture)
+                throw ExceptionFactory.ProvisionRuleContextNotSupported(basis);
+        }
+
+        private static void EnsureAdvancePurchaseUnitOf(TimeUnit? unit)
+        {
+            if (unit is { } advanceUnit && !ActivatableAdvancePurchaseUnits.Contains(advanceUnit))
+                throw ExceptionFactory.ProvisionAdvancePurchaseUnitNotSupported(advanceUnit);
+        }
+
+        private static void EnsureApplicationTypeOf(AncillaryVariant variant, ProvisionApplicationType applicationType)
+        {
+            if (applicationType != variant.ApplicationType)
                 throw ExceptionFactory.ProvisionProfileRuleNotAllowed(nameof(ApplicationType), variant.Code);
         }
 
-        private void EnsurePurchaseStageOf(AncillaryServiceDefinition definition, AncillaryVariant variant)
+        private static void EnsurePurchaseStageOf(AncillaryServiceDefinition definition, AncillaryVariant variant, PurchaseStage purchaseStage)
         {
-            if (!AllowedPurchaseStages(definition).Contains(PurchaseStage))
-                throw ExceptionFactory.ProvisionPurchaseStageNotAllowed(PurchaseStage, variant.Code);
+            if (!AllowedPurchaseStages(definition).Contains(purchaseStage))
+                throw ExceptionFactory.ProvisionPurchaseStageNotAllowed(purchaseStage, variant.Code);
         }
 
-        private void EnsureOutcomeOf(AncillaryServiceDefinition definition, AncillaryVariant variant)
+        private static void EnsureOutcomeOf(AncillaryServiceDefinition definition, AncillaryVariant variant, AuthoringFacts facts)
         {
-            if (!AllowedDispositions(definition).Contains(Outcome.Disposition))
+            if (!AllowedDispositions(definition).Contains(facts.Disposition))
                 throw ExceptionFactory.ProvisionProfileRuleNotAllowed(nameof(Outcome), variant.Code);
 
-            if (!AllowedPriceOrigins(definition).Contains(PriceOrigin))
+            if (!AllowedPriceOrigins(definition).Contains(facts.PriceOrigin))
                 throw ExceptionFactory.ProvisionProfileRuleNotAllowed(nameof(PriceOrigin), variant.Code);
 
-            if (MaxQuantityOf(definition) is { } maxQuantity && Quantity.MaxQuantity > maxQuantity)
+            if (MaxQuantityOf(definition) is { } maxQuantity && facts.MaxQuantity > maxQuantity)
                 throw ExceptionFactory.ProvisionProfileRuleNotAllowed(nameof(Quantity), variant.Code);
         }
 
-        private void EnsureRulesOf(AncillaryServiceDefinition definition, AncillaryVariant variant)
+        private static void EnsureRulesOf(AncillaryServiceDefinition definition, AncillaryVariant variant, AuthoringFacts facts)
         {
             void Refuse(bool refused, string field)
             {
@@ -134,29 +229,29 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
                     throw ExceptionFactory.ProvisionProfileRuleNotAllowed(field, variant.Code);
             }
 
-            Refuse(PetRule is not null && definition.Pet is null, nameof(PetRule));
-            Refuse(AssistedTravelRule is not null && definition.AssistedTravel is null, nameof(AssistedTravelRule));
-            Refuse(AirportServiceRule is not null && definition.AirportService is null, nameof(AirportServiceRule));
+            Refuse(facts.PetRule is not null && definition.Pet is null, nameof(PetRule));
+            Refuse(facts.AssistedTravelRule is not null && definition.AssistedTravel is null, nameof(AssistedTravelRule));
+            Refuse(facts.AirportServiceRule is not null && definition.AirportService is null, nameof(AirportServiceRule));
 
-            if (BaggageApplication is { } baggage && definition.Baggage is { } baggageSpecification)
+            if (definition.Baggage is { } baggageSpecification)
             {
-                Refuse(baggage.ChargeKind is { } chargeKind && chargeKind != baggageSpecification.ChargeKind, nameof(BaggageApplication));
+                Refuse(facts.ChargeKind is { } chargeKind && chargeKind != baggageSpecification.ChargeKind, nameof(BaggageApplication));
                 Refuse(
-                    baggage.AllowanceConcept is { } concept && baggageSpecification.AllowanceConcept is { } specified && concept != specified,
+                    facts.AllowanceConcept is { } concept && baggageSpecification.AllowanceConcept is { } specified && concept != specified,
                     nameof(BaggageApplication));
             }
 
-            if (definition.Upgrade is { } upgrade && FareApplication is { CabinClasses.Count: > 0 } fare)
-                Refuse(fare.CabinClasses.All(cabin => cabin.CabinClassId != upgrade.FromCabinId), nameof(FareApplication));
+            if (definition.Upgrade is { } upgrade && facts.CabinClassIds.Count > 0)
+                Refuse(facts.CabinClassIds.All(cabinClassId => cabinClassId != upgrade.FromCabinId), nameof(FareApplication));
 
-            if (PetRule is { } petRule && definition.Pet is { } pet)
+            if (facts.PetRule is { } petRule && definition.Pet is { } pet)
             {
                 Refuse(petRule.AcceptanceMode != ConfirmationRequirement.SubjectToConfirmation, nameof(PetRule));
                 Refuse(petRule.MaxCombinedKgOverride > pet.MaxCombinedWeightKg, nameof(PetRule));
                 Refuse(petRule.MinAnimalAgeWeeksOverride < (pet.MinAnimalAgeWeeks ?? 0), nameof(PetRule));
             }
 
-            if (AssistedTravelRule is { } assistedRule && definition.AssistedTravel is { } assisted)
+            if (facts.AssistedTravelRule is { } assistedRule && definition.AssistedTravel is { } assisted)
             {
                 Refuse(assistedRule.ConnectionPolicy is not null && assisted.UnaccompaniedMinor is null, nameof(AssistedTravelRule));
                 Refuse(
@@ -170,7 +265,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
                 Refuse(assistedRule.MinimumLeadTimeMinutes < (assisted.Wheelchair?.LeadTimeMinutes ?? 0), nameof(AssistedTravelRule));
             }
 
-            if (AirportServiceRule is { } airportRule && definition.AirportService is { } airport)
+            if (facts.AirportServiceRule is { } airportRule && definition.AirportService is { } airport)
             {
                 Refuse(airportRule.MaxGuestsPerPrimary > (airport.MaxGuestsPerPrimary ?? 0), nameof(AirportServiceRule));
                 Refuse(airportRule.FacilityId is not null && airport.FacilityId is not null && airportRule.FacilityId != airport.FacilityId, nameof(AirportServiceRule));
@@ -186,5 +281,21 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             if (PurchaseStage == PurchaseStage.LegacyUnspecified)
                 throw ExceptionFactory.ProvisionPurchaseStageRequired();
         }
+
+        private sealed record AuthoringFacts(
+            ProvisionApplicationType ApplicationType,
+            PurchaseStage PurchaseStage,
+            CommercialDisposition Disposition,
+            PriceOrigin PriceOrigin,
+            AncillaryQuantityUnit QuantityUnit,
+            int MaxQuantity,
+            bool IsFlightBound,
+            TimeUnit? AdvancePurchaseUnit,
+            BaggageChargeKind? ChargeKind,
+            BaggageAllowanceConcept? AllowanceConcept,
+            IReadOnlyCollection<int> CabinClassIds,
+            ProvisionPetRuleArgs? PetRule,
+            ProvisionAssistedTravelRuleArgs? AssistedTravelRule,
+            ProvisionAirportServiceRuleArgs? AirportServiceRule);
     }
 }

@@ -113,8 +113,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             provision.Status = ProvisionStatus.Draft;
             provision.CreatedAt = createdAt;
             provision.EnsureProfileRules(definition, rules);
-            provision.Apply(sequence, coverageScope, purchaseStage, priceOrigin, quoteProviderKey, quantity, applicationType, outcome, settlement, availability, fulfillment, rules, currencyDecimalPlaces, idGenerator);
-            provision.EnsureAuthoringConformance(definition);
+            provision.Apply(definition, sequence, coverageScope, purchaseStage, priceOrigin, quoteProviderKey, quantity, applicationType, outcome, settlement, availability, fulfillment, rules, currencyDecimalPlaces, idGenerator);
 
             return provision;
         }
@@ -139,8 +138,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             EnsureDraft();
             EnsureProfileRules(definition, rules);
 
-            Apply(sequence, coverageScope, purchaseStage, priceOrigin, quoteProviderKey, quantity, applicationType, outcome, settlement, availability, fulfillment, rules, currencyDecimalPlaces, idGenerator);
-            EnsureAuthoringConformance(definition);
+            Apply(definition, sequence, coverageScope, purchaseStage, priceOrigin, quoteProviderKey, quantity, applicationType, outcome, settlement, availability, fulfillment, rules, currencyDecimalPlaces, idGenerator);
         }
 
         public void Activate(AncillaryServiceDefinition definition, string? recordedQuoteProviderKey, DateTimeOffset now)
@@ -193,6 +191,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
         }
 
         private void Apply(
+            AncillaryServiceDefinition definition,
             int sequence,
             ServiceCoverageScope coverageScope,
             PurchaseStage purchaseStage,
@@ -243,6 +242,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
                 rules.SeatApplication?.SeatNumbers.Count ?? 0,
                 rules.SeatApplication?.SeatCharacteristicCodes.Count ?? 0,
                 rules.FlightApplication?.AircraftIds.Count ?? 0);
+            EnsureAuthoringConformance(definition, CandidateFacts(applicationType, purchaseStage, priceOrigin, quantity, outcome, rules));
 
             Sequence = sequence;
             CoverageScope = coverageScope;
@@ -271,7 +271,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             AirportServiceRule = airportServiceRule();
 
             if (cancellationRules is not null)
-                ReplaceRows(_cancellationRules, cancellationRules);
+                ReplaceRows(_cancellationRules, cancellationRules.Select(rule => rule()).ToList());
         }
 
         private static PriceOrigin OriginOf(CommercialDisposition disposition, PriceOrigin requested)

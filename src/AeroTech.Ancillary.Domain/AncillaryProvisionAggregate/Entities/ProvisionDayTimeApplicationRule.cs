@@ -26,7 +26,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
 
         public IReadOnlyCollection<ProvisionDayTimeWindow> Windows => _windows.AsReadOnly();
 
-        internal bool IsUnsatisfiable => Enumerable.Range(0, DaysInWeek).All(day => !HasOpenTime((byte)(1 << day)));
+        internal bool IsUnsatisfiable => Unsatisfiable(_windows);
 
         internal static Func<ProvisionDayTimeApplicationRule?> Plan(
             ProvisionDayTimeApplicationRule? stored,
@@ -46,6 +46,9 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
                                   ?? new ProvisionDayTimeWindow(idGenerator.NewId(), ancillaryProvisionId, rule.Id, window))
                 .ToList();
 
+            if (Unsatisfiable(windows))
+                throw ExceptionFactory.ProvisionRuleUnreachable(nameof(AncillaryProvision.DayTimeApplication));
+
             return () =>
             {
                 AncillaryProvision.ReplaceRows(rule._windows, windows);
@@ -54,12 +57,15 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
             };
         }
 
-        private bool HasOpenTime(byte day)
+        private static bool Unsatisfiable(IReadOnlyCollection<ProvisionDayTimeWindow> windows)
+            => Enumerable.Range(0, DaysInWeek).All(day => !HasOpenTime(windows, (byte)(1 << day)));
+
+        private static bool HasOpenTime(IReadOnlyCollection<ProvisionDayTimeWindow> windows, byte day)
         {
-            var allows = _windows.Any(window => window.Effect == DayTimeRestrictionEffect.Allow)
-                ? _windows.Where(window => window.Effect == DayTimeRestrictionEffect.Allow && window.AppliesOn(day)).Select(window => window.Span).ToList()
+            var allows = windows.Any(window => window.Effect == DayTimeRestrictionEffect.Allow)
+                ? windows.Where(window => window.Effect == DayTimeRestrictionEffect.Allow && window.AppliesOn(day)).Select(window => window.Span).ToList()
                 : [(Start: 0L, End: TimeSpan.TicksPerDay)];
-            var denies = _windows
+            var denies = windows
                 .Where(window => window.Effect == DayTimeRestrictionEffect.Deny && window.AppliesOn(day))
                 .Select(window => window.Span)
                 .OrderBy(span => span.Start)

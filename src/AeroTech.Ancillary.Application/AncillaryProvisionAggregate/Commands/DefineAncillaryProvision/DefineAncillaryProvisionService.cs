@@ -75,7 +75,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
                     command.AssistedTravelRule,
                     command.AirportServiceRule,
                     command.Settlement.CancellationRules),
-                await _currencies.FindDecimalPlacesAsync(command.Settlement.PenaltyCurrencyIds(), cancellationToken),
+                await _currencies.FindDecimalPlacesAsync(command.Settlement, cancellationToken),
                 _idGenerator,
                 _clock.GetDateTime());
 

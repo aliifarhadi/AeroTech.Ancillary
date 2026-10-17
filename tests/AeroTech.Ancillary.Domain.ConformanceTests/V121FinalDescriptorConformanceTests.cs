@@ -35,19 +35,25 @@ public class V121FinalDescriptorConformanceTests
             new SequentialIdGenerator(),
             Now);
 
-    private static AncillaryProvision Bag(ProvisionBaggageApplicationArgs baggage)
-        => Provision(Groups(baggageApplication: baggage), ProvisionApplicationType.Baggage, CommercialDisposition.Free, quantityUnit: AncillaryQuantityUnit.Piece);
+    private static AncillaryProvision Bag(ProvisionBaggageApplicationArgs baggage, AncillaryServiceDefinition? definition = null)
+        => Provision(
+            Groups(baggageApplication: baggage),
+            ProvisionApplicationType.Baggage,
+            CommercialDisposition.Free,
+            definition: definition ?? BaggageDefinition(baggage.ChargeKind ?? BaggageChargeKind.ExtraPiece));
 
     private static AncillaryServiceDefinition BaggageDefinition(BaggageChargeKind chargeKind)
-        => CarrierDefinition(
-            pricingUnit: PricingUnit.PerPiece,
-            variant: chargeKind switch
-            {
-                BaggageChargeKind.Overweight => AncillaryVariant.Overweight,
-                BaggageChargeKind.Oversize => AncillaryVariant.Oversize,
-                BaggageChargeKind.SpecialEquipment => AncillaryVariant.SpecialEquipment,
-                _ => AncillaryVariant.ExtraCheckedBag
-            });
+        => chargeKind == BaggageChargeKind.WeightPackage
+            ? CarrierDefinition(pricingUnit: PricingUnit.PerItem, variant: AncillaryVariant.ExtraWeightPackage)
+            : CarrierDefinition(
+                pricingUnit: PricingUnit.PerPiece,
+                variant: chargeKind switch
+                {
+                    BaggageChargeKind.Overweight => AncillaryVariant.Overweight,
+                    BaggageChargeKind.Oversize => AncillaryVariant.Oversize,
+                    BaggageChargeKind.SpecialEquipment => AncillaryVariant.SpecialEquipment,
+                    _ => AncillaryVariant.ExtraCheckedBag
+                });
 
     [Fact]
     public void D04_the_four_descriptor_enums_carry_exactly_the_approved_members()
@@ -155,16 +161,15 @@ public class V121FinalDescriptorConformanceTests
     }
 
     [Fact]
-    public void D08_the_charge_kind_is_owned_by_the_specification_and_a_contradicting_rule_stays_a_draft()
+    public void D08_the_charge_kind_is_owned_by_the_specification_and_a_contradicting_rule_is_refused_when_authored()
     {
-        var silent = Bag(Baggage() with { ChargeKind = null, AllowanceConcept = null });
-        var contradicting = Bag(Baggage() with { ChargeKind = BaggageChargeKind.Oversize, AllowanceConcept = null });
         var definition = BaggageDefinition(BaggageChargeKind.ExtraPiece);
+        var silent = Bag(Baggage() with { ChargeKind = null, AllowanceConcept = null }, definition);
 
         silent.Activate(definition, null, Now);
 
-        BusinessAssert.Throws(16321, 409, () => contradicting.Activate(definition, null, Now));
-        Assert.Equal((ProvisionStatus.Active, ProvisionStatus.Draft), (silent.Status, contradicting.Status));
+        BusinessAssert.Throws(16321, 409, () => Bag(Baggage() with { ChargeKind = BaggageChargeKind.Oversize, AllowanceConcept = null }, definition));
+        Assert.Equal(ProvisionStatus.Active, silent.Status);
         Assert.Equal(BaggageChargeKind.ExtraPiece, definition.Baggage!.ChargeKind);
     }
 }

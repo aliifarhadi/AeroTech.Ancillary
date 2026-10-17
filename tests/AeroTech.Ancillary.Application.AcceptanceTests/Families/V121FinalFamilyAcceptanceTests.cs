@@ -431,8 +431,9 @@ public class V121FinalFamilyAcceptanceTests : IClassFixture<FinalFamilyCache>
             variant: variant));
         var command = family.Rule(definition.Id);
         var wrongUnit = command.Quantity.Unit == AncillaryQuantityUnit.Each ? AncillaryQuantityUnit.Kilogram : AncillaryQuantityUnit.Each;
-        var probe = await RequestAsync(clock, scope => scope.DefineProvision.DefineAsync(Provision(definition.Id, 900, CommercialDisposition.Free, quantityUnit: wrongUnit)));
-        var refusedUnit = await OutcomeAsync(() => RequestAsync(clock, scope => scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(probe.Id))));
+        var refusedUnit = await OutcomeAsync(() => RequestAsync(
+            clock,
+            scope => scope.DefineProvision.DefineAsync(command with { Sequence = 900, Quantity = command.Quantity with { Unit = wrongUnit } })));
         var published = await harness.Proof.RuleAsync(command, family.Rates is { } rates ? provisionId => new TestDefinePricingRatesCommand(provisionId, rates) : null);
         string price;
 

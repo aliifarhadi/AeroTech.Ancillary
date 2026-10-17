@@ -149,13 +149,12 @@ public class V122JourneyAcceptanceTests
         var pet = await ProductAsync("A13", airlineId, supplierId);
         var outbound = await _harness.Proof.RuleAsync(Unavailable(Rule("A13", pet.Id)) with { Geography = new(AllowedRoutePairs: [Pair(Thr, Ist)]) });
         var inbound = await _harness.Proof.RuleAsync(Rule("A13", pet.Id, 20) with { Geography = new(AllowedRoutePairs: [Pair(Ist, Thr)]) }, Euro(70m));
-        var widened = await RequestAsync(scope => scope.DefineProvision.DefineAsync(Unavailable(Rule("A13", pet.Id, 30)) with
+        var policy = await PolicyAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, pet.ServiceDefinitionRef, pet.Id, InventoryAuthority.Supplier, ProviderKey: V122Catalog.QuoteProvider));
+
+        await RefusedAsync(16321, 409, scope => scope.DefineProvision.DefineAsync(Unavailable(Rule("A13", pet.Id, 30)) with
         {
             PetRule = new ProvisionPetRuleInput(null, null, 10m, ConfirmationRequirement.SubjectToConfirmation)
         }));
-        var policy = await PolicyAsync(fixture, new TestDefineInventoryPolicyCommand(airlineId, pet.ServiceDefinitionRef, pet.Id, InventoryAuthority.Supplier, ProviderKey: V122Catalog.QuoteProvider));
-
-        await RefusedAsync(16321, 409, scope => scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(widened.Id)));
         await ActivateAsync(fixture, policy);
 
         var snapshot = await _harness.SnapshotAsync(fixture, pet.ServiceDefinitionRef, Flight, At);

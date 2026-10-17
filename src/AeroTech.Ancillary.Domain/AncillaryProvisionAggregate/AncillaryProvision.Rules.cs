@@ -16,7 +16,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             EnsureProfileRule(definition, rules.AirportServiceRule is not null && definition.AirportService is null, nameof(AirportServiceRule));
         }
 
-        private List<ProvisionCancellationRule>? PlanCancellationRules(
+        private List<Func<ProvisionCancellationRule>>? PlanCancellationRules(
             IReadOnlyList<ProvisionCancellationRuleArgs>? rules,
             IReadOnlyDictionary<int, int> currencyDecimalPlaces,
             IIdGenerator idGenerator)
@@ -29,7 +29,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
 
             for (var index = 1; index < rules.Count; index++)
             {
-                if (rules.Take(index).Any(previous => previous.RuleRef == rules[index].RuleRef))
+                if (rules.Take(index).Any(previous => ProvisionCancellationRule.SameRuleRef(previous.RuleRef, rules[index].RuleRef)))
                     throw ExceptionFactory.ProvisionIsInvalid($"{nameof(ProvisionCancellationRule)}.{nameof(ProvisionCancellationRule.RuleRef)}");
 
                 if (rules.Take(index).Any(previous => ProvisionCancellationRule.Overlap(previous, rules[index])))
@@ -37,8 +37,12 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             }
 
             return rules
-                .Select(rule => _cancellationRules.FirstOrDefault(row => row.SameAs(rule))
-                                ?? new ProvisionCancellationRule(idGenerator.NewId(), Id, rule, currencyDecimalPlaces))
+                .Select(rule => ProvisionCancellationRule.Plan(
+                    _cancellationRules.FirstOrDefault(row => ProvisionCancellationRule.SameRuleRef(row.RuleRef, rule.RuleRef)),
+                    Id,
+                    rule,
+                    currencyDecimalPlaces,
+                    idGenerator))
                 .ToList();
         }
 

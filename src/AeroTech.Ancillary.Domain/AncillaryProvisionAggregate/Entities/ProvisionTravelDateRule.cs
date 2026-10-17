@@ -26,17 +26,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
 
         public IReadOnlyCollection<ProvisionBlackoutPeriod> BlackoutPeriods => _blackoutPeriods.AsReadOnly();
 
-        internal bool IsUnsatisfiable
-        {
-            get
-            {
-                var blackouts = Union(_blackoutPeriods.Select(period => (period.StartDate, period.EndDate)));
-
-                return _permittedPeriods.Count == 0
-                    ? blackouts.Any(blackout => blackout.Start == DateOnly.MinValue && blackout.End == DateOnly.MaxValue)
-                    : _permittedPeriods.All(period => blackouts.Any(blackout => blackout.Start <= period.StartDate && blackout.End >= period.EndDate));
-            }
-        }
+        internal bool IsUnsatisfiable => Unsatisfiable(_permittedPeriods, _blackoutPeriods);
 
         internal static Func<ProvisionTravelDateRule?> Plan(
             ProvisionTravelDateRule? stored,
@@ -57,6 +47,9 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
                                   ?? new ProvisionBlackoutPeriod(idGenerator.NewId(), ancillaryProvisionId, rule.Id, period))
                 .ToList();
 
+            if (Unsatisfiable(permittedPeriods, blackoutPeriods))
+                throw ExceptionFactory.ProvisionRuleUnreachable(nameof(AncillaryProvision.TravelDate));
+
             return () =>
             {
                 AncillaryProvision.ReplaceRows(rule._permittedPeriods, permittedPeriods);
@@ -64,6 +57,17 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
 
                 return rule;
             };
+        }
+
+        private static bool Unsatisfiable(
+            IReadOnlyCollection<ProvisionPermittedTravelPeriod> permittedPeriods,
+            IReadOnlyCollection<ProvisionBlackoutPeriod> blackoutPeriods)
+        {
+            var blackouts = Union(blackoutPeriods.Select(period => (period.StartDate, period.EndDate)));
+
+            return permittedPeriods.Count == 0
+                ? blackouts.Any(blackout => blackout.Start == DateOnly.MinValue && blackout.End == DateOnly.MaxValue)
+                : permittedPeriods.All(period => blackouts.Any(blackout => blackout.Start <= period.StartDate && blackout.End >= period.EndDate));
         }
 
         private static List<ProvisionDatePeriodArgs> Canonical(IReadOnlyList<ProvisionDatePeriodArgs> periods, string field)

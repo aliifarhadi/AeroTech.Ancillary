@@ -1,6 +1,7 @@
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities;
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.Domain.ConformanceTests.Fakes;
 using AeroTech.Ancillary.Domain.ConformanceTests.Fixtures;
 using AeroTech.Framework.Core.Domain.Entities;
@@ -348,7 +349,7 @@ public class V121ProvisionRuleConformanceTests
     [InlineData(PricingUnit.PerItem, AncillaryQuantityUnit.Piece, false)]
     [InlineData(PricingUnit.PerSeat, AncillaryQuantityUnit.Kilogram, false)]
     [InlineData(PricingUnit.PerPiece, AncillaryQuantityUnit.Each, false)]
-    public void V121_P03_P04_P05_P07_P08_P09_the_quantity_unit_must_fit_the_pricing_unit_at_publication(PricingUnit pricingUnit, AncillaryQuantityUnit quantityUnit, bool compatible)
+    public void V121_P03_P04_P05_P07_P08_P09_the_quantity_unit_must_fit_the_pricing_unit_when_authored_and_at_publication(PricingUnit pricingUnit, AncillaryQuantityUnit quantityUnit, bool compatible)
     {
         var definition = CarrierDefinition(pricingUnit: pricingUnit);
         var rules = definition.Variant!.ApplicationType switch
@@ -357,18 +358,27 @@ public class V121ProvisionRuleConformanceTests
             ProvisionApplicationType.Seat => Groups(seatApplication: Seats(characteristics: ["W"])),
             _ => null
         };
-        var provision = Provision(rules, definition.Variant.ApplicationType, quantityUnit: quantityUnit);
 
         if (compatible)
         {
+            var provision = Provision(rules, definition.Variant.ApplicationType, quantityUnit: quantityUnit, definition: definition);
+
             provision.Activate(definition, null, Now);
             Assert.Equal(ProvisionStatus.Active, provision.Status);
 
             return;
         }
 
-        BusinessAssert.Throws(16312, 409, () => provision.Activate(definition, null, Now));
-        Assert.Equal(ProvisionStatus.Draft, provision.Status);
+        BusinessAssert.Throws(16312, 409, () => Provision(rules, definition.Variant.ApplicationType, quantityUnit: quantityUnit, definition: definition));
+
+        var perPiece = CarrierDefinition(pricingUnit: PricingUnit.PerPiece, variant: AncillaryVariant.Overweight);
+        var authoredPerPiece = Provision(
+            Groups(baggageApplication: Baggage() with { ChargeKind = perPiece.Baggage!.ChargeKind, AllowanceConcept = perPiece.Baggage.AllowanceConcept }),
+            ProvisionApplicationType.Baggage,
+            definition: perPiece);
+
+        BusinessAssert.Throws(16312, 409, () => authoredPerPiece.Activate(CarrierDefinition(pricingUnit: PricingUnit.PerKilogram, variant: AncillaryVariant.Overweight), null, Now));
+        Assert.Equal(ProvisionStatus.Draft, authoredPerPiece.Status);
     }
 
     [Fact]
@@ -416,10 +426,17 @@ public class V121ProvisionRuleConformanceTests
 
         var baggage = Provision(applicationType: ProvisionApplicationType.Baggage, quantityUnit: AncillaryQuantityUnit.Piece);
 
-        BusinessAssert.Throws(
-            16313,
-            409,
-            () => Provision(applicationType: ProvisionApplicationType.Baggage).Activate(CarrierDefinition(serviceDateBasis: ServiceDateBasis.ServiceStart), null, Now));
+        ProvisionRulesArgs[] flightBoundRules =
+        [
+            Groups(fareApplication: Fares(families: [5])),
+            Groups(flightApplication: Flights(flights: [81234])),
+            Groups(geography: Geography(origins: [Thr])),
+            Groups(geography: Geography(pairs: [Pair(Thr, Ist)])),
+            Groups(advancePurchase: new ProvisionAdvancePurchaseArgs(0, TimeUnit.Hours, true))
+        ];
+
+        foreach (var rules in flightBoundRules)
+            BusinessAssert.Throws(16313, 409, () => Provision(rules, definition: CarrierDefinition(serviceDateBasis: ServiceDateBasis.ServiceStart)));
         BusinessAssert.Throws(16202, 422, () => CarrierDefinition(pricingUnit: PricingUnit.PerPiece, serviceDateBasis: ServiceDateBasis.ServiceStart));
         baggage.Activate(CarrierDefinition(pricingUnit: PricingUnit.PerPiece), null, Now);
         BusinessAssert.Throws(16302, 422, () => Provision().Activate(CarrierDefinition(id: 1002), null, Now));
@@ -432,36 +449,36 @@ public class V121ProvisionRuleConformanceTests
     [InlineData(TimeUnit.Months, true)]
     [InlineData(TimeUnit.Weeks, false)]
     [InlineData(TimeUnit.Years, false)]
-    public void V121_A01_A02_an_advance_purchase_unit_without_a_defined_meaning_is_not_published(TimeUnit unit, bool activatable)
+    public void V121_A01_A02_an_advance_purchase_unit_without_a_defined_meaning_is_not_authored(TimeUnit unit, bool activatable)
     {
-        var provision = Provision(Groups(advancePurchase: new ProvisionAdvancePurchaseArgs(1, unit, false)));
-
         BusinessAssert.Throws(16302, 422, () => Provision(Groups(advancePurchase: new ProvisionAdvancePurchaseArgs(-1, unit, false))));
         BusinessAssert.Throws(16302, 422, () => Provision(Groups(advancePurchase: new ProvisionAdvancePurchaseArgs(1, (TimeUnit)99, false))));
 
         if (activatable)
         {
+            var provision = Provision(Groups(advancePurchase: new ProvisionAdvancePurchaseArgs(1, unit, false)));
+
             provision.Activate(CarrierDefinition(), null, Now);
             Assert.Equal((ProvisionStatus.Active, unit), (provision.Status, provision.AdvancePurchase!.Unit));
 
             return;
         }
 
-        BusinessAssert.Throws(16314, 422, () => provision.Activate(CarrierDefinition(), null, Now));
+        BusinessAssert.Throws(16314, 422, () => Provision(Groups(advancePurchase: new ProvisionAdvancePurchaseArgs(1, unit, false))));
     }
 
     [Fact]
-    public void V121_T06_D06_a_date_or_time_rule_that_can_never_match_is_not_published()
+    public void V121_T06_D06_a_date_or_time_rule_that_can_never_match_is_not_authored()
     {
         var definition = CarrierDefinition();
-        AncillaryProvision[] unreachable =
+        Func<AncillaryProvision>[] unreachable =
         [
-            Provision(Groups(travelDate: Dates([Period(Day(2027, 4, 10), Day(2027, 4, 12))], [Period(Day(2027, 4, 1), Day(2027, 4, 30))]))),
-            Provision(Groups(travelDate: Dates([Period(Day(2027, 4, 10), Day(2027, 4, 12))], [Period(Day(2027, 4, 10), Day(2027, 4, 11)), Period(Day(2027, 4, 12), Day(2027, 4, 12))]))),
-            Provision(Groups(dayTimeApplication: Windows(Window(Monday, 9, 10), Window(Monday, 8, 12, DayTimeRestrictionEffect.Deny)))),
-            Provision(Groups(dayTimeApplication: Windows(Window(Weekdays, 9, 17), Window(EveryDay, effect: DayTimeRestrictionEffect.Deny)))),
-            Provision(Groups(dayTimeApplication: Windows(Window(EveryDay, effect: DayTimeRestrictionEffect.Deny)))),
-            Provision(Groups(dayTimeApplication: Windows(Window(Monday, 9, 12), Window(Monday, 9, 10, DayTimeRestrictionEffect.Deny), Window(Monday, 10, 12, DayTimeRestrictionEffect.Deny))))
+            () => Provision(Groups(travelDate: Dates([Period(Day(2027, 4, 10), Day(2027, 4, 12))], [Period(Day(2027, 4, 1), Day(2027, 4, 30))]))),
+            () => Provision(Groups(travelDate: Dates([Period(Day(2027, 4, 10), Day(2027, 4, 12))], [Period(Day(2027, 4, 10), Day(2027, 4, 11)), Period(Day(2027, 4, 12), Day(2027, 4, 12))]))),
+            () => Provision(Groups(dayTimeApplication: Windows(Window(Monday, 9, 10), Window(Monday, 8, 12, DayTimeRestrictionEffect.Deny)))),
+            () => Provision(Groups(dayTimeApplication: Windows(Window(Weekdays, 9, 17), Window(EveryDay, effect: DayTimeRestrictionEffect.Deny)))),
+            () => Provision(Groups(dayTimeApplication: Windows(Window(EveryDay, effect: DayTimeRestrictionEffect.Deny)))),
+            () => Provision(Groups(dayTimeApplication: Windows(Window(Monday, 9, 12), Window(Monday, 9, 10, DayTimeRestrictionEffect.Deny), Window(Monday, 10, 12, DayTimeRestrictionEffect.Deny))))
         ];
         AncillaryProvision[] reachable =
         [
@@ -472,7 +489,7 @@ public class V121ProvisionRuleConformanceTests
             Provision(Groups(dayTimeApplication: Windows(Window(Monday, 9, 10), Window(Tuesday, 9, 10), Window(Monday, effect: DayTimeRestrictionEffect.Deny))))
         ];
 
-        Assert.All(unreachable, provision => BusinessAssert.Throws(16315, 409, () => provision.Activate(definition, null, Now)));
+        Assert.All(unreachable, authoring => BusinessAssert.Throws(16315, 409, () => authoring()));
         Assert.All(reachable, provision =>
         {
             provision.Activate(definition, null, Now);

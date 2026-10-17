@@ -4,10 +4,13 @@ using AeroTech.Ancillary.Application.AcceptanceTests.Fakes;
 using AeroTech.Ancillary.Application.AcceptanceTests.Fixtures;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.DefineAncillaryProvision;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate;
+using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities;
+using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Dto;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionForm;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetProfileProvisionForm;
 using AeroTech.Ancillary.RestApi.V1.AncillaryProvisionAggregate.Requests;
+using AeroTech.Ancillary.Synchronizer.AncillaryProvisionAggregate;
 using AeroTech.Messages.Ancillary.Enums;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -341,6 +344,158 @@ public class ProfileProvisionFacadeAcceptanceTests
 
         Assert.Equal(new[] { "Free", "NotAvailable" }, (await FormAsync("Meal", freeId, freeProvisionId))["constraints"]!["allowedDispositions"]!.AsArray().Select(value => value!["name"]!.GetValue<string>()));
         await RefusedAsync(16321, 409, desk => CallAsync(desk, "Meal", "Define", freeId, Bind("Meal", Body("Meal", paid with { ServiceDefinitionId = freeId }))));
+    }
+
+    private static string StoresText((List<string> Command, List<string> ReadModel) rows) => $"{string.Join(",", rows.Command)} | {string.Join(",", rows.ReadModel)}";
+
+    private async Task<(List<string> Command, List<string> ReadModel)> RulesInBothStoresAsync(long provisionId)
+        => ((await DeskAsync(desk => desk.Scope.Command.Database
+                .SqlQuery<string>($"SELECT CONCAT(Id, ':', RuleRef, ':', COALESCE(CONVERT(varchar(30), CONVERT(decimal(19, 2), PenaltyFixedAmount)), '-'), ':', COALESCE(CONVERT(varchar(30), CONVERT(decimal(9, 2), PenaltyPercentage)), '-')) AS Value FROM Ancillary.ProvisionCancellationRules WHERE AncillaryProvisionId = {provisionId}")
+                .ToListAsync())).OrderBy(row => row, StringComparer.Ordinal).ToList(),
+            (await DeskAsync(desk => desk.Scope.Command.Database
+                .SqlQuery<string>($"SELECT CONCAT(Id, ':', RuleRef, ':', COALESCE(CONVERT(varchar(30), CONVERT(decimal(19, 2), PenaltyFixedAmount)), '-'), ':', COALESCE(CONVERT(varchar(30), CONVERT(decimal(9, 2), PenaltyPercentage)), '-')) AS Value FROM ReadModel.AncillaryProvisionCancellationRules WHERE AncillaryProvisionId = {provisionId}")
+                .ToListAsync())).OrderBy(row => row, StringComparer.Ordinal).ToList());
+
+    [Fact]
+    public async Task PROF_07_R1_a_rule_changed_under_its_reference_keeps_its_row_in_both_stores_and_the_reference_ignores_case()
+    {
+        var (definitionId, rule) = await DefinitionAsync("A12");
+        var provisionId = await DefineAsync("Meal", definitionId, WithRules(Body("Meal", rule), Rules(
+            Rule("VOL-24H", "Voluntary", 1440, null, "FixedAmount", amount: 15m),
+            Rule("VOL-LATE", "Voluntary", 0, 1440, "Percentage", percentage: 40m, percentageBase: "ServiceTotal"))));
+        var form = (await FormAsync("Meal", definitionId, provisionId))["form"]!.ToJsonString();
+        var ids = (await DeskAsync(desk => desk.Scope.Command.Set<ProvisionCancellationRule>()
+                .AsNoTracking().Where(row => row.AncillaryProvisionId == provisionId).ToListAsync()))
+            .ToDictionary(row => row.RuleRef, row => row.Id);
+
+        await ChangeAsync("Meal", definitionId, provisionId, WithRules(form, Rules(
+            Rule("VOL-24H", "Voluntary", 1440, null, "FixedAmount", amount: 20m),
+            Rule("vol-late", "Voluntary", 0, 1440, "Percentage", percentage: 50m, percentageBase: "ServiceTotal"))));
+
+        var (command, readModel) = await RulesInBothStoresAsync(provisionId);
+
+        Assert.Equal(new[] { $"{ids["VOL-24H"]}:VOL-24H:20.00:-", $"{ids["VOL-LATE"]}:vol-late:-:50.00" }.OrderBy(row => row, StringComparer.Ordinal), command);
+        Assert.Equal(command, readModel);
+
+        var typed = (await FormAsync("Meal", definitionId, provisionId))["form"]!["settlement"]!["cancellationRules"]!;
+        var generic = (await GenericFormAsync(provisionId))["form"]!["settlement"]!["cancellationRules"]!;
+        var byId = await DeskAsync(desk => desk.Scope.GetProvisionById.ExecuteAsync(provisionId));
+
+        Assert.Equal(new[] { "VOL-24H", "vol-late" }, typed.AsArray().Select(value => value!["ruleRef"]!.GetValue<string>()));
+        Assert.Equal(typed.ToJsonString(), generic.ToJsonString());
+        Assert.Equal(new[] { (20m, (decimal?)null), (0m, 50m) }, byId.CancellationRules.Select(row => (row.PenaltyFixedAmount ?? 0m, row.PenaltyPercentage)));
+
+        await RefusedAsync(16302, 422, desk => CallAsync(desk, "Meal", "Change", definitionId, provisionId, Bind("Meal", WithRules(form, Rules(
+            Rule("NOSHOW", "NoShow", null, null, "ManualReview"),
+            Rule("noshow", "Involuntary", null, null, "ManualReview"))))));
+        Assert.Equal(StoresText((command, readModel)), StoresText(await RulesInBothStoresAsync(provisionId)));
+
+        await ChangeAsync("Meal", definitionId, provisionId, WithRules(form, Rules(Rule("SUPPLIER", "SupplierFailure", null, null, "ProviderQuoted"))));
+
+        var replaced = await RulesInBothStoresAsync(provisionId);
+
+        Assert.Single(replaced.Command);
+        Assert.DoesNotContain(replaced.Command, row => ids.Values.Any(id => row.StartsWith($"{id}:", StringComparison.Ordinal)));
+        Assert.Equal(replaced.Command, replaced.ReadModel);
+
+        await ChangeAsync("Meal", definitionId, provisionId, WithRules(form, new JsonArray()));
+
+        Assert.Equal(" | ", StoresText(await RulesInBothStoresAsync(provisionId)));
+    }
+
+    [Fact]
+    public async Task PROF_08_R2_a_refused_change_leaves_the_stored_draft_and_its_form_as_they_were()
+    {
+        var (freeMealId, freeMeal) = await DefinitionAsync("A11");
+        var (wifiId, wifi) = await DefinitionAsync("A24");
+        var filed = Rules(Rule("VOL-24H", "Voluntary", 1440, null, "FixedAmount", amount: 15m));
+        var freeMealProvisionId = await DefineAsync("Meal", freeMealId, WithRules(Body("Meal", freeMeal), filed));
+        var wifiProvisionId = await DefineAsync("Connectivity", wifiId, WithRules(Body("Connectivity", wifi), filed));
+
+        foreach (var (profile, definitionId, provisionId, edit, code, status) in new (string, long, long, Action<JsonNode>, int, int)[]
+        {
+            ("Meal", freeMealId, freeMealProvisionId, body => { body["outcome"]!["disposition"] = "Paid"; body["priceOrigin"] = "Filed"; }, 16321, 409),
+            ("Connectivity", wifiId, wifiProvisionId, body => body["purchaseStage"] = "OnBoard", 16323, 409),
+            ("Meal", freeMealId, freeMealProvisionId, body => body["settlement"]!["cancellationRules"] = Rules(Rule("BAD", "Voluntary", 0, 10, "Percentage", percentage: 0m, percentageBase: "ServiceBase")), 16302, 422),
+            ("Connectivity", wifiId, wifiProvisionId, body => body["quantity"]!["unit"] = "Piece", 16312, 409)
+        })
+        {
+            var before = HostJson.Text(await FormAsync(profile, definitionId, provisionId));
+            var rows = await RulesInBothStoresAsync(provisionId);
+            var body = JsonNode.Parse((await FormAsync(profile, definitionId, provisionId))["form"]!.ToJsonString())!;
+
+            body["sequence"] = 77;
+            body["settlement"]!["cancellationRules"] = Rules(Rule("VOL-24H", "Voluntary", 1440, null, "FixedAmount", amount: 99m));
+            edit(body);
+
+            await RefusedAsync(code, status, desk => CallAsync(desk, profile, "Change", definitionId, provisionId, Bind(profile, body.ToJsonString())));
+
+            Assert.Equal(before, HostJson.Text(await FormAsync(profile, definitionId, provisionId)));
+            Assert.Equal(StoresText(rows), StoresText(await RulesInBothStoresAsync(provisionId)));
+        }
+
+        var genericBaggage = freeMeal with { ApplicationType = ProvisionApplicationType.Baggage, BaggageApplication = P1Commands.Baggage(23m, 1, 1) };
+
+        await BusinessAssert.ThrowsAsync(16321, 409, () => DeskAsync(desk => desk.Scope.DefineProvision.DefineAsync(genericBaggage)));
+    }
+
+    [Fact]
+    public async Task PROF_09_R4_a_provision_without_a_filed_penalty_currency_is_authored_without_the_currency_reference()
+    {
+        var (definitionId, rule) = await DefinitionAsync("A12");
+        var unreachable = new UnreachableCurrencies();
+
+        async Task<long> DefineWithoutReferenceAsync(TestDefineProvisionCommand command)
+        {
+            await using var scope = new AncillaryScope(_database, _clock);
+            var service = new DefineAncillaryProvisionService(
+                scope.Provisions,
+                scope.Definitions,
+                new AncillaryProvisionQueryDbSynchronizer(scope.Query, _clock),
+                unreachable,
+                scope.UnitOfWork,
+                _database.Ids,
+                _clock);
+
+            return (await service.DefineAsync(command)).Id;
+        }
+
+        var withoutRules = await DefineWithoutReferenceAsync(rule);
+        var percentageOnly = await DefineWithoutReferenceAsync(rule with
+        {
+            Sequence = rule.Sequence + 1,
+            Settlement = rule.Settlement with
+            {
+                CancellationRules = [new ProvisionCancellationRuleInput("VOL", CancellationReasonKind.Voluntary, 0, null, PenaltyKind.Percentage, null, 25m, null, CancellationPercentageBase.ServiceBase, false, "CARRIER-FILED-TERMS")]
+            }
+        });
+
+        Assert.True(withoutRules > 0 && percentageOnly > 0);
+        Assert.Equal(0, unreachable.Calls);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => DefineWithoutReferenceAsync(rule with
+        {
+            Sequence = rule.Sequence + 2,
+            Settlement = rule.Settlement with
+            {
+                CancellationRules = [new ProvisionCancellationRuleInput("VOL", CancellationReasonKind.Voluntary, 0, null, PenaltyKind.FixedAmount, 5m, null, P1Commands.Eur, null, false, "CARRIER-FILED-TERMS")]
+            }
+        }));
+        Assert.Equal(1, unreachable.Calls);
+    }
+
+    private sealed class UnreachableCurrencies : ICurrencyReference
+    {
+        public int Calls { get; private set; }
+
+        public Task<IReadOnlyDictionary<int, int>> FindDecimalPlacesAsync(IReadOnlyCollection<int> currencyIds, CancellationToken cancellationToken = default)
+        {
+            Calls++;
+
+            throw new InvalidOperationException("The currency reference was called.");
+        }
+
+        public Task<IReadOnlyDictionary<int, string>> FindCodesAsync(IReadOnlyCollection<int> currencyIds, CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("The currency reference was called.");
     }
 
     private sealed class FixedForm(BackofficeProvisionFormDto form) : IGetAncillaryProvisionFormService

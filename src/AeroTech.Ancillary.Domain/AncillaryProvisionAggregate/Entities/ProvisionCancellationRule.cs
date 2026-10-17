@@ -1,6 +1,7 @@
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Framework.Core.Domain.Entities;
+using AeroTech.Framework.Core.ServiceContracts;
 using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
@@ -16,27 +17,10 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
         {
         }
 
-        internal ProvisionCancellationRule(
-            long id,
-            long ancillaryProvisionId,
-            ProvisionCancellationRuleArgs args,
-            IReadOnlyDictionary<int, int> currencyDecimalPlaces)
+        private ProvisionCancellationRule(long id, long ancillaryProvisionId)
         {
-            Ensure(args, currencyDecimalPlaces);
-
             Id = id;
             AncillaryProvisionId = ancillaryProvisionId;
-            RuleRef = args.RuleRef;
-            ReasonKind = args.ReasonKind;
-            BeforeStartMinutesFrom = args.BeforeStartMinutesFrom;
-            BeforeStartMinutesTo = args.BeforeStartMinutesTo;
-            PenaltyKind = args.PenaltyKind;
-            PenaltyFixedAmount = args.PenaltyFixedAmount;
-            PenaltyPercentage = args.PenaltyPercentage;
-            PenaltyCurrencyId = args.PenaltyCurrencyId;
-            PercentageBase = args.PercentageBase;
-            WaiverPermitted = args.WaiverPermitted;
-            SourceReference = args.SourceReference;
         }
 
         public long AncillaryProvisionId { get; private set; }
@@ -63,18 +47,37 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities
 
         public string? SourceReference { get; private set; }
 
-        internal bool SameAs(ProvisionCancellationRuleArgs args)
-            => RuleRef == args.RuleRef
-               && ReasonKind == args.ReasonKind
-               && BeforeStartMinutesFrom == args.BeforeStartMinutesFrom
-               && BeforeStartMinutesTo == args.BeforeStartMinutesTo
-               && PenaltyKind == args.PenaltyKind
-               && PenaltyFixedAmount == args.PenaltyFixedAmount
-               && PenaltyPercentage == args.PenaltyPercentage
-               && PenaltyCurrencyId == args.PenaltyCurrencyId
-               && PercentageBase == args.PercentageBase
-               && WaiverPermitted == args.WaiverPermitted
-               && SourceReference == args.SourceReference;
+        internal static Func<ProvisionCancellationRule> Plan(
+            ProvisionCancellationRule? stored,
+            long ancillaryProvisionId,
+            ProvisionCancellationRuleArgs args,
+            IReadOnlyDictionary<int, int> currencyDecimalPlaces,
+            IIdGenerator idGenerator)
+        {
+            Ensure(args, currencyDecimalPlaces);
+
+            var rule = stored ?? new ProvisionCancellationRule(idGenerator.NewId(), ancillaryProvisionId);
+
+            return () =>
+            {
+                rule.RuleRef = args.RuleRef;
+                rule.ReasonKind = args.ReasonKind;
+                rule.BeforeStartMinutesFrom = args.BeforeStartMinutesFrom;
+                rule.BeforeStartMinutesTo = args.BeforeStartMinutesTo;
+                rule.PenaltyKind = args.PenaltyKind;
+                rule.PenaltyFixedAmount = args.PenaltyFixedAmount;
+                rule.PenaltyPercentage = args.PenaltyPercentage;
+                rule.PenaltyCurrencyId = args.PenaltyCurrencyId;
+                rule.PercentageBase = args.PercentageBase;
+                rule.WaiverPermitted = args.WaiverPermitted;
+                rule.SourceReference = args.SourceReference;
+
+                return rule;
+            };
+        }
+
+        internal static bool SameRuleRef(string first, string second)
+            => string.Equals(first, second, StringComparison.OrdinalIgnoreCase);
 
         internal static bool Overlap(ProvisionCancellationRuleArgs first, ProvisionCancellationRuleArgs second)
             => first.ReasonKind == second.ReasonKind
