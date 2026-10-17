@@ -70,6 +70,7 @@ public static class M1Fixtures
             AvailabilityDefinition.Create(false),
             FulfillmentDefinition.Create("Ancillary"),
             P1Fixtures.Rules(null, ProvisionApplicationType.Standard),
+            new Dictionary<int, int>(),
             new SequentialIdGenerator(),
             Now);
 

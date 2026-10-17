@@ -1,4 +1,6 @@
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate;
+using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments;
+using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities;
 using AeroTech.Framework.Core.Domain.Aggregates;
 using Xunit;
 
@@ -48,6 +50,9 @@ public class P1BoundaryConformanceTests
         foreach (var term in forbidden)
             Assert.DoesNotContain(
                 DomainTypes,
-                type => type.Name.Contains(term, StringComparison.Ordinal) && !type.Name.Contains("ReadModelSnapshot", StringComparison.Ordinal));
+                type => type.Name.Contains(term, StringComparison.Ordinal)
+                        && !type.Name.Contains("ReadModelSnapshot", StringComparison.Ordinal)
+                        && type != typeof(ProvisionCancellationRule)
+                        && type != typeof(ProvisionCancellationRuleArgs));
     }
 }

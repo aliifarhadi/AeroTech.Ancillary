@@ -31,6 +31,7 @@ public class V121FinalDescriptorConformanceTests
             AvailabilityDefinition.Create(false),
             FulfillmentDefinition.Create("Ancillary"),
             Rules(null, ProvisionApplicationType.Standard),
+            new Dictionary<int, int>(),
             new SequentialIdGenerator(),
             Now);
 

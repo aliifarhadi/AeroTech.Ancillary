@@ -37,7 +37,8 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Services
             ProvisionSeatApplicationInput? seatApplication,
             ProvisionPetRuleInput? petRule,
             ProvisionAssistedTravelRuleInput? assistedTravelRule,
-            ProvisionAirportServiceRuleInput? airportServiceRule)
+            ProvisionAirportServiceRuleInput? airportServiceRule,
+            IReadOnlyList<ProvisionCancellationRuleInput>? cancellationRules)
             => new(
                 passengerEligibility.ToArgs(),
                 salesRestrictions.ToArgs(),
@@ -51,7 +52,25 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Services
                 seatApplication.ToArgs(),
                 petRule.ToArgs(),
                 assistedTravelRule.ToArgs(),
-                airportServiceRule.ToArgs());
+                airportServiceRule.ToArgs(),
+                cancellationRules?.Select(ToArgs).ToList());
+
+        public static ProvisionCancellationRuleArgs ToArgs(this ProvisionCancellationRuleInput input)
+            => new(
+                input.RuleRef,
+                input.ReasonKind,
+                input.BeforeStartMinutesFrom,
+                input.BeforeStartMinutesTo,
+                input.PenaltyKind,
+                input.PenaltyFixedAmount,
+                input.PenaltyPercentage,
+                input.PenaltyCurrencyId,
+                input.PercentageBase,
+                input.WaiverPermitted,
+                input.SourceReference);
+
+        public static IReadOnlyCollection<int> PenaltyCurrencyIds(this ProvisionSettlementInput settlement)
+            => settlement.CancellationRules?.Select(rule => rule.PenaltyCurrencyId).OfType<int>().Distinct().ToList() ?? [];
 
         public static ProvisionPassengerEligibilityArgs? ToArgs(this ProvisionPassengerEligibilityInput? input)
             => input is null

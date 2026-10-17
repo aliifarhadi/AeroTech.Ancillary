@@ -1,9 +1,12 @@
 using AeroTech.Ancillary.Application._Shared.Behaviors;
+using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetProfileProvisionCreateForm;
+using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetProfileProvisionForm;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetSeatProvisionCreateForm;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetSeatProvisionForm;
 using AeroTech.Ancillary.Query._Shared.DbContexts;
 using AeroTech.Framework.Core.ServiceContracts;
 using FluentValidation;
+using AeroTech.Ancillary.RestApi.V1.AncillaryProvisionAggregate.Controllers;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using DefinitionController = AeroTech.Ancillary.RestApi.V1.AncillaryServiceDefinitionAggregate.Controllers.BackofficeController;
@@ -36,6 +39,8 @@ public sealed class ControllerDesk : IAsyncDisposable
         services.AddSingleton(Scope.GetProvisionForm);
         services.AddSingleton<IGetSeatProvisionCreateFormService>(new GetSeatProvisionCreateFormService(Scope.Definitions));
         services.AddSingleton<IGetSeatProvisionFormService>(new GetSeatProvisionFormService(Scope.GetProvisionForm));
+        services.AddSingleton<IGetProfileProvisionCreateFormService>(new GetProfileProvisionCreateFormService(Scope.Definitions));
+        services.AddSingleton<IGetProfileProvisionFormService>(new GetProfileProvisionFormService(Scope.GetProvisionForm, Scope.Definitions));
 
         _provider = services.BuildServiceProvider();
     }
@@ -47,6 +52,22 @@ public sealed class ControllerDesk : IAsyncDisposable
     public ProvisionController Provisions => new(_provider.GetRequiredService<IMediator>());
 
     public SeatProvisionController SeatProvisions => new(_provider.GetRequiredService<IMediator>());
+
+    public BaggageBackofficeController BaggageProvisions => new(_provider.GetRequiredService<IMediator>());
+
+    public UpgradeBackofficeController UpgradeProvisions => new(_provider.GetRequiredService<IMediator>());
+
+    public MealBackofficeController MealProvisions => new(_provider.GetRequiredService<IMediator>());
+
+    public PetBackofficeController PetProvisions => new(_provider.GetRequiredService<IMediator>());
+
+    public AssistedTravelBackofficeController AssistedTravelProvisions => new(_provider.GetRequiredService<IMediator>());
+
+    public AirportServiceBackofficeController AirportServiceProvisions => new(_provider.GetRequiredService<IMediator>());
+
+    public PriorityBackofficeController PriorityProvisions => new(_provider.GetRequiredService<IMediator>());
+
+    public ConnectivityBackofficeController ConnectivityProvisions => new(_provider.GetRequiredService<IMediator>());
 
     public async ValueTask DisposeAsync()
     {

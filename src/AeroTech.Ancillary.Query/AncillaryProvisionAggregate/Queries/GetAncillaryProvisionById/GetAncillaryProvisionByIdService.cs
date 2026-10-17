@@ -157,6 +157,11 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                     .AsNoTracking()
                     .Where(row => row.AncillaryProvisionId == provisionId)
                     .OrderBy(row => row.Id)
+                    .ToListAsync(cancellationToken),
+                await _dbContext.AncillaryProvisionCancellationRules
+                    .AsNoTracking()
+                    .Where(row => row.AncillaryProvisionId == provisionId)
+                    .OrderBy(row => row.Id)
                     .ToListAsync(cancellationToken));
 
             return AncillaryProvisionMapper.ToBackofficeProvision(provision, definition?.ServiceDateBasis, definition?.Profile, definition?.VariantCode, rows);

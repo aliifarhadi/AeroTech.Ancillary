@@ -26,6 +26,7 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Dto
         EnumValueDto? FormOfRefund,
         bool Commissionable,
         bool InterlineSettlement,
+        IReadOnlyList<BackofficeProvisionCancellationRuleDto> CancellationRules,
         bool MustCheckAvailability,
         string FulfillmentProviderKey,
         DateTimeOffset CreatedAt,
@@ -140,6 +141,20 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Dto
         long Id,
         EnumValueDto LocationType,
         int LocationId);
+
+    public sealed record BackofficeProvisionCancellationRuleDto(
+        long Id,
+        string RuleRef,
+        EnumValueDto ReasonKind,
+        int? BeforeStartMinutesFrom,
+        int? BeforeStartMinutesTo,
+        EnumValueDto PenaltyKind,
+        decimal? PenaltyFixedAmount,
+        decimal? PenaltyPercentage,
+        int? PenaltyCurrencyId,
+        EnumValueDto? PercentageBase,
+        bool WaiverPermitted,
+        string? SourceReference);
 
     public sealed record BackofficeProvisionDatePeriodDto(
         long Id,

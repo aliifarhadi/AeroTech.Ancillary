@@ -1,6 +1,8 @@
 using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Query.AncillaryPricingAggregate.Queries.GetProvisionPricingsPaginated;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncillaryProvisionForm;
+using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetProfileProvisionCreateForm;
+using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetProfileProvisionForm;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetSeatProvisionCreateForm;
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetSeatProvisionForm;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSelection;
@@ -74,6 +76,8 @@ namespace AeroTech.Ancillary.Query
             services.AddScoped<IGetAncillaryProvisionFormService, GetAncillaryProvisionFormService>();
             services.AddScoped<IGetSeatProvisionCreateFormService, GetSeatProvisionCreateFormService>();
             services.AddScoped<IGetSeatProvisionFormService, GetSeatProvisionFormService>();
+            services.AddScoped<IGetProfileProvisionCreateFormService, GetProfileProvisionCreateFormService>();
+            services.AddScoped<IGetProfileProvisionFormService, GetProfileProvisionFormService>();
             services.AddScoped<IGetAncillaryProvisionsPaginatedService, GetAncillaryProvisionsPaginatedService>();
             services.AddScoped<IGetAncillaryPricingByIdService, GetAncillaryPricingByIdService>();
             services.AddScoped<IGetAncillaryPricingsPaginatedService, GetAncillaryPricingsPaginatedService>();

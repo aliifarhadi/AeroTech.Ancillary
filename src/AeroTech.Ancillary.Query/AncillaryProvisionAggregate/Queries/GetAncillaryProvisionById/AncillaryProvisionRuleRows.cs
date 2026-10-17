@@ -29,5 +29,6 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
         IReadOnlyList<AncillaryProvisionServiceLocationReadModel> ServiceLocations,
         IReadOnlyList<AncillaryProvisionPermittedTravelPeriodReadModel> PermittedPeriods,
         IReadOnlyList<AncillaryProvisionBlackoutPeriodReadModel> BlackoutPeriods,
-        IReadOnlyList<AncillaryProvisionDayTimeWindowReadModel> Windows);
+        IReadOnlyList<AncillaryProvisionDayTimeWindowReadModel> Windows,
+        IReadOnlyList<AncillaryProvisionCancellationRuleReadModel> CancellationRules);
 }

@@ -77,6 +77,7 @@ public static class P1Fixtures
             AvailabilityDefinition.Create(false),
             FulfillmentDefinition.Create("Ancillary"),
             Rules(rules, applicationType),
+            new Dictionary<int, int>(),
             ids ?? new SequentialIdGenerator(),
             Now);
 
@@ -95,6 +96,7 @@ public static class P1Fixtures
             provision.Availability,
             provision.Fulfillment,
             Rules(rules, provision.ApplicationType),
+            new Dictionary<int, int>(),
             ids);
 
     public static ProvisionRulesArgs Rules(ProvisionRulesArgs? rules, ProvisionApplicationType applicationType)

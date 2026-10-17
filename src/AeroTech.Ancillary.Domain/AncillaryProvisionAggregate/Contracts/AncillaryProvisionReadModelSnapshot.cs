@@ -42,7 +42,22 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Contracts
         ProvisionSeatApplicationReadModelSnapshot? SeatApplication,
         ProvisionPetRuleReadModelSnapshot? PetRule,
         ProvisionAssistedTravelRuleReadModelSnapshot? AssistedTravelRule,
-        ProvisionAirportServiceRuleReadModelSnapshot? AirportServiceRule);
+        ProvisionAirportServiceRuleReadModelSnapshot? AirportServiceRule,
+        IReadOnlyList<ProvisionCancellationRuleReadModelSnapshot> CancellationRules);
+
+    public sealed record ProvisionCancellationRuleReadModelSnapshot(
+        long RowId,
+        string RuleRef,
+        CancellationReasonKind ReasonKind,
+        int? BeforeStartMinutesFrom,
+        int? BeforeStartMinutesTo,
+        PenaltyKind PenaltyKind,
+        decimal? PenaltyFixedAmount,
+        decimal? PenaltyPercentage,
+        int? PenaltyCurrencyId,
+        CancellationPercentageBase? PercentageBase,
+        bool WaiverPermitted,
+        string? SourceReference);
 
     public sealed record ProvisionRuleRowReadModelSnapshot<TValue>(
         long RowId,

@@ -34,7 +34,8 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                         Of<ReissueRefundPolicy>(provision.ReissueRefund),
                         OfNullable<FormOfRefund>(provision.FormOfRefund),
                         provision.Commissionable,
-                        provision.InterlineSettlement),
+                        provision.InterlineSettlement,
+                        provision.CancellationRules.Count == 0 ? null : provision.CancellationRules.Select(ToForm).ToList()),
                     new ProvisionAvailabilityInput(provision.MustCheckAvailability),
                     new ProvisionFulfillmentInput(provision.FulfillmentProviderKey),
                     provision.PassengerEligibility is null ? null : ToForm(provision.PassengerEligibility),
@@ -50,6 +51,20 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                     provision.PetRule is null ? null : ToForm(provision.PetRule),
                     provision.AssistedTravelRule is null ? null : ToForm(provision.AssistedTravelRule),
                     provision.AirportServiceRule is null ? null : ToForm(provision.AirportServiceRule)));
+
+        private static ProvisionCancellationRuleInput ToForm(BackofficeProvisionCancellationRuleDto rule)
+            => new(
+                rule.RuleRef,
+                Of<CancellationReasonKind>(rule.ReasonKind),
+                rule.BeforeStartMinutesFrom,
+                rule.BeforeStartMinutesTo,
+                Of<PenaltyKind>(rule.PenaltyKind),
+                rule.PenaltyFixedAmount,
+                rule.PenaltyPercentage,
+                rule.PenaltyCurrencyId,
+                OfNullable<CancellationPercentageBase>(rule.PercentageBase),
+                rule.WaiverPermitted,
+                rule.SourceReference);
 
         private static ProvisionPassengerEligibilityInput ToForm(BackofficeProvisionPassengerEligibilityDto rule)
             => new(

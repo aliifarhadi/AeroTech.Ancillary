@@ -219,11 +219,8 @@ public class V122JourneyAcceptanceTests
         });
         var priority = await ProductAsync("A23", airlineId, supplierId);
         var sold = await _harness.Proof.RuleAsync(Rule("A24", onBoard.Id) with { PurchaseStage = PurchaseStage.OnBoard }, Euro(9m));
-        var preflight = await RequestAsync(scope => scope.DefineProvision.DefineAsync(Unavailable(Rule("A24", onBoard.Id, 20))));
-        var misplaced = await RequestAsync(scope => scope.DefineProvision.DefineAsync(Unavailable(Rule("A23", priority.Id)) with { PurchaseStage = PurchaseStage.OnBoard }));
-
-        await RefusedAsync(16323, 409, scope => scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(preflight.Id)));
-        await RefusedAsync(16323, 409, scope => scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(misplaced.Id)));
+        await RefusedAsync(16323, 409, scope => scope.DefineProvision.DefineAsync(Unavailable(Rule("A24", onBoard.Id, 20))));
+        await RefusedAsync(16323, 409, scope => scope.DefineProvision.DefineAsync(Unavailable(Rule("A23", priority.Id)) with { PurchaseStage = PurchaseStage.OnBoard }));
 
         Assert.Equal(("Active", "OnBoard", 5), (sold.Provision.Status.Name, sold.Provision.PurchaseStage.Name, sold.Provision.PurchaseStage.Value));
         Assert.Equal("OnBoard", onBoard.Specification!.Connectivity!.DeliveryStage.Name);

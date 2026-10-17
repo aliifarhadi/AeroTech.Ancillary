@@ -1,6 +1,8 @@
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments;
+using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.Domain._Shared.Resources;
+using AeroTech.Framework.Core.ServiceContracts;
 
 namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
 {
@@ -12,6 +14,32 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             EnsureProfileRule(definition, rules.PetRule is not null && definition.Pet is null, nameof(PetRule));
             EnsureProfileRule(definition, rules.AssistedTravelRule is not null && definition.AssistedTravel is null, nameof(AssistedTravelRule));
             EnsureProfileRule(definition, rules.AirportServiceRule is not null && definition.AirportService is null, nameof(AirportServiceRule));
+        }
+
+        private List<ProvisionCancellationRule>? PlanCancellationRules(
+            IReadOnlyList<ProvisionCancellationRuleArgs>? rules,
+            IReadOnlyDictionary<int, int> currencyDecimalPlaces,
+            IIdGenerator idGenerator)
+        {
+            if (rules is null)
+                return null;
+
+            if (rules.Any(rule => rule is null))
+                throw ExceptionFactory.ProvisionIsInvalid(nameof(CancellationRules));
+
+            for (var index = 1; index < rules.Count; index++)
+            {
+                if (rules.Take(index).Any(previous => previous.RuleRef == rules[index].RuleRef))
+                    throw ExceptionFactory.ProvisionIsInvalid($"{nameof(ProvisionCancellationRule)}.{nameof(ProvisionCancellationRule.RuleRef)}");
+
+                if (rules.Take(index).Any(previous => ProvisionCancellationRule.Overlap(previous, rules[index])))
+                    throw ExceptionFactory.ProvisionIsInvalid($"{nameof(ProvisionCancellationRule)}.{nameof(ProvisionCancellationRule.BeforeStartMinutesFrom)}");
+            }
+
+            return rules
+                .Select(rule => _cancellationRules.FirstOrDefault(row => row.SameAs(rule))
+                                ?? new ProvisionCancellationRule(idGenerator.NewId(), Id, rule, currencyDecimalPlaces))
+                .ToList();
         }
 
         private static void EnsureProfileRule(AncillaryServiceDefinition definition, bool foreign, string rule)

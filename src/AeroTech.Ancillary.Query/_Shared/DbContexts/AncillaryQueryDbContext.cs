@@ -78,6 +78,8 @@ namespace AeroTech.Ancillary.Query._Shared.DbContexts
 
         public DbSet<AncillaryProvisionDayTimeWindowReadModel> AncillaryProvisionDayTimeWindows => Set<AncillaryProvisionDayTimeWindowReadModel>();
 
+        public DbSet<AncillaryProvisionCancellationRuleReadModel> AncillaryProvisionCancellationRules => Set<AncillaryProvisionCancellationRuleReadModel>();
+
         public DbSet<AncillaryProvisionSeatNumberReadModel> AncillaryProvisionSeatNumbers => Set<AncillaryProvisionSeatNumberReadModel>();
 
         public DbSet<AncillaryProvisionSeatCharacteristicReadModel> AncillaryProvisionSeatCharacteristics => Set<AncillaryProvisionSeatCharacteristicReadModel>();

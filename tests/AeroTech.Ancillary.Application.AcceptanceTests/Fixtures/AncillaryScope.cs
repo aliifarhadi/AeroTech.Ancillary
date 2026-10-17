@@ -101,8 +101,8 @@ public sealed class AncillaryScope : IAsyncDisposable
             UnitOfWork);
         AssignServiceDateBasis = new AssignAncillaryServiceDefinitionServiceDateBasisService(Definitions, Suppliers, definitionSynchronizer, UnitOfWork);
 
-        DefineProvision = new DefineAncillaryProvisionService(Provisions, Definitions, provisionSynchronizer, UnitOfWork, ids, clock);
-        ChangeProvision = new ChangeAncillaryProvisionService(Provisions, Definitions, provisionSynchronizer, UnitOfWork, ids);
+        DefineProvision = new DefineAncillaryProvisionService(Provisions, Definitions, provisionSynchronizer, currencies, UnitOfWork, ids, clock);
+        ChangeProvision = new ChangeAncillaryProvisionService(Provisions, Definitions, provisionSynchronizer, currencies, UnitOfWork, ids);
         ActivateProvision = new ActivateAncillaryProvisionService(Provisions, Definitions, Suppliers, Pricings, provisionSynchronizer, UnitOfWork, clock);
         PublishProvision = new PublishAncillaryProvisionService(
             Provisions,

@@ -3,6 +3,7 @@ using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Projection;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Services;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Contracts;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Contracts;
+using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Framework.Core.Domain.Repository;
 using AeroTech.Framework.Core.ServiceContracts;
@@ -14,6 +15,7 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Ch
         private readonly IAncillaryProvisionRepository _provisions;
         private readonly IAncillaryServiceDefinitionRepository _definitions;
         private readonly IAncillaryProvisionQueryDbSynchronizer _synchronizer;
+        private readonly ICurrencyReference _currencies;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IIdGenerator _idGenerator;
 
@@ -21,12 +23,14 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Ch
             IAncillaryProvisionRepository provisions,
             IAncillaryServiceDefinitionRepository definitions,
             IAncillaryProvisionQueryDbSynchronizer synchronizer,
+            ICurrencyReference currencies,
             IUnitOfWork unitOfWork,
             IIdGenerator idGenerator)
         {
             _provisions = provisions;
             _definitions = definitions;
             _synchronizer = synchronizer;
+            _currencies = currencies;
             _unitOfWork = unitOfWork;
             _idGenerator = idGenerator;
         }
@@ -71,7 +75,9 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Ch
                     command.SeatApplication,
                     command.PetRule,
                     command.AssistedTravelRule,
-                    command.AirportServiceRule),
+                    command.AirportServiceRule,
+                    command.Settlement.CancellationRules),
+                await _currencies.FindDecimalPlacesAsync(command.Settlement.PenaltyCurrencyIds(), cancellationToken),
                 _idGenerator);
 
             await _synchronizer.ProjectAsync(provision.ToReadModelSnapshot(), cancellationToken);

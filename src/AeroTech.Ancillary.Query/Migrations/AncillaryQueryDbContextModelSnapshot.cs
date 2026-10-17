@@ -451,6 +451,59 @@ namespace AeroTech.Ancillary.Query.Migrations
                     b.ToTable("AncillaryProvisionCabinClasses", "ReadModel");
                 });
 
+            modelBuilder.Entity("AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models.AncillaryProvisionCancellationRuleReadModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("AncillaryProvisionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("BeforeStartMinutesFrom")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BeforeStartMinutesTo")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PenaltyCurrencyId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("PenaltyFixedAmount")
+                        .HasPrecision(19, 6)
+                        .HasColumnType("decimal(19,6)");
+
+                    b.Property<int>("PenaltyKind")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("PenaltyPercentage")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("decimal(9,4)");
+
+                    b.Property<int?>("PercentageBase")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReasonKind")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RuleRef")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("SourceReference")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("WaiverPermitted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AncillaryProvisionId");
+
+                    b.ToTable("AncillaryProvisionCancellationRules", "ReadModel");
+                });
+
             modelBuilder.Entity("AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Models.AncillaryProvisionCoverageCountryReadModel", b =>
                 {
                     b.Property<long>("Id")
@@ -1601,6 +1654,10 @@ namespace AeroTech.Ancillary.Query.Migrations
 
                     b.Property<DateTimeOffset>("LastUpdateTime")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("TimeZoneId")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
 

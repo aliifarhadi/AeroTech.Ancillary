@@ -339,6 +339,27 @@ namespace AeroTech.Ancillary.Synchronizer.AncillaryProvisionAggregate
                 item => item.RowId,
                 item => new AncillaryProvisionSeatCharacteristicReadModel { Id = item.RowId, AncillaryProvisionId = snapshot.ProvisionId },
                 (row, item) => row.CharacteristicCode = item.Value);
+            ProjectRows(
+                _dbContext.AncillaryProvisionCancellationRules,
+                await _dbContext.AncillaryProvisionCancellationRules.Where(row => row.AncillaryProvisionId == snapshot.ProvisionId).ToListAsync(cancellationToken),
+                snapshot.CancellationRules,
+                row => row.Id,
+                item => item.RowId,
+                item => new AncillaryProvisionCancellationRuleReadModel { Id = item.RowId, AncillaryProvisionId = snapshot.ProvisionId },
+                (row, item) =>
+                {
+                    row.RuleRef = item.RuleRef;
+                    row.ReasonKind = item.ReasonKind;
+                    row.BeforeStartMinutesFrom = item.BeforeStartMinutesFrom;
+                    row.BeforeStartMinutesTo = item.BeforeStartMinutesTo;
+                    row.PenaltyKind = item.PenaltyKind;
+                    row.PenaltyFixedAmount = item.PenaltyFixedAmount;
+                    row.PenaltyPercentage = item.PenaltyPercentage;
+                    row.PenaltyCurrencyId = item.PenaltyCurrencyId;
+                    row.PercentageBase = item.PercentageBase;
+                    row.WaiverPermitted = item.WaiverPermitted;
+                    row.SourceReference = item.SourceReference;
+                });
         }
 
         private static void ProjectRows<TRow, TSnapshot>(

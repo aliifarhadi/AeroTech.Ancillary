@@ -159,6 +159,7 @@ public sealed class ShoppingLab
                 BaggageApplication = baggage,
                 SeatApplication = authored.SeatApplication ?? (definition.Seat is null ? null : new ProvisionSeatApplicationArgs([], ["E"]))
             },
+            new Dictionary<int, int>(),
             _ids,
             Now);
 

@@ -124,7 +124,7 @@ public class V12BoundaryAcceptanceTests
             new[] { "GetAncillaryHoldById" },
             Folders("AeroTech.Ancillary.Query", FrozenAggregate, "Queries"));
         Assert.DoesNotContain(
-            Files(Source).Select(path => Path.GetFileName(path)!),
+            Files(Source).Select(path => Path.GetFileName(path)!).Where(name => !name.Contains("ProvisionCancellationRule", StringComparison.Ordinal)),
             name => new[] { "Cancel", "Release", "Issue", "Split", "History" }.Any(term => name.Contains(term, StringComparison.Ordinal)));
 
         var frozen = Files(Source)
@@ -276,7 +276,39 @@ public class V12BoundaryAcceptanceTests
             "GET Backoffice/AncillaryServiceDefinitions/Seat/{serviceDefinitionId:long}/ProvisionForm",
             "POST Backoffice/AncillaryServiceDefinitions/Seat/{serviceDefinitionId:long}/Provisions",
             "GET Backoffice/AncillaryServiceDefinitions/Seat/{serviceDefinitionId:long}/Provisions/{provisionId:long}/Form",
-            "PUT Backoffice/AncillaryServiceDefinitions/Seat/{serviceDefinitionId:long}/Provisions/{provisionId:long}"
+            "PUT Backoffice/AncillaryServiceDefinitions/Seat/{serviceDefinitionId:long}/Provisions/{provisionId:long}",
+            "GET Backoffice/AncillaryServiceDefinitions/Baggage/{serviceDefinitionId:long}/ProvisionForm",
+            "POST Backoffice/AncillaryServiceDefinitions/Baggage/{serviceDefinitionId:long}/Provisions",
+            "GET Backoffice/AncillaryServiceDefinitions/Baggage/{serviceDefinitionId:long}/Provisions/{provisionId:long}/Form",
+            "PUT Backoffice/AncillaryServiceDefinitions/Baggage/{serviceDefinitionId:long}/Provisions/{provisionId:long}",
+            "GET Backoffice/AncillaryServiceDefinitions/Upgrade/{serviceDefinitionId:long}/ProvisionForm",
+            "POST Backoffice/AncillaryServiceDefinitions/Upgrade/{serviceDefinitionId:long}/Provisions",
+            "GET Backoffice/AncillaryServiceDefinitions/Upgrade/{serviceDefinitionId:long}/Provisions/{provisionId:long}/Form",
+            "PUT Backoffice/AncillaryServiceDefinitions/Upgrade/{serviceDefinitionId:long}/Provisions/{provisionId:long}",
+            "GET Backoffice/AncillaryServiceDefinitions/Meal/{serviceDefinitionId:long}/ProvisionForm",
+            "POST Backoffice/AncillaryServiceDefinitions/Meal/{serviceDefinitionId:long}/Provisions",
+            "GET Backoffice/AncillaryServiceDefinitions/Meal/{serviceDefinitionId:long}/Provisions/{provisionId:long}/Form",
+            "PUT Backoffice/AncillaryServiceDefinitions/Meal/{serviceDefinitionId:long}/Provisions/{provisionId:long}",
+            "GET Backoffice/AncillaryServiceDefinitions/Pet/{serviceDefinitionId:long}/ProvisionForm",
+            "POST Backoffice/AncillaryServiceDefinitions/Pet/{serviceDefinitionId:long}/Provisions",
+            "GET Backoffice/AncillaryServiceDefinitions/Pet/{serviceDefinitionId:long}/Provisions/{provisionId:long}/Form",
+            "PUT Backoffice/AncillaryServiceDefinitions/Pet/{serviceDefinitionId:long}/Provisions/{provisionId:long}",
+            "GET Backoffice/AncillaryServiceDefinitions/AssistedTravel/{serviceDefinitionId:long}/ProvisionForm",
+            "POST Backoffice/AncillaryServiceDefinitions/AssistedTravel/{serviceDefinitionId:long}/Provisions",
+            "GET Backoffice/AncillaryServiceDefinitions/AssistedTravel/{serviceDefinitionId:long}/Provisions/{provisionId:long}/Form",
+            "PUT Backoffice/AncillaryServiceDefinitions/AssistedTravel/{serviceDefinitionId:long}/Provisions/{provisionId:long}",
+            "GET Backoffice/AncillaryServiceDefinitions/AirportService/{serviceDefinitionId:long}/ProvisionForm",
+            "POST Backoffice/AncillaryServiceDefinitions/AirportService/{serviceDefinitionId:long}/Provisions",
+            "GET Backoffice/AncillaryServiceDefinitions/AirportService/{serviceDefinitionId:long}/Provisions/{provisionId:long}/Form",
+            "PUT Backoffice/AncillaryServiceDefinitions/AirportService/{serviceDefinitionId:long}/Provisions/{provisionId:long}",
+            "GET Backoffice/AncillaryServiceDefinitions/Priority/{serviceDefinitionId:long}/ProvisionForm",
+            "POST Backoffice/AncillaryServiceDefinitions/Priority/{serviceDefinitionId:long}/Provisions",
+            "GET Backoffice/AncillaryServiceDefinitions/Priority/{serviceDefinitionId:long}/Provisions/{provisionId:long}/Form",
+            "PUT Backoffice/AncillaryServiceDefinitions/Priority/{serviceDefinitionId:long}/Provisions/{provisionId:long}",
+            "GET Backoffice/AncillaryServiceDefinitions/Connectivity/{serviceDefinitionId:long}/ProvisionForm",
+            "POST Backoffice/AncillaryServiceDefinitions/Connectivity/{serviceDefinitionId:long}/Provisions",
+            "GET Backoffice/AncillaryServiceDefinitions/Connectivity/{serviceDefinitionId:long}/Provisions/{provisionId:long}/Form",
+            "PUT Backoffice/AncillaryServiceDefinitions/Connectivity/{serviceDefinitionId:long}/Provisions/{provisionId:long}"
         ];
 
         string[] inventory =
@@ -322,7 +354,7 @@ public class V12BoundaryAcceptanceTests
         Assert.Equal(
             preserved.Concat(added).Concat(typed).Concat(forms).Concat(inventory).OrderBy(route => route, StringComparer.Ordinal),
             routes.OrderBy(route => route, StringComparer.Ordinal));
-        Assert.Equal(118, routes.Count);
+        Assert.Equal(150, routes.Count);
         Assert.Equal(36, inventory.Length);
         Assert.DoesNotContain(routes, route => new[] { "Sell", "Reserve", "Release", "Expire" }.Any(term => route.Contains(term, StringComparison.Ordinal)));
         Assert.Equal(
@@ -429,7 +461,7 @@ public class V12BoundaryAcceptanceTests
         Assert.Contains(authored, path => Path.GetFileName(path) == "ProvisionDayTimeWindow.cs");
         Assert.Contains(authored, path => Path.GetFileName(path) == "ServiceDateBasis.cs");
         Assert.Equal(
-            13,
+            14,
             authored.Count(path => InFolder(path, "AeroTech.Ancillary.Domain") && Regex.IsMatch(Path.GetFileName(path), @"^Provision[A-Za-z]+Rule\.cs$")));
     }
 

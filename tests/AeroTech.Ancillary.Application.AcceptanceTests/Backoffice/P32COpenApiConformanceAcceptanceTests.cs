@@ -99,7 +99,7 @@ public class P32COpenApiConformanceAcceptanceTests
             .ToList();
         var choices = roots.SelectMany(root => Reachable(root, seen)).Where(schema => schema.OneOf.Count > 0).ToList();
 
-        Assert.Equal(31, typed.Count);
+        Assert.Equal(63, typed.Count);
         Assert.Equal(18, choices.Count);
         Assert.All(choices, choice =>
         {

@@ -166,6 +166,22 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
         {
             RuleFor(settlement => settlement.ReissueRefund).IsInEnum();
             RuleFor(settlement => settlement.FormOfRefund).IsInEnum().When(settlement => settlement.FormOfRefund is not null);
+            RuleForEach(settlement => settlement.CancellationRules)
+                .NotNull()
+                .SetValidator(new ProvisionCancellationRuleInputValidator())
+                .When(settlement => settlement.CancellationRules is not null);
+        }
+    }
+
+    public sealed class ProvisionCancellationRuleInputValidator : AbstractValidator<ProvisionCancellationRuleInput>
+    {
+        public ProvisionCancellationRuleInputValidator()
+        {
+            RuleFor(rule => rule.RuleRef).NotEmpty().MaximumLength(50);
+            RuleFor(rule => rule.ReasonKind).IsInEnum();
+            RuleFor(rule => rule.PenaltyKind).IsInEnum();
+            RuleFor(rule => rule.PercentageBase).IsInEnum().When(rule => rule.PercentageBase is not null);
+            RuleFor(rule => rule.SourceReference).MaximumLength(256);
         }
     }
 

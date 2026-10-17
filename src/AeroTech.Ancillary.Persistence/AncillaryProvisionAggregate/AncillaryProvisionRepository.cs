@@ -85,6 +85,7 @@ namespace AeroTech.Ancillary.Persistence.AncillaryProvisionAggregate
                 .Include(provision => provision.PetRule)
                 .Include(provision => provision.AssistedTravelRule)
                 .Include(provision => provision.AirportServiceRule)
+                .Include(provision => provision.CancellationRules)
                 .AsSplitQuery();
     }
 }

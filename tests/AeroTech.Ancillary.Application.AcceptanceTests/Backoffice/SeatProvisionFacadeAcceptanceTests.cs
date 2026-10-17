@@ -182,6 +182,7 @@ public class SeatProvisionFacadeAcceptanceTests
             },
             Members(view));
         Assert.Equal(SeatMembers, Members(form));
+        Assert.Equal(new[] { "reissueRefund", "formOfRefund", "commissionable", "interlineSettlement" }, Members(form["settlement"]!));
         Assert.Equal(typeof(SeatProvisionRequest).GetProperties().Select(member => JsonNamingPolicy.CamelCase.ConvertName(member.Name)), Members(form));
         Assert.Equal(
             (provisionId.ToString(), definitionId.ToString(), "Draft", "Seat", variantCode, true, maxQuantity, preferred),
@@ -290,10 +291,10 @@ public class SeatProvisionFacadeAcceptanceTests
             Request(standard with { SeatApplication = new ProvisionSeatApplicationInput(["12A"], null), FlightApplication = null }),
             CancellationToken.None));
 
-        var capped = await DefineSeatAsync(standardId, Request(Free(standard) with { Quantity = two }));
+        await RefusedAsync(16321, 409, desk => desk.SeatProvisions.Define(standardId, Request(Free(standard) with { Quantity = two }), CancellationToken.None));
+
         var uncapped = await DefineSeatAsync(extraId, Request(Free(extra) with { Quantity = two, Sequence = 20 }));
 
-        await RefusedAsync(16321, 409, desk => desk.Scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(capped)));
         await DeskAsync(desk => desk.Scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(uncapped)));
 
         var active = await SeatFormAsync(extraId, uncapped);

@@ -49,6 +49,21 @@ namespace AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetAncill
                 EnumValueDto.OfNullable(provision.FormOfRefund),
                 provision.Commissionable,
                 provision.InterlineSettlement,
+                rows.CancellationRules
+                    .Select(row => new BackofficeProvisionCancellationRuleDto(
+                        row.Id,
+                        row.RuleRef,
+                        EnumValueDto.Of(row.ReasonKind),
+                        row.BeforeStartMinutesFrom,
+                        row.BeforeStartMinutesTo,
+                        EnumValueDto.Of(row.PenaltyKind),
+                        row.PenaltyFixedAmount,
+                        row.PenaltyPercentage,
+                        row.PenaltyCurrencyId,
+                        EnumValueDto.OfNullable(row.PercentageBase),
+                        row.WaiverPermitted,
+                        row.SourceReference))
+                    .ToList(),
                 provision.MustCheckAvailability,
                 provision.FulfillmentProviderKey,
                 provision.CreatedAt,

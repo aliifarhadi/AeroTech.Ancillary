@@ -13,6 +13,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
     {
         private const int QuoteProviderKeyMaxLength = 50;
 
+        private readonly List<ProvisionCancellationRule> _cancellationRules = new();
+
         private AncillaryProvision()
         {
         }
@@ -83,6 +85,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
 
         public ProvisionAirportServiceRule? AirportServiceRule { get; private set; }
 
+        public IReadOnlyCollection<ProvisionCancellationRule> CancellationRules => _cancellationRules.AsReadOnly();
+
         public static AncillaryProvision Define(
             long id,
             AncillaryServiceDefinition definition,
@@ -98,6 +102,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             AvailabilityDefinition availability,
             FulfillmentDefinition fulfillment,
             ProvisionRulesArgs rules,
+            IReadOnlyDictionary<int, int> currencyDecimalPlaces,
             IIdGenerator idGenerator,
             DateTimeOffset createdAt)
         {
@@ -108,7 +113,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             provision.Status = ProvisionStatus.Draft;
             provision.CreatedAt = createdAt;
             provision.EnsureProfileRules(definition, rules);
-            provision.Apply(sequence, coverageScope, purchaseStage, priceOrigin, quoteProviderKey, quantity, applicationType, outcome, settlement, availability, fulfillment, rules, idGenerator);
+            provision.Apply(sequence, coverageScope, purchaseStage, priceOrigin, quoteProviderKey, quantity, applicationType, outcome, settlement, availability, fulfillment, rules, currencyDecimalPlaces, idGenerator);
+            provision.EnsureAuthoringConformance(definition);
 
             return provision;
         }
@@ -127,12 +133,14 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             AvailabilityDefinition availability,
             FulfillmentDefinition fulfillment,
             ProvisionRulesArgs rules,
+            IReadOnlyDictionary<int, int> currencyDecimalPlaces,
             IIdGenerator idGenerator)
         {
             EnsureDraft();
             EnsureProfileRules(definition, rules);
 
-            Apply(sequence, coverageScope, purchaseStage, priceOrigin, quoteProviderKey, quantity, applicationType, outcome, settlement, availability, fulfillment, rules, idGenerator);
+            Apply(sequence, coverageScope, purchaseStage, priceOrigin, quoteProviderKey, quantity, applicationType, outcome, settlement, availability, fulfillment, rules, currencyDecimalPlaces, idGenerator);
+            EnsureAuthoringConformance(definition);
         }
 
         public void Activate(AncillaryServiceDefinition definition, string? recordedQuoteProviderKey, DateTimeOffset now)
@@ -197,6 +205,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             AvailabilityDefinition availability,
             FulfillmentDefinition fulfillment,
             ProvisionRulesArgs rules,
+            IReadOnlyDictionary<int, int> currencyDecimalPlaces,
             IIdGenerator idGenerator)
         {
             Require(sequence > 0, nameof(Sequence));
@@ -226,6 +235,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             var petRule = ProvisionPetRule.Plan(PetRule, Id, rules.PetRule, idGenerator);
             var assistedTravelRule = ProvisionAssistedTravelRule.Plan(AssistedTravelRule, Id, rules.AssistedTravelRule, idGenerator);
             var airportServiceRule = ProvisionAirportServiceRule.Plan(AirportServiceRule, Id, rules.AirportServiceRule, idGenerator);
+            var cancellationRules = PlanCancellationRules(rules.CancellationRules, currencyDecimalPlaces, idGenerator);
 
             EnsureApplicationRules(
                 applicationType,
@@ -259,6 +269,9 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             PetRule = petRule();
             AssistedTravelRule = assistedTravelRule();
             AirportServiceRule = airportServiceRule();
+
+            if (cancellationRules is not null)
+                ReplaceRows(_cancellationRules, cancellationRules);
         }
 
         private static PriceOrigin OriginOf(CommercialDisposition disposition, PriceOrigin requested)

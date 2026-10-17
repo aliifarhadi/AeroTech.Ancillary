@@ -46,7 +46,22 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Projection
                 Snapshot(provision.SeatApplication),
                 Snapshot(provision.PetRule),
                 Snapshot(provision.AssistedTravelRule),
-                Snapshot(provision.AirportServiceRule));
+                Snapshot(provision.AirportServiceRule),
+                provision.CancellationRules
+                    .Select(rule => new ProvisionCancellationRuleReadModelSnapshot(
+                        rule.Id,
+                        rule.RuleRef,
+                        rule.ReasonKind,
+                        rule.BeforeStartMinutesFrom,
+                        rule.BeforeStartMinutesTo,
+                        rule.PenaltyKind,
+                        rule.PenaltyFixedAmount,
+                        rule.PenaltyPercentage,
+                        rule.PenaltyCurrencyId,
+                        rule.PercentageBase,
+                        rule.WaiverPermitted,
+                        rule.SourceReference))
+                    .ToList());
 
         private static ProvisionPassengerEligibilityReadModelSnapshot? Snapshot(ProvisionPassengerEligibilityRule? rule)
             => rule is null

@@ -770,6 +770,66 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.ToTable("ProvisionCabinClasses", "Ancillary");
                 });
 
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities.ProvisionCancellationRule", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("AncillaryProvisionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("BeforeStartMinutesFrom")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BeforeStartMinutesTo")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("LastUpdatedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("PenaltyCurrencyId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("PenaltyFixedAmount")
+                        .HasPrecision(19, 6)
+                        .HasColumnType("decimal(19,6)");
+
+                    b.Property<int>("PenaltyKind")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("PenaltyPercentage")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("decimal(9,4)");
+
+                    b.Property<int?>("PercentageBase")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReasonKind")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RuleRef")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("SourceReference")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("WaiverPermitted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AncillaryProvisionId", "RuleRef")
+                        .IsUnique();
+
+                    b.ToTable("ProvisionCancellationRules", "Ancillary");
+                });
+
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities.ProvisionCoverageCountry", b =>
                 {
                     b.Property<long>("Id")
@@ -2642,6 +2702,15 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities.ProvisionCancellationRule", b =>
+                {
+                    b.HasOne("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.AncillaryProvision", null)
+                        .WithMany("CancellationRules")
+                        .HasForeignKey("AncillaryProvisionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities.ProvisionCoverageCountry", b =>
                 {
                     b.HasOne("AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.AncillaryProvision", null)
@@ -3938,6 +4007,8 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.Navigation("AssistedTravelRule");
 
                     b.Navigation("BaggageApplication");
+
+                    b.Navigation("CancellationRules");
 
                     b.Navigation("DayTimeApplication");
 

@@ -13,7 +13,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments
         ProvisionSeatApplicationArgs? SeatApplication,
         ProvisionPetRuleArgs? PetRule = null,
         ProvisionAssistedTravelRuleArgs? AssistedTravelRule = null,
-        ProvisionAirportServiceRuleArgs? AirportServiceRule = null)
+        ProvisionAirportServiceRuleArgs? AirportServiceRule = null,
+        IReadOnlyList<ProvisionCancellationRuleArgs>? CancellationRules = null)
     {
         public static ProvisionRulesArgs Unrestricted { get; } = new(null, null, null, null, null, null, null, null, null, null);
     }

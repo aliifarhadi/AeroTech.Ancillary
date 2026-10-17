@@ -41,7 +41,9 @@ public class V121ProvisionRuleConformanceTests
         Assert.All(groups, group => Assert.Equal($"Provision{group.Name}Rule", group.PropertyType.Name));
         Assert.Equal(new[] { "AirportServiceRule", "AssistedTravelRule", "PetRule" }, profileRules.Select(property => property.Name).OrderBy(name => name, StringComparer.Ordinal));
         Assert.All(profileRules, rule => Assert.Equal($"Provision{rule.Name}", rule.PropertyType.Name));
-        Assert.DoesNotContain(properties, property => property.PropertyType != typeof(string) && typeof(System.Collections.IEnumerable).IsAssignableFrom(property.PropertyType));
+        Assert.Equal(
+            new[] { nameof(AncillaryProvision.CancellationRules) },
+            properties.Where(property => property.PropertyType != typeof(string) && typeof(System.Collections.IEnumerable).IsAssignableFrom(property.PropertyType)).Select(property => property.Name));
         Assert.DoesNotContain(properties, property => property.Name is "TravelDates" or "SeasonalPeriods" or "SalesEffectiveFrom" or "SalesDiscontinueAt" or "Fee" or "PriceLines");
 
         var unrestricted = Provision();
@@ -59,7 +61,8 @@ public class V121ProvisionRuleConformanceTests
         var rules = entities.Where(type => type.Name.EndsWith("Rule", StringComparison.Ordinal)).ToList();
         var rows = entities.Except(rules).ToList();
 
-        Assert.Equal(13, rules.Count);
+        Assert.Equal(14, rules.Count);
+        Assert.Contains(typeof(ProvisionCancellationRule), rules);
         Assert.Equal(27, rows.Count);
         Assert.All(rules, rule => Assert.Contains(rule.GetProperties(), property => property.Name == "AncillaryProvisionId"));
         Assert.All(rows, row =>
@@ -487,7 +490,7 @@ public class V121ProvisionRuleConformanceTests
             new[]
             {
                 "ActivatedAt", "AdvancePurchase", "AirportServiceRule", "ApplicationType", "AssistedTravelRule", "Availability", "BaggageApplication",
-                "CoverageScope", "CreatedAt", "DayTimeApplication", "FareApplication", "FlightApplication", "Fulfillment", "Geography",
+                "CancellationRules", "CoverageScope", "CreatedAt", "DayTimeApplication", "FareApplication", "FlightApplication", "Fulfillment", "Geography",
                 "Outcome", "PassengerEligibility", "PetRule", "PriceOrigin", "PurchaseStage", "Quantity", "QuoteProviderKey",
                 "RetiredAt", "SalesRestrictions", "SeatApplication", "Sequence", "ServiceDefinitionId", "Settlement", "Status",
                 "SuspendedAt", "TravelDate"

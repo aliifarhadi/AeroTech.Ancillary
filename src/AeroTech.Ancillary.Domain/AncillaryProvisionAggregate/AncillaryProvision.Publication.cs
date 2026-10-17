@@ -76,16 +76,12 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
         {
             var variant = definition.Variant!;
 
-            if (ApplicationType != variant.ApplicationType)
-                throw ExceptionFactory.ProvisionProfileRuleNotAllowed(nameof(ApplicationType), variant.Code);
+            EnsureApplicationTypeOf(variant);
 
             if (PriceOrigin == PriceOrigin.LegacyUnspecified)
                 throw ExceptionFactory.ProvisionPriceOriginMismatch(Outcome.Disposition, PriceOrigin);
 
-            var onBoardOnly = definition.Connectivity is { DeliveryStage: PurchaseStage.OnBoard };
-
-            if ((PurchaseStage == PurchaseStage.OnBoard) != onBoardOnly)
-                throw ExceptionFactory.ProvisionPurchaseStageNotAllowed(PurchaseStage, variant.Code);
+            EnsurePurchaseStageOf(definition, variant);
 
             if (PriceOrigin == PriceOrigin.ExternalQuote && (recordedQuoteProviderKey is null || !string.Equals(recordedQuoteProviderKey, QuoteProviderKey, StringComparison.Ordinal)))
                 throw ExceptionFactory.ProvisionQuoteAuthorityRequired(QuoteProviderKey);
@@ -94,17 +90,39 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
             EnsureRulesOf(definition, variant);
         }
 
+        private void EnsureAuthoringConformance(AncillaryServiceDefinition definition)
+        {
+            if (definition.Variant is not { } variant)
+                return;
+
+            EnsurePurchaseStageOf(definition, variant);
+            EnsureOutcomeOf(definition, variant);
+
+            if (IsFlightBound && definition.ServiceDateBasis == ServiceDateBasis.ServiceStart)
+                throw ExceptionFactory.ProvisionRuleContextNotSupported(definition.ServiceDateBasis);
+        }
+
+        private void EnsureApplicationTypeOf(AncillaryVariant variant)
+        {
+            if (ApplicationType != variant.ApplicationType)
+                throw ExceptionFactory.ProvisionProfileRuleNotAllowed(nameof(ApplicationType), variant.Code);
+        }
+
+        private void EnsurePurchaseStageOf(AncillaryServiceDefinition definition, AncillaryVariant variant)
+        {
+            if (!AllowedPurchaseStages(definition).Contains(PurchaseStage))
+                throw ExceptionFactory.ProvisionPurchaseStageNotAllowed(PurchaseStage, variant.Code);
+        }
+
         private void EnsureOutcomeOf(AncillaryServiceDefinition definition, AncillaryVariant variant)
         {
-            var paid = Outcome.Disposition == CommercialDisposition.Paid;
-
-            if (variant.Code is AncillaryVariant.FreeSpecialMeal or AncillaryVariant.Wheelchair && paid)
+            if (!AllowedDispositions(definition).Contains(Outcome.Disposition))
                 throw ExceptionFactory.ProvisionProfileRuleNotAllowed(nameof(Outcome), variant.Code);
 
-            if (definition.Upgrade is { } upgrade && paid && (upgrade.AllowedUpgradeKind == UpgradeKind.FixedAncillary) != (PriceOrigin == PriceOrigin.Filed))
+            if (!AllowedPriceOrigins(definition).Contains(PriceOrigin))
                 throw ExceptionFactory.ProvisionProfileRuleNotAllowed(nameof(PriceOrigin), variant.Code);
 
-            if (variant.Code is AncillaryVariant.StandardSeat or AncillaryVariant.PreferredSeat && Quantity.MaxQuantity != 1)
+            if (MaxQuantityOf(definition) is { } maxQuantity && Quantity.MaxQuantity > maxQuantity)
                 throw ExceptionFactory.ProvisionProfileRuleNotAllowed(nameof(Quantity), variant.Code);
         }
 

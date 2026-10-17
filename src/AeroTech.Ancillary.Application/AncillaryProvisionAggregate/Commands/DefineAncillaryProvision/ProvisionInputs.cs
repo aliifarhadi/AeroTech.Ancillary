@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using AeroTech.Messages.AirPrice.Enums;
 using AeroTech.Messages.Ancillary.Enums;
 using AeroTech.Messages.Core.Enums;
@@ -123,7 +124,21 @@ namespace AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.De
         ReissueRefundPolicy ReissueRefund,
         FormOfRefund? FormOfRefund,
         bool Commissionable,
-        bool InterlineSettlement);
+        bool InterlineSettlement,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<ProvisionCancellationRuleInput>? CancellationRules = null);
+
+    public sealed record ProvisionCancellationRuleInput(
+        string RuleRef,
+        CancellationReasonKind ReasonKind,
+        int? BeforeStartMinutesFrom,
+        int? BeforeStartMinutesTo,
+        PenaltyKind PenaltyKind,
+        decimal? PenaltyFixedAmount,
+        decimal? PenaltyPercentage,
+        int? PenaltyCurrencyId,
+        CancellationPercentageBase? PercentageBase,
+        bool WaiverPermitted,
+        string? SourceReference);
 
     public sealed record ProvisionAvailabilityInput(
         bool MustCheckAvailability);

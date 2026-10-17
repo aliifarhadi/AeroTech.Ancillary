@@ -98,6 +98,11 @@ namespace AeroTech.Ancillary.Persistence.AncillaryProvisionAggregate
                 .WithOne()
                 .HasForeignKey<ProvisionAirportServiceRule>(rule => rule.AncillaryProvisionId)
                 .OnDelete(DeleteBehavior.Cascade);
+            builder.HasMany(provision => provision.CancellationRules)
+                .WithOne()
+                .HasForeignKey(rule => rule.AncillaryProvisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Navigation(provision => provision.CancellationRules).UsePropertyAccessMode(PropertyAccessMode.Field);
             builder.HasIndex(
                     provision => new { provision.ServiceDefinitionId, provision.Sequence },
                     "IX_AncillaryProvisions_ServiceDefinitionId_Sequence_Active")
