@@ -3,6 +3,7 @@ using AeroTech.Ancillary.Application.FlightOffers;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Ancillary.Providers.Offer.Wire;
 using AeroTech.Messages.AirPrice.Enums;
+using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Providers.Offer.Services
 {
@@ -41,7 +42,9 @@ namespace AeroTech.Ancillary.Providers.Offer.Services
                 source.TotalAmount,
                 bounds,
                 source.PricingUnits.SelectMany(unit => unit.FareComponents).Select(component => MapFareComponent(component, bounds)).ToList(),
-                source.Tickets.OrderBy(ticket => ticket.TravellerIndex).Select(ticket => MapTicket(ticket, bounds)).ToList());
+                source.Tickets.OrderBy(ticket => ticket.TravellerIndex).Select(ticket => MapTicket(ticket, bounds)).ToList(),
+                source.OrderCharges.Select(MapLine).ToList(),
+                source.RatesOfExchange.Select(MapRateOfExchange).ToList());
         }
 
         private static FlightOfferBound MapBound(OfferAirTransport transport)
@@ -76,8 +79,11 @@ namespace AeroTech.Ancillary.Providers.Offer.Services
             Require(flight.OperatingAirlineId > 0 && flight.MarketingAirlineId > 0, nameof(OfferFlight.OperatingAirlineId));
             Require(flight.DepartureDateTime < flight.ArrivalDateTime, nameof(OfferFlight.ArrivalDateTime));
 
+            Require(flight.FlightCapacityId > 0, nameof(OfferFlight.FlightCapacityId));
+
             return new FlightOfferFlight(
                 flight.Sequence,
+                flight.FlightCapacityId,
                 flight.FlightId,
                 flight.FlightVersion,
                 string.IsNullOrWhiteSpace(flight.FlightNumber) ? null : flight.FlightNumber,
@@ -137,12 +143,54 @@ namespace AeroTech.Ancillary.Providers.Offer.Services
                 coupon.FlightId,
                 Baggage(coupon.BaggagePieces, coupon.BaggageWeight, coupon.BaggageUnit),
                 Baggage(coupon.CabinBaggagePieces, coupon.CabinBaggageWeight, coupon.CabinBaggageUnit),
+                coupon.IsRefundable,
+                coupon.IsChangeable,
+                coupon.IsUpgradable,
                 coupon.Pricings
                     .Where(line => line.Category == OfferPricingCategory.Fare)
                     .Select(line => long.TryParse(line.Reference, NumberStyles.None, CultureInfo.InvariantCulture, out var airFareId) ? airFareId : 0)
                     .Where(airFareId => airFareId > 0)
                     .Distinct()
-                    .ToList());
+                    .ToList(),
+                coupon.Pricings.Select(MapLine).ToList());
+
+        private static FlightOfferPriceLine MapLine(OfferPricingLine line)
+        {
+            Require(Enum.IsDefined(line.Category), nameof(OfferPricingLine.Category));
+
+            return new FlightOfferPriceLine(
+                line.Category switch
+                {
+                    OfferPricingCategory.Fare => FlightOfferPriceCategory.Fare,
+                    OfferPricingCategory.Tax => FlightOfferPriceCategory.Tax,
+                    OfferPricingCategory.Fee => FlightOfferPriceCategory.Fee,
+                    _ => FlightOfferPriceCategory.Surcharge
+                },
+                string.IsNullOrWhiteSpace(line.Name) ? null : line.Name,
+                string.IsNullOrWhiteSpace(line.Code) ? null : line.Code,
+                string.IsNullOrWhiteSpace(line.Reference) ? null : line.Reference,
+                line.Amount,
+                line.CurrencyId,
+                line.IsPercentage,
+                line.EquivalentAmount,
+                line.EquivalentCurrencyId,
+                string.IsNullOrWhiteSpace(line.RateOfExchangePeriodId) ? null : line.RateOfExchangePeriodId);
+        }
+
+        private static FlightOfferRateOfExchange MapRateOfExchange(OfferRateOfExchange rate)
+        {
+            Require(!string.IsNullOrWhiteSpace(rate.RateOfExchangePeriodId), nameof(OfferRateOfExchange.RateOfExchangePeriodId));
+            Require(rate.FromCurrencyId > 0 && rate.ToCurrencyId > 0, nameof(OfferRateOfExchange.FromCurrencyId));
+            Require(rate.Rate > 0, nameof(OfferRateOfExchange.Rate));
+
+            return new FlightOfferRateOfExchange(
+                rate.RateOfExchangePeriodId,
+                rate.FromCurrencyId,
+                rate.ToCurrencyId,
+                rate.Rate,
+                rate.DecimalPlaces,
+                rate.RoundingFactor);
+        }
 
         private static FlightOfferBaggage? Baggage(int pieces, decimal weight, string? unit)
             => Named<WeightUnit>(unit) is { } known && pieces >= 0 && weight >= 0 ? new FlightOfferBaggage(pieces, weight, known) : null;

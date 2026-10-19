@@ -51,7 +51,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
         private async Task<SeatPricing> PriceSeatAsync(ShoppingCatalog catalog, EvaluationUnit unit, SeatMapSeat seat, CancellationToken cancellationToken)
         {
-            var travellerRef = unit.Traveller.TravellerRef;
+            var travellerRef = unit.TravellerRef;
 
             if (seat.Occupied)
                 return new SeatPricing(travellerRef, seat.FlightRef, seat.SeatNumber, SeatAvailabilityStatus.Occupied, null);

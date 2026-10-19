@@ -8,7 +8,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
         public const string JourneyRef = "JOURNEY";
         public const string OrderRef = "ORDER";
 
-        public static IReadOnlyList<EvaluationUnit> Units(AncillaryShoppingContext context, ShoppingTraveller traveller, ServiceCoverageScope scope)
+        public static IReadOnlyList<EvaluationUnit> Units(AncillaryShoppingContext context, ShoppingTraveller? traveller, ServiceCoverageScope scope)
         {
             var flights = context.Flights.ToDictionary(flight => flight.FlightRef, StringComparer.Ordinal);
             var portions = context.Portions.OrderBy(portion => portion.Sequence).ToList();
@@ -16,10 +16,10 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
             return scope switch
             {
-                ServiceCoverageScope.Sector => portions
+                ServiceCoverageScope.Sector when traveller is not null => portions
                     .SelectMany(portion => portion.FlightRefs.Select(flightRef => new EvaluationUnit(context, traveller, scope, flightRef, [flights[flightRef]], [portion], null)))
                     .ToList(),
-                ServiceCoverageScope.Portion => portions
+                ServiceCoverageScope.Portion when traveller is not null => portions
                     .Select(portion => new EvaluationUnit(
                         context,
                         traveller,
@@ -29,11 +29,15 @@ namespace AeroTech.Ancillary.Shopping.Engine
                         [portion],
                         null))
                     .ToList(),
-                ServiceCoverageScope.Journey => [new EvaluationUnit(context, traveller, scope, JourneyRef, all, portions, null)],
-                ServiceCoverageScope.Order when context.SourceIdentity is { SourceKind: ShoppingSourceKind.Order, OrderId: > 0 }
-                    => [new EvaluationUnit(context, traveller, scope, OrderRef, all, portions, null)],
+                ServiceCoverageScope.Journey when traveller is not null => [new EvaluationUnit(context, traveller, scope, JourneyRef, all, portions, null)],
+                ServiceCoverageScope.Order when OrderCoverable(context.SourceIdentity)
+                    => [new EvaluationUnit(context, null, scope, OrderRef, all, portions, null)],
                 _ => []
             };
         }
+
+        private static bool OrderCoverable(SourceIdentityContext source)
+            => source.SourceKind == ShoppingSourceKind.Offer
+               || source is { SourceKind: ShoppingSourceKind.Order, OrderId: > 0 };
     }
 }

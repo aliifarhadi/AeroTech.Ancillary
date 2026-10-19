@@ -153,8 +153,24 @@ public class BackofficeSurfaceParityTests
 
         var offer = await OfferWire.ReadAsync(OfferWire.Captured());
         var pricedAt = DateTimeOffset.FromUnixTimeSeconds(EmbeddedSalesDate);
-        var context = FlightOfferShoppingContextMapper.Map(offer, FlightOfferShoppingContextMapper.Facts(offer, new Dictionary<long, long>()), Desk, Pos, new Dictionary<int, int>(), new Dictionary<int, string>());
-        var service = new GetAncillaryOffersService(new FlightOfferShoppingSource(new FixedOffers(offer), new TestOnlyAirportReference(), new TestOnlyAirFareReference()), lab.Engine);
+        var context = FlightOfferShoppingContextMapper.Map(
+            offer,
+            FlightOfferShoppingContextMapper.Facts(offer, new Dictionary<long, long>()),
+            Desk,
+            Pos,
+            new Dictionary<int, int>(),
+            new Dictionary<int, string>(),
+            pricedAt,
+            pricedAt + SourceContextTtl,
+            FlightOfferFingerprint.Of(offer));
+        var service = new GetAncillaryOffersService(
+            new FlightOfferShoppingSource(
+                new FixedOffers(offer),
+                new TestOnlyAirportReference(),
+                new TestOnlyAirFareReference(),
+                new FixedClock { Now = pricedAt },
+                new FlightOfferShoppingOptions(SourceContextTtl)),
+            lab.Engine);
         var response = BackofficeAncillaryOffersMapper.Map(await service.ExecuteAsync(new OfferQuery(OfferWire.OfferId), Desk));
 
         Assert.Equal((Pos, (long?)9000000000000000900, Irr, pricedAt), (context.PointOfSaleId, context.CustomerId, context.CurrencyId, context.EvaluatedAtUtc));
@@ -184,7 +200,9 @@ public class BackofficeSurfaceParityTests
         Assert.Equal((0, Now.AddDays(-30)), (before.Offers.Count, before.EvaluatedAtUtc));
         Assert.Equal((0, Now.AddDays(30)), (after.Offers.Count, after.EvaluatedAtUtc));
         Assert.All(new[] { open, before, after }, response => Assert.Equal(response.EvaluatedAtUtc, response.FlightOffer.SourcePricedAt));
-        Assert.Null(ContextOf(await OfferWire.ReadAsync(OfferWire.Captured()), Desk, new Dictionary<int, int>()).SourceIdentity.ValidUntilUtc);
+        Assert.Equal(
+            Desk.EvaluatedAtUtc + SourceContextTtl,
+            ContextOf(await OfferWire.ReadAsync(OfferWire.Captured()), Desk, new Dictionary<int, int>()).SourceIdentity.ValidUntilUtc);
     }
 
     [Fact]

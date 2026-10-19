@@ -62,41 +62,48 @@ namespace AeroTech.Ancillary.Shopping.Engine
             foreach (var definition in catalog.Definitions)
             {
                 var provisions = catalog.ProvisionsOf(definition.Id);
+                var scopes = provisions.Select(provision => provision.CoverageScope).Distinct().Order().ToList();
+
+                async Task EvaluateAsync(ShoppingTraveller? traveller, ServiceCoverageScope scope)
+                {
+                    var scoped = provisions.Where(provision => provision.CoverageScope == scope).ToList();
+                    var units = CoveragePlanner.Units(context, traveller, scope)
+                        .Where(unit => filter.FlightRefs is null || unit.Flights.Any(flight => filter.FlightRefs.Contains(flight.FlightRef, StringComparer.Ordinal)));
+
+                    foreach (var unit in units)
+                    {
+                        var decision = await DecideAsync(catalog, definition, scoped, unit, null, cancellationToken);
+
+                        if (decision is null)
+                        {
+                            if (filter.IncludeNonSellable)
+                                diagnostics.Add(new ShoppingDiagnostic(
+                                    ShoppingReasonCodes.NoMatchingProvision,
+                                    ShoppingDiagnosticSeverity.Info,
+                                    null,
+                                    [definition.ServiceDefinitionRef, unit.TravellerRef, unit.CoverageRef],
+                                    null,
+                                    ShoppingEvidenceKind.Source));
+
+                            continue;
+                        }
+
+                        if (decision.Candidate.OfferReadiness is OfferReadiness.NotEligible or OfferReadiness.Unavailable && !filter.IncludeNonSellable)
+                            continue;
+
+                        candidates.Add(decision.Candidate);
+                        diagnostics.AddRange(Diagnostics(decision.Candidate));
+                    }
+                }
 
                 foreach (var traveller in travellers)
                 {
-                    foreach (var scope in provisions.Select(provision => provision.CoverageScope).Distinct().Order())
-                    {
-                        var scoped = provisions.Where(provision => provision.CoverageScope == scope).ToList();
-                        var units = CoveragePlanner.Units(context, traveller, scope)
-                            .Where(unit => filter.FlightRefs is null || unit.Flights.Any(flight => filter.FlightRefs.Contains(flight.FlightRef, StringComparer.Ordinal)));
-
-                        foreach (var unit in units)
-                        {
-                            var decision = await DecideAsync(catalog, definition, scoped, unit, null, cancellationToken);
-
-                            if (decision is null)
-                            {
-                                if (filter.IncludeNonSellable)
-                                    diagnostics.Add(new ShoppingDiagnostic(
-                                        ShoppingReasonCodes.NoMatchingProvision,
-                                        ShoppingDiagnosticSeverity.Info,
-                                        null,
-                                        [definition.ServiceDefinitionRef, traveller.TravellerRef, unit.CoverageRef],
-                                        null,
-                                        ShoppingEvidenceKind.Source));
-
-                                continue;
-                            }
-
-                            if (decision.Candidate.OfferReadiness is OfferReadiness.NotEligible or OfferReadiness.Unavailable && !filter.IncludeNonSellable)
-                                continue;
-
-                            candidates.Add(decision.Candidate);
-                            diagnostics.AddRange(Diagnostics(decision.Candidate));
-                        }
-                    }
+                    foreach (var scope in scopes.Where(scope => scope != ServiceCoverageScope.Order))
+                        await EvaluateAsync(traveller, scope);
                 }
+
+                if (scopes.Contains(ServiceCoverageScope.Order) && filter.TravellerRefs is null)
+                    await EvaluateAsync(null, ServiceCoverageScope.Order);
             }
 
             if (Expired(context))
@@ -136,7 +143,9 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
             var catalog = await LoadAsync(context, definition => definition.Id == candidate.DefinitionVersionId, cancellationToken);
             var definition = catalog.Definitions.SingleOrDefault() ?? throw ExceptionFactory.ShoppingCandidateNotFound();
-            var traveller = context.Travellers.FirstOrDefault(row => row.TravellerRef == candidate.TravellerRef) ?? throw ExceptionFactory.ShoppingCandidateNotFound();
+            var traveller = candidate.CoverageScope == ServiceCoverageScope.Order
+                ? candidate.TravellerRef.Length == 0 ? null : throw ExceptionFactory.ShoppingCandidateNotFound()
+                : context.Travellers.FirstOrDefault(row => row.TravellerRef == candidate.TravellerRef) ?? throw ExceptionFactory.ShoppingCandidateNotFound();
             var unit = CoveragePlanner.Units(context, traveller, candidate.CoverageScope).FirstOrDefault(row => row.CoverageRef == candidate.CoverageRef)
                        ?? throw ExceptionFactory.ShoppingCandidateNotFound();
             var provisions = catalog.ProvisionsOf(definition.Id).Where(provision => provision.CoverageScope == candidate.CoverageScope).ToList();
@@ -334,7 +343,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
             var price = PriceAssessor.Assess(provision, catalog.PricingOf(provision.Id), unit, evaluation.Timeline, catalog.CurrencyDecimalPlaces, catalog.RatesOfExchange);
             var availability = await AvailabilityAssessor.AssessAsync(definition, provision, configuration, unit, catalog.References, cancellationToken);
             var quantity = await QuantityAssessor.AssessAsync(definition, provision, configuration?.Policy, unit, evaluation.Timeline, catalog.References, cancellationToken);
-            var identity = new CandidateIdentity(definition.Id, provision.Id, unit.Scope, unit.Traveller.TravellerRef, unit.CoverageRef, price.PricingRevisionId);
+            var identity = new CandidateIdentity(definition.Id, provision.Id, unit.Scope, unit.TravellerRef, unit.CoverageRef, price.PricingRevisionId);
             var eligibility = new EligibilityAssessment(
                 outcome.Verdict switch
                 {
@@ -370,7 +379,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
                     provision.Outcome.DocumentRequired),
                 Scope = new SelectionCoverage(
                     unit.Scope,
-                    [unit.Traveller.TravellerRef],
+                    unit.Traveller is null ? [] : [unit.Traveller.TravellerRef],
                     unit.Flights.Select(flight => flight.FlightRef).ToList(),
                     unit.Portions.Select(portion => portion.PortionRef).ToList()),
                 Eligibility = eligibility,

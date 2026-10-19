@@ -29,13 +29,22 @@ public class AncillaryOffersTests
         var departure = new DateTimeOffset(2026, 12, 1, 10, 0, 0, Trip.TehranOffset);
 
         FlightOfferFlight Sold(int sequence, long flightId, int origin, int destination, DateTimeOffset departs, params FlightOfferLeg[] legs)
-            => new(sequence, flightId, 1, "111", origin, null, destination, null, 1, 1, departs, departs.AddHours(2), 1, 1, 11, "Y", legs);
+            => new(sequence, 500000 + flightId, flightId, 1, "111", origin, null, destination, null, 1, 1, departs, departs.AddHours(2), 1, 1, 11, "Y", legs);
 
         FlightOfferFareComponent Fare(long airFareId, string boundId, string basis)
             => new(airFareId, boundId, 1, 11, "Y", basis, "LIGHT", AirFareType.Public);
 
         FlightOfferCoupon Coupon(string boundId, long flightId, bool baggage, params long[] airFareIds)
-            => new(boundId, flightId, baggage ? new FlightOfferBaggage(1, 23m, WeightUnit.Kg) : null, baggage ? new FlightOfferBaggage(1, 8m, WeightUnit.Kg) : null, airFareIds);
+            => new(
+                boundId,
+                flightId,
+                baggage ? new FlightOfferBaggage(1, 23m, WeightUnit.Kg) : null,
+                baggage ? new FlightOfferBaggage(1, 8m, WeightUnit.Kg) : null,
+                false,
+                false,
+                false,
+                airFareIds,
+                []);
 
         var offer = new FlightOffer(
             "OFFER",
@@ -72,7 +81,9 @@ public class AncillaryOffersTests
                 new FlightOfferTicket("ADT-1", 1, PassengerTypeCode.ADT, [Coupon("B1", 501, true, 9001), Coupon("B1", 502, true, 9001), Coupon("B2", 503, true, 9003)]),
                 new FlightOfferTicket("CHD-1", 2, PassengerTypeCode.CHD, [Coupon("B1", 501, true, 9002), Coupon("B1", 502, true, 9002), Coupon("B2", 503, true, 9003)]),
                 new FlightOfferTicket("INF-1", 3, PassengerTypeCode.INF, [Coupon("B1", 501, false, 9001, 9002), Coupon("B1", 502, false, 9003), Coupon("B2", 503, false)])
-            ]);
+            ],
+            [],
+            []);
         var context = ContextOf(offer, Sale with { CurrencyId = null }, new Dictionary<int, int> { [Trip.Thr] = 100, [Trip.Ist] = 200 });
 
         Assert.Equal(new[] { ("B1", "B1:F1,B1:F2", Trip.Ika), ("B2", "B2:F1", 0) }, context.Portions.Select(portion => (portion.PortionRef, string.Join(',', portion.FlightRefs), portion.ViaAirportIds!.SingleOrDefault())));
@@ -91,7 +102,9 @@ public class AncillaryOffersTests
         Assert.Equal(
             (true, true, false, false, false, false),
             (context.CoverageCompleteness.TravellersComplete, context.CoverageCompleteness.ItineraryComplete, context.CoverageCompleteness.FareFactsComplete, context.CoverageCompleteness.BaggageFactsComplete, context.CoverageCompleteness.FareBenefitsComplete, context.CoverageCompleteness.ExistingServicesComplete));
-        Assert.Equal((ShoppingSourceKind.Offer, "OFFER", null, null), (context.SourceIdentity.SourceKind, context.SourceIdentity.TrustedSourceReference, context.SourceIdentity.ValidUntilUtc, context.SourceIdentity.OrderId));
+        Assert.Equal(
+            (ShoppingSourceKind.Offer, "OFFER", Sale.EvaluatedAtUtc + SourceContextTtl, (long?)null),
+            (context.SourceIdentity.SourceKind, context.SourceIdentity.TrustedSourceReference, context.SourceIdentity.ValidUntilUtc, context.SourceIdentity.OrderId));
         Assert.Equal((ShoppingStage.PreOrder, Eur, Now, Airline, Pos), (context.ShoppingStage, context.CurrencyId, context.EvaluatedAtUtc, context.OwnerAirlineId, context.PointOfSaleId));
 
         var lab = new ShoppingLab();
@@ -379,7 +392,14 @@ public class AncillaryOffersTests
     public async Task CT_22_an_empty_offer_id_is_refused_before_the_provider_is_called()
     {
         var failure = await Assert.ThrowsAsync<BusinessException>(
-            () => new GetAncillaryOffersService(new FlightOfferShoppingSource(new FixedOffers(null!), new TestOnlyAirportReference(), new TestOnlyAirFareReference()), new ShoppingLab().Engine).ExecuteAsync(new OfferQuery(" "), Sale));
+            () => new GetAncillaryOffersService(
+                new FlightOfferShoppingSource(
+                    new FixedOffers(null!),
+                    new TestOnlyAirportReference(),
+                    new TestOnlyAirFareReference(),
+                    new FixedClock(),
+                    new FlightOfferShoppingOptions(SourceContextTtl)),
+                new ShoppingLab().Engine).ExecuteAsync(new OfferQuery(" "), Sale));
 
         Assert.Equal((16803, 422), (failure.Code, failure.HttpStatus));
         Assert.Equal(new[] { "OfferId", "Options" }, typeof(BackofficeGetAncillaryOffersQuery).GetProperties().Select(property => property.Name).Order());

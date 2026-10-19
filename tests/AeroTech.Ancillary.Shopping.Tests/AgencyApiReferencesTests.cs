@@ -16,6 +16,7 @@ public class AgencyApiReferencesTests
     private static FlightOfferFlight Flight(int sequence, string number, int marketing, int operating, params FlightOfferLeg[] legs)
         => new(
             sequence,
+            8000 + sequence,
             7000 + sequence,
             1,
             number,
@@ -60,7 +61,9 @@ public class AgencyApiReferencesTests
                 new FlightOfferTicket("INF-1", 3, PassengerTypeCode.INF, []),
                 new FlightOfferTicket("ADT-1", 1, PassengerTypeCode.ADT, []),
                 new FlightOfferTicket("CHD-1", 2, PassengerTypeCode.CHD, [])
-            ]);
+            ],
+            [],
+            []);
 
         return new ApiOfferReferences(
             offer,

@@ -102,7 +102,9 @@ public class V12BoundaryAcceptanceTests
                 "FlightFlowOccupiedSeatProvider.cs", "FlightFlowOccupiedSeats.cs",
                 "FlightOfferDetailResponse.cs", "FlightOfferProvider.cs", "FlightOfferResponseMapper.cs",
                 "NotConnectedAirportFacilityReference.cs", "NotConnectedCountingFamilyReference.cs", "NotConnectedInventoryResourceReference.cs",
+                "OfferAirTransport.cs", "OfferCoupon.cs", "OfferEnvelope.cs", "OfferFareComponent.cs", "OfferFlight.cs", "OfferFlightLeg.cs",
                 "OfferJson.cs",
+                "OfferPricingLine.cs", "OfferPricingUnit.cs", "OfferRateOfExchange.cs", "OfferResultError.cs", "OfferTicket.cs",
                 "PricedOfferId.cs"
             },
             Files(Path.Combine(Source, "AeroTech.Ancillary.Providers")).Select(Path.GetFileName).OrderBy(name => name, StringComparer.Ordinal));

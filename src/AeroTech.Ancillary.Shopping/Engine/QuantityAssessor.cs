@@ -87,7 +87,8 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
         private static IReadOnlyList<PassengerUsageKey>? Keys(PassengerUsageLimit limit, EvaluationUnit unit, UnitTimeline timeline)
         {
-            var traveller = unit.Traveller;
+            if (unit.Traveller is not { } traveller)
+                return null;
             var identity = string.IsNullOrWhiteSpace(traveller.StableTravellerIdentity) ? null : traveller.StableTravellerIdentity;
             var orderId = unit.Context.SourceIdentity.OrderId;
 

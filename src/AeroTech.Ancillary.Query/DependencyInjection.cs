@@ -61,6 +61,7 @@ namespace AeroTech.Ancillary.Query
             services.AddScoped<IGetAncillaryServiceDefinitionFormService, GetAncillaryServiceDefinitionFormService>();
             services.AddScoped<IGetAncillaryServiceDefinitionsPaginatedService, GetAncillaryServiceDefinitionsPaginatedService>();
             services.AddScoped<IGetAncillaryVariantsService, GetAncillaryVariantsService>();
+            services.AddSingleton(FlightOfferShoppingOptions.From(configuration));
             services.AddScoped<IFlightOfferShoppingSource, FlightOfferShoppingSource>();
             services.AddScoped<IGetAncillaryOffersService, GetAncillaryOffersService>();
             services.AddScoped<IGetSeatMapService, GetSeatMapService>();

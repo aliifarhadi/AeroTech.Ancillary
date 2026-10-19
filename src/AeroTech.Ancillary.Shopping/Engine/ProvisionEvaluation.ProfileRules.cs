@@ -69,7 +69,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
             foreach (var name in ProvidedFields.Where(field => field.Value(Selection) && contract.Fields.All(allowed => allowed.Name != field.Key)).Select(field => field.Key))
                 Outcome.Reject(name, ShoppingReasonCodes.SelectionFieldNotAllowed);
 
-            if (Selection.ChildRef is { } child && child != _unit.Traveller.TravellerRef)
+            if (Selection.ChildRef is { } child && child != _unit.TravellerRef)
                 Outcome.Reject("ChildRef", ShoppingReasonCodes.SelectionFieldNotAllowed);
 
             if (Selection.OtherAnimalCode is not null
@@ -185,8 +185,8 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
             if (specification.RequiresExitRowEligibility)
             {
-                if (_unit.Traveller.VerifiedExitRowEligible is not { } eligible)
-                    Outcome.Unknown(ShoppingReasonCodes.ExitRowEligibilityNotVerified, $"Travellers[{_unit.Traveller.TravellerRef}].VerifiedExitRowEligible");
+                if (_unit.Traveller?.VerifiedExitRowEligible is not { } eligible)
+                    Outcome.Unknown(ShoppingReasonCodes.ExitRowEligibilityNotVerified, $"Travellers[{_unit.TravellerRef}].VerifiedExitRowEligible");
                 else if (!eligible)
                     Outcome.Fail(ShoppingReasonCodes.ExitRowNotEligible);
             }
@@ -217,7 +217,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
                     continue;
 
                 if (_unit.FareOf(flight)?.FareFamilyId is not { } fareFamily)
-                    Outcome.Unknown(ShoppingReasonCodes.FareFamilyNotVerified, $"TravellerFareFacts[{_unit.Traveller.TravellerRef},{flight.FlightRef}].FareFamilyId");
+                    Outcome.Unknown(ShoppingReasonCodes.FareFamilyNotVerified, $"TravellerFareFacts[{_unit.TravellerRef},{flight.FlightRef}].FareFamilyId");
                 else if (specification.EligibleFareFamilies.All(row => row.ReferenceId != fareFamily))
                     Outcome.Fail(ShoppingReasonCodes.UpgradeFareFamilyNotEligible);
             }
@@ -444,7 +444,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
             foreach (var flight in _unit.Flights)
             {
                 var facts = Context.FareEntitlementFacts
-                    .Where(fact => fact.TravellerRef == _unit.Traveller.TravellerRef
+                    .Where(fact => fact.TravellerRef == _unit.TravellerRef
                                    && fact.FlightRefs.Contains(flight.FlightRef, StringComparer.Ordinal)
                                    && string.Equals(fact.BenefitCode, benefit, StringComparison.OrdinalIgnoreCase))
                     .ToList();

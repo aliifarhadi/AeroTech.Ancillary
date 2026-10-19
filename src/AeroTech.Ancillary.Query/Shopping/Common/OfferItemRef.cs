@@ -12,13 +12,14 @@ namespace AeroTech.Ancillary.Query.Shopping.Common
         private const char Separator = '\n';
         private const string SeatPrefix = "SEAT";
 
-        public static string Of(string offerId, AncillarySalesScope scope, long pointOfSaleId, CandidateIdentity candidate)
+        public static string Of(string offerId, string? sourceVersion, AncillarySalesScope scope, long pointOfSaleId, CandidateIdentity candidate)
             => Base64Url.EncodeToString(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join(
                 Separator,
                 scope.Channel.ToString(),
                 scope.OwnerAirlineId.ToString(CultureInfo.InvariantCulture),
                 pointOfSaleId.ToString(CultureInfo.InvariantCulture),
                 offerId,
+                sourceVersion,
                 candidate.DefinitionVersionId.ToString(CultureInfo.InvariantCulture),
                 candidate.ProvisionId.ToString(CultureInfo.InvariantCulture),
                 candidate.PricingRevisionId?.ToString(CultureInfo.InvariantCulture),

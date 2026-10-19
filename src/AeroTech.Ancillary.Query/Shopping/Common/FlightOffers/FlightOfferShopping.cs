@@ -7,6 +7,7 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.FlightOffers
         FlightOffer Offer,
         FlightOfferFacts Facts,
         int CurrencyId,
+        DateTimeOffset EvaluatedAtUtc,
         IReadOnlyList<PointOfSaleContext> PointsOfSale);
 
     public sealed record PointOfSaleContext(long PointOfSaleId, AncillaryShoppingContext Context);

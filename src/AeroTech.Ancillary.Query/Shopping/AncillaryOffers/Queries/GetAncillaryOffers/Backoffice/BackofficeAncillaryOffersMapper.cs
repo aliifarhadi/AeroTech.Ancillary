@@ -23,7 +23,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
 
             return new BackofficeAncillaryOffersDto(
                 offer.OfferId,
-                offer.PricedAt.ToUniversalTime(),
+                snapshot.EvaluatedAtUtc,
                 new OfferCurrencyDto(snapshot.CurrencyId, snapshot.CurrencyId == offer.CurrencyId ? offer.CurrencyCode : null),
                 new FlightOfferSummaryDto(offer.LastTicketingDate, offer.PricedAt, offer.CurrencyId, offer.BaseAmount, offer.ChargeAmount, offer.TotalAmount),
                 new OfferScopeDto(

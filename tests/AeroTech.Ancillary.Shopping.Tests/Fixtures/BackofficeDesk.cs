@@ -18,6 +18,8 @@ public static class BackofficeDesk
 {
     public static readonly DeskScope Sale = new(Airline, Pos, null, Eur, Now);
 
+    public static readonly TimeSpan SourceContextTtl = TimeSpan.FromMinutes(30);
+
     public static async Task<GetAncillaryOffersService> ServiceAsync(
         ShoppingLab lab,
         string? wire = null,
@@ -28,7 +30,9 @@ public static class BackofficeDesk
             new FlightOfferShoppingSource(
                 new FixedOffers((desk ?? Sale).Sell(await OfferWire.ReadAsync(wire ?? OfferWire.Captured()))),
                 airports ?? new TestOnlyAirportReference(),
-                airFares ?? new TestOnlyAirFareReference()),
+                airFares ?? new TestOnlyAirFareReference(),
+                new FixedClock { Now = (desk ?? Sale).EvaluatedAtUtc },
+                new FlightOfferShoppingOptions(SourceContextTtl)),
             lab.Engine);
 
     public static async Task<AncillaryShoppingSnapshot> SnapshotAsync(
@@ -55,7 +59,16 @@ public static class BackofficeDesk
     {
         var sold = scope.Sell(offer);
 
-        return FlightOfferShoppingContextMapper.Map(sold, FlightOfferShoppingContextMapper.Facts(sold, new Dictionary<long, long>()), scope, scope.PointOfSaleId, airportCountryIds, new Dictionary<int, string>());
+        return FlightOfferShoppingContextMapper.Map(
+            sold,
+            FlightOfferShoppingContextMapper.Facts(sold, new Dictionary<long, long>()),
+            scope,
+            scope.PointOfSaleId,
+            airportCountryIds,
+            new Dictionary<int, string>(),
+            scope.EvaluatedAtUtc,
+            scope.EvaluatedAtUtc + SourceContextTtl,
+            FlightOfferFingerprint.Of(sold));
     }
 
     public static BackofficeSalesScopeResolver Resolver(Caller? caller = null, HomeAirline? home = null, Eligibility? eligibility = null)

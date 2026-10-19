@@ -41,14 +41,14 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
                     result,
                     result.Candidates
                         .Select(candidate => new AncillaryOfferItem(
-                            OfferItemRef.Of(shopping.Offer.OfferId, scope, pointOfSaleId, candidate.CandidateIdentity),
+                            OfferItemRef.Of(shopping.Offer.OfferId, context.SourceIdentity.TrustedSourceVersion, scope, pointOfSaleId, candidate.CandidateIdentity),
                             pointOfSaleId,
                             context,
                             candidate))
                         .ToList()));
             }
 
-            return new AncillaryShoppingSnapshot(shopping.Offer, scope, shopping.Facts, shopping.CurrencyId, pointsOfSale);
+            return new AncillaryShoppingSnapshot(shopping.Offer, scope, shopping.Facts, shopping.CurrencyId, shopping.EvaluatedAtUtc, pointsOfSale);
         }
 
         public Task<(AncillaryShoppingSnapshot Shopping, AncillaryOfferItem Item)> FindItemAsync(

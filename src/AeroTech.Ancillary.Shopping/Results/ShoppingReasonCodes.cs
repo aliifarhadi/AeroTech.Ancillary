@@ -4,6 +4,7 @@ namespace AeroTech.Ancillary.Shopping.Results
     {
         public const string StageNotApplicable = "StageNotApplicable";
         public const string OrderScopeRequiresOrder = "OrderScopeRequiresOrder";
+        public const string BeneficiaryRequired = "BeneficiaryRequired";
         public const string PassengerTypeNotAllowed = "PassengerTypeNotAllowed";
         public const string AgeNotVerified = "AgeNotVerified";
         public const string AgeOutsideBand = "AgeOutsideBand";
@@ -157,6 +158,7 @@ namespace AeroTech.Ancillary.Shopping.Results
         {
             StageNotApplicable,
             OrderScopeRequiresOrder,
+            BeneficiaryRequired,
             PassengerTypeNotAllowed,
             AgeNotVerified,
             AgeOutsideBand,

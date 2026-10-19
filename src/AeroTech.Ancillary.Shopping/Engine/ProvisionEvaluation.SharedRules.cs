@@ -15,7 +15,15 @@ namespace AeroTech.Ancillary.Shopping.Engine
             if (_provision.PassengerEligibility is not { } rule)
                 return;
 
-            if (rule.PassengerTypes.Count > 0 && rule.PassengerTypes.All(row => row.PassengerTypeCode != _unit.Traveller.PassengerTypeCode))
+            if (_unit.Traveller is not { } traveller)
+            {
+                if (rule.PassengerTypes.Count > 0 || rule.AgeBands.Count > 0)
+                    Outcome.Fail(ShoppingReasonCodes.BeneficiaryRequired);
+
+                return;
+            }
+
+            if (rule.PassengerTypes.Count > 0 && rule.PassengerTypes.All(row => row.PassengerTypeCode != traveller.PassengerTypeCode))
                 Outcome.Fail(ShoppingReasonCodes.PassengerTypeNotAllowed);
 
             if (rule.AgeBands.Count == 0 || Ages() is not { } ages)
@@ -204,7 +212,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
             foreach (var flight in _unit.Flights)
             {
-                var field = $"TravellerFareFacts[{_unit.Traveller.TravellerRef},{flight.FlightRef}]";
+                var field = $"TravellerFareFacts[{_unit.TravellerRef},{flight.FlightRef}]";
 
                 if (_unit.FareOf(flight) is not { } fare)
                 {
@@ -343,7 +351,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
                     var facts = _unit.BaggageOf(flight);
                     var pieces = cabin ? facts?.CabinPieces : facts?.CheckedPieces;
                     var weight = cabin ? facts?.CabinWeight : facts?.CheckedWeight;
-                    var field = $"TravellerBaggageFacts[{_unit.Traveller.TravellerRef},{flight.FlightRef}]";
+                    var field = $"TravellerBaggageFacts[{_unit.TravellerRef},{flight.FlightRef}]";
 
                     if (facts is not { SourceCompleteness: FactEvidence.Verified } || (pieces is null && weight is null))
                         Outcome.Unknown(ShoppingReasonCodes.BaggageAllowanceNotVerified, field);

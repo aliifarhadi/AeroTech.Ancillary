@@ -59,7 +59,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
             var ages = timeline.Ages?.Distinct().ToList();
             var rates = pricing.Rates
-                .Where(rate => rate.PassengerTypeCode is null || rate.PassengerTypeCode == unit.Traveller.PassengerTypeCode)
+                .Where(rate => rate.PassengerTypeCode is null || rate.PassengerTypeCode == unit.Traveller?.PassengerTypeCode)
                 .ToList();
 
             if (rates.Any(rate => rate.AgeFromInclusive is not null) && ages is not { Count: 1 })

@@ -88,7 +88,9 @@ public class SeatMapTests
         var source = new FlightOfferShoppingSource(
             new FixedOffers(Sale.Sell(await OfferWire.ReadAsync(OfferWire.Captured()))),
             airports,
-            new TestOnlyAirFareReference());
+            new TestOnlyAirFareReference(),
+            new FixedClock { Now = Sale.EvaluatedAtUtc },
+            new FlightOfferShoppingOptions(SourceContextTtl));
 
         airports.IataCodes[2] = "IKA";
         airports.IataCodes[6] = "IST";

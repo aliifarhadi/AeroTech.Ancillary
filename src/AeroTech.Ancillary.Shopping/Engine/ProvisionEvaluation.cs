@@ -31,6 +31,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
         public RuleOutcome Run()
         {
+            Beneficiary();
             Stage();
             PassengerEligibility();
             SalesRestrictions();
@@ -46,6 +47,15 @@ namespace AeroTech.Ancillary.Shopping.Engine
             SelectionContract();
 
             return Outcome;
+        }
+
+        private void Beneficiary()
+        {
+            if (_unit.Traveller is not null)
+                return;
+
+            if (_definition.Profile is AncillaryProfile.Seat or AncillaryProfile.AssistedTravel)
+                Outcome.Fail(ShoppingReasonCodes.BeneficiaryRequired);
         }
 
         private void Stage()
@@ -81,7 +91,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
                 return null;
 
             if (Timeline.Ages is null)
-                Outcome.Unknown(ShoppingReasonCodes.AgeNotVerified, $"Travellers[{_unit.Traveller.TravellerRef}].DateOfBirth");
+                Outcome.Unknown(ShoppingReasonCodes.AgeNotVerified, $"Travellers[{_unit.TravellerRef}].DateOfBirth");
 
             return Timeline.Ages;
         }

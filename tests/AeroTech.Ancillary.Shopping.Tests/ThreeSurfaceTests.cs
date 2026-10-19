@@ -420,11 +420,14 @@ public class ThreeSurfaceTests
         Assert.All(
             new[] { item.Candidate.ProvisionId, item.Candidate.DefinitionVersionId, item.Candidate.Price.PricingRevisionId!.Value },
             id => Assert.DoesNotContain(id.ToString(), item.OfferItemRef, StringComparison.Ordinal));
+        var sourceVersion = item.Context.SourceIdentity.TrustedSourceVersion;
+
         Assert.Equal(item.Candidate.CandidateIdentity, found.Candidate.CandidateIdentity);
-        Assert.Equal(item.OfferItemRef, OfferItemRef.Of(OfferWire.OfferId, Desk, Pos, item.Candidate.CandidateIdentity));
-        Assert.NotEqual(item.OfferItemRef, OfferItemRef.Of(OfferWire.OfferId, Desk.On(AgencySalesPolicy.SalesChannel, Pos), Pos, item.Candidate.CandidateIdentity));
-        Assert.NotEqual(item.OfferItemRef, OfferItemRef.Of(OfferWire.OfferId, Desk, OtherPos, item.Candidate.CandidateIdentity));
-        Assert.NotEqual(item.OfferItemRef, OfferItemRef.Of(OfferWire.OfferId + "x", Desk, Pos, item.Candidate.CandidateIdentity));
+        Assert.Equal(item.OfferItemRef, OfferItemRef.Of(OfferWire.OfferId, sourceVersion, Desk, Pos, item.Candidate.CandidateIdentity));
+        Assert.NotEqual(item.OfferItemRef, OfferItemRef.Of(OfferWire.OfferId, sourceVersion, Desk.On(AgencySalesPolicy.SalesChannel, Pos), Pos, item.Candidate.CandidateIdentity));
+        Assert.NotEqual(item.OfferItemRef, OfferItemRef.Of(OfferWire.OfferId, sourceVersion, Desk, OtherPos, item.Candidate.CandidateIdentity));
+        Assert.NotEqual(item.OfferItemRef, OfferItemRef.Of(OfferWire.OfferId + "x", sourceVersion, Desk, Pos, item.Candidate.CandidateIdentity));
+        Assert.NotEqual(item.OfferItemRef, OfferItemRef.Of(OfferWire.OfferId, sourceVersion + "x", Desk, Pos, item.Candidate.CandidateIdentity));
 
         foreach (var (query, scope) in new (OfferQuery Query, AncillarySalesScope Scope)[]
                  {

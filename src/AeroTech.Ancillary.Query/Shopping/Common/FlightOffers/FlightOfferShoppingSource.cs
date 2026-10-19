@@ -2,6 +2,7 @@ using AeroTech.Ancillary.Application.FlightOffers;
 using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
+using AeroTech.Framework.Core.ServiceContracts;
 
 namespace AeroTech.Ancillary.Query.Shopping.Common.FlightOffers
 {
@@ -10,12 +11,21 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.FlightOffers
         private readonly IFlightOfferProvider _flightOffers;
         private readonly IAirportReference _airports;
         private readonly IAirFareReference _airFares;
+        private readonly IClock _clock;
+        private readonly FlightOfferShoppingOptions _options;
 
-        public FlightOfferShoppingSource(IFlightOfferProvider flightOffers, IAirportReference airports, IAirFareReference airFares)
+        public FlightOfferShoppingSource(
+            IFlightOfferProvider flightOffers,
+            IAirportReference airports,
+            IAirFareReference airFares,
+            IClock clock,
+            FlightOfferShoppingOptions options)
         {
             _flightOffers = flightOffers;
             _airports = airports;
             _airFares = airFares;
+            _clock = clock;
+            _options = options;
         }
 
         public async Task<FlightOfferShopping> LoadAsync(string? offerId, AncillarySalesScope scope, CancellationToken cancellationToken = default)
@@ -34,17 +44,30 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.FlightOffers
                 .ToList();
             var airportCountryIds = await _airports.FindCountryIdsAsync(airportIds, cancellationToken);
             var airportTimeZoneIds = await _airports.FindTimeZoneIdsAsync(airportIds, cancellationToken);
+            var evaluatedAtUtc = _clock.GetDateTime().ToUniversalTime();
+            var validUntilUtc = evaluatedAtUtc + _options.SourceContextTtl;
+            var sourceVersion = FlightOfferFingerprint.Of(offer);
 
             return new FlightOfferShopping(
                 offer,
                 facts,
                 offer.CurrencyId,
+                evaluatedAtUtc,
                 scope.PointOfSaleIds
                     .Distinct()
                     .Order()
                     .Select(pointOfSaleId => new PointOfSaleContext(
                         pointOfSaleId,
-                        FlightOfferShoppingContextMapper.Map(offer, facts, scope, pointOfSaleId, airportCountryIds, airportTimeZoneIds)))
+                        FlightOfferShoppingContextMapper.Map(
+                            offer,
+                            facts,
+                            scope,
+                            pointOfSaleId,
+                            airportCountryIds,
+                            airportTimeZoneIds,
+                            evaluatedAtUtc,
+                            validUntilUtc,
+                            sourceVersion)))
                     .ToList());
         }
     }

@@ -10,10 +10,8 @@ namespace AeroTech.Ancillary.Shopping.Engine
         {
             Occurrences = Resolve(definition, unit);
 
-            if (Occurrences is null)
+            if (Occurrences is null || unit.Traveller is not { } traveller)
                 return;
-
-            var traveller = unit.Traveller;
 
             if (traveller.DateOfBirth is { } dateOfBirth)
                 Ages = Occurrences.Select(occurrence => ServiceOccurrence.CompletedYears(dateOfBirth, occurrence.LocalDate)).ToList();

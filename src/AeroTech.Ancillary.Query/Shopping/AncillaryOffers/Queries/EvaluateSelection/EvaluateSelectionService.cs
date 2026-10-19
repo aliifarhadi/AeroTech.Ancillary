@@ -40,7 +40,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSele
                 shopping,
                 item,
                 evaluation,
-                OfferItemRef.Of(shopping.Offer.OfferId, scope, item.PointOfSaleId, evaluation.Candidate.CandidateIdentity));
+                OfferItemRef.Of(shopping.Offer.OfferId, item.Context.SourceIdentity.TrustedSourceVersion, scope, item.PointOfSaleId, evaluation.Candidate.CandidateIdentity));
         }
     }
 }

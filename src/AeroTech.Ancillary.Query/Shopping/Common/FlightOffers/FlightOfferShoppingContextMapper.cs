@@ -42,16 +42,25 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.FlightOffers
             AncillarySalesScope scope,
             long pointOfSaleId,
             IReadOnlyDictionary<int, int> airportCountryIds,
-            IReadOnlyDictionary<int, string> airportTimeZoneIds)
+            IReadOnlyDictionary<int, string> airportTimeZoneIds,
+            DateTimeOffset evaluatedAtUtc,
+            DateTimeOffset validUntilUtc,
+            string sourceVersion)
             => new()
             {
                 OwnerAirlineId = scope.OwnerAirlineId,
                 PointOfSaleId = pointOfSaleId,
                 CustomerId = offer.CustomerId,
                 ShoppingStage = Stage,
-                EvaluatedAtUtc = offer.PricedAt.ToUniversalTime(),
+                EvaluatedAtUtc = evaluatedAtUtc.ToUniversalTime(),
                 CurrencyId = offer.CurrencyId,
-                SourceIdentity = new SourceIdentityContext { SourceKind = ShoppingSourceKind.Offer, TrustedSourceReference = offer.OfferId },
+                SourceIdentity = new SourceIdentityContext
+                {
+                    SourceKind = ShoppingSourceKind.Offer,
+                    TrustedSourceReference = offer.OfferId,
+                    TrustedSourceVersion = sourceVersion,
+                    ValidUntilUtc = validUntilUtc.ToUniversalTime()
+                },
                 Travellers = offer.Tickets
                     .Select(ticket => new ShoppingTraveller { TravellerRef = ticket.TravellerRef, PassengerTypeCode = ticket.PassengerTypeCode })
                     .ToList(),

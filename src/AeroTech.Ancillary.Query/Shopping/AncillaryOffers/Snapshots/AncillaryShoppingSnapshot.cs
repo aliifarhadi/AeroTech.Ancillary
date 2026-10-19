@@ -12,6 +12,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Snapshots
         AncillarySalesScope Scope,
         FlightOfferFacts Facts,
         int CurrencyId,
+        DateTimeOffset EvaluatedAtUtc,
         IReadOnlyList<PointOfSaleShopping> PointsOfSale)
     {
         public IEnumerable<AncillaryOfferItem> Items => PointsOfSale.SelectMany(pointOfSale => pointOfSale.Items);
