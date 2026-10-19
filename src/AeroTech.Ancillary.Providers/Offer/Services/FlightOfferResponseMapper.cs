@@ -17,7 +17,8 @@ namespace AeroTech.Ancillary.Providers.Offer.Services
                 throw ExceptionFactory.FlightOfferNotFound();
 
             Require(source.CurrencyId > 0, nameof(source.CurrencyId));
-            Require(PricedOfferId.TryReadCustomerId(source.OfferId, out var customerId), nameof(source.OfferId));
+            Require(PricedOfferId.TryRead(source.OfferId, out var commercial), nameof(source.OfferId));
+            Require(commercial!.CurrencyId == source.CurrencyId, nameof(source.CurrencyId));
             Unique(source.AirTransports.Select(transport => transport.BoundId), nameof(OfferAirTransport.BoundId));
             Unique(source.AirTransports.Select(transport => transport.BoundOfferId), nameof(OfferAirTransport.BoundOfferId));
             Unique(source.AirTransports.Select(transport => transport.Sequence.ToString(CultureInfo.InvariantCulture)), nameof(OfferAirTransport.Sequence));
@@ -34,7 +35,7 @@ namespace AeroTech.Ancillary.Providers.Offer.Services
                 source.OfferId,
                 source.PricedAt,
                 source.LastTicketingDate,
-                customerId,
+                commercial.CustomerId,
                 source.CurrencyId,
                 string.IsNullOrWhiteSpace(source.CurrencyCode) ? null : source.CurrencyCode,
                 source.BaseAmount,
@@ -44,7 +45,9 @@ namespace AeroTech.Ancillary.Providers.Offer.Services
                 source.PricingUnits.SelectMany(unit => unit.FareComponents).Select(component => MapFareComponent(component, bounds)).ToList(),
                 source.Tickets.OrderBy(ticket => ticket.TravellerIndex).Select(ticket => MapTicket(ticket, bounds)).ToList(),
                 source.OrderCharges.Select(MapLine).ToList(),
-                source.RatesOfExchange.Select(MapRateOfExchange).ToList());
+                source.RatesOfExchange.Select(MapRateOfExchange).ToList(),
+                commercial.Channel,
+                commercial.CountryId);
         }
 
         private static FlightOfferBound MapBound(OfferAirTransport transport)

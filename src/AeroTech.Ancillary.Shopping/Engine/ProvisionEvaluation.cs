@@ -31,7 +31,6 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
         public RuleOutcome Run()
         {
-            Beneficiary();
             Stage();
             PassengerEligibility();
             SalesRestrictions();
@@ -47,15 +46,6 @@ namespace AeroTech.Ancillary.Shopping.Engine
             SelectionContract();
 
             return Outcome;
-        }
-
-        private void Beneficiary()
-        {
-            if (_unit.Traveller is not null)
-                return;
-
-            if (_definition.Profile is AncillaryProfile.Seat or AncillaryProfile.AssistedTravel)
-                Outcome.Fail(ShoppingReasonCodes.BeneficiaryRequired);
         }
 
         private void Stage()

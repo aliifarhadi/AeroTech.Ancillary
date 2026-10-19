@@ -97,7 +97,7 @@ public class S201ContextCoverageTests
     [Fact]
     public async Task S201_CTX_02_the_backoffice_answer_states_the_server_evaluation_clock_and_keeps_the_sales_date_as_a_source_fact()
     {
-        var offer = await OfferWire.ReadAsync(OfferWire.Captured());
+        var offer = (await OfferWire.ReadAsync(OfferWire.Captured())) with { SalesChannel = Channel.BackOffice };
         var service = new GetAncillaryOffersService(
             new FlightOfferShoppingSource(
                 new FixedOffers(offer),
@@ -220,7 +220,7 @@ public class S201ContextCoverageTests
 
         var context = Trip.Context(travellers: [Trip.Adult("T1"), Trip.Child("T2")]);
         var shown = (await lab.Engine.ShopAsync(context)).Candidates.Single(candidate => candidate.VariantCode == "A24");
-        var evaluation = await lab.Engine.EvaluateSelectionAsync(context, shown.CandidateIdentity, new AncillarySelection { PlanCode = "FULL", DeviceCount = 1 });
+        var evaluation = await lab.Engine.EvaluateSelectionAsync(context, shown.CandidateIdentity, new AncillarySelection { PlanCode = "WIFI_FULL_FLIGHT", DeviceCount = 1 });
 
         Assert.Equal(SelectionEvaluationStatus.Accepted, evaluation.Status);
         Assert.Equal(string.Empty, evaluation.Candidate.CandidateIdentity.TravellerRef);

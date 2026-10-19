@@ -27,5 +27,7 @@ namespace AeroTech.Ancillary.Shopping.Context
         public string? BookingClass { get; init; }
 
         public string? FareSnapshotVersion { get; init; }
+
+        public bool? CouponUpgradable { get; init; }
     }
 }

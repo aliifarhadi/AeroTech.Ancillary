@@ -152,6 +152,9 @@ namespace AeroTech.Ancillary.Shopping.Engine
             if (Selection is null)
                 return;
 
+            if (_definition.VariantCode == AncillaryVariant.ExtraWeightPackage)
+                OnlyAuthoredChoice("PackageProductRef", Selection.PackageProductRef, _definition.ServiceDefinitionRef);
+
             if (Selection.MeasuredWeightKg is { } measured
                 && (measured <= (specification.WeightFromExclusiveKg ?? 0m) || measured > (specification.WeightToInclusiveKg ?? decimal.MaxValue)))
                 Outcome.Reject("MeasuredWeightKg", ShoppingReasonCodes.BaggageWeightOutsideBracket);
@@ -208,6 +211,9 @@ namespace AeroTech.Ancillary.Shopping.Engine
         {
             foreach (var flight in _unit.Flights)
             {
+                if (_unit.FareOf(flight)?.CouponUpgradable is false)
+                    Outcome.Fail(ShoppingReasonCodes.CouponNotUpgradable);
+
                 if (CabinOf(flight) is not { } cabin)
                     Outcome.Unknown(ShoppingReasonCodes.CabinNotVerified, $"Flights[{flight.FlightRef}].CabinClassId");
                 else if (cabin != specification.FromCabinId)
@@ -246,6 +252,9 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
             if (Selection?.MenuItemRef is { } menuItem && specification.MenuItemRef is { } authoredItem && !string.Equals(menuItem.Trim(), authoredItem, StringComparison.OrdinalIgnoreCase))
                 Outcome.Reject("MenuItemRef", ShoppingReasonCodes.MenuItemMismatch);
+
+            if (_definition.VariantCode == AncillaryVariant.PaidPreorderMeal && specification.MenuItemRef is null)
+                Outcome.Unknown(ShoppingReasonCodes.MenuCatalogNotVerified, "Specification.MenuItemRef");
         }
 
         private void Pet(PetSpecification specification)
@@ -471,6 +480,15 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
             if (Selection?.DeviceCount is { } devices && (devices < 1 || devices > (specification.MaxDevices ?? int.MaxValue)))
                 Outcome.Reject("DeviceCount", ShoppingReasonCodes.DevicesAboveMaximum);
+
+            if (Selection is not null)
+                OnlyAuthoredChoice("PlanCode", Selection.PlanCode, _definition.ServiceDefinitionRef);
+        }
+
+        private void OnlyAuthoredChoice(string field, string? selected, string authored)
+        {
+            if (selected is not null && !string.Equals(selected.Trim(), authored, StringComparison.Ordinal))
+                Outcome.Reject(field, ShoppingReasonCodes.SelectedOptionNotOffered);
         }
     }
 }

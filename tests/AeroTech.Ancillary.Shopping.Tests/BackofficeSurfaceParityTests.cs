@@ -65,7 +65,7 @@ public class BackofficeSurfaceParityTests
     [InlineData("1|1|0;9~1_2~2;3|customer||70|1791706372", false, null)]
     [InlineData("1|1|0;9~1_2~2;3|501||70", false, null)]
     public void PARITY_BO_01_the_customer_is_read_from_the_commercial_section_of_the_priced_offer_id(string offerId, bool read, long? expected)
-        => Assert.Equal((read, expected), (PricedOfferId.TryReadCustomerId(offerId, out var customerId), customerId));
+        => Assert.Equal((read, expected), (PricedOfferId.TryRead(offerId, out var commercial), commercial?.CustomerId));
 
     [Fact]
     public async Task PARITY_BO_01_point_of_sale_and_country_follow_the_backoffice_rules_and_the_currency_is_the_offer_currency()
@@ -151,7 +151,7 @@ public class BackofficeSurfaceParityTests
 
         lab.Price(wifi, lab.Provision(wifi), Rate(900_000m, Irr));
 
-        var offer = await OfferWire.ReadAsync(OfferWire.Captured());
+        var offer = (await OfferWire.ReadAsync(OfferWire.Captured())) with { SalesChannel = Channel.BackOffice };
         var pricedAt = DateTimeOffset.FromUnixTimeSeconds(EmbeddedSalesDate);
         var context = FlightOfferShoppingContextMapper.Map(
             offer,

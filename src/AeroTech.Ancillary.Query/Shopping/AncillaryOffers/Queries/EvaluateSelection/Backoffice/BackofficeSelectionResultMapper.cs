@@ -18,6 +18,13 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSele
                 BackofficeAncillaryOfferMapper.Map(selection.CurrentOfferItemRef, selection.Item.PointOfSaleId, selection.Evaluation.Candidate),
                 selection.Evaluation.Candidate.Price.RequestedQuantityTotal,
                 selection.Evaluation.FieldIssues.Select(issue => new BackofficeFieldIssueDto(issue.Field, issue.ReasonCode)).ToList(),
-                false);
+                OfferPurchase.CanPurchase(selection.Evaluation),
+                null,
+                null,
+                OfferSelectionResultsMapper.SelectedOptions(selection),
+                OfferSelectionResultsMapper.Beneficiary(selection, refs => refs),
+                OfferSelectionResultsMapper.Coverage(selection, refs => refs),
+                OfferSelectionResultsMapper.ExactPrice(selection),
+                selection.Evaluation.Candidate.Availability.RequiresCheckAtReserve);
     }
 }

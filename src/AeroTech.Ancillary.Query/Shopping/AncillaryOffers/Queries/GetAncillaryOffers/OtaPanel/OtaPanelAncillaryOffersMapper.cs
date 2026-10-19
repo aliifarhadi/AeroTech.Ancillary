@@ -36,7 +36,14 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
                         offer.Bounds.SelectMany(bound => bound.Flights.Select(flight => FlightGroup(snapshot, ticket, bound, flight, flightRefs, shown))).ToList()))
                     .ToList(),
                 snapshot.Items.Count() - shown.Count,
-                RatesOfExchange(snapshot));
+                RatesOfExchange(snapshot),
+                shown
+                    .Where(item => item.Candidate.CandidateIdentity is { CoverageScope: ServiceCoverageScope.Order, TravellerRef: "" })
+                    .OrderBy(item => item.Candidate.Profile)
+                    .ThenBy(item => item.Candidate.ServiceDefinitionRef, StringComparer.Ordinal)
+                    .ThenBy(item => item.PointOfSaleId)
+                    .Select(item => Service(item.OfferItemRef, item.Candidate))
+                    .ToList());
         }
 
         private static IReadOnlyList<OtaPanelRateOfExchangeDto> RatesOfExchange(AncillaryShoppingSnapshot snapshot)
@@ -67,7 +74,13 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
                 candidate.Selection.Fields.Where(field => field.Required).Select(field => field.Name).ToList(),
                 DisplayStatusOf(candidate.OfferReadiness) ?? candidate.OfferReadiness.ToString(),
                 !candidate.Availability.IsGuaranteed,
-                false);
+                OfferPurchase.CanPurchase(candidate),
+                candidate.Selection.Kind.ToString(),
+                candidate.Availability.CheckedState.ToString(),
+                candidate.OfferReadiness.ToString(),
+                candidate.Eligibility.ReasonCodes,
+                candidate.Price.AddedTaxLines.Select(Fee).ToList(),
+                candidate.Price.AppliedUnitFeeLines.Select(Fee).ToList());
 
         public static OtaPanelMoneyDto? Money(decimal? amount, int? currencyId)
             => amount is { } value && currencyId is { } currency ? new OtaPanelMoneyDto(value, currency) : null;

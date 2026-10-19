@@ -6,11 +6,11 @@
       "name": "Accepted",
       "title": "Accepted"
     },
-    "offerItemRef": "kqB9VPyeQukfExPVoeKPPdg4RjFd6fDSVoGUCYmHDP0",
-    "currentOfferItemRef": "kqB9VPyeQukfExPVoeKPPdg4RjFd6fDSVoGUCYmHDP0",
+    "offerItemRef": "8V2If5Oi-fSyG6Z5CZNIOGof_LXbUz59eEKkqzQZ0oc",
+    "currentOfferItemRef": "8V2If5Oi-fSyG6Z5CZNIOGof_LXbUz59eEKkqzQZ0oc",
     "provisionChangedBySelection": false,
     "offer": {
-      "offerItemRef": "kqB9VPyeQukfExPVoeKPPdg4RjFd6fDSVoGUCYmHDP0",
+      "offerItemRef": "8V2If5Oi-fSyG6Z5CZNIOGof_LXbUz59eEKkqzQZ0oc",
       "pointOfSaleId": "9001",
       "candidateIdentity": {
         "definitionVersionId": "1002",
@@ -216,13 +216,65 @@
         "name": "AvailableForSelection",
         "title": "Available For Selection"
       },
-      "canPurchase": false,
+      "canPurchase": true,
       "reasonCodes": [
         "InventoryNotConfigured"
       ]
     },
     "selectedQuantityTotal": 10900000,
     "fieldIssues": [],
-    "canPurchase": false
+    "canPurchase": true,
+    "pricedSelectionRef": null,
+    "validUntilUtc": null,
+    "selectedOptions": [],
+    "beneficiary": {
+      "travellerRefs": [
+        "ADT-1"
+      ]
+    },
+    "coverage": {
+      "scope": "Portion",
+      "flightRefs": [
+        "B1:F1"
+      ],
+      "portionRefs": [
+        "B1"
+      ]
+    },
+    "exactPrice": {
+      "origin": "Filed",
+      "pricingUnit": "PerPiece",
+      "currencyId": 70,
+      "filedCurrencyId": 70,
+      "quantity": 2,
+      "chargeableWeightKg": null,
+      "baseAmount": 5000000,
+      "addedTaxes": [
+        {
+          "code": "VAT",
+          "amount": 450000,
+          "currencyId": 70,
+          "countryId": null,
+          "stationAirportId": null,
+          "applicationUnit": null,
+          "taxTreatment": "AddedToBase"
+        }
+      ],
+      "includedTaxes": [],
+      "unitFees": [],
+      "sharedFees": [],
+      "unitTotal": 5450000,
+      "lineTotal": 10900000,
+      "fx": {
+        "rateOfExchangeTableId": "70",
+        "fromCurrencyId": 70,
+        "toCurrencyId": 70,
+        "rate": 1,
+        "decimalPlaces": 0
+      },
+      "isTotalComplete": true,
+      "reasonCodes": []
+    },
+    "requiresCheckAtReserve": false
   }
 }

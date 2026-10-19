@@ -127,7 +127,7 @@ public class ThreeSurfaceTests
         DeskSale scope,
         string? wire = null)
     {
-        var offers = await ServiceAsync(lab, wire, desk: scope.Desk);
+        var offers = await ServiceAsync(lab, wire, desk: scope.Desk, channel: scope.Scope.Channel);
 
         return (offers, await offers.ExecuteAsync(new OfferQuery(OfferWire.OfferId), scope));
     }
@@ -172,13 +172,15 @@ public class ThreeSurfaceTests
                 price.UnappliedFeeLines.Select(line => ApiOfferReferences.Amount(line.Amount)),
                 agencyView.Ancillary.Pricing.Fees.Where(fee => fee.OrderLevel).Select(fee => fee.Amount));
             Assert.Equal(price.UnappliedFeeLines.Select(line => line.Amount), panelView.OrderLevelFees.Select(line => line.Amount));
-            Assert.False(operatorView.CanPurchase || agencyView.Ancillary.CanPurchase || panelView.CanPurchase);
+            Assert.Equal(
+                (OfferPurchase.CanPurchase(item.Candidate), OfferPurchase.CanPurchase(item.Candidate), OfferPurchase.CanPurchase(item.Candidate)),
+                (operatorView.CanPurchase, agencyView.Ancillary.CanPurchase, panelView.CanPurchase));
             Assert.Null(agencyView.Ancillary.Pricing.RequestedTotal);
         });
         Assert.Equal(3, new[] { backoffice.GetType(), api.GetType(), panel.GetType() }.Distinct().Count());
         Assert.Empty(Members(typeof(ApiAncillaryOffersDto)).Intersect(Members(typeof(BackofficeAncillaryOffersDto))));
         Assert.Equal(new[] { "Data", "Included", "Meta" }, Members(typeof(ApiAncillaryOffersDto)));
-        Assert.Equal(new[] { "BlockedCount", "CurrencyCode", "CurrencyId", "OfferId", "RatesOfExchange", "TravellerGroups" }, Members(typeof(OtaPanelAncillaryOffersDto)));
+        Assert.Equal(new[] { "BlockedCount", "CurrencyCode", "CurrencyId", "OfferId", "OrderScopedServices", "RatesOfExchange", "TravellerGroups" }, Members(typeof(OtaPanelAncillaryOffersDto)));
     }
 
     [Fact]
@@ -429,10 +431,15 @@ public class ThreeSurfaceTests
         Assert.NotEqual(item.OfferItemRef, OfferItemRef.Of(OfferWire.OfferId + "x", sourceVersion, Desk, Pos, item.Candidate.CandidateIdentity));
         Assert.NotEqual(item.OfferItemRef, OfferItemRef.Of(OfferWire.OfferId, sourceVersion + "x", Desk, Pos, item.Candidate.CandidateIdentity));
 
+        var otherChannel = await Assert.ThrowsAsync<BusinessException>(
+            () => offers.FindItemAsync(new OfferQuery(OfferWire.OfferId, item.OfferItemRef), Desk.On(AgencySalesPolicy.SalesChannel, Pos)));
+
+        Assert.Equal((16809, 403), (otherChannel.Code, otherChannel.HttpStatus));
+
         foreach (var (query, scope) in new (OfferQuery Query, AncillarySalesScope Scope)[]
                  {
-                     (new OfferQuery(OfferWire.OfferId, item.OfferItemRef), Desk.On(AgencySalesPolicy.SalesChannel, Pos)),
                      (new OfferQuery(OfferWire.OfferId, item.OfferItemRef), Desk.On(Channel.BackOffice, OtherPos)),
+                     (new OfferQuery(OfferWire.OfferId, item.OfferItemRef), Desk.On(Channel.BackOffice, Pos).Scope with { AirlineOfficeId = 77 }),
                      (new OfferQuery(OfferWire.OfferId, item.OfferItemRef), Desk with { OwnerAirlineId = 2 }),
                      (new OfferQuery(OfferWire.OfferId, item.Candidate.ProvisionId.ToString()), Desk),
                      (new OfferQuery(OfferWire.OfferId, item.OfferItemRef[..42] + "A"), Desk)
@@ -526,7 +533,9 @@ public class ThreeSurfaceTests
         Assert.Equal(("NonRefundable", false, false), (backoffice.Terms.ReissueRefund.Name, backoffice.Terms.Commissionable, backoffice.Terms.InterlineSettlement));
         Assert.Equal("Both", api.Restrictions.PurchaseStage);
         Assert.Equal(item.Candidate.OfferReadiness.ToString(), api.Bag.Ancillary.Readiness);
-        Assert.False(api.Bag.Ancillary.CanPurchase || panel.Service.CanPurchase || backoffice.Offer.CanPurchase);
+        Assert.Equal(
+            (OfferPurchase.CanPurchase(item.Candidate), OfferPurchase.CanPurchase(item.Candidate), OfferPurchase.CanPurchase(item.Candidate)),
+            (api.Bag.Ancillary.CanPurchase, panel.Service.CanPurchase, backoffice.Offer.CanPurchase));
         Assert.False(api.Bag.Ancillary.Availability.Guaranteed);
     }
 
@@ -631,7 +640,7 @@ public class ThreeSurfaceTests
     {
         var lab = Shop();
         var (offers, snapshot) = await ShoppedAsync(lab, Desk);
-        var service = new EvaluateSelectionService(offers, lab.Engine);
+        var service = new EvaluateSelectionService(new GetAncillaryOfferDetailService(offers, lab.Catalog, lab.Catalog, lab.Catalog), lab.Engine);
         var bag = snapshot.Items.First(item => item.Candidate.VariantCode == "A01");
         var wifi = snapshot.Items.First(item => item.Candidate.VariantCode == "A24");
         var query = new OfferQuery(OfferWire.OfferId, bag.OfferItemRef);
@@ -651,7 +660,12 @@ public class ThreeSurfaceTests
         Assert.Equal(("Accepted", 10_900_000m, 5_450_000m), (backoffice.Status.Name, backoffice.SelectedQuantityTotal, backoffice.Offer.Pricing.CompleteUnitTotal));
         Assert.Equal(bag.OfferItemRef, api.OfferItemRef);
         Assert.Equal(bag.OfferItemRef, api.CurrentOfferItemRef);
-        Assert.False(api.CanPurchase || panel.CanPurchase || backoffice.CanPurchase);
+        Assert.True(api.CanPurchase && panel.CanPurchase && backoffice.CanPurchase);
+        Assert.All(
+            new[] { api.ExactPrice, panel.ExactPrice, backoffice.ExactPrice },
+            price => Assert.Equal((2, 5_450_000m, 10_900_000m, true), (price.Quantity, price.UnitTotal, price.LineTotal, price.IsTotalComplete)));
+        Assert.False(OtaPanelSelectionResultMapper.Map(nine).CanPurchase);
+        Assert.Null(OtaPanelSelectionResultMapper.Map(nine).ExactPrice.LineTotal);
         Assert.False(api.Bag.Ancillary.Availability.Guaranteed);
         Assert.Null(bag.Candidate.Price.RequestedQuantityTotal);
         Assert.Equal((SelectionEvaluationStatus.Rejected, null), (nine.Evaluation.Status, nine.Evaluation.Candidate.Price.RequestedQuantityTotal));
@@ -681,7 +695,7 @@ public class ThreeSurfaceTests
         var bag = snapshot.Items.First(item => item.Candidate.VariantCode == "A01");
         var query = new OfferQuery(OfferWire.OfferId, bag.OfferItemRef);
         var detail = await new GetAncillaryOfferDetailService(offers, lab.Catalog, lab.Catalog, lab.Catalog).ExecuteAsync(query, scope);
-        var selection = await new EvaluateSelectionService(offers, lab.Engine).ExecuteAsync(query, new AncillarySelection { Quantity = 2 }, scope);
+        var selection = await new EvaluateSelectionService(new GetAncillaryOfferDetailService(offers, lab.Catalog, lab.Catalog, lab.Catalog), lab.Engine).ExecuteAsync(query, new AncillarySelection { Quantity = 2 }, scope);
         var answers = surface switch
         {
             "backoffice" => new (string Name, object Answer)[]

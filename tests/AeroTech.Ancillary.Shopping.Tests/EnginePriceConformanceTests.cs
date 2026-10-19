@@ -129,7 +129,7 @@ public class EnginePriceConformanceTests
     public async Task P32B_ENG_06_a_weight_package_is_charged_per_package_and_its_kilograms_never_multiply_the_price()
     {
         var priced = await PricedAsync("A02", [Rate(800m)], Trip.Context() with { TravellerBaggageFacts = [Trip.WeightAllowance()] });
-        var two = await priced.ChooseAsync(new AncillarySelection { PackageProductRef = "PACK10", Quantity = 2 });
+        var two = await priced.ChooseAsync(new AncillarySelection { PackageProductRef = "WEIGHT_PACK_10", Quantity = 2 });
 
         Assert.Equal((PricingUnit.PerItem, AncillaryQuantityUnit.Each, 800m), (priced.Shown.Price.PricingUnit, priced.Shown.Quantity.Unit, priced.Shown.Price.CompleteUnitTotal));
         Assert.Equal((SelectionEvaluationStatus.Accepted, 1_600m), (two.Status, two.Candidate.Price.RequestedQuantityTotal));

@@ -105,7 +105,7 @@ public class V12BoundaryAcceptanceTests
                 "OfferAirTransport.cs", "OfferCoupon.cs", "OfferEnvelope.cs", "OfferFareComponent.cs", "OfferFlight.cs", "OfferFlightLeg.cs",
                 "OfferJson.cs",
                 "OfferPricingLine.cs", "OfferPricingUnit.cs", "OfferRateOfExchange.cs", "OfferResultError.cs", "OfferTicket.cs",
-                "PricedOfferId.cs"
+                "PricedOfferCommercial.cs", "PricedOfferId.cs"
             },
             Files(Path.Combine(Source, "AeroTech.Ancillary.Providers")).Select(Path.GetFileName).OrderBy(name => name, StringComparer.Ordinal));
     }
@@ -126,7 +126,7 @@ public class V12BoundaryAcceptanceTests
             new[] { "GetAncillaryHoldById" },
             Folders("AeroTech.Ancillary.Query", FrozenAggregate, "Queries"));
         Assert.DoesNotContain(
-            Files(Source).Select(path => Path.GetFileName(path)!).Where(name => !name.Contains("ProvisionCancellationRule", StringComparison.Ordinal)),
+            Files(Source).Select(path => Path.GetFileName(path)!).Where(name => !name.Contains("CancellationRule", StringComparison.Ordinal) && !name.EndsWith("IssueDto.cs", StringComparison.Ordinal)),
             name => new[] { "Cancel", "Release", "Issue", "Split", "History" }.Any(term => name.Contains(term, StringComparison.Ordinal)));
 
         var frozen = Files(Source)

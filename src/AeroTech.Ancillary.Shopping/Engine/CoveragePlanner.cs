@@ -1,3 +1,4 @@
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.Shopping.Context;
 using AeroTech.Messages.Ancillary.Enums;
 
@@ -35,6 +36,9 @@ namespace AeroTech.Ancillary.Shopping.Engine
                 _ => []
             };
         }
+
+        public static bool AllowsOrderScope(AncillaryServiceDefinition definition)
+            => definition.VariantCode is AncillaryVariant.CipMeetAssist or AncillaryVariant.OnboardWifi;
 
         private static bool OrderCoverable(SourceIdentityContext source)
             => source.SourceKind == ShoppingSourceKind.Offer

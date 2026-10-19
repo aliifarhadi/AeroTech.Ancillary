@@ -103,7 +103,34 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
                         rate.UnitTotal.Amount,
                         rate.IsUnitTotalComplete,
                         rate.Id == candidate.Price.PricingRateId))
-                    .ToList() ?? []);
+                    .ToList() ?? [],
+                OfferOptionCatalog.Build(definition, provision, candidate, item.Context),
+                new OfferCommercialTerms(
+                    provision.PurchaseStage,
+                    provision.Outcome.Disposition,
+                    provision.Settlement.ReissueRefund,
+                    provision.Settlement.FormOfRefund,
+                    definition.Booking.ConfirmationRequirement,
+                    definition.Booking.Method,
+                    definition.DocumentRouting!.Value,
+                    definition.Document.Type,
+                    definition.Document.Rfic,
+                    definition.Document.Rfisc,
+                    provision.CancellationRules
+                        .OrderBy(rule => rule.RuleRef, StringComparer.Ordinal)
+                        .Select(rule => new OfferCancellationRule(
+                            rule.RuleRef,
+                            rule.ReasonKind,
+                            rule.BeforeStartMinutesFrom,
+                            rule.BeforeStartMinutesTo,
+                            rule.PenaltyKind,
+                            rule.PenaltyFixedAmount,
+                            rule.PenaltyPercentage,
+                            rule.PenaltyCurrencyId,
+                            rule.PercentageBase,
+                            rule.WaiverPermitted,
+                            rule.SourceReference))
+                        .ToList()));
         }
     }
 }

@@ -17,6 +17,12 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
                 BackofficeOfferDetailSectionsMapper.SeatRule(detail.SeatRule),
                 BackofficeOfferDetailSectionsMapper.Restrictions(detail.Restrictions),
                 BackofficeOfferDetailSectionsMapper.Terms(detail.Terms),
-                detail.PublishedRates.Select(BackofficeOfferDetailSectionsMapper.Rate).ToList());
+                detail.PublishedRates.Select(BackofficeOfferDetailSectionsMapper.Rate).ToList(),
+                OfferSelectionDetailsMapper.SelectionContract(detail.Item.Candidate.Selection),
+                OfferSelectionDetailsMapper.Quantity(detail.Item.Candidate),
+                OfferSelectionDetailsMapper.OptionGroups(detail, refs => refs, refs => refs),
+                OfferSelectionDetailsMapper.OptionSourceState(detail),
+                OfferSelectionDetailsMapper.PriceCompleteness(detail.Item.Candidate),
+                OfferSelectionDetailsMapper.CommercialTerms(detail.CommercialTerms));
     }
 }

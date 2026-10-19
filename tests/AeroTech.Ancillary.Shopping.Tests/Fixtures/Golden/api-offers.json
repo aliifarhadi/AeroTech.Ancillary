@@ -55,7 +55,7 @@
     },
     "included": {
       "bags": {
-        "K7NGlLQNcacenf9QZWC0GTMP5xS6GCcAAv161WR3tvo": {
+        "kEfkKxIl1FOn79_Iqfmkihad7RtKNbH3NEbluE2Yw7s": {
           "quantity": 1,
           "weight": 23,
           "weightUnit": "KG",
@@ -135,13 +135,15 @@
             },
             "confirmationRequirement": "Immediate",
             "readiness": "Selectable",
-            "canPurchase": false,
+            "canPurchase": true,
             "reasons": [
               "InventoryNotConfigured"
-            ]
+            ],
+            "selectionKind": "QuantityChoice",
+            "coverageScope": "Portion"
           }
         },
-        "ZzA0ZMnT4_tvE0DP3fRd3VXFwq30GoJsXTO0flKWnrQ": {
+        "lhBauYbWCd1FPDoF0BIbClvHWCzkxsYmgy5ls4p48Gc": {
           "quantity": 1,
           "weight": 23,
           "weightUnit": "KG",
@@ -221,13 +223,15 @@
             },
             "confirmationRequirement": "Immediate",
             "readiness": "Selectable",
-            "canPurchase": false,
+            "canPurchase": true,
             "reasons": [
               "InventoryNotConfigured"
-            ]
+            ],
+            "selectionKind": "QuantityChoice",
+            "coverageScope": "Portion"
           }
         },
-        "LXBD8Rr55XLicn5GeFNMGONGHl8Cow4KRXip594vpKU": {
+        "WsAoQW8CcRBBpCMxkrbgwu2ZEO4SmPcOzxUju7fFlwE": {
           "quantity": 1,
           "weight": 23,
           "weightUnit": "KG",
@@ -307,13 +311,15 @@
             },
             "confirmationRequirement": "Immediate",
             "readiness": "Selectable",
-            "canPurchase": false,
+            "canPurchase": true,
             "reasons": [
               "InventoryNotConfigured"
-            ]
+            ],
+            "selectionKind": "QuantityChoice",
+            "coverageScope": "Portion"
           }
         },
-        "4dgySwOY-8qAD_jjTuutN_ggQQq9ybRhJIRZnlsQzCE": {
+        "BHOqU2M2UKYbliA9S3wbXxgCC3peRXzIjN8bmQUI_JI": {
           "quantity": 1,
           "weight": 23,
           "weightUnit": "KG",
@@ -393,15 +399,17 @@
             },
             "confirmationRequirement": "Immediate",
             "readiness": "Selectable",
-            "canPurchase": false,
+            "canPurchase": true,
             "reasons": [
               "InventoryNotConfigured"
-            ]
+            ],
+            "selectionKind": "QuantityChoice",
+            "coverageScope": "Portion"
           }
         }
       },
       "other-services": {
-        "esrhs_mPSm4N23FZlpQupDV0MbucdoajZ5EYW1NJEXM": {
+        "_zu69p0B3IC4fOM0hFdm2sWC8jdJJdJklJjuM9OgcYc": {
           "name": "STANDARD_SEAT",
           "price": {
             "amount": "1500000.00",
@@ -476,10 +484,12 @@
             "reasons": [
               "SeatSelectionPending",
               "SelectionRequired"
-            ]
+            ],
+            "selectionKind": "SeatMapSelection",
+            "coverageScope": "Sector"
           }
         },
-        "agY_HJ0WWxMWz4WmDdEDMAN_BhiQKRlEonrxCYTRkQc": {
+        "hd2I-yD6UcQNKAmW7tqFvvwR_E727d4vhrG4Qk4HDwk": {
           "name": "STANDARD_SEAT",
           "price": {
             "amount": "1500000.00",
@@ -554,10 +564,12 @@
             "reasons": [
               "SeatSelectionPending",
               "SelectionRequired"
-            ]
+            ],
+            "selectionKind": "SeatMapSelection",
+            "coverageScope": "Sector"
           }
         },
-        "4yu4_ei-U9zEKOi4BFquN3hzOPjcZ34hQJFYtanqf6c": {
+        "mv40LysdLOAZHdGKFWTPwHdCBgYtTDboQpTlWhlFMIU": {
           "name": "STANDARD_SEAT",
           "price": {
             "amount": "1500000.00",
@@ -632,10 +644,12 @@
             "reasons": [
               "SeatSelectionPending",
               "SelectionRequired"
-            ]
+            ],
+            "selectionKind": "SeatMapSelection",
+            "coverageScope": "Sector"
           }
         },
-        "NT_JAEbVX_aOKEkP6ShTRnIY30KL1_uLpuHZc4NmL9I": {
+        "558LbtH0Vy9qL0mG5GjkKdgSBv4J0tPEI1pjssKL_YQ": {
           "name": "STANDARD_SEAT",
           "price": {
             "amount": "1500000.00",
@@ -710,10 +724,12 @@
             "reasons": [
               "SeatSelectionPending",
               "SelectionRequired"
-            ]
+            ],
+            "selectionKind": "SeatMapSelection",
+            "coverageScope": "Sector"
           }
         },
-        "xTVnVIct13wl52MyhaKE8LNbTmD2SUwcZy10CQSqJSI": {
+        "iIvroHSCE3-hzH-o9_M3WczI1IQi7flfvLSf1cEGg50": {
           "name": "ONBOARD_WI_FI",
           "price": {
             "amount": "981000.00",
@@ -809,10 +825,12 @@
               "SelectionRequired",
               "FeeNotAppliedAtUnitLevel",
               "InventoryNotConfigured"
-            ]
+            ],
+            "selectionKind": "TypedForm",
+            "coverageScope": "Sector"
           }
         },
-        "KIkO6lDbtpmv4Fjo4-f0Zo2a9hyg1G9YQlYVaQw4M1U": {
+        "oZrMohv9_sxGOL9DNi01g-g_WUWk1p9OTz3qVnkaWTk": {
           "name": "ONBOARD_WI_FI",
           "price": {
             "amount": "981000.00",
@@ -908,10 +926,12 @@
               "SelectionRequired",
               "FeeNotAppliedAtUnitLevel",
               "InventoryNotConfigured"
-            ]
+            ],
+            "selectionKind": "TypedForm",
+            "coverageScope": "Sector"
           }
         },
-        "YesPisNUZyFg7btVK2LkM6idKdzc4xJ4DOvefmFW85g": {
+        "AT3dpEFNzr4A7qJVFaazi-eR_5eL_bhNaORKtgQYpIs": {
           "name": "ONBOARD_WI_FI",
           "price": {
             "amount": "981000.00",
@@ -1007,10 +1027,12 @@
               "SelectionRequired",
               "FeeNotAppliedAtUnitLevel",
               "InventoryNotConfigured"
-            ]
+            ],
+            "selectionKind": "TypedForm",
+            "coverageScope": "Sector"
           }
         },
-        "By71RmM_j9H4ti4IFl0D0W0A-iIKJnVY4hDisLFVPqU": {
+        "2Y8RnylQU0N-6BWpEWs3s6SRzTYVdXNhH46ksnmHR0M": {
           "name": "ONBOARD_WI_FI",
           "price": {
             "amount": "981000.00",
@@ -1106,7 +1128,9 @@
               "SelectionRequired",
               "FeeNotAppliedAtUnitLevel",
               "InventoryNotConfigured"
-            ]
+            ],
+            "selectionKind": "TypedForm",
+            "coverageScope": "Sector"
           }
         }
       }

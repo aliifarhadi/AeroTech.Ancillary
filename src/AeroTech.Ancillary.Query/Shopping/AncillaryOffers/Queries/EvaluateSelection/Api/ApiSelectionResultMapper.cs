@@ -26,7 +26,14 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSele
                     bag ? null : ApiAncillaryOffersMapper.OtherService(candidate, references),
                     ApiAncillaryOffersMapper.Price(candidate.Price.RequestedQuantityTotal, candidate.Price.CurrencyId, references),
                     selection.Evaluation.FieldIssues.Select(issue => new ApiSelectionIssueDto(issue.Field, issue.ReasonCode)).ToList(),
-                    false));
+                    OfferPurchase.CanPurchase(selection.Evaluation),
+                    null,
+                    null,
+                    OfferSelectionResultsMapper.SelectedOptions(selection),
+                    OfferSelectionResultsMapper.Beneficiary(selection, references.TravelerIds),
+                    OfferSelectionResultsMapper.Coverage(selection, references.SegmentIds),
+                    OfferSelectionResultsMapper.ExactPrice(selection),
+                    candidate.Availability.RequiresCheckAtReserve));
         }
     }
 }

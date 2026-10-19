@@ -75,7 +75,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
                     candidate.Document.DocumentRequired),
                 EnumValueDto.Of(candidate.OfferReadiness),
                 EnumValueDto.Of(DisplayStateOf(candidate.OfferReadiness)),
-                false,
+                OfferPurchase.CanPurchase(candidate),
                 candidate.ReasonCodes);
 
         private static OfferQuantityDto Quantity(QuantityAssessment quantity)

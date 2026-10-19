@@ -2,6 +2,7 @@ using AeroTech.Ancillary.Application.FlightOffers;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Arguments;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers.Api;
 using AeroTech.Messages.AirPrice.Enums;
+using AeroTech.Messages.Core.Enums;
 using Xunit;
 
 namespace AeroTech.Ancillary.Shopping.Tests;
@@ -63,7 +64,9 @@ public class AgencyApiReferencesTests
                 new FlightOfferTicket("CHD-1", 2, PassengerTypeCode.CHD, [])
             ],
             [],
-            []);
+            [],
+            Channel.PartnerAPI,
+            null);
 
         return new ApiOfferReferences(
             offer,

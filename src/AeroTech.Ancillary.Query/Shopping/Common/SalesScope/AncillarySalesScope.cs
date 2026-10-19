@@ -5,5 +5,9 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.SalesScope
     public sealed record AncillarySalesScope(
         int OwnerAirlineId,
         Channel Channel,
-        IReadOnlyList<long> PointOfSaleIds);
+        IReadOnlyList<long> PointOfSaleIds,
+        long? TravelAgencyId = null,
+        long? AirlineOfficeId = null,
+        long? CustomerId = null,
+        long? CountryId = null);
 }

@@ -17,6 +17,13 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSele
                 OtaPanelAncillaryOffersMapper.Service(selection.CurrentOfferItemRef, selection.Evaluation.Candidate),
                 OtaPanelAncillaryOffersMapper.Money(selection.Evaluation.Candidate.Price.RequestedQuantityTotal, selection.Evaluation.Candidate.Price.CurrencyId),
                 selection.Evaluation.FieldIssues.Select(issue => new OtaPanelInputIssueDto(issue.Field, issue.ReasonCode)).ToList(),
-                false);
+                OfferPurchase.CanPurchase(selection.Evaluation),
+                null,
+                null,
+                OfferSelectionResultsMapper.SelectedOptions(selection),
+                OfferSelectionResultsMapper.Beneficiary(selection, refs => refs),
+                OfferSelectionResultsMapper.Coverage(selection, refs => refs),
+                OfferSelectionResultsMapper.ExactPrice(selection),
+                selection.Evaluation.Candidate.Availability.RequiresCheckAtReserve);
     }
 }

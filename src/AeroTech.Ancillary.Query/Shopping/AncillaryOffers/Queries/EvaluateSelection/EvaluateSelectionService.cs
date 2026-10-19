@@ -1,3 +1,4 @@
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOfferDetail;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Snapshots;
 using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
@@ -10,12 +11,12 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSele
 {
     public sealed class EvaluateSelectionService : IEvaluateSelectionService
     {
-        private readonly IGetAncillaryOffersService _offers;
+        private readonly IGetAncillaryOfferDetailService _details;
         private readonly IAncillaryShoppingEngine _engine;
 
-        public EvaluateSelectionService(IGetAncillaryOffersService offers, IAncillaryShoppingEngine engine)
+        public EvaluateSelectionService(IGetAncillaryOfferDetailService details, IAncillaryShoppingEngine engine)
         {
-            _offers = offers;
+            _details = details;
             _engine = engine;
         }
 
@@ -33,14 +34,17 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSele
             ShoppingFilter family,
             CancellationToken cancellationToken = default)
         {
-            var (shopping, item) = await _offers.FindItemAsync(query, scope, family, cancellationToken);
+            var detail = await _details.ExecuteAsync(query, scope, family, cancellationToken);
+            var item = detail.Item;
             var evaluation = await _engine.EvaluateSelectionAsync(item.Context, item.Candidate.CandidateIdentity, selection, cancellationToken);
 
             return new AncillarySelectionSnapshot(
-                shopping,
+                detail.Shopping,
                 item,
                 evaluation,
-                OfferItemRef.Of(shopping.Offer.OfferId, item.Context.SourceIdentity.TrustedSourceVersion, scope, item.PointOfSaleId, evaluation.Candidate.CandidateIdentity));
+                OfferItemRef.Of(detail.Shopping.Offer.OfferId, item.Context.SourceIdentity.TrustedSourceVersion, scope, item.PointOfSaleId, evaluation.Candidate.CandidateIdentity),
+                selection,
+                detail.OptionGroups);
         }
     }
 }

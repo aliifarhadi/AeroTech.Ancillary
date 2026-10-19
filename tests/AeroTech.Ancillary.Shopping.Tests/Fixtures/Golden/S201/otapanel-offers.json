@@ -1,0 +1,498 @@
+{
+  "data": {
+    "offerId": "1|1|0;9000000000000000001~9000000000000000101_9000000000000000002~9000000000000000102;3|9000000000000000900||70|1791706372",
+    "currencyId": 70,
+    "currencyCode": "IRR",
+    "travellerGroups": [
+      {
+        "travellerRef": "ADT-1",
+        "passengerTypeCode": "ADT",
+        "flightGroups": [
+          {
+            "flightRef": "B1:F1",
+            "portionRef": "B1",
+            "flightNumber": "1124",
+            "originAirportId": 2,
+            "destinationAirportId": 6,
+            "departureAt": "2026-10-15T08:15:00+03:30",
+            "includedCheckedBaggage": {
+              "pieces": 1,
+              "weight": 25,
+              "weightUnit": "Kg"
+            },
+            "includedCabinBaggage": {
+              "pieces": 1,
+              "weight": 20,
+              "weightUnit": "Kg"
+            },
+            "services": [
+              {
+                "offerItemRef": "K7NGlLQNcacenf9QZWC0GTMP5xS6GCcAAv161WR3tvo",
+                "category": "Baggage",
+                "variantCode": "A01",
+                "title": "Extra checked bag",
+                "description": null,
+                "coverageScope": "Portion",
+                "coveredFlightRefs": [
+                  "B1:F1"
+                ],
+                "priceStatus": "Complete",
+                "priceUnit": "PerPiece",
+                "unitPrice": {
+                  "amount": 5450000,
+                  "currencyId": 70
+                },
+                "rateOfExchangeTableId": "70",
+                "orderLevelFees": [],
+                "quantityUnit": "Piece",
+                "minQuantity": 1,
+                "maxQuantity": 6,
+                "requiredInputs": [
+                  "Quantity",
+                  "TravellerRef",
+                  "BoundRef"
+                ],
+                "displayStatus": "AvailableForSelection",
+                "requiresRecheck": true,
+                "canPurchase": false
+              },
+              {
+                "offerItemRef": "esrhs_mPSm4N23FZlpQupDV0MbucdoajZ5EYW1NJEXM",
+                "category": "Seat",
+                "variantCode": "A07",
+                "title": "Standard seat",
+                "description": null,
+                "coverageScope": "Sector",
+                "coveredFlightRefs": [
+                  "B1:F1"
+                ],
+                "priceStatus": "Complete",
+                "priceUnit": "PerSeat",
+                "unitPrice": {
+                  "amount": 1500000,
+                  "currencyId": 70
+                },
+                "rateOfExchangeTableId": "70",
+                "orderLevelFees": [],
+                "quantityUnit": "Each",
+                "minQuantity": 1,
+                "maxQuantity": 1,
+                "requiredInputs": [
+                  "SeatNumber",
+                  "TravellerRef",
+                  "FlightRef"
+                ],
+                "displayStatus": "NeedsInput",
+                "requiresRecheck": true,
+                "canPurchase": false
+              },
+              {
+                "offerItemRef": "xTVnVIct13wl52MyhaKE8LNbTmD2SUwcZy10CQSqJSI",
+                "category": "Connectivity",
+                "variantCode": "A24",
+                "title": "Wi-Fi full flight",
+                "description": null,
+                "coverageScope": "Sector",
+                "coveredFlightRefs": [
+                  "B1:F1"
+                ],
+                "priceStatus": "Complete",
+                "priceUnit": "PerItem",
+                "unitPrice": {
+                  "amount": 981000,
+                  "currencyId": 70
+                },
+                "rateOfExchangeTableId": "70",
+                "orderLevelFees": [
+                  {
+                    "code": "TKT",
+                    "amount": 100000,
+                    "currencyId": 70,
+                    "appliesPer": "Ticket"
+                  }
+                ],
+                "quantityUnit": "Each",
+                "minQuantity": 1,
+                "maxQuantity": 1,
+                "requiredInputs": [
+                  "PlanCode",
+                  "TravellerRef",
+                  "FlightRef"
+                ],
+                "displayStatus": "NeedsInput",
+                "requiresRecheck": true,
+                "canPurchase": false
+              }
+            ]
+          },
+          {
+            "flightRef": "B2:F1",
+            "portionRef": "B2",
+            "flightNumber": "1598",
+            "originAirportId": 6,
+            "destinationAirportId": 2,
+            "departureAt": "2026-10-16T19:40:00+03:00",
+            "includedCheckedBaggage": {
+              "pieces": 1,
+              "weight": 25,
+              "weightUnit": "Kg"
+            },
+            "includedCabinBaggage": {
+              "pieces": 1,
+              "weight": 20,
+              "weightUnit": "Kg"
+            },
+            "services": [
+              {
+                "offerItemRef": "ZzA0ZMnT4_tvE0DP3fRd3VXFwq30GoJsXTO0flKWnrQ",
+                "category": "Baggage",
+                "variantCode": "A01",
+                "title": "Extra checked bag",
+                "description": null,
+                "coverageScope": "Portion",
+                "coveredFlightRefs": [
+                  "B2:F1"
+                ],
+                "priceStatus": "Complete",
+                "priceUnit": "PerPiece",
+                "unitPrice": {
+                  "amount": 5450000,
+                  "currencyId": 70
+                },
+                "rateOfExchangeTableId": "70",
+                "orderLevelFees": [],
+                "quantityUnit": "Piece",
+                "minQuantity": 1,
+                "maxQuantity": 6,
+                "requiredInputs": [
+                  "Quantity",
+                  "TravellerRef",
+                  "BoundRef"
+                ],
+                "displayStatus": "AvailableForSelection",
+                "requiresRecheck": true,
+                "canPurchase": false
+              },
+              {
+                "offerItemRef": "agY_HJ0WWxMWz4WmDdEDMAN_BhiQKRlEonrxCYTRkQc",
+                "category": "Seat",
+                "variantCode": "A07",
+                "title": "Standard seat",
+                "description": null,
+                "coverageScope": "Sector",
+                "coveredFlightRefs": [
+                  "B2:F1"
+                ],
+                "priceStatus": "Complete",
+                "priceUnit": "PerSeat",
+                "unitPrice": {
+                  "amount": 1500000,
+                  "currencyId": 70
+                },
+                "rateOfExchangeTableId": "70",
+                "orderLevelFees": [],
+                "quantityUnit": "Each",
+                "minQuantity": 1,
+                "maxQuantity": 1,
+                "requiredInputs": [
+                  "SeatNumber",
+                  "TravellerRef",
+                  "FlightRef"
+                ],
+                "displayStatus": "NeedsInput",
+                "requiresRecheck": true,
+                "canPurchase": false
+              },
+              {
+                "offerItemRef": "KIkO6lDbtpmv4Fjo4-f0Zo2a9hyg1G9YQlYVaQw4M1U",
+                "category": "Connectivity",
+                "variantCode": "A24",
+                "title": "Wi-Fi full flight",
+                "description": null,
+                "coverageScope": "Sector",
+                "coveredFlightRefs": [
+                  "B2:F1"
+                ],
+                "priceStatus": "Complete",
+                "priceUnit": "PerItem",
+                "unitPrice": {
+                  "amount": 981000,
+                  "currencyId": 70
+                },
+                "rateOfExchangeTableId": "70",
+                "orderLevelFees": [
+                  {
+                    "code": "TKT",
+                    "amount": 100000,
+                    "currencyId": 70,
+                    "appliesPer": "Ticket"
+                  }
+                ],
+                "quantityUnit": "Each",
+                "minQuantity": 1,
+                "maxQuantity": 1,
+                "requiredInputs": [
+                  "PlanCode",
+                  "TravellerRef",
+                  "FlightRef"
+                ],
+                "displayStatus": "NeedsInput",
+                "requiresRecheck": true,
+                "canPurchase": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "travellerRef": "CHD-1",
+        "passengerTypeCode": "CHD",
+        "flightGroups": [
+          {
+            "flightRef": "B1:F1",
+            "portionRef": "B1",
+            "flightNumber": "1124",
+            "originAirportId": 2,
+            "destinationAirportId": 6,
+            "departureAt": "2026-10-15T08:15:00+03:30",
+            "includedCheckedBaggage": {
+              "pieces": 1,
+              "weight": 25,
+              "weightUnit": "Kg"
+            },
+            "includedCabinBaggage": {
+              "pieces": 1,
+              "weight": 20,
+              "weightUnit": "Kg"
+            },
+            "services": [
+              {
+                "offerItemRef": "LXBD8Rr55XLicn5GeFNMGONGHl8Cow4KRXip594vpKU",
+                "category": "Baggage",
+                "variantCode": "A01",
+                "title": "Extra checked bag",
+                "description": null,
+                "coverageScope": "Portion",
+                "coveredFlightRefs": [
+                  "B1:F1"
+                ],
+                "priceStatus": "Complete",
+                "priceUnit": "PerPiece",
+                "unitPrice": {
+                  "amount": 5450000,
+                  "currencyId": 70
+                },
+                "rateOfExchangeTableId": "70",
+                "orderLevelFees": [],
+                "quantityUnit": "Piece",
+                "minQuantity": 1,
+                "maxQuantity": 6,
+                "requiredInputs": [
+                  "Quantity",
+                  "TravellerRef",
+                  "BoundRef"
+                ],
+                "displayStatus": "AvailableForSelection",
+                "requiresRecheck": true,
+                "canPurchase": false
+              },
+              {
+                "offerItemRef": "4yu4_ei-U9zEKOi4BFquN3hzOPjcZ34hQJFYtanqf6c",
+                "category": "Seat",
+                "variantCode": "A07",
+                "title": "Standard seat",
+                "description": null,
+                "coverageScope": "Sector",
+                "coveredFlightRefs": [
+                  "B1:F1"
+                ],
+                "priceStatus": "Complete",
+                "priceUnit": "PerSeat",
+                "unitPrice": {
+                  "amount": 1500000,
+                  "currencyId": 70
+                },
+                "rateOfExchangeTableId": "70",
+                "orderLevelFees": [],
+                "quantityUnit": "Each",
+                "minQuantity": 1,
+                "maxQuantity": 1,
+                "requiredInputs": [
+                  "SeatNumber",
+                  "TravellerRef",
+                  "FlightRef"
+                ],
+                "displayStatus": "NeedsInput",
+                "requiresRecheck": true,
+                "canPurchase": false
+              },
+              {
+                "offerItemRef": "YesPisNUZyFg7btVK2LkM6idKdzc4xJ4DOvefmFW85g",
+                "category": "Connectivity",
+                "variantCode": "A24",
+                "title": "Wi-Fi full flight",
+                "description": null,
+                "coverageScope": "Sector",
+                "coveredFlightRefs": [
+                  "B1:F1"
+                ],
+                "priceStatus": "Complete",
+                "priceUnit": "PerItem",
+                "unitPrice": {
+                  "amount": 981000,
+                  "currencyId": 70
+                },
+                "rateOfExchangeTableId": "70",
+                "orderLevelFees": [
+                  {
+                    "code": "TKT",
+                    "amount": 100000,
+                    "currencyId": 70,
+                    "appliesPer": "Ticket"
+                  }
+                ],
+                "quantityUnit": "Each",
+                "minQuantity": 1,
+                "maxQuantity": 1,
+                "requiredInputs": [
+                  "PlanCode",
+                  "TravellerRef",
+                  "FlightRef"
+                ],
+                "displayStatus": "NeedsInput",
+                "requiresRecheck": true,
+                "canPurchase": false
+              }
+            ]
+          },
+          {
+            "flightRef": "B2:F1",
+            "portionRef": "B2",
+            "flightNumber": "1598",
+            "originAirportId": 6,
+            "destinationAirportId": 2,
+            "departureAt": "2026-10-16T19:40:00+03:00",
+            "includedCheckedBaggage": {
+              "pieces": 1,
+              "weight": 25,
+              "weightUnit": "Kg"
+            },
+            "includedCabinBaggage": {
+              "pieces": 1,
+              "weight": 20,
+              "weightUnit": "Kg"
+            },
+            "services": [
+              {
+                "offerItemRef": "4dgySwOY-8qAD_jjTuutN_ggQQq9ybRhJIRZnlsQzCE",
+                "category": "Baggage",
+                "variantCode": "A01",
+                "title": "Extra checked bag",
+                "description": null,
+                "coverageScope": "Portion",
+                "coveredFlightRefs": [
+                  "B2:F1"
+                ],
+                "priceStatus": "Complete",
+                "priceUnit": "PerPiece",
+                "unitPrice": {
+                  "amount": 5450000,
+                  "currencyId": 70
+                },
+                "rateOfExchangeTableId": "70",
+                "orderLevelFees": [],
+                "quantityUnit": "Piece",
+                "minQuantity": 1,
+                "maxQuantity": 6,
+                "requiredInputs": [
+                  "Quantity",
+                  "TravellerRef",
+                  "BoundRef"
+                ],
+                "displayStatus": "AvailableForSelection",
+                "requiresRecheck": true,
+                "canPurchase": false
+              },
+              {
+                "offerItemRef": "NT_JAEbVX_aOKEkP6ShTRnIY30KL1_uLpuHZc4NmL9I",
+                "category": "Seat",
+                "variantCode": "A07",
+                "title": "Standard seat",
+                "description": null,
+                "coverageScope": "Sector",
+                "coveredFlightRefs": [
+                  "B2:F1"
+                ],
+                "priceStatus": "Complete",
+                "priceUnit": "PerSeat",
+                "unitPrice": {
+                  "amount": 1500000,
+                  "currencyId": 70
+                },
+                "rateOfExchangeTableId": "70",
+                "orderLevelFees": [],
+                "quantityUnit": "Each",
+                "minQuantity": 1,
+                "maxQuantity": 1,
+                "requiredInputs": [
+                  "SeatNumber",
+                  "TravellerRef",
+                  "FlightRef"
+                ],
+                "displayStatus": "NeedsInput",
+                "requiresRecheck": true,
+                "canPurchase": false
+              },
+              {
+                "offerItemRef": "By71RmM_j9H4ti4IFl0D0W0A-iIKJnVY4hDisLFVPqU",
+                "category": "Connectivity",
+                "variantCode": "A24",
+                "title": "Wi-Fi full flight",
+                "description": null,
+                "coverageScope": "Sector",
+                "coveredFlightRefs": [
+                  "B2:F1"
+                ],
+                "priceStatus": "Complete",
+                "priceUnit": "PerItem",
+                "unitPrice": {
+                  "amount": 981000,
+                  "currencyId": 70
+                },
+                "rateOfExchangeTableId": "70",
+                "orderLevelFees": [
+                  {
+                    "code": "TKT",
+                    "amount": 100000,
+                    "currencyId": 70,
+                    "appliesPer": "Ticket"
+                  }
+                ],
+                "quantityUnit": "Each",
+                "minQuantity": 1,
+                "maxQuantity": 1,
+                "requiredInputs": [
+                  "PlanCode",
+                  "TravellerRef",
+                  "FlightRef"
+                ],
+                "displayStatus": "NeedsInput",
+                "requiresRecheck": true,
+                "canPurchase": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "blockedCount": 4,
+    "ratesOfExchange": [
+      {
+        "rateOfExchangeTableId": "70",
+        "fromCurrencyId": 70,
+        "toCurrencyId": 70,
+        "rate": 1
+      }
+    ]
+  }
+}

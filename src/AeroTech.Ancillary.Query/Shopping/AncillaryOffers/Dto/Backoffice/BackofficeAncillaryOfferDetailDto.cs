@@ -1,6 +1,5 @@
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto;
-using AeroTech.Ancillary.Query.Shopping.Common;
-using AeroTech.Ancillary.Query._Shared.Enums;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Selection;
 
 namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Backoffice
 {
@@ -13,18 +12,11 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Backoffice
         BackofficeSeatRuleDto? SeatRule,
         BackofficeRestrictionsDto Restrictions,
         BackofficeTermsDto Terms,
-        IReadOnlyList<BackofficeRateDto> PublishedRates);
-
-    public sealed record BackofficeSelectionResultDto(
-        string OfferId,
-        EnumValueDto Status,
-        string OfferItemRef,
-        string CurrentOfferItemRef,
-        bool ProvisionChangedBySelection,
-        BackofficeAncillaryOfferDto Offer,
-        decimal? SelectedQuantityTotal,
-        IReadOnlyList<BackofficeFieldIssueDto> FieldIssues,
-        bool CanPurchase);
-
-    public sealed record BackofficeFieldIssueDto(string Field, string ReasonCode);
+        IReadOnlyList<BackofficeRateDto> PublishedRates,
+        OfferSelectionContractDto SelectionContract,
+        OfferDetailQuantityDto Quantity,
+        IReadOnlyList<OfferOptionGroupDto> OptionGroups,
+        string OptionSourceState,
+        OfferPriceCompletenessDto PriceCompleteness,
+        OfferCommercialTermsDto CommercialTerms);
 }

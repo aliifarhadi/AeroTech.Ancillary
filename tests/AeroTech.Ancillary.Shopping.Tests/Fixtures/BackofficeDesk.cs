@@ -25,10 +25,11 @@ public static class BackofficeDesk
         string? wire = null,
         TestOnlyAirportReference? airports = null,
         TestOnlyAirFareReference? airFares = null,
-        DeskScope? desk = null)
+        DeskScope? desk = null,
+        Channel channel = Channel.BackOffice)
         => new(
             new FlightOfferShoppingSource(
-                new FixedOffers((desk ?? Sale).Sell(await OfferWire.ReadAsync(wire ?? OfferWire.Captured()))),
+                new FixedOffers((desk ?? Sale).Sell(await OfferWire.ReadAsync(wire ?? OfferWire.Captured()), channel)),
                 airports ?? new TestOnlyAirportReference(),
                 airFares ?? new TestOnlyAirFareReference(),
                 new FixedClock { Now = (desk ?? Sale).EvaluatedAtUtc },
@@ -44,7 +45,7 @@ public static class BackofficeDesk
     {
         var sale = scope ?? Sale;
 
-        return await (await ServiceAsync(lab, wire, airports, airFares, sale.Desk)).ExecuteAsync(new OfferQuery(OfferWire.OfferId), sale.Scope);
+        return await (await ServiceAsync(lab, wire, airports, airFares, sale.Desk, sale.Scope.Channel)).ExecuteAsync(new OfferQuery(OfferWire.OfferId), sale.Scope);
     }
 
     public static async Task<BackofficeAncillaryOffersDto> ShopAsync(
@@ -78,13 +79,14 @@ public static class BackofficeDesk
     {
         public DeskSale On(Channel channel, params long[] pointOfSaleIds) => new(this, new AncillarySalesScope(OwnerAirlineId, channel, pointOfSaleIds));
 
-        public FlightOffer Sell(FlightOffer offer)
+        public FlightOffer Sell(FlightOffer offer, Channel channel = Channel.BackOffice)
             => offer with
             {
                 CustomerId = CustomerId,
                 CurrencyId = CurrencyId ?? offer.CurrencyId,
                 CurrencyCode = CurrencyId is { } currencyId && currencyId != offer.CurrencyId ? null : offer.CurrencyCode,
-                PricedAt = EvaluatedAtUtc
+                PricedAt = EvaluatedAtUtc,
+                SalesChannel = channel
             };
 
         public static implicit operator DeskSale(DeskScope scope) => scope.On(Channel.BackOffice, scope.PointOfSaleId);

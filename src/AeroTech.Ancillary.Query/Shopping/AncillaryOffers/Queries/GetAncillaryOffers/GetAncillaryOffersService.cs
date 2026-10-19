@@ -29,6 +29,9 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
             CancellationToken cancellationToken = default)
         {
             var shopping = await _source.LoadAsync(query.OfferId, scope, cancellationToken);
+
+            PricedOfferScopeGuard.EnsureSellable(shopping.Offer, scope);
+
             var pointsOfSale = new List<PointOfSaleShopping>();
 
             foreach (var (pointOfSaleId, context) in shopping.PointsOfSale)

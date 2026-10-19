@@ -389,12 +389,12 @@ public class EnginePriceInventoryTests
             => new() { UsageSubjectKey = key, UnitsConsumed = consumed, IsCompleteForScope = complete, AsOfUtc = Now, SourceAuthority = "TEST-LEDGER" };
 
         var context = weightConcept with { UsageEvidence = [Evidence(20m)] };
-        var one = await lab.Engine.EvaluateSelectionAsync(context, shown.CandidateIdentity, new AncillarySelection { PackageProductRef = "PACK10", Quantity = 1 });
-        var two = await lab.Engine.EvaluateSelectionAsync(context, shown.CandidateIdentity, new AncillarySelection { PackageProductRef = "PACK10", Quantity = 2 });
+        var one = await lab.Engine.EvaluateSelectionAsync(context, shown.CandidateIdentity, new AncillarySelection { PackageProductRef = "WEIGHT_PACK_10", Quantity = 1 });
+        var two = await lab.Engine.EvaluateSelectionAsync(context, shown.CandidateIdentity, new AncillarySelection { PackageProductRef = "WEIGHT_PACK_10", Quantity = 2 });
         var incomplete = await lab.Engine.EvaluateSelectionAsync(
             weightConcept with { UsageEvidence = [Evidence(20m, false)] },
             shown.CandidateIdentity,
-            new AncillarySelection { PackageProductRef = "PACK10", Quantity = 2 });
+            new AncillarySelection { PackageProductRef = "WEIGHT_PACK_10", Quantity = 2 });
 
         Assert.Equal((SelectionEvaluationStatus.Accepted, 35m, 20m, 10m), (one.Status, one.Candidate.Price.RequestedQuantityTotal, one.Candidate.Quantity.CumulativeLimits.Single().VerifiedConsumed, one.Candidate.Quantity.CumulativeLimits.Single().VerifiedRemaining));
         Assert.Equal(SelectionEvaluationStatus.Rejected, two.Status);

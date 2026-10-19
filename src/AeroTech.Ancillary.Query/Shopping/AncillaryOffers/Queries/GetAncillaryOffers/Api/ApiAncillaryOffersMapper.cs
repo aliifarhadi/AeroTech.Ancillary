@@ -86,8 +86,10 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
                 new ApiAvailabilityDto(candidate.Availability.CheckedState.ToString(), candidate.Availability.IsGuaranteed, candidate.Availability.RequiresCheckAtReserve),
                 candidate.Confirmation.ConfirmationRequirement.ToString(),
                 candidate.OfferReadiness.ToString(),
-                false,
-                candidate.ReasonCodes);
+                OfferPurchase.CanPurchase(candidate),
+                candidate.ReasonCodes,
+                candidate.Selection.Kind.ToString(),
+                candidate.Scope.CoverageScope.ToString());
 
         private static ApiServiceDto Service(CanonicalAncillaryOfferCandidate candidate)
             => new(

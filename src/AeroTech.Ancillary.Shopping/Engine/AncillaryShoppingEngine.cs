@@ -102,7 +102,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
                         await EvaluateAsync(traveller, scope);
                 }
 
-                if (scopes.Contains(ServiceCoverageScope.Order) && filter.TravellerRefs is null)
+                if (scopes.Contains(ServiceCoverageScope.Order) && filter.TravellerRefs is null && CoveragePlanner.AllowsOrderScope(definition))
                     await EvaluateAsync(null, ServiceCoverageScope.Order);
             }
 
@@ -144,7 +144,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
             var catalog = await LoadAsync(context, definition => definition.Id == candidate.DefinitionVersionId, cancellationToken);
             var definition = catalog.Definitions.SingleOrDefault() ?? throw ExceptionFactory.ShoppingCandidateNotFound();
             var traveller = candidate.CoverageScope == ServiceCoverageScope.Order
-                ? candidate.TravellerRef.Length == 0 ? null : throw ExceptionFactory.ShoppingCandidateNotFound()
+                ? candidate.TravellerRef.Length == 0 && CoveragePlanner.AllowsOrderScope(definition) ? null : throw ExceptionFactory.ShoppingCandidateNotFound()
                 : context.Travellers.FirstOrDefault(row => row.TravellerRef == candidate.TravellerRef) ?? throw ExceptionFactory.ShoppingCandidateNotFound();
             var unit = CoveragePlanner.Units(context, traveller, candidate.CoverageScope).FirstOrDefault(row => row.CoverageRef == candidate.CoverageRef)
                        ?? throw ExceptionFactory.ShoppingCandidateNotFound();

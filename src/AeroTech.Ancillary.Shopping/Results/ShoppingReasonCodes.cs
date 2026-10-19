@@ -75,9 +75,12 @@ namespace AeroTech.Ancillary.Shopping.Results
         public const string UpgradeFromCabinMismatch = "UpgradeFromCabinMismatch";
         public const string UpgradeTargetCabinMismatch = "UpgradeTargetCabinMismatch";
         public const string UpgradeFareFamilyNotEligible = "UpgradeFareFamilyNotEligible";
+        public const string CouponNotUpgradable = "CouponNotUpgradable";
         public const string QuoteRequired = "QuoteRequired";
         public const string MealCodeMismatch = "MealCodeMismatch";
         public const string MenuItemMismatch = "MenuItemMismatch";
+        public const string MenuCatalogNotVerified = "MenuCatalogNotVerified";
+        public const string SelectedOptionNotOffered = "SelectedOptionNotOffered";
         public const string CateringCutoffPassed = "CateringCutoffPassed";
         public const string MealFamilyAlreadySelected = "MealFamilyAlreadySelected";
         public const string PetAnimalNotAllowed = "PetAnimalNotAllowed";
@@ -229,9 +232,12 @@ namespace AeroTech.Ancillary.Shopping.Results
             UpgradeFromCabinMismatch,
             UpgradeTargetCabinMismatch,
             UpgradeFareFamilyNotEligible,
+            CouponNotUpgradable,
             QuoteRequired,
             MealCodeMismatch,
             MenuItemMismatch,
+            MenuCatalogNotVerified,
+            SelectedOptionNotOffered,
             CateringCutoffPassed,
             MealFamilyAlreadySelected,
             PetAnimalNotAllowed,

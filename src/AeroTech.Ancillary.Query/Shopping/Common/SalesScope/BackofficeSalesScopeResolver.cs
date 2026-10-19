@@ -38,7 +38,9 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.SalesScope
                     : await AuthorizedPointsOfSale.ResolveAsync(
                         _pointsOfSale,
                         new PointOfSaleEligibilityQuery(Channel.BackOffice, options?.CountryId, [_caller.AirlineOfficeId.Value], null),
-                        cancellationToken));
+                        cancellationToken),
+                AirlineOfficeId: _caller.AirlineOfficeId.Value,
+                CountryId: options?.CountryId);
         }
     }
 }

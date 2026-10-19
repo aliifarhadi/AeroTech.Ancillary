@@ -86,13 +86,13 @@ public class EngineVariantTests
     public async Task E_A02_a_weight_package_is_priced_per_package_never_per_kilogram()
     {
         var shop = await ShopAsync("A02", Trip.Context() with { TravellerBaggageFacts = [Trip.WeightAllowance()] });
-        var two = await shop.ChooseAsync(new AncillarySelection { PackageProductRef = "PACK10", Quantity = 2 });
+        var two = await shop.ChooseAsync(new AncillarySelection { PackageProductRef = "WEIGHT_PACK_10", Quantity = 2 });
 
         Assert.Empty((await ShopAsync("A02")).Candidates);
         Assert.Equal((OfferReadiness.Selectable, PricingUnit.PerItem, AncillaryQuantityUnit.Each, 2), (shop.Shown.OfferReadiness, shop.Shown.Price.PricingUnit, shop.Shown.Quantity.Unit, shop.Shown.Quantity.MaxPerSelection));
         Assert.Equal((SelectionEvaluationStatus.Accepted, 200m), (two.Status, two.Candidate.Price.RequestedQuantityTotal));
         Assert.Equal(SelectionEvaluationStatus.Incomplete, (await shop.ChooseAsync(new AncillarySelection { Quantity = 1 })).Status);
-        Rejected(await shop.ChooseAsync(new AncillarySelection { PackageProductRef = "PACK10", Quantity = 3 }), "Quantity", ShoppingReasonCodes.QuantityAboveMaximum);
+        Rejected(await shop.ChooseAsync(new AncillarySelection { PackageProductRef = "WEIGHT_PACK_10", Quantity = 3 }), "Quantity", ShoppingReasonCodes.QuantityAboveMaximum);
     }
 
     [Fact]
@@ -519,7 +519,7 @@ public class EngineVariantTests
         var soldOnBoard = await ShopAsync("A24", Trip.Context(stage: ShoppingStage.OnBoard), specification: OnBoard);
         var notBefore = await ShopAsync("A24", Trip.Context(stage: ShoppingStage.PreOrder), specification: OnBoard);
         var notOnBoard = await ShopAsync("A24", Trip.Context(stage: ShoppingStage.OnBoard));
-        var plan = await shop.ChooseAsync(new AncillarySelection { PlanCode = "FULL", DeviceCount = 2 });
+        var plan = await shop.ChooseAsync(new AncillarySelection { PlanCode = "WIFI_FULL_FLIGHT", DeviceCount = 2 });
 
         Assert.Equal((OfferReadiness.NeedsSelection, 100m), (shop.Shown.OfferReadiness, shop.Shown.Price.CompleteUnitTotal));
         Assert.Empty(otherAircraft.Candidates);
@@ -531,7 +531,7 @@ public class EngineVariantTests
         Assert.Equal(
             (SelectionEvaluationStatus.Accepted, InventoryCapacityReadState.DelegatedCheckRequired, false, true),
             (plan.Status, plan.Candidate.Availability.ConfigState, plan.Candidate.Availability.IsGuaranteed, plan.Candidate.Availability.RequiresCheckAtReserve));
-        Rejected(await shop.ChooseAsync(new AncillarySelection { PlanCode = "FULL", DeviceCount = 3 }), "DeviceCount", ShoppingReasonCodes.DevicesAboveMaximum);
+        Rejected(await shop.ChooseAsync(new AncillarySelection { PlanCode = "WIFI_FULL_FLIGHT", DeviceCount = 3 }), "DeviceCount", ShoppingReasonCodes.DevicesAboveMaximum);
         Assert.Equal(SelectionEvaluationStatus.Incomplete, (await shop.ChooseAsync(new AncillarySelection { DeviceCount = 1 })).Status);
     }
 }

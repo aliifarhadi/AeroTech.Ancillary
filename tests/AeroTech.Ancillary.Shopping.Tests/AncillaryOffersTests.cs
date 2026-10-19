@@ -9,6 +9,7 @@ using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffe
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers;
 using AeroTech.Ancillary.Query.Shopping.Common.FlightOffers;
 using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
+using AeroTech.Ancillary.Query.Shopping.Common;
 using AeroTech.Ancillary.Shopping.Results;
 using AeroTech.Ancillary.Shopping.Tests.Fixtures;
 using AeroTech.Framework.Core.Domain.Exceptions;
@@ -83,7 +84,9 @@ public class AncillaryOffersTests
                 new FlightOfferTicket("INF-1", 3, PassengerTypeCode.INF, [Coupon("B1", 501, false, 9001, 9002), Coupon("B1", 502, false, 9003), Coupon("B2", 503, false)])
             ],
             [],
-            []);
+            [],
+            Channel.BackOffice,
+            null);
         var context = ContextOf(offer, Sale with { CurrencyId = null }, new Dictionary<int, int> { [Trip.Thr] = 100, [Trip.Ist] = 200 });
 
         Assert.Equal(new[] { ("B1", "B1:F1,B1:F2", Trip.Ika), ("B2", "B2:F1", 0) }, context.Portions.Select(portion => (portion.PortionRef, string.Join(',', portion.FlightRefs), portion.ViaAirportIds!.SingleOrDefault())));
@@ -255,7 +258,7 @@ public class AncillaryOffersTests
         var zero = await ShopAsync(bags, OfferWire.Changed(data => Coupon(data, 0, 0)["baggagePieces"] = 0));
 
         Assert.Equal((4, 0), (known.Offers.Count, known.BlockedOffers.Count));
-        Assert.All(known.Offers, offer => Assert.Equal(("Selectable", "AvailableForSelection", "Portion", false), (offer.OfferReadiness.Name, offer.DisplayState.Name, offer.Coverage.Scope.Name, offer.CanPurchase)));
+        Assert.All(known.Offers, offer => Assert.Equal(("Selectable", "AvailableForSelection", "Portion", true), (offer.OfferReadiness.Name, offer.DisplayState.Name, offer.Coverage.Scope.Name, offer.CanPurchase)));
         Assert.Equal((3, 1), (unknown.Offers.Count, unknown.BlockedOffers.Count));
         Assert.Equal(("ADT-1", "B1"), (unknown.BlockedOffers[0].CandidateIdentity.TravellerRef, unknown.BlockedOffers[0].CandidateIdentity.CoverageRef));
         Assert.Contains(ShoppingReasonCodes.BaggageAllowanceNotVerified, unknown.BlockedOffers[0].ReasonCodes);
@@ -319,7 +322,7 @@ public class AncillaryOffersTests
             Assert.Equal(BackofficeAncillaryOfferMapper.DisplayStateOf(row.Candidate.OfferReadiness).ToString(), row.Offer.DisplayState.Name);
             Assert.Equal(row.Candidate.Price.CompleteUnitTotal, row.Offer.Pricing.CompleteUnitTotal);
             Assert.Equal(row.Candidate.Quantity.Unit.ToString(), row.Offer.Quantity.Unit.Name);
-            Assert.False(row.Offer.CanPurchase);
+            Assert.Equal(OfferPurchase.CanPurchase(row.Candidate), row.Offer.CanPurchase);
             Assert.False(row.Offer.Availability.IsGuaranteed);
         });
     }

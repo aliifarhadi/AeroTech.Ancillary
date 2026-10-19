@@ -16,6 +16,7 @@
   <ItemGroup>
     <None Update="Fixtures\Wire\*.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Fixtures\Golden\*.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Fixtures\Golden\S201\*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

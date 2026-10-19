@@ -1,3 +1,5 @@
+using AeroTech.Messages.Core.Enums;
+
 namespace AeroTech.Ancillary.Application.FlightOffers
 {
     public sealed record FlightOffer(
@@ -14,5 +16,7 @@ namespace AeroTech.Ancillary.Application.FlightOffers
         IReadOnlyList<FlightOfferFareComponent> FareComponents,
         IReadOnlyList<FlightOfferTicket> Tickets,
         IReadOnlyList<FlightOfferPriceLine> OrderCharges,
-        IReadOnlyList<FlightOfferRateOfExchange> RatesOfExchange);
+        IReadOnlyList<FlightOfferRateOfExchange> RatesOfExchange,
+        Channel? SalesChannel,
+        long? SalesCountryId);
 }
