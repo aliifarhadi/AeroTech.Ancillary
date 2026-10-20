@@ -9,5 +9,8 @@ namespace AeroTech.Ancillary.Application.FlightOffers
         bool IsChangeable,
         bool IsUpgradable,
         IReadOnlyList<long> AirFareIds,
-        IReadOnlyList<FlightOfferPriceLine> PriceLines);
+        IReadOnlyList<FlightOfferPriceLine> PriceLines)
+    {
+        public bool? IsOpenForUse { get; init; }
+    }
 }

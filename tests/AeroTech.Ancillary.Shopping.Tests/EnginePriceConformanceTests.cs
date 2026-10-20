@@ -88,7 +88,7 @@ public class EnginePriceConformanceTests
     }
 
     [Fact]
-    public async Task P32B_ENG_04_a_free_or_a_quoted_or_a_not_available_service_carries_no_money()
+    public async Task P32B_ENG_04_a_free_service_is_an_explicit_zero_and_a_quoted_or_not_available_service_carries_no_money()
     {
         var free = (await PricedAsync("A23", [])).Shown;
         var quoted = (await PricedAsync("A10", [])).Shown;
@@ -97,9 +97,10 @@ public class EnginePriceConformanceTests
         Assert.Equal((PriceOrigin.Free, PriceAssessmentStatus.Complete, true), (free.Price.Origin, free.Price.Status, free.Price.IsOrderLevelTotalComplete));
         Assert.Equal((PriceOrigin.ExternalQuote, PriceAssessmentStatus.QuoteRequired, OfferReadiness.NeedsQuote, Quote), (quoted.Price.Origin, quoted.Price.Status, quoted.OfferReadiness, quoted.Price.QuoteProviderKey));
         Assert.Equal((PriceOrigin.NotAvailable, PriceAssessmentStatus.Unavailable, OfferReadiness.Unavailable), (refused.Price.Origin, refused.Price.Status, refused.OfferReadiness));
+        Assert.Equal((Eur, 0m, 0m, null), (free.Price.CurrencyId, free.Price.BaseAmount, free.Price.CompleteUnitTotal, free.Price.RequestedQuantityTotal));
+        Assert.All(new[] { quoted, refused }, candidate => Assert.Equal((null, null, null, null), (candidate.Price.CurrencyId, candidate.Price.BaseAmount, candidate.Price.CompleteUnitTotal, candidate.Price.RequestedQuantityTotal)));
         Assert.All(new[] { free, quoted, refused }, candidate =>
         {
-            Assert.Equal((null, null, null, null), (candidate.Price.CurrencyId, candidate.Price.BaseAmount, candidate.Price.CompleteUnitTotal, candidate.Price.RequestedQuantityTotal));
             Assert.Empty(candidate.Price.AddedTaxLines);
             Assert.Empty(candidate.Price.IncludedTaxLines);
             Assert.Empty(candidate.Price.AppliedUnitFeeLines);

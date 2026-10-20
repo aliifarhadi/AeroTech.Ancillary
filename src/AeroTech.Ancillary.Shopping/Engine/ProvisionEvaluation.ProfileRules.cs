@@ -3,6 +3,7 @@ using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specificatio
 using AeroTech.Ancillary.Shopping.Context;
 using AeroTech.Ancillary.Shopping.Results;
 using AeroTech.Ancillary.Shopping.Selection;
+using AeroTech.Messages.AirPrice.Enums;
 using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Shopping.Engine
@@ -167,9 +168,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
             if (Selection.WeightKg is { } weight && specification.MaxKgPerPiece is { } perPiece && weight > perPiece)
                 Outcome.Reject("WeightKg", ShoppingReasonCodes.BaggageWeightAboveMaximum);
 
-            if (Selection.EquipmentKind is { } equipment
-                && specification.EquipmentKind is { } allowed
-                && !string.Equals(equipment.Trim(), allowed, StringComparison.OrdinalIgnoreCase))
+            if (Selection.EquipmentKind is { } equipment && specification.EquipmentKind is { } allowed && !string.Equals(equipment, allowed, StringComparison.Ordinal))
                 Outcome.Reject("EquipmentKind", ShoppingReasonCodes.EquipmentKindNotAllowed);
         }
 
@@ -247,10 +246,10 @@ namespace AeroTech.Ancillary.Shopping.Engine
                     Outcome.Fail(ShoppingReasonCodes.MealFamilyAlreadySelected);
             }
 
-            if (Selection?.MealCode is { } mealCode && specification.MealCode is { } authoredMeal && !string.Equals(mealCode.Trim(), authoredMeal, StringComparison.OrdinalIgnoreCase))
+            if (Selection?.MealCode is { } mealCode && specification.MealCode is { } authoredMeal && !string.Equals(mealCode, authoredMeal, StringComparison.Ordinal))
                 Outcome.Reject("MealCode", ShoppingReasonCodes.MealCodeMismatch);
 
-            if (Selection?.MenuItemRef is { } menuItem && specification.MenuItemRef is { } authoredItem && !string.Equals(menuItem.Trim(), authoredItem, StringComparison.OrdinalIgnoreCase))
+            if (Selection?.MenuItemRef is { } menuItem && (specification.MenuItemRef is not { } authoredItem || !string.Equals(menuItem, authoredItem, StringComparison.Ordinal)))
                 Outcome.Reject("MenuItemRef", ShoppingReasonCodes.MenuItemMismatch);
 
             if (_definition.VariantCode == AncillaryVariant.PaidPreorderMeal && specification.MenuItemRef is null)
@@ -277,7 +276,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
             if (Selection.AnimalType is { } animal
                 && !specification.AllowedAnimalTypes.Any(row => row.AnimalType == animal
                                                                && (animal != PetAnimalType.RegisteredOther
-                                                                   || string.Equals(row.OtherCode, Selection.OtherAnimalCode?.Trim(), StringComparison.OrdinalIgnoreCase))))
+                                                                   || string.Equals(row.OtherCode, Selection.OtherAnimalCode, StringComparison.Ordinal))))
                 Outcome.Reject("AnimalType", ShoppingReasonCodes.PetAnimalNotAllowed);
 
             if (Selection.CombinedWeightKg is { } weight)
@@ -287,7 +286,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
                 if (specification.AllowedHoldAnimalSizeBrackets.Count > 0
                     && Selection.SizeBracket is { } bracketCode
-                    && !specification.AllowedHoldAnimalSizeBrackets.Any(bracket => string.Equals(bracket.Code, bracketCode.Trim(), StringComparison.OrdinalIgnoreCase)
+                    && !specification.AllowedHoldAnimalSizeBrackets.Any(bracket => string.Equals(bracket.Code, bracketCode, StringComparison.Ordinal)
                                                                                    && weight > bracket.WeightFromExclusiveKg
                                                                                    && weight <= bracket.WeightToInclusiveKg))
                     Outcome.Reject("SizeBracket", ShoppingReasonCodes.PetSizeBracketMismatch);
@@ -324,19 +323,13 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
             if (Selection?.AssistanceSsrCode is { } ssrCode
                 && allowedCodes is { Count: > 0 }
-                && !allowedCodes.Any(row => string.Equals(row.Code, ssrCode.Trim(), StringComparison.OrdinalIgnoreCase)))
+                && !allowedCodes.Any(row => string.Equals(row.Code, ssrCode, StringComparison.Ordinal)))
                 Outcome.Reject("AssistanceSsrCode", ShoppingReasonCodes.AssistanceCodeNotAllowed);
 
-            if (specification.MedicalEquipment is not { } medical)
+            if (specification.MedicalEquipment is not { } medical || Selection is null)
                 return;
 
-            if (rule?.MedicalApprovalRequired ?? medical.RequiresMedicalApproval)
-                Outcome.Note(ShoppingReasonCodes.MedicalApprovalRequired);
-
-            if (Selection is null)
-                return;
-
-            if (Selection.EquipmentCode is { } equipment && !string.Equals(equipment.Trim(), medical.MedicalServiceCode, StringComparison.OrdinalIgnoreCase))
+            if (Selection.EquipmentCode is { } equipment && !string.Equals(equipment, medical.MedicalServiceCode, StringComparison.Ordinal))
                 Outcome.Reject("EquipmentCode", ShoppingReasonCodes.AssistanceCodeNotAllowed);
 
             if (Selection.EvidenceDocumentRefs is { } evidence && evidence.Count < medical.EvidenceTypeCodes.Count)
@@ -372,19 +365,28 @@ namespace AeroTech.Ancillary.Shopping.Engine
             var infant = Context.Travellers.FirstOrDefault(traveller => traveller.TravellerRef == infantRef);
             var guardian = Context.Travellers.FirstOrDefault(traveller => traveller.TravellerRef == guardianRef);
 
-            if (infant is null || guardian is null || infantRef == guardianRef || (bassinet.RequiresInfantAndGuardian && infant.AssociatedAdultRef != guardianRef))
+            if (infant is null
+                || guardian is null
+                || infantRef == guardianRef
+                || infant.PassengerTypeCode != PassengerTypeCode.INF
+                || guardian.TravellerRef != _unit.TravellerRef
+                || (infant.AssociatedAdultRef is { } associated && associated != guardianRef))
             {
                 Outcome.Reject("GuardianRef", ShoppingReasonCodes.InfantGuardianRequired);
 
                 return;
             }
 
-            if (bassinet.MaxInfantAgeMonths is not { } maximumMonths || Occurrences() is not { } occurrences)
+            if (infant.AssociatedAdultRef is null)
+                Outcome.Unknown(ShoppingReasonCodes.InfantGuardianRequired, $"Travellers[{infantRef}].AssociatedAdultRef");
+
+            if (Occurrences() is not { } occurrences)
                 return;
 
             if (infant.DateOfBirth is not { } dateOfBirth)
                 Outcome.Unknown(ShoppingReasonCodes.AgeNotVerified, $"Travellers[{infantRef}].DateOfBirth");
-            else if (occurrences.Any(occurrence => ServiceOccurrence.CompletedMonths(dateOfBirth, occurrence.LocalDate) > maximumMonths))
+            else if (bassinet.MaxInfantAgeMonths is { } maximumMonths
+                     && occurrences.Any(occurrence => ServiceOccurrence.CompletedMonths(dateOfBirth, occurrence.LocalDate) > maximumMonths))
                 Outcome.Reject("InfantRef", ShoppingReasonCodes.InfantTooOld);
         }
 
@@ -485,9 +487,21 @@ namespace AeroTech.Ancillary.Shopping.Engine
                 OnlyAuthoredChoice("PlanCode", Selection.PlanCode, _definition.ServiceDefinitionRef);
         }
 
+        private void TrustedEvidence()
+        {
+            if (Outcome.RejectionCodes.Count > 0 || _definition.AssistedTravel is not { } assisted)
+                return;
+
+            if (assisted.MedicalEquipment is { } medical && (_provision.AssistedTravelRule?.MedicalApprovalRequired ?? medical.RequiresMedicalApproval))
+                Outcome.Unknown(ShoppingReasonCodes.MedicalApprovalRequired, "VerifiedMedicalApproval");
+
+            if (assisted.UnaccompaniedMinor is not null && Selection is not null)
+                Outcome.Unknown(ShoppingReasonCodes.GuardianContactRequired, "VerifiedGuardianContacts");
+        }
+
         private void OnlyAuthoredChoice(string field, string? selected, string authored)
         {
-            if (selected is not null && !string.Equals(selected.Trim(), authored, StringComparison.Ordinal))
+            if (selected is not null && !string.Equals(selected, authored, StringComparison.Ordinal))
                 Outcome.Reject(field, ShoppingReasonCodes.SelectedOptionNotOffered);
         }
     }

@@ -48,7 +48,7 @@ public class BackofficeSurfaceParityTests
     public void PARITY_BO_01_the_request_has_the_offer_id_and_only_the_options_the_priced_offer_id_does_not_carry()
     {
         Assert.Equal(
-            new[] { ("OfferId", typeof(string)), ("Options", typeof(BackofficeAncillaryOfferOptions)) },
+            new[] { ("OfferId", typeof(string)), ("Options", typeof(BackofficeAncillaryOfferOptions)), ("OrderId", typeof(long?)) },
             Members(typeof(BackofficeGetAncillaryOffersQuery)));
         Assert.Equal(
             new[] { ("CountryId", typeof(long?)), ("PointOfSaleId", typeof(long?)) },
@@ -164,12 +164,12 @@ public class BackofficeSurfaceParityTests
             pricedAt + SourceContextTtl,
             FlightOfferFingerprint.Of(offer));
         var service = new GetAncillaryOffersService(
-            new FlightOfferShoppingSource(
+            Sources(new FlightOfferShoppingSource(
                 new FixedOffers(offer),
                 new TestOnlyAirportReference(),
                 new TestOnlyAirFareReference(),
                 new FixedClock { Now = pricedAt },
-                new FlightOfferShoppingOptions(SourceContextTtl)),
+                new FlightOfferShoppingOptions(SourceContextTtl))),
             lab.Engine);
         var response = BackofficeAncillaryOffersMapper.Map(await service.ExecuteAsync(new OfferQuery(OfferWire.OfferId), Desk));
 

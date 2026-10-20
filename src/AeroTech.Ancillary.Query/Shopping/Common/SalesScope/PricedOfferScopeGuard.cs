@@ -10,7 +10,7 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.SalesScope
             if (offer.SalesChannel != scope.Channel)
                 throw ExceptionFactory.ShoppingCallerNotAuthorized();
 
-            if (scope.CustomerId is { } customerId && offer.CustomerId != customerId)
+            if (!scope.SellsForAnyCustomer && offer.CustomerId != scope.CustomerId)
                 throw ExceptionFactory.ShoppingCallerNotAuthorized();
 
             if (scope.CountryId is { } countryId && offer.SalesCountryId != countryId)

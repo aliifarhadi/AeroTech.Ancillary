@@ -345,12 +345,12 @@ public class ThreeSurfaceTests
     {
         const string Forged = """{"offerId":"X","options":{"pointOfSaleId":77,"customerId":"501","preferredCurrencyId":47},"pointOfSaleId":77,"customerId":"501","preferredCurrencyId":47}""";
 
-        Assert.Equal(new[] { "OfferId" }, Members(typeof(ApiGetAncillaryOffersQuery)));
-        Assert.Equal(new[] { "OfferId" }, Members(typeof(OtaPanelGetAncillaryOffersQuery)));
-        Assert.Equal(new[] { "OfferId", "Options" }, Members(typeof(BackofficeGetAncillaryOffersQuery)));
-        Assert.Equal(new[] { "OfferId", "OfferItemRef" }, Members(typeof(ApiGetAncillaryOfferDetailQuery)));
-        Assert.Equal(new[] { "OfferId", "OfferItemRef" }, Members(typeof(OtaPanelGetAncillaryOfferDetailQuery)));
-        Assert.Equal(new[] { "OfferId", "OfferItemRef", "Options" }, Members(typeof(BackofficeGetAncillaryOfferDetailQuery)));
+        Assert.Equal(new[] { "OfferId", "OrderId" }, Members(typeof(ApiGetAncillaryOffersQuery)));
+        Assert.Equal(new[] { "OfferId", "OrderId" }, Members(typeof(OtaPanelGetAncillaryOffersQuery)));
+        Assert.Equal(new[] { "OfferId", "Options", "OrderId" }, Members(typeof(BackofficeGetAncillaryOffersQuery)));
+        Assert.Equal(new[] { "OfferId", "OfferItemRef", "OrderId" }, Members(typeof(ApiGetAncillaryOfferDetailQuery)));
+        Assert.Equal(new[] { "OfferId", "OfferItemRef", "OrderId" }, Members(typeof(OtaPanelGetAncillaryOfferDetailQuery)));
+        Assert.Equal(new[] { "OfferId", "OfferItemRef", "Options", "OrderId" }, Members(typeof(BackofficeGetAncillaryOfferDetailQuery)));
         Assert.Equal(new[] { "OfferId", "OfferItemRef", "Selection" }, Members(typeof(ApiEvaluateSelectionQuery)));
         Assert.Equal(new[] { "OfferId", "OfferItemRef", "Selection" }, Members(typeof(OtaPanelEvaluateSelectionQuery)));
         Assert.Equal(new[] { "OfferId", "OfferItemRef", "Options", "Selection" }, Members(typeof(BackofficeEvaluateSelectionQuery)));
@@ -371,7 +371,7 @@ public class ThreeSurfaceTests
     }
 
     [Fact]
-    public void P32B_SRF_05_three_controllers_expose_the_same_three_operations_on_three_routes_under_three_policies()
+    public void P32B_SRF_05_three_controllers_expose_the_same_four_operations_on_three_routes_under_three_policies()
     {
         var controllers = new[] { typeof(BackofficeController), typeof(OtaController), typeof(OtaPanelController) }
             .Select(type => (
@@ -391,8 +391,8 @@ public class ThreeSurfaceTests
                 ("OtaPanel/v{version:apiVersion}/AncillaryOffers", SurfaceAuthorization.OtaPanel)
             },
             controllers.Select(controller => (controller.Route, controller.Policy!)));
-        Assert.All(controllers, controller => Assert.Equal(new[] { "", "Details", "Selections/Evaluate" }, controller.Actions.Select(action => action.Item1)));
-        Assert.Equal(9, controllers.SelectMany(controller => controller.Actions.Select(action => action.Item2)).Distinct().Count());
+        Assert.All(controllers, controller => Assert.Equal(new[] { "", "Details", "Selections/Evaluate", "Selections/EvaluateBatch" }, controller.Actions.Select(action => action.Item1)));
+        Assert.Equal(12, controllers.SelectMany(controller => controller.Actions.Select(action => action.Item2)).Distinct().Count());
         Assert.Equal(3, new[] { SurfaceAuthorization.Backoffice, SurfaceAuthorization.Ota, SurfaceAuthorization.OtaPanel }.Distinct().Count());
     }
 

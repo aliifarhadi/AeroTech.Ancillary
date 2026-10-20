@@ -1,3 +1,4 @@
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatch.OtaPanel;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSelection.OtaPanel;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOfferDetail.OtaPanel;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers.OtaPanel;
@@ -31,6 +32,10 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryOffers.Controllers
 
         [HttpPost("Selections/Evaluate")]
         public async Task<IActionResult> EvaluateSelection([FromBody] OtaPanelEvaluateSelectionQuery query, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(query, cancellationToken));
+
+        [HttpPost("Selections/EvaluateBatch")]
+        public async Task<IActionResult> EvaluateBatch([FromBody] OtaPanelEvaluateBatchQuery query, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(query, cancellationToken));
     }
 }

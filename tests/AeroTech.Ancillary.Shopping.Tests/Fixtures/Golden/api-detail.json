@@ -2,7 +2,7 @@
   "data": {
     "data": {
       "type": "ancillary-offer",
-      "id": "kEfkKxIl1FOn79_Iqfmkihad7RtKNbH3NEbluE2Yw7s",
+      "id": "bILuMB1jzWiO5TwTmV3LaOH6mOe1YTh4CaH0_K6GaeE",
       "flightOfferId": "1|1|0;9000000000000000001~9000000000000000101_9000000000000000002~9000000000000000102;3|9000000000000000900||70|1791706372",
       "bag": {
         "quantity": 1,
@@ -84,7 +84,7 @@
           },
           "confirmationRequirement": "Immediate",
           "readiness": "Selectable",
-          "canPurchase": true,
+          "canPurchase": false,
           "reasons": [
             "InventoryNotConfigured"
           ],

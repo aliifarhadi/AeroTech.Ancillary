@@ -7,5 +7,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
     public sealed class ApiGetAncillaryOffersQuery : IRequest<ApiAncillaryOffersDto>, IAncillaryOffersQuery
     {
         public string? OfferId { get; set; }
+
+        public long? OrderId { get; set; }
     }
 }

@@ -1,3 +1,4 @@
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatch.Api;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSelection.Api;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOfferDetail.Api;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers.Api;
@@ -31,6 +32,10 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryOffers.Controllers
 
         [HttpPost("Selections/Evaluate")]
         public async Task<IActionResult> EvaluateSelection([FromBody] ApiEvaluateSelectionQuery query, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(query, cancellationToken));
+
+        [HttpPost("Selections/EvaluateBatch")]
+        public async Task<IActionResult> EvaluateBatch([FromBody] ApiEvaluateBatchQuery query, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(query, cancellationToken));
     }
 }

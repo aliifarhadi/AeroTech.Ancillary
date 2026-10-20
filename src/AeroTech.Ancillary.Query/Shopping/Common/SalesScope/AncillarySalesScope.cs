@@ -9,5 +9,8 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.SalesScope
         long? TravelAgencyId = null,
         long? AirlineOfficeId = null,
         long? CustomerId = null,
-        long? CountryId = null);
+        long? CountryId = null)
+    {
+        public bool SellsForAnyCustomer => AirlineOfficeId is not null && CustomerId is null;
+    }
 }

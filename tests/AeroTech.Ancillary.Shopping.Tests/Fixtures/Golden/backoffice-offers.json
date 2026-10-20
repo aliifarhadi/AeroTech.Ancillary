@@ -267,7 +267,7 @@
     ],
     "offers": [
       {
-        "offerItemRef": "8V2If5Oi-fSyG6Z5CZNIOGof_LXbUz59eEKkqzQZ0oc",
+        "offerItemRef": "oFpDN2b-LpbHtq85lA399gF3y_a-_u2QyELK9jRByEg",
         "pointOfSaleId": "9001",
         "candidateIdentity": {
           "definitionVersionId": "1002",
@@ -473,13 +473,13 @@
           "name": "AvailableForSelection",
           "title": "Available For Selection"
         },
-        "canPurchase": true,
+        "canPurchase": false,
         "reasonCodes": [
           "InventoryNotConfigured"
         ]
       },
       {
-        "offerItemRef": "IjsINlBYAvyqvw0hoQEI2C2Jqj16SJ4PbGjqIVkgMpY",
+        "offerItemRef": "UAyV7aDn-0hxUsBjJumawT1jWtpux0l-qJY-FbEAeaU",
         "pointOfSaleId": "9001",
         "candidateIdentity": {
           "definitionVersionId": "1002",
@@ -685,13 +685,13 @@
           "name": "AvailableForSelection",
           "title": "Available For Selection"
         },
-        "canPurchase": true,
+        "canPurchase": false,
         "reasonCodes": [
           "InventoryNotConfigured"
         ]
       },
       {
-        "offerItemRef": "YMXtk929eW72VNCiZem4jaJPTlI66ahDO6-m17oAPnM",
+        "offerItemRef": "428UYAL3u64LR7DzWgAKHpUsl06lGeD6XZZaUgcGbTw",
         "pointOfSaleId": "9001",
         "candidateIdentity": {
           "definitionVersionId": "1002",
@@ -897,13 +897,13 @@
           "name": "AvailableForSelection",
           "title": "Available For Selection"
         },
-        "canPurchase": true,
+        "canPurchase": false,
         "reasonCodes": [
           "InventoryNotConfigured"
         ]
       },
       {
-        "offerItemRef": "9ap2rmMttoHsCa37pFBRQFpJVMEUMuVdp7gyGj1AuAY",
+        "offerItemRef": "6g-fZz1xXINB3fF4ANwQP4l4HMUxYyKouvcfgmB3K4s",
         "pointOfSaleId": "9001",
         "candidateIdentity": {
           "definitionVersionId": "1002",
@@ -1109,13 +1109,13 @@
           "name": "AvailableForSelection",
           "title": "Available For Selection"
         },
-        "canPurchase": true,
+        "canPurchase": false,
         "reasonCodes": [
           "InventoryNotConfigured"
         ]
       },
       {
-        "offerItemRef": "9IPhcE5VqyjJWa7MgeOroK3xpUd6PVZ4T2uMmtLpfSM",
+        "offerItemRef": "6oMf-Uzt6aFjA_5siExXaHfJpsHTPbLoB1qizTKNfRw",
         "pointOfSaleId": "9001",
         "candidateIdentity": {
           "definitionVersionId": "1004",
@@ -1323,7 +1323,7 @@
         ]
       },
       {
-        "offerItemRef": "mOtwI4Yw6zQvrL0mwf43Xe7HDESW65JQ3eC40ql7VjU",
+        "offerItemRef": "-MPnOuYWlNQjW4dfgZOU4_6dnUsxnR5ntxxLEZFP_uA",
         "pointOfSaleId": "9001",
         "candidateIdentity": {
           "definitionVersionId": "1004",
@@ -1531,7 +1531,7 @@
         ]
       },
       {
-        "offerItemRef": "mUjqmDiPCwKdzMWOQi3Iwksr7IGE3OmiFeUeYcofH3E",
+        "offerItemRef": "2cZ7psKh66bDUuvYAaagolrb-7lcf6DogaubqEFAA20",
         "pointOfSaleId": "9001",
         "candidateIdentity": {
           "definitionVersionId": "1004",
@@ -1739,7 +1739,7 @@
         ]
       },
       {
-        "offerItemRef": "uQOTlTohGEp6HNGSRgjm2JjzxdZjpw4m_ddWTZehIac",
+        "offerItemRef": "fOvEU9d0xaNMI70gTzEvdzFmgJ4_z3mveUQ_835JdkI",
         "pointOfSaleId": "9001",
         "candidateIdentity": {
           "definitionVersionId": "1004",
@@ -1947,7 +1947,7 @@
         ]
       },
       {
-        "offerItemRef": "DeHPJM_djc0ZECRCY6iVD1-CTrq8E6PK5bNvM3SOtm0",
+        "offerItemRef": "Ay8PEFhMClJtE9IqMdSGFn7-SnQz1Wa9t-pH6180hEA",
         "pointOfSaleId": "9001",
         "candidateIdentity": {
           "definitionVersionId": "1006",
@@ -2189,7 +2189,7 @@
         ]
       },
       {
-        "offerItemRef": "nv8xVPTC4J8x_xn0mxKrpEnC2IZYmXGrFTQgSOb8e4E",
+        "offerItemRef": "ro7o0jJM6ZQY_59AmsVz7WWGyf13RPeXvzSrNnBUC80",
         "pointOfSaleId": "9001",
         "candidateIdentity": {
           "definitionVersionId": "1006",
@@ -2431,7 +2431,7 @@
         ]
       },
       {
-        "offerItemRef": "ASb_l_GHj2siX3h7OaudzDYcHQmtS1KZ9YCM0P_mYGA",
+        "offerItemRef": "F4Pp6NafE-rFPyFUplEH1l_4xT8ieIgbdVLwSdvWFt8",
         "pointOfSaleId": "9001",
         "candidateIdentity": {
           "definitionVersionId": "1006",
@@ -2673,7 +2673,7 @@
         ]
       },
       {
-        "offerItemRef": "cL0h63xXPMUsIQoVbT0UHKVVLHHsUcJWZmXlf2eCNsk",
+        "offerItemRef": "S2KkYBYR953cxdCpCPuR6q4URjKqXVyZkWVmLJ2W-Hk",
         "pointOfSaleId": "9001",
         "candidateIdentity": {
           "definitionVersionId": "1006",
@@ -2917,7 +2917,7 @@
     ],
     "blockedOffers": [
       {
-        "offerItemRef": "WHNEGPfpRkq_BmBRkQ-Sejy0u_dQsaAQ65Tni9exTJE",
+        "offerItemRef": "FFB5v8KMS7CqI-lOuZa6Gq6kVrQpmNu4c8Y_ov0ZegA",
         "pointOfSaleId": "9001",
         "candidateIdentity": {
           "definitionVersionId": "1029",
@@ -3128,7 +3128,7 @@
         ]
       },
       {
-        "offerItemRef": "QolOt70k7XxlOAhMtKYzB8_w68z_wCNtEDtSO0xJ7fE",
+        "offerItemRef": "qkPMsJJzMJY3JYbziIG3ibnSLLeaQZKrbo_WhfIw9Kk",
         "pointOfSaleId": "9001",
         "candidateIdentity": {
           "definitionVersionId": "1029",
@@ -3339,7 +3339,7 @@
         ]
       },
       {
-        "offerItemRef": "uZAGg4VlQFYHfXelMqI6v_kD7Dgk1ABPB28E2Jfe-u0",
+        "offerItemRef": "t65IcdrhYL-hcmxNGDl2C6MC6ezAe-I_YEFPQzaXWRk",
         "pointOfSaleId": "9001",
         "candidateIdentity": {
           "definitionVersionId": "1029",
@@ -3550,7 +3550,7 @@
         ]
       },
       {
-        "offerItemRef": "r9Y2DZFn-3q4HIN-iwSri4MsBj64bXqE3ltNqfiEZGY",
+        "offerItemRef": "vBlYOwRxDru3Ifi7U9PTuREsgthOhzBCvC7qtyhBGyc",
         "pointOfSaleId": "9001",
         "candidateIdentity": {
           "definitionVersionId": "1029",

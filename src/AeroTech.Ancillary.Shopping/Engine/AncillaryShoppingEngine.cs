@@ -340,7 +340,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
             var outcome = evaluation.Outcome;
             var expired = Expired(unit.Context);
             var configuration = catalog.InventoryOf(definition.ServiceDefinitionRef);
-            var price = PriceAssessor.Assess(provision, catalog.PricingOf(provision.Id), unit, evaluation.Timeline, catalog.CurrencyDecimalPlaces, catalog.RatesOfExchange);
+            var price = PriceAssessor.Assess(definition, provision, catalog.PricingOf(provision.Id), unit, evaluation.Timeline, catalog.CurrencyDecimalPlaces, catalog.RatesOfExchange);
             var availability = await AvailabilityAssessor.AssessAsync(definition, provision, configuration, unit, catalog.References, cancellationToken);
             var quantity = await QuantityAssessor.AssessAsync(definition, provision, configuration?.Policy, unit, evaluation.Timeline, catalog.References, cancellationToken);
             var identity = new CandidateIdentity(definition.Id, provision.Id, unit.Scope, unit.TravellerRef, unit.CoverageRef, price.PricingRevisionId);

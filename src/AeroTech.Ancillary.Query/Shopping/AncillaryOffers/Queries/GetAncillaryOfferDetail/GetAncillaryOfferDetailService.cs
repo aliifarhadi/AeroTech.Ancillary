@@ -36,8 +36,14 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
             CancellationToken cancellationToken = default)
         {
             var (shopping, item) = await _offers.FindItemAsync(query, scope, family, cancellationToken);
+
+            return await DescribeAsync(shopping, item, cancellationToken);
+        }
+
+        public async Task<AncillaryOfferDetailSnapshot> DescribeAsync(AncillaryShoppingSnapshot shopping, AncillaryOfferItem item, CancellationToken cancellationToken = default)
+        {
             var candidate = item.Candidate;
-            var definition = (await _definitions.ListActiveAsync(scope.OwnerAirlineId, cancellationToken))
+            var definition = (await _definitions.ListActiveAsync(shopping.Scope.OwnerAirlineId, cancellationToken))
                              .SingleOrDefault(row => row.Id == candidate.DefinitionVersionId)
                              ?? throw ExceptionFactory.OfferItemWasNotFound();
             var provision = (await _provisions.ListActiveAsync([definition.Id], item.PointOfSaleId, cancellationToken))

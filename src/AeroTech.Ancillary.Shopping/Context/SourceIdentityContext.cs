@@ -12,7 +12,7 @@ namespace AeroTech.Ancillary.Shopping.Context
 
         public long? OrderId { get; init; }
 
-        public string? OrderCommercialVersion { get; init; }
+        public int? OrderCommercialVersion { get; init; }
 
         public DateTimeOffset? TicketedAtUtc { get; init; }
 

@@ -212,7 +212,7 @@ public class AncillaryOffersTests
         Assert.All(wheelchair, offer =>
         {
             Assert.Equal(("Free", "NeedsVerification"), (offer.Pricing.Origin.Name, offer.DisplayState.Name));
-            Assert.Null(offer.Pricing.CompleteUnitTotal);
+            Assert.Equal(0m, offer.Pricing.CompleteUnitTotal);
             Assert.Empty(offer.Pricing.AddedTaxes.Concat(offer.Pricing.AppliedUnitFees).Concat(offer.Pricing.UnappliedFees));
             Assert.Contains(ShoppingReasonCodes.TimeZoneNotVerified, offer.ReasonCodes);
         });
@@ -258,7 +258,7 @@ public class AncillaryOffersTests
         var zero = await ShopAsync(bags, OfferWire.Changed(data => Coupon(data, 0, 0)["baggagePieces"] = 0));
 
         Assert.Equal((4, 0), (known.Offers.Count, known.BlockedOffers.Count));
-        Assert.All(known.Offers, offer => Assert.Equal(("Selectable", "AvailableForSelection", "Portion", true), (offer.OfferReadiness.Name, offer.DisplayState.Name, offer.Coverage.Scope.Name, offer.CanPurchase)));
+        Assert.All(known.Offers, offer => Assert.Equal(("Selectable", "AvailableForSelection", "Portion", false), (offer.OfferReadiness.Name, offer.DisplayState.Name, offer.Coverage.Scope.Name, offer.CanPurchase)));
         Assert.Equal((3, 1), (unknown.Offers.Count, unknown.BlockedOffers.Count));
         Assert.Equal(("ADT-1", "B1"), (unknown.BlockedOffers[0].CandidateIdentity.TravellerRef, unknown.BlockedOffers[0].CandidateIdentity.CoverageRef));
         Assert.Contains(ShoppingReasonCodes.BaggageAllowanceNotVerified, unknown.BlockedOffers[0].ReasonCodes);
@@ -396,16 +396,16 @@ public class AncillaryOffersTests
     {
         var failure = await Assert.ThrowsAsync<BusinessException>(
             () => new GetAncillaryOffersService(
-                new FlightOfferShoppingSource(
+                Sources(new FlightOfferShoppingSource(
                     new FixedOffers(null!),
                     new TestOnlyAirportReference(),
                     new TestOnlyAirFareReference(),
                     new FixedClock(),
-                    new FlightOfferShoppingOptions(SourceContextTtl)),
+                    new FlightOfferShoppingOptions(SourceContextTtl))),
                 new ShoppingLab().Engine).ExecuteAsync(new OfferQuery(" "), Sale));
 
         Assert.Equal((16803, 422), (failure.Code, failure.HttpStatus));
-        Assert.Equal(new[] { "OfferId", "Options" }, typeof(BackofficeGetAncillaryOffersQuery).GetProperties().Select(property => property.Name).Order());
+        Assert.Equal(new[] { "OfferId", "Options", "OrderId" }, typeof(BackofficeGetAncillaryOffersQuery).GetProperties().Select(property => property.Name).Order());
         Assert.Equal(
             new[] { "CountryId", "PointOfSaleId" },
             typeof(BackofficeAncillaryOfferOptions).GetProperties().Select(property => property.Name).Order());

@@ -111,5 +111,6 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public const string OfferItemWasNotFound = "OFFER_ITEM_NOT_FOUND: the offer item does not exist for this flight offer and sales scope any more; ask for the ancillary offers again.";
         public const string AircraftSeatMapCouldNotBeRetrieved = "The seat map of aircraft {0} could not be retrieved: {1}.";
         public const string OccupiedSeatsCouldNotBeRetrieved = "The occupied seats of the flights could not be retrieved: {0}.";
+        public const string OrderSourceUnavailable = "The commercial context of order {0} could not be read: {1}.";
     }
 }

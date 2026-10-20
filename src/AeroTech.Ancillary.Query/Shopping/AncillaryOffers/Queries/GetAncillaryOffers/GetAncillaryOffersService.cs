@@ -10,10 +10,10 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
 {
     public sealed class GetAncillaryOffersService : IGetAncillaryOffersService
     {
-        private readonly IFlightOfferShoppingSource _source;
+        private readonly IShoppingSource _source;
         private readonly IAncillaryShoppingEngine _engine;
 
-        public GetAncillaryOffersService(IFlightOfferShoppingSource source, IAncillaryShoppingEngine engine)
+        public GetAncillaryOffersService(IShoppingSource source, IAncillaryShoppingEngine engine)
         {
             _source = source;
             _engine = engine;
@@ -27,9 +27,14 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
             AncillarySalesScope scope,
             ShoppingFilter family,
             CancellationToken cancellationToken = default)
-        {
-            var shopping = await _source.LoadAsync(query.OfferId, scope, cancellationToken);
+            => await ShopAsync(await _source.LoadAsync(query.OfferId, query.OrderId, scope, cancellationToken), scope, family, cancellationToken);
 
+        public async Task<AncillaryShoppingSnapshot> ShopAsync(
+            FlightOfferShopping shopping,
+            AncillarySalesScope scope,
+            ShoppingFilter family,
+            CancellationToken cancellationToken = default)
+        {
             PricedOfferScopeGuard.EnsureSellable(shopping.Offer, scope);
 
             var pointsOfSale = new List<PointOfSaleShopping>();

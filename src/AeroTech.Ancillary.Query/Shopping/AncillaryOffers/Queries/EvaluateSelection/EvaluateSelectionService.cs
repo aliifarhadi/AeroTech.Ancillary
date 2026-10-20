@@ -33,8 +33,10 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSele
             AncillarySalesScope scope,
             ShoppingFilter family,
             CancellationToken cancellationToken = default)
+            => await EvaluateAsync(await _details.ExecuteAsync(query, scope, family, cancellationToken), selection, cancellationToken);
+
+        public async Task<AncillarySelectionSnapshot> EvaluateAsync(AncillaryOfferDetailSnapshot detail, AncillarySelection selection, CancellationToken cancellationToken = default)
         {
-            var detail = await _details.ExecuteAsync(query, scope, family, cancellationToken);
             var item = detail.Item;
             var evaluation = await _engine.EvaluateSelectionAsync(item.Context, item.Candidate.CandidateIdentity, selection, cancellationToken);
 
@@ -42,7 +44,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSele
                 detail.Shopping,
                 item,
                 evaluation,
-                OfferItemRef.Of(detail.Shopping.Offer.OfferId, item.Context.SourceIdentity.TrustedSourceVersion, scope, item.PointOfSaleId, evaluation.Candidate.CandidateIdentity),
+                OfferItemRef.Of(detail.Shopping.Offer.OfferId, item.Context.SourceIdentity.TrustedSourceVersion, detail.Shopping.Scope, item.PointOfSaleId, evaluation.Candidate.CandidateIdentity),
                 selection,
                 detail.OptionGroups);
         }

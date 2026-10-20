@@ -215,11 +215,11 @@ public class S2FinalShoppingTests
 
     private static GetAncillaryOffersService Service(ShoppingLab lab, FlightOffer offer)
         => new(
-            new FlightOfferShoppingSource(
+            Sources(new FlightOfferShoppingSource(
                 new FixedOffers(offer),
                 new TestOnlyAirportReference(),
                 new TestOnlyAirFareReference(),
                 new FixedClock { Now = Now },
-                new FlightOfferShoppingOptions(SourceContextTtl)),
+                new FlightOfferShoppingOptions(SourceContextTtl))),
             lab.Engine);
 }

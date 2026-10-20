@@ -33,6 +33,8 @@ namespace AeroTech.Ancillary.Shopping.Results
 
         public decimal? CompleteUnitTotal { get; init; }
 
+        public int? Units { get; init; }
+
         public decimal? RequestedQuantityTotal { get; init; }
 
         public bool IsOrderLevelTotalComplete { get; init; }

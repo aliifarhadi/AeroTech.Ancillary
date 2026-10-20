@@ -10,5 +10,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
         Task<AncillaryOfferDetailSnapshot> ExecuteAsync(IAncillaryOfferItemQuery query, AncillarySalesScope scope, CancellationToken cancellationToken = default);
 
         Task<AncillaryOfferDetailSnapshot> ExecuteAsync(IAncillaryOfferItemQuery query, AncillarySalesScope scope, ShoppingFilter family, CancellationToken cancellationToken = default);
+
+        Task<AncillaryOfferDetailSnapshot> DescribeAsync(AncillaryShoppingSnapshot shopping, AncillaryOfferItem item, CancellationToken cancellationToken = default);
     }
 }

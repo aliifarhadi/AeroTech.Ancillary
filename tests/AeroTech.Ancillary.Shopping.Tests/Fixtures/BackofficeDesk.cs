@@ -1,11 +1,13 @@
 using AeroTech.Ancillary.Application.AcceptanceTests.Fakes;
 using AeroTech.Ancillary.Application.FlightOffers;
+using AeroTech.Ancillary.Application.Orders;
 using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Backoffice;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Snapshots;
 using AeroTech.Ancillary.Query.Shopping.Common.FlightOffers;
+using AeroTech.Ancillary.Query.Shopping.Common.Orders;
 using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
 using AeroTech.Ancillary.Query.Shopping.Common;
 using AeroTech.Ancillary.Shopping.Context;
@@ -16,9 +18,14 @@ namespace AeroTech.Ancillary.Shopping.Tests.Fixtures;
 
 public static class BackofficeDesk
 {
+    public const long BackofficeOfficeId = 9200;
+
     public static readonly DeskScope Sale = new(Airline, Pos, null, Eur, Now);
 
     public static readonly TimeSpan SourceContextTtl = TimeSpan.FromMinutes(30);
+
+    public static ShoppingSource Sources(IFlightOfferShoppingSource flightOffers, IOrderCommercialContextReader? orders = null)
+        => new(flightOffers, new OrderShoppingSource(orders ?? new OrderDesk.FixedOrders(), flightOffers));
 
     public static async Task<GetAncillaryOffersService> ServiceAsync(
         ShoppingLab lab,
@@ -28,12 +35,12 @@ public static class BackofficeDesk
         DeskScope? desk = null,
         Channel channel = Channel.BackOffice)
         => new(
-            new FlightOfferShoppingSource(
+            Sources(new FlightOfferShoppingSource(
                 new FixedOffers((desk ?? Sale).Sell(await OfferWire.ReadAsync(wire ?? OfferWire.Captured()), channel)),
                 airports ?? new TestOnlyAirportReference(),
                 airFares ?? new TestOnlyAirFareReference(),
                 new FixedClock { Now = (desk ?? Sale).EvaluatedAtUtc },
-                new FlightOfferShoppingOptions(SourceContextTtl)),
+                new FlightOfferShoppingOptions(SourceContextTtl))),
             lab.Engine);
 
     public static async Task<AncillaryShoppingSnapshot> SnapshotAsync(
@@ -77,7 +84,15 @@ public static class BackofficeDesk
 
     public sealed record DeskScope(int OwnerAirlineId, long PointOfSaleId, long? CustomerId, int? CurrencyId, DateTimeOffset EvaluatedAtUtc)
     {
-        public DeskSale On(Channel channel, params long[] pointOfSaleIds) => new(this, new AncillarySalesScope(OwnerAirlineId, channel, pointOfSaleIds));
+        public DeskSale On(Channel channel, params long[] pointOfSaleIds)
+            => new(
+                this,
+                new AncillarySalesScope(
+                    OwnerAirlineId,
+                    channel,
+                    pointOfSaleIds,
+                    AirlineOfficeId: channel == Channel.BackOffice ? BackofficeOfficeId : null,
+                    CustomerId: CustomerId));
 
         public FlightOffer Sell(FlightOffer offer, Channel channel = Channel.BackOffice)
             => offer with
@@ -99,7 +114,7 @@ public static class BackofficeDesk
         public static implicit operator AncillarySalesScope(DeskSale sale) => sale.Scope;
     }
 
-    public sealed record OfferQuery(string? OfferId, string? OfferItemRef = null) : IAncillaryOfferItemQuery;
+    public sealed record OfferQuery(string? OfferId, string? OfferItemRef = null, long? OrderId = null) : IAncillaryOfferItemQuery;
 
     public sealed class FixedOffers : IFlightOfferProvider
     {
@@ -125,7 +140,7 @@ public static class BackofficeDesk
 
         public long? AirlineUserId { get; init; } = 7001;
 
-        public long? AirlineOfficeId { get; init; } = 9200;
+        public long? AirlineOfficeId { get; init; } = BackofficeOfficeId;
 
         public long? TravelAgencyUserId { get; init; }
 

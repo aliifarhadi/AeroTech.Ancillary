@@ -32,6 +32,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
         public RuleOutcome Run()
         {
             Stage();
+            CouponUsability();
             PassengerEligibility();
             SalesRestrictions();
             Geography();
@@ -44,6 +45,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
             SeatApplication();
             ProfileRules();
             SelectionContract();
+            TrustedEvidence();
 
             return Outcome;
         }
@@ -60,6 +62,27 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
             if (!applies)
                 Outcome.Fail(ShoppingReasonCodes.StageNotApplicable);
+        }
+
+        private void CouponUsability()
+        {
+            if (Context.ShoppingStage != ShoppingStage.PostTicketed)
+                return;
+
+            var travellerRefs = _unit.Traveller is { } traveller ? [traveller.TravellerRef] : Context.Travellers.Select(row => row.TravellerRef).ToList();
+
+            foreach (var flight in _unit.Flights)
+            {
+                foreach (var travellerRef in travellerRefs)
+                {
+                    var openForUse = Context.TravellerFareFacts.FirstOrDefault(fact => fact.TravellerRef == travellerRef && fact.FlightRef == flight.FlightRef)?.CouponOpenForUse;
+
+                    if (openForUse is false)
+                        Outcome.Fail(ShoppingReasonCodes.CouponNotOpenForUse);
+                    else if (openForUse is null)
+                        Outcome.Unknown(ShoppingReasonCodes.CouponStateNotVerified, $"TravellerFareFacts[{travellerRef}:{flight.FlightRef}].CouponOpenForUse");
+                }
+            }
         }
 
         private IReadOnlyList<ServiceOccurrence>? Occurrences()

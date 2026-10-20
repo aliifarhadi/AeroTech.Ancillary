@@ -1,3 +1,4 @@
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatch.Backoffice;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSelection.Backoffice;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOfferDetail.Backoffice;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
@@ -31,6 +32,10 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryOffers.Controllers
 
         [HttpPost("Selections/Evaluate")]
         public async Task<IActionResult> EvaluateSelection([FromBody] BackofficeEvaluateSelectionQuery query, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(query, cancellationToken));
+
+        [HttpPost("Selections/EvaluateBatch")]
+        public async Task<IActionResult> EvaluateBatch([FromBody] BackofficeEvaluateBatchQuery query, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(query, cancellationToken));
     }
 }

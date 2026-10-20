@@ -34,6 +34,12 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.FlightOffers
                 throw ExceptionFactory.FlightOfferIdIsRequired();
 
             var offer = await _flightOffers.GetByOfferIdAsync(offerId, cancellationToken);
+
+            return await ContextualizeAsync(offer, scope, FlightOfferFingerprint.Of(offer), cancellationToken);
+        }
+
+        public async Task<FlightOfferShopping> ContextualizeAsync(FlightOffer offer, AncillarySalesScope scope, string sourceVersion, CancellationToken cancellationToken = default)
+        {
             var airFareIds = offer.FareComponents.Select(component => component.AirFareId).Distinct().ToList();
             var fareFamilyIds = await _airFares.FindFareFamilyIdsAsync(airFareIds, cancellationToken);
             var facts = FlightOfferShoppingContextMapper.Facts(offer, fareFamilyIds);
@@ -46,7 +52,6 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.FlightOffers
             var airportTimeZoneIds = await _airports.FindTimeZoneIdsAsync(airportIds, cancellationToken);
             var evaluatedAtUtc = _clock.GetDateTime().ToUniversalTime();
             var validUntilUtc = evaluatedAtUtc + _options.SourceContextTtl;
-            var sourceVersion = FlightOfferFingerprint.Of(offer);
 
             return new FlightOfferShopping(
                 offer,

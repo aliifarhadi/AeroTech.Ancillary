@@ -102,6 +102,7 @@ public class V12BoundaryAcceptanceTests
                 "FlightFlowOccupiedSeatProvider.cs", "FlightFlowOccupiedSeats.cs",
                 "FlightOfferDetailResponse.cs", "FlightOfferProvider.cs", "FlightOfferResponseMapper.cs",
                 "NotConnectedAirportFacilityReference.cs", "NotConnectedCountingFamilyReference.cs", "NotConnectedInventoryResourceReference.cs",
+                "NotConnectedOrderCommercialContextReader.cs",
                 "OfferAirTransport.cs", "OfferCoupon.cs", "OfferEnvelope.cs", "OfferFareComponent.cs", "OfferFlight.cs", "OfferFlightLeg.cs",
                 "OfferJson.cs",
                 "OfferPricingLine.cs", "OfferPricingUnit.cs", "OfferRateOfExchange.cs", "OfferResultError.cs", "OfferTicket.cs",
@@ -245,15 +246,19 @@ public class V12BoundaryAcceptanceTests
             "POST Backoffice/AncillaryOffers",
             "POST Backoffice/AncillaryOffers/Details",
             "POST Backoffice/AncillaryOffers/Selections/Evaluate",
+            "POST Backoffice/AncillaryOffers/Selections/EvaluateBatch",
             "POST Backoffice/SeatMaps",
             "POST Api/AncillaryOffers",
             "POST Api/AncillaryOffers/Details",
             "POST Api/AncillaryOffers/Selections/Evaluate",
+            "POST Api/AncillaryOffers/Selections/EvaluateBatch",
             "POST Api/SeatMaps",
             "POST OtaPanel/AncillaryOffers",
             "POST OtaPanel/AncillaryOffers/Details",
             "POST OtaPanel/AncillaryOffers/Selections/Evaluate",
+            "POST OtaPanel/AncillaryOffers/Selections/EvaluateBatch",
             "POST OtaPanel/SeatMaps",
+            "POST Service/Ancillaries/Selections/Resolve",
             "POST Backoffice/AncillaryPricings",
             "GET Backoffice/AncillaryPricings/Paginated",
             "GET Backoffice/AncillaryPricings/{pricingId:long}",
@@ -356,7 +361,7 @@ public class V12BoundaryAcceptanceTests
         Assert.Equal(
             preserved.Concat(added).Concat(typed).Concat(forms).Concat(inventory).OrderBy(route => route, StringComparer.Ordinal),
             routes.OrderBy(route => route, StringComparer.Ordinal));
-        Assert.Equal(150, routes.Count);
+        Assert.Equal(154, routes.Count);
         Assert.Equal(36, inventory.Length);
         Assert.DoesNotContain(routes, route => new[] { "Sell", "Reserve", "Release", "Expire" }.Any(term => route.Contains(term, StringComparison.Ordinal)));
         Assert.Equal(

@@ -1,6 +1,7 @@
 using AeroTech.Ancillary.Domain.AncillaryPricingAggregate;
 using AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Entities;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate;
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Shopping.Results;
 using AeroTech.Messages.Ancillary.Enums;
@@ -10,6 +11,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
     internal static class PriceAssessor
     {
         public static PriceAssessment Assess(
+            AncillaryServiceDefinition definition,
             AncillaryProvision provision,
             AncillaryPricing? pricing,
             EvaluationUnit unit,
@@ -17,22 +19,25 @@ namespace AeroTech.Ancillary.Shopping.Engine
             IReadOnlyDictionary<int, int> currencyDecimalPlaces,
             IReadOnlyList<PublishedRateOfExchange> ratesOfExchange)
         {
+            var units = ChargedUnits.Of(definition.SelectionContract!, provision, unit.Selection);
+
             switch (provision.PriceOrigin)
             {
                 case PriceOrigin.NotAvailable:
                     return Unpriced(provision, PriceAssessmentStatus.Unavailable, ShoppingReasonCodes.NotAvailable);
                 case PriceOrigin.Free:
-                    return new PriceAssessment { Origin = PriceOrigin.Free, Status = PriceAssessmentStatus.Complete, IsOrderLevelTotalComplete = true };
+                    return Free(unit.Context.CurrencyId, units);
                 case PriceOrigin.ExternalQuote:
                     return new PriceAssessment
                     {
                         Origin = PriceOrigin.ExternalQuote,
                         Status = PriceAssessmentStatus.QuoteRequired,
                         QuoteProviderKey = provision.QuoteProviderKey,
+                        Units = units.Count,
                         ReasonCodes = [ShoppingReasonCodes.QuoteRequired]
                     };
                 case PriceOrigin.Filed:
-                    return Filed(provision, pricing, unit, timeline, currencyDecimalPlaces, ratesOfExchange);
+                    return Filed(provision, pricing, unit, timeline, units, currencyDecimalPlaces, ratesOfExchange);
                 default:
                     return Unpriced(provision, PriceAssessmentStatus.Unavailable, ShoppingReasonCodes.PriceOriginNotSupported);
             }
@@ -41,11 +46,26 @@ namespace AeroTech.Ancillary.Shopping.Engine
         private static PriceAssessment Unpriced(AncillaryProvision provision, PriceAssessmentStatus status, params string[] reasonCodes)
             => new() { Origin = provision.PriceOrigin, Status = status, ReasonCodes = reasonCodes };
 
+        private static PriceAssessment Free(int currencyId, ChargedUnits units)
+            => new()
+            {
+                Origin = PriceOrigin.Free,
+                Status = units.ReasonCode is null ? PriceAssessmentStatus.Complete : PriceAssessmentStatus.Incomplete,
+                CurrencyId = currencyId,
+                BaseAmount = decimal.Zero,
+                CompleteUnitTotal = decimal.Zero,
+                Units = units.Count,
+                RequestedQuantityTotal = units.Count is > 0 ? decimal.Zero : null,
+                IsOrderLevelTotalComplete = units.ReasonCode is null,
+                ReasonCodes = units.ReasonCode is { } reason ? [reason] : []
+            };
+
         private static PriceAssessment Filed(
             AncillaryProvision provision,
             AncillaryPricing? pricing,
             EvaluationUnit unit,
             UnitTimeline timeline,
+            ChargedUnits units,
             IReadOnlyDictionary<int, int> currencyDecimalPlaces,
             IReadOnlyList<PublishedRateOfExchange> ratesOfExchange)
         {
@@ -56,6 +76,9 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
             if (pricing.PricingUnit is null)
                 return Unpriced(provision, PriceAssessmentStatus.Incomplete, ShoppingReasonCodes.PricingUnitNotAssigned);
+
+            if (unit.Traveller is null && pricing.PricingUnit == PricingUnit.PerPassenger)
+                return Unpriced(provision, PriceAssessmentStatus.Incomplete, ShoppingReasonCodes.BeneficiaryRequired) with { PricingRevisionId = pricing.Id };
 
             var ages = timeline.Ages?.Distinct().ToList();
             var rates = pricing.Rates
@@ -90,14 +113,14 @@ namespace AeroTech.Ancillary.Shopping.Engine
             if (rateOfExchange is null)
                 return Unpriced(provision, PriceAssessmentStatus.Unavailable, ShoppingReasonCodes.RateOfExchangeNotFound) with { PricingRevisionId = pricing.Id };
 
-            return Priced(pricing, rates[0], rateOfExchange, unit.Selection?.Quantity, currencyDecimalPlaces);
+            return Priced(pricing, rates[0], rateOfExchange, units, currencyDecimalPlaces);
         }
 
         private static PriceAssessment Priced(
             AncillaryPricing pricing,
             AncillaryPricingRate rate,
             PublishedRateOfExchange rateOfExchange,
-            int? quantity,
+            ChargedUnits units,
             IReadOnlyDictionary<int, int> currencyDecimalPlaces)
         {
             var reasons = new List<string>();
@@ -119,23 +142,27 @@ namespace AeroTech.Ancillary.Shopping.Engine
             if (unapplied.Any(line => line.FeeApplicationUnit is null or > FeeApplicationUnit.Ticket))
                 reasons.Add(ShoppingReasonCodes.FeeUnitNotSupported);
 
-            var complete = reasons.Count == 0;
+            var unitComplete = reasons.Count == 0;
 
-            if (complete && unapplied.Count > 0)
+            if (unitComplete && unapplied.Count > 0)
                 reasons.Add(ShoppingReasonCodes.FeeNotAppliedAtUnitLevel);
 
-            if (complete && weightBased)
+            if (unitComplete && weightBased)
                 reasons.Add(ShoppingReasonCodes.ChargeableWeightNotDetermined);
 
+            if (units.ReasonCode is { } unitsReason)
+                reasons.Add(unitsReason);
+
             var baseAmount = converted ? Convert(rate.BaseAmount, rateOfExchange) : rate.BaseAmount;
-            decimal? unitTotal = complete
+            decimal? unitTotal = unitComplete
                 ? baseAmount + lines.Where(line => line.TaxTreatment != TaxTreatment.IncludedInBase && line.FeeApplicationUnit is null or FeeApplicationUnit.Item).Sum(line => line.Amount)
                 : null;
+            var lineComplete = unitComplete && unapplied.Count == 0 && !weightBased && units.ReasonCode is null;
 
             return new PriceAssessment
             {
                 Origin = PriceOrigin.Filed,
-                Status = complete ? PriceAssessmentStatus.Complete : PriceAssessmentStatus.Incomplete,
+                Status = unitComplete && units.ReasonCode is null ? PriceAssessmentStatus.Complete : PriceAssessmentStatus.Incomplete,
                 CurrencyId = rateOfExchange.ToCurrencyId,
                 FiledCurrencyId = rate.CurrencyId,
                 RateOfExchange = rateOfExchange,
@@ -148,8 +175,9 @@ namespace AeroTech.Ancillary.Shopping.Engine
                 AppliedUnitFeeLines = fees.Where(line => line.FeeApplicationUnit == FeeApplicationUnit.Item).ToList(),
                 UnappliedFeeLines = unapplied,
                 CompleteUnitTotal = unitTotal,
-                RequestedQuantityTotal = unitTotal is not null && unapplied.Count == 0 && !weightBased && quantity is > 0 ? unitTotal.Value * quantity.Value : null,
-                IsOrderLevelTotalComplete = complete && unapplied.Count == 0 && !weightBased,
+                Units = units.Count,
+                RequestedQuantityTotal = lineComplete && units.Count is > 0 ? unitTotal!.Value * units.Count.Value : null,
+                IsOrderLevelTotalComplete = lineComplete,
                 ReasonCodes = reasons
             };
         }

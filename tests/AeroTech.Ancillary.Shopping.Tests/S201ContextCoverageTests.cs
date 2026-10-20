@@ -23,7 +23,7 @@ namespace AeroTech.Ancillary.Shopping.Tests;
 
 public class S201ContextCoverageTests
 {
-    private static readonly AncillarySalesScope Scope = new(Airline, Channel.BackOffice, [Pos]);
+    private static readonly AncillarySalesScope Scope = new(Airline, Channel.BackOffice, [Pos], AirlineOfficeId: BackofficeOfficeId);
 
     [Fact]
     public async Task S201_SRC_01_the_verified_producer_fields_survive_the_mapping_per_traveller_and_per_flight()
@@ -99,12 +99,12 @@ public class S201ContextCoverageTests
     {
         var offer = (await OfferWire.ReadAsync(OfferWire.Captured())) with { SalesChannel = Channel.BackOffice };
         var service = new GetAncillaryOffersService(
-            new FlightOfferShoppingSource(
+            Sources(new FlightOfferShoppingSource(
                 new FixedOffers(offer),
                 new TestOnlyAirportReference(),
                 new TestOnlyAirFareReference(),
                 new FixedClock { Now = Now },
-                new FlightOfferShoppingOptions(SourceContextTtl)),
+                new FlightOfferShoppingOptions(SourceContextTtl))),
             new ShoppingLab().Engine);
         var answer = BackofficeAncillaryOffersMapper.Map(await service.ExecuteAsync(new OfferQuery(OfferWire.OfferId), Scope));
 
@@ -167,7 +167,7 @@ public class S201ContextCoverageTests
     public async Task S201_ORD_04_an_order_scoped_airport_package_is_one_candidate_for_the_whole_order_on_a_priced_offer()
     {
         var lab = new ShoppingLab();
-        var cip = lab.Definition("A22");
+        var cip = lab.Definition("A22", pricingUnit: PricingUnit.PerItem);
         var provision = lab.Provision(cip, scope: ServiceCoverageScope.Order);
 
         lab.Price(cip, provision, Rate(250m));

@@ -143,13 +143,14 @@ public class EngineVariantTests
     public async Task E_A06_sports_equipment_is_a_typed_form_with_a_delegated_supplier_and_no_local_capacity()
     {
         var shop = await ShopAsync("A06", arrange: (lab, definition) => lab.Policy(definition, InventoryAuthority.Supplier));
-        var bike = new AncillarySelection { EquipmentKind = "bike", Dimensions = new(190m, 70m, 30m), WeightKg = 20m };
+        var bike = new AncillarySelection { EquipmentKind = "BIKE", Dimensions = new(190m, 70m, 30m), WeightKg = 20m };
         var accepted = await shop.ChooseAsync(bike);
 
         Assert.Equal(OfferReadiness.NeedsSelection, shop.Shown.OfferReadiness);
         Assert.Equal((SelectionEvaluationStatus.Accepted, InventoryCapacityReadState.DelegatedCheckRequired, false), (accepted.Status, accepted.Candidate.Availability.ConfigState, accepted.Candidate.Availability.IsGuaranteed));
         Assert.Null(accepted.Candidate.Availability.ConsumptionPreview);
         Rejected(await shop.ChooseAsync(bike with { EquipmentKind = "SURF" }), "EquipmentKind", ShoppingReasonCodes.EquipmentKindNotAllowed);
+        Rejected(await shop.ChooseAsync(bike with { EquipmentKind = "bike" }), "EquipmentKind", ShoppingReasonCodes.EquipmentKindNotAllowed);
         Rejected(await shop.ChooseAsync(bike with { WeightKg = 33m }), "WeightKg", ShoppingReasonCodes.BaggageWeightAboveMaximum);
         Rejected(await shop.ChooseAsync(bike with { Dimensions = new(210m, 70m, 30m) }), "Dimensions", ShoppingReasonCodes.BaggageDimensionsAboveMaximum);
     }
@@ -221,7 +222,7 @@ public class EngineVariantTests
     }
 
     [Fact]
-    public async Task E_A11_a_free_special_meal_has_no_price_respects_the_catering_cutoff_and_the_meal_family()
+    public async Task E_A11_a_free_special_meal_is_priced_at_zero_respects_the_catering_cutoff_and_the_meal_family()
     {
         var shop = await ShopAsync("A11");
         var late = await ShopAsync("A11", Trip.Context([Trip.Flight(departure: Now.AddHours(12).ToOffset(Trip.TehranOffset))]));
@@ -231,15 +232,17 @@ public class EngineVariantTests
             {
                 ExistingServiceFacts = [new() { ServiceRef = "MEAL_PASTA", CountingFamilyCode = "MAIN_MEAL", TravellerRef = "T1", FlightRefs = ["F1"], Quantity = 1, CommercialState = ExistingServiceCommercialState.Active }]
             });
-        var chosen = await shop.ChooseAsync(new AncillarySelection { MealCode = "vgml" });
+        var chosen = await shop.ChooseAsync(new AncillarySelection { MealCode = "VGML" });
 
         Assert.Equal((OfferReadiness.NeedsSelection, PriceOrigin.Free), (shop.Shown.OfferReadiness, shop.Shown.Price.Origin));
-        Assert.Null(shop.Shown.Price.CompleteUnitTotal);
+        Assert.Equal((0m, (decimal?)null), (shop.Shown.Price.CompleteUnitTotal, shop.Shown.Price.RequestedQuantityTotal));
         Assert.Equal((BookingMethod.Ssr, "VGML"), (shop.Shown.Booking.Method, shop.Shown.Booking.SsrCode));
         Assert.Empty(late.Candidates);
         Assert.Empty(taken.Candidates);
         Assert.Equal((SelectionEvaluationStatus.Accepted, OfferReadiness.Selectable), (chosen.Status, chosen.Candidate.OfferReadiness));
+        Assert.Equal(0m, chosen.Candidate.Price.RequestedQuantityTotal);
         Rejected(await shop.ChooseAsync(new AncillarySelection { MealCode = "KSML" }), "MealCode", ShoppingReasonCodes.MealCodeMismatch);
+        Rejected(await shop.ChooseAsync(new AncillarySelection { MealCode = "vgml" }), "MealCode", ShoppingReasonCodes.MealCodeMismatch);
     }
 
     [Fact]
@@ -320,7 +323,7 @@ public class EngineVariantTests
         Assert.Empty(late.Candidates);
         Assert.Equal((SelectionEvaluationStatus.Accepted, ConfirmationRequirement.SubjectToConfirmation), (chosen.Status, chosen.Candidate.Confirmation.ConfirmationRequirement));
         Assert.Contains(ShoppingReasonCodes.SupplierConfirmationRequired, chosen.Candidate.ReasonCodes);
-        Assert.Null(chosen.Candidate.Price.RequestedQuantityTotal);
+        Assert.Equal((1, 0m), (chosen.Candidate.Price.Units, chosen.Candidate.Price.RequestedQuantityTotal));
         Rejected(await shop.ChooseAsync(new AncillarySelection { AssistanceSsrCode = "BLND" }), "AssistanceSsrCode", ShoppingReasonCodes.AssistanceCodeNotAllowed);
     }
 
@@ -343,9 +346,10 @@ public class EngineVariantTests
         var oxygen = new AncillarySelection { EquipmentCode = "AOXY", EvidenceDocumentRefs = ["MEDIF-REF-1"], OxygenUnits = 2m };
         var accepted = await shop.ChooseAsync(oxygen);
 
-        Assert.Equal((OfferReadiness.NeedsSelection, PriceAssessmentStatus.QuoteRequired), (shop.Shown.OfferReadiness, shop.Shown.Price.Status));
+        Assert.Equal((OfferReadiness.NeedsVerification, PriceAssessmentStatus.QuoteRequired), (shop.Shown.OfferReadiness, shop.Shown.Price.Status));
         Assert.Contains(ShoppingReasonCodes.MedicalApprovalRequired, shop.Shown.ReasonCodes);
-        Assert.Equal((SelectionEvaluationStatus.Incomplete, OfferReadiness.NeedsQuote, ConfirmationRequirement.SubjectToConfirmation), (accepted.Status, accepted.Candidate.OfferReadiness, accepted.Candidate.Confirmation.ConfirmationRequirement));
+        Assert.Contains("VerifiedMedicalApproval", accepted.Candidate.Eligibility.MissingContextFields);
+        Assert.Equal((SelectionEvaluationStatus.Incomplete, OfferReadiness.NeedsVerification, ConfirmationRequirement.SubjectToConfirmation), (accepted.Status, accepted.Candidate.OfferReadiness, accepted.Candidate.Confirmation.ConfirmationRequirement));
         Assert.Null(accepted.Candidate.Price.CompleteUnitTotal);
         Rejected(await shop.ChooseAsync(oxygen with { OxygenUnits = 3m }), "OxygenUnits", ShoppingReasonCodes.OxygenUnitsAboveMaximum);
         Rejected(await shop.ChooseAsync(oxygen with { EvidenceDocumentRefs = [] }), "EvidenceDocumentRefs", ShoppingReasonCodes.MedicalEvidenceMissing);
@@ -389,9 +393,13 @@ public class EngineVariantTests
         Assert.Empty(adult.Candidates);
         Assert.Empty(tooOld.Candidates);
         Assert.Empty(connecting.Candidates);
-        Assert.Equal((SelectionEvaluationStatus.Accepted, ConfirmationRequirement.SubjectToConfirmation), ((await shop.ChooseAsync(contacts)).Status, shop.Shown.Confirmation.ConfirmationRequirement));
+        var flagged = await shop.ChooseAsync(contacts);
+
+        Assert.Equal((SelectionEvaluationStatus.Incomplete, OfferReadiness.NeedsVerification, ConfirmationRequirement.SubjectToConfirmation), (flagged.Status, flagged.Candidate.OfferReadiness, shop.Shown.Confirmation.ConfirmationRequirement));
+        Assert.Contains(ShoppingReasonCodes.GuardianContactRequired, flagged.Candidate.ReasonCodes);
+        Assert.Contains("VerifiedGuardianContacts", flagged.Candidate.Eligibility.MissingContextFields);
         Assert.Equal(SelectionEvaluationStatus.Incomplete, (await shop.ChooseAsync(contacts with { GuardianPickupContactProvided = false })).Status);
-        Assert.Equal(SelectionEvaluationStatus.Accepted, (await shop.ChooseAsync(contacts with { ChildRef = "T1" })).Status);
+        Assert.Equal(SelectionEvaluationStatus.Incomplete, (await shop.ChooseAsync(contacts with { ChildRef = "T1" })).Status);
         Rejected(await shop.ChooseAsync(contacts with { ChildRef = "T9" }), "ChildRef", ShoppingReasonCodes.SelectionFieldNotAllowed);
     }
 

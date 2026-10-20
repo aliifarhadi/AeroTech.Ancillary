@@ -9,6 +9,8 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
     {
         public string? OfferId { get; set; }
 
+        public long? OrderId { get; set; }
+
         public BackofficeAncillaryOfferOptions? Options { get; set; }
     }
 

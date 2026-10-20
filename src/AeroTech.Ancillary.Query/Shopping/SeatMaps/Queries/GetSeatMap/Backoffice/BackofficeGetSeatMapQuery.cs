@@ -8,6 +8,8 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap.Backoffi
     {
         public string? OfferId { get; set; }
 
+        public long? OrderId { get; set; }
+
         public BackofficeAncillaryOfferOptions? Options { get; set; }
     }
 }

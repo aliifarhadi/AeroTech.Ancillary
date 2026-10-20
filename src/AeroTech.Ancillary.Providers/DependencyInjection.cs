@@ -1,9 +1,11 @@
 using AeroTech.Ancillary.Application.FlightOffers;
+using AeroTech.Ancillary.Application.Orders;
 using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Providers.AirInfo.Services;
 using AeroTech.Ancillary.Providers.FlightFlow.Services;
 using AeroTech.Ancillary.Providers.InventoryReferences;
 using AeroTech.Ancillary.Providers.Offer.Services;
+using AeroTech.Ancillary.Providers.Orders;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -50,6 +52,7 @@ namespace AeroTech.Ancillary.Providers
             services.AddScoped<IInventoryResourceReference, NotConnectedInventoryResourceReference>();
             services.AddScoped<IAirportFacilityReference, NotConnectedAirportFacilityReference>();
             services.AddScoped<ICountingFamilyReference, NotConnectedCountingFamilyReference>();
+            services.AddScoped<IOrderCommercialContextReader, NotConnectedOrderCommercialContextReader>();
 
             return services;
         }

@@ -2,11 +2,11 @@
   "data": {
     "offerId": "1|1|0;9000000000000000001~9000000000000000101_9000000000000000002~9000000000000000102;3|9000000000000000900||70|1791706372",
     "status": "Accepted",
-    "offerItemRef": "kEfkKxIl1FOn79_Iqfmkihad7RtKNbH3NEbluE2Yw7s",
-    "currentOfferItemRef": "kEfkKxIl1FOn79_Iqfmkihad7RtKNbH3NEbluE2Yw7s",
+    "offerItemRef": "bILuMB1jzWiO5TwTmV3LaOH6mOe1YTh4CaH0_K6GaeE",
+    "currentOfferItemRef": "bILuMB1jzWiO5TwTmV3LaOH6mOe1YTh4CaH0_K6GaeE",
     "serviceChanged": false,
     "service": {
-      "offerItemRef": "kEfkKxIl1FOn79_Iqfmkihad7RtKNbH3NEbluE2Yw7s",
+      "offerItemRef": "bILuMB1jzWiO5TwTmV3LaOH6mOe1YTh4CaH0_K6GaeE",
       "category": "Baggage",
       "variantCode": "A01",
       "title": "Extra checked bag",
@@ -33,7 +33,7 @@
       ],
       "displayStatus": "AvailableForSelection",
       "requiresRecheck": true,
-      "canPurchase": true,
+      "canPurchase": false,
       "selectionKind": "QuantityChoice",
       "availabilityState": "NotChecked",
       "offerReadiness": "Selectable",

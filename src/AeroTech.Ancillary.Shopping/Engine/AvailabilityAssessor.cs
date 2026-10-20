@@ -19,16 +19,17 @@ namespace AeroTech.Ancillary.Shopping.Engine
             CancellationToken cancellationToken)
         {
             var reasons = new List<string>();
-            var mustCheck = provision.Availability.MustCheckAvailability;
+            var checkAtReserve = provision.Availability.MustCheckAvailability
+                                 || (provision.PetRule?.AcceptanceMode ?? definition.Booking.ConfirmationRequirement) == ConfirmationRequirement.SubjectToConfirmation;
 
-            if (mustCheck)
+            if (provision.Availability.MustCheckAvailability)
                 reasons.Add(ShoppingReasonCodes.AvailabilityMustBeChecked);
 
             if (definition.Profile == AncillaryProfile.Seat)
-                return Assessment(null, InventoryCapacityReadState.NotApplicable, AvailabilityCheckState.NotChecked, mustCheck, null, reasons);
+                return Assessment(null, InventoryCapacityReadState.NotApplicable, AvailabilityCheckState.NotChecked, checkAtReserve, null, reasons);
 
             if (configuration is null)
-                return Assessment(null, InventoryCapacityReadState.NotConfigured, AvailabilityCheckState.NotChecked, mustCheck, null, reasons, ShoppingReasonCodes.InventoryNotConfigured);
+                return Assessment(null, InventoryCapacityReadState.NotConfigured, AvailabilityCheckState.NotChecked, checkAtReserve, null, reasons, ShoppingReasonCodes.InventoryNotConfigured);
 
             var policy = configuration.Policy;
             var unsupported = policy.LocalPattern is LocalInventoryPattern.DailyCount or LocalInventoryPattern.RoomNight or LocalInventoryPattern.AssignedAsset;
@@ -46,7 +47,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
             switch (policy.Authority)
             {
                 case InventoryAuthority.Unlimited:
-                    return Assessment(policy.Authority, InventoryCapacityReadState.Unlimited, AvailabilityCheckState.NotChecked, mustCheck, null, reasons);
+                    return Assessment(policy.Authority, InventoryCapacityReadState.Unlimited, AvailabilityCheckState.NotChecked, checkAtReserve, null, reasons);
                 case InventoryAuthority.Supplier:
                     return Assessment(
                         policy.Authority,

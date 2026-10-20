@@ -170,9 +170,9 @@ public class EnginePriceInventoryTests
         Assert.Equal((PriceAssessmentStatus.Unavailable, OfferReadiness.Unavailable), (unpriced.Price.Status, unpriced.OfferReadiness));
         Assert.Contains(ShoppingReasonCodes.PricingNotActive, unpriced.Price.ReasonCodes);
         Assert.Equal((PriceOrigin.Free, PriceAssessmentStatus.Complete), (free.Price.Origin, free.Price.Status));
-        Assert.Null(free.Price.BaseAmount);
-        Assert.Null(free.Price.CompleteUnitTotal);
-        Assert.Null(free.Price.CurrencyId);
+        Assert.Equal(0m, free.Price.BaseAmount);
+        Assert.Equal(0m, free.Price.CompleteUnitTotal);
+        Assert.Equal(Eur, free.Price.CurrencyId);
         Assert.Null(free.Price.PricingRevisionId);
         Assert.Empty(free.Price.AddedTaxLines.Concat(free.Price.IncludedTaxLines).Concat(free.Price.AppliedUnitFeeLines).Concat(free.Price.UnappliedFeeLines));
         Assert.Equal((PriceOrigin.ExternalQuote, PriceAssessmentStatus.QuoteRequired, OfferReadiness.NeedsQuote), (quoted.Price.Origin, quoted.Price.Status, quoted.OfferReadiness));

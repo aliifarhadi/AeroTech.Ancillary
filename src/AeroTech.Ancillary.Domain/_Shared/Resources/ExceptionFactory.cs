@@ -330,5 +330,8 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
 
         public static BusinessException OccupiedSeatsCouldNotBeRetrieved(params object?[] args) =>
             new(16814, ExceptionMessages.OccupiedSeatsCouldNotBeRetrieved, args) { HttpStatus = 502 };
+
+        public static BusinessException OrderSourceUnavailable(params object?[] args) =>
+            new(16815, ExceptionMessages.OrderSourceUnavailable, args) { HttpStatus = 503 };
     }
 }

@@ -58,7 +58,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
             var flight = unit.Flights[0];
 
-            if (seat.CabinClassId is { } seatCabin && (unit.FareOf(flight)?.CabinClassId ?? flight.CabinClassId) is { } bookedCabin && seatCabin != bookedCabin)
+            if ((unit.FareOf(flight)?.CabinClassId ?? flight.CabinClassId) is not { } bookedCabin || seat.CabinClassId != bookedCabin)
                 return new SeatPricing(travellerRef, seat.FlightRef, seat.SeatNumber, SeatAvailabilityStatus.Blocked, null);
 
             var chosen = unit with { Selection = new AncillarySelection { SeatNumber = seat.SeatNumber } };

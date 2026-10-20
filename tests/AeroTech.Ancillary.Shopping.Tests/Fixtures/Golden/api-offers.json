@@ -55,7 +55,7 @@
     },
     "included": {
       "bags": {
-        "kEfkKxIl1FOn79_Iqfmkihad7RtKNbH3NEbluE2Yw7s": {
+        "bILuMB1jzWiO5TwTmV3LaOH6mOe1YTh4CaH0_K6GaeE": {
           "quantity": 1,
           "weight": 23,
           "weightUnit": "KG",
@@ -135,7 +135,7 @@
             },
             "confirmationRequirement": "Immediate",
             "readiness": "Selectable",
-            "canPurchase": true,
+            "canPurchase": false,
             "reasons": [
               "InventoryNotConfigured"
             ],
@@ -143,7 +143,7 @@
             "coverageScope": "Portion"
           }
         },
-        "lhBauYbWCd1FPDoF0BIbClvHWCzkxsYmgy5ls4p48Gc": {
+        "-m0ouG7SpVYldrE55Dtwy00Jq4iHr00wJs9zvd4ANm0": {
           "quantity": 1,
           "weight": 23,
           "weightUnit": "KG",
@@ -223,7 +223,7 @@
             },
             "confirmationRequirement": "Immediate",
             "readiness": "Selectable",
-            "canPurchase": true,
+            "canPurchase": false,
             "reasons": [
               "InventoryNotConfigured"
             ],
@@ -231,7 +231,7 @@
             "coverageScope": "Portion"
           }
         },
-        "WsAoQW8CcRBBpCMxkrbgwu2ZEO4SmPcOzxUju7fFlwE": {
+        "1WdWFFSimA2c006SpIgWE1ndUxcoSERjSta5IL2mEgM": {
           "quantity": 1,
           "weight": 23,
           "weightUnit": "KG",
@@ -311,7 +311,7 @@
             },
             "confirmationRequirement": "Immediate",
             "readiness": "Selectable",
-            "canPurchase": true,
+            "canPurchase": false,
             "reasons": [
               "InventoryNotConfigured"
             ],
@@ -319,7 +319,7 @@
             "coverageScope": "Portion"
           }
         },
-        "BHOqU2M2UKYbliA9S3wbXxgCC3peRXzIjN8bmQUI_JI": {
+        "mBdO1Ih7281Ig2EwERMEF_jIrvXnY0ECFQeJPaGiObU": {
           "quantity": 1,
           "weight": 23,
           "weightUnit": "KG",
@@ -399,7 +399,7 @@
             },
             "confirmationRequirement": "Immediate",
             "readiness": "Selectable",
-            "canPurchase": true,
+            "canPurchase": false,
             "reasons": [
               "InventoryNotConfigured"
             ],
@@ -409,7 +409,7 @@
         }
       },
       "other-services": {
-        "_zu69p0B3IC4fOM0hFdm2sWC8jdJJdJklJjuM9OgcYc": {
+        "AfcuCIAPh5x3W0j6hHHCsXa0ZmWWaHtC-FrT3iaYszw": {
           "name": "STANDARD_SEAT",
           "price": {
             "amount": "1500000.00",
@@ -489,7 +489,7 @@
             "coverageScope": "Sector"
           }
         },
-        "hd2I-yD6UcQNKAmW7tqFvvwR_E727d4vhrG4Qk4HDwk": {
+        "jJ06CZ2SyhhL-DId08t6ImmtjHqp7T7XqTlVe5g-KMM": {
           "name": "STANDARD_SEAT",
           "price": {
             "amount": "1500000.00",
@@ -569,7 +569,7 @@
             "coverageScope": "Sector"
           }
         },
-        "mv40LysdLOAZHdGKFWTPwHdCBgYtTDboQpTlWhlFMIU": {
+        "mSxTUBU3ABcXQl5qJaqKIARVePkaAx6Iqj0Az0akv1A": {
           "name": "STANDARD_SEAT",
           "price": {
             "amount": "1500000.00",
@@ -649,7 +649,7 @@
             "coverageScope": "Sector"
           }
         },
-        "558LbtH0Vy9qL0mG5GjkKdgSBv4J0tPEI1pjssKL_YQ": {
+        "2lwwJDVLrWordEB3jNtW1_wpBfqmWj0QCN0_WtuX5Sg": {
           "name": "STANDARD_SEAT",
           "price": {
             "amount": "1500000.00",
@@ -729,7 +729,7 @@
             "coverageScope": "Sector"
           }
         },
-        "iIvroHSCE3-hzH-o9_M3WczI1IQi7flfvLSf1cEGg50": {
+        "VV5-vhadPoI44gvjvGUrbMtCG9Pum7Jbt5jSzyxZ7m0": {
           "name": "ONBOARD_WI_FI",
           "price": {
             "amount": "981000.00",
@@ -830,7 +830,7 @@
             "coverageScope": "Sector"
           }
         },
-        "oZrMohv9_sxGOL9DNi01g-g_WUWk1p9OTz3qVnkaWTk": {
+        "ZhBKFOsDdMrEiXfTy05gw2FfCdK2fYkeA7iKmBgCFOs": {
           "name": "ONBOARD_WI_FI",
           "price": {
             "amount": "981000.00",
@@ -931,7 +931,7 @@
             "coverageScope": "Sector"
           }
         },
-        "AT3dpEFNzr4A7qJVFaazi-eR_5eL_bhNaORKtgQYpIs": {
+        "hlM9fMLY0IzpXRMAOI9Xxq4aeKGSCsWclrYWLsGdYcs": {
           "name": "ONBOARD_WI_FI",
           "price": {
             "amount": "981000.00",
@@ -1032,7 +1032,7 @@
             "coverageScope": "Sector"
           }
         },
-        "2Y8RnylQU0N-6BWpEWs3s6SRzTYVdXNhH46ksnmHR0M": {
+        "ymDKFM7B30Xv_lIDQ2TP0v_4FuufnCyVvbtztD_HoUE": {
           "name": "ONBOARD_WI_FI",
           "price": {
             "amount": "981000.00",

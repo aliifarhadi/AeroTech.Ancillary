@@ -1,10 +1,6 @@
 using System.Globalization;
-using AeroTech.Ancillary.Application.AcceptanceTests.Fakes;
-using AeroTech.Ancillary.Application.FlightOffers;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments;
-using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Ancillary.Query.Shopping.Common;
-using AeroTech.Ancillary.Query.Shopping.Common.FlightOffers;
 using AeroTech.Ancillary.Query.Shopping.SeatMaps.Dto;
 using AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap;
 using AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap.Api;
@@ -16,10 +12,12 @@ using AeroTech.Ancillary.Shopping.SeatMaps;
 using AeroTech.Ancillary.Shopping.Tests.Fixtures;
 using AeroTech.Framework.Core.Domain.Exceptions;
 using AeroTech.Messages.Ancillary.Enums;
+using AeroTech.Messages.Core.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
 using static AeroTech.Ancillary.Shopping.Tests.Fixtures.BackofficeDesk;
+using static AeroTech.Ancillary.Shopping.Tests.Fixtures.SeatMapDesk;
 using static AeroTech.Ancillary.Shopping.Tests.Fixtures.ShoppingLab;
 using SeatMapControllers = AeroTech.Ancillary.RestApi.V1.SeatMaps.Controllers;
 
@@ -28,79 +26,6 @@ namespace AeroTech.Ancillary.Shopping.Tests;
 public class SeatMapTests
 {
     private static readonly ShoppingFilter SeatMapFamily = new() { VariantCodes = ["A07", "A08"] };
-
-    private sealed class FixedSeatMaps(AircraftSeatMap map) : IAircraftSeatMapProvider
-    {
-        public List<int> Asked { get; } = [];
-
-        public Task<AircraftSeatMap> GetAsync(int aircraftId, CancellationToken cancellationToken = default)
-        {
-            Asked.Add(aircraftId);
-
-            return Task.FromResult(map);
-        }
-    }
-
-    private sealed class FixedOccupiedSeats(params string[] seats) : IOccupiedSeatProvider
-    {
-        public Task<IReadOnlyDictionary<long, IReadOnlySet<string>>> GetAsync(IReadOnlyCollection<long> flightIds, CancellationToken cancellationToken = default)
-            => Task.FromResult<IReadOnlyDictionary<long, IReadOnlySet<string>>>(
-                flightIds.ToDictionary(flightId => flightId, _ => (IReadOnlySet<string>)seats.ToHashSet(StringComparer.OrdinalIgnoreCase)));
-    }
-
-    private sealed class FailingOccupiedSeats : IOccupiedSeatProvider
-    {
-        public Task<IReadOnlyDictionary<long, IReadOnlySet<string>>> GetAsync(IReadOnlyCollection<long> flightIds, CancellationToken cancellationToken = default)
-            => throw ExceptionFactory.OccupiedSeatsCouldNotBeRetrieved("the provider is unreachable");
-    }
-
-    private static AircraftCabinItem SeatItem(string number, int row, params string[] codes)
-        => new(number, AircraftCabinItem.SeatCode, 0, row, null, codes, [], 0, row, 1);
-
-    private static AircraftSeatMap Aircraft()
-        => new(
-            [
-                new AircraftDeck(
-                    "1",
-                    new AircraftDeckConfiguration(6, 30, 1, 30, 0, 0, 10, 14, [12]),
-                    [
-                        new AircraftCabin("Business", 3, 1, 2, [SeatItem("1A", 1, "E")]),
-                        new AircraftCabin(
-                            "Economy",
-                            1,
-                            3,
-                            30,
-                            [
-                                SeatItem("3A", 3, "E", "W"),
-                                SeatItem("3B", 3, "9"),
-                                SeatItem("3C", 3, "E", "A"),
-                                new AircraftCabinItem(null, "Galley", 0, 4, null, [], [], 0, 4, 1)
-                            ])
-                    ])
-            ],
-            new Dictionary<string, string> { ["G"] = "Galley" },
-            new Dictionary<string, string> { ["E"] = "Exit row seat", ["W"] = "Window seat" });
-
-    private static async Task<(GetSeatMapService Service, FixedSeatMaps Maps)> SeatMapServiceAsync(ShoppingLab lab, IOccupiedSeatProvider? occupied = null)
-    {
-        var maps = new FixedSeatMaps(Aircraft());
-        var airports = new TestOnlyAirportReference();
-        var source = new FlightOfferShoppingSource(
-            new FixedOffers(Sale.Sell(await OfferWire.ReadAsync(OfferWire.Captured()))),
-            airports,
-            new TestOnlyAirFareReference(),
-            new FixedClock { Now = Sale.EvaluatedAtUtc },
-            new FlightOfferShoppingOptions(SourceContextTtl));
-
-        airports.IataCodes[2] = "IKA";
-        airports.IataCodes[6] = "IST";
-        airports.TerminalNumbers[2] = "1";
-        airports.TerminalNumbers[6] = "2";
-        lab.Catalog.AirlineCodes[1] = "DA";
-        lab.Catalog.AirlineCodes[3] = "IR";
-
-        return (new GetSeatMapService(source, maps, occupied ?? new FixedOccupiedSeats("3C"), lab.Engine, lab.Catalog, airports, lab.Catalog), maps);
-    }
 
     [Fact]
     public async Task SM_01_a_seat_takes_its_most_specific_category_and_is_blocked_when_that_category_excludes_the_traveller()
@@ -281,6 +206,79 @@ public class SeatMapTests
 
         Assert.Equal((16814, 502), (failure.Code, failure.HttpStatus));
     }
+
+    [Fact]
+    public async Task SM_09_an_occupancy_answer_that_misses_a_requested_flight_fails_the_seat_map_instead_of_showing_its_seats_free()
+    {
+        var (service, _) = await SeatMapServiceAsync(new ShoppingLab(), new PartialOccupiedSeats());
+
+        var failure = await Assert.ThrowsAsync<BusinessException>(() => service.ExecuteAsync(new BackofficeGetSeatMapQuery { OfferId = OfferWire.OfferId }, Sale));
+
+        Assert.Equal((16814, 502), (failure.Code, failure.HttpStatus));
+    }
+
+    [Fact]
+    public async Task SM_10_a_seat_is_blocked_when_the_booked_cabin_of_its_traveller_is_unknown()
+    {
+        var lab = new ShoppingLab();
+        var context = Trip.Context([Trip.Flight() with { CabinClassId = null }]);
+
+        context = context with
+        {
+            TravellerFareFacts = context.TravellerFareFacts.Select(fact => fact with { CabinClassId = null }).ToList(),
+            SeatCharacteristicFacts = [Trip.Seat("12A", codes: ["W"])]
+        };
+
+        var result = await lab.Engine.PriceSeatsAsync(context, SeatMapFamily, [new SeatMapSeat("F1", "12A", 1, false)]);
+
+        Assert.Equal((SeatAvailabilityStatus.Blocked, (string?)null), (result.Seats.Single().Status, result.Seats.Single().Candidate?.VariantCode));
+    }
+
+    [Fact]
+    public async Task SM_11_a_seat_whose_category_has_no_rate_is_blocked_while_a_seat_outside_every_category_stays_free()
+    {
+        var lab = new ShoppingLab();
+        var standard = lab.Definition("A07");
+
+        lab.Provision(standard, rules: Rules(seats: new ProvisionSeatApplicationArgs([], ["W"])));
+
+        var (service, _) = await SeatMapServiceAsync(lab, new FixedOccupiedSeats());
+        var map = SeatMapMapper.Map(await service.ExecuteAsync(new BackofficeGetSeatMapQuery { OfferId = OfferWire.OfferId }, Sale), travellerRef => travellerRef, flight => flight.FlightRef);
+        var windowSeat = Pricing(map.Data[0], "3A", "ADT-1");
+        var plainSeat = Pricing(map.Data[0], "3B", "ADT-1");
+
+        Assert.Equal(("BLOCKED", (string?)null, (SeatMapPriceDto?)null), (windowSeat.SeatAvailabilityStatus, windowSeat.Id, windowSeat.Price));
+        Assert.Equal(("AVAILABLE", "0"), (plainSeat.SeatAvailabilityStatus, plainSeat.Price!.Total));
+        Assert.Matches("^[A-Za-z0-9_-]{43}$", plainSeat.Id);
+    }
+
+    [Fact]
+    public async Task SM_12_a_seat_two_points_of_sale_price_differently_is_blocked_and_a_seat_they_price_alike_keeps_its_price()
+    {
+        var lab = new ShoppingLab();
+        var window = lab.Definition("A07");
+        var middle = lab.Definition("A07", "SEAT_STANDARD_MIDDLE");
+
+        foreach (var (pointOfSale, sequence, amount) in new[] { (Pos, 10, 15m), (OtherPos, 20, 20m) })
+        {
+            lab.Price(window, lab.Provision(window, sequence, Rules(seats: new ProvisionSeatApplicationArgs([], ["W"])), pos: pointOfSale), Rate(amount));
+            lab.Price(middle, lab.Provision(middle, sequence, Rules(seats: new ProvisionSeatApplicationArgs([], ["9"])), pos: pointOfSale), Rate(30m));
+        }
+
+        var (service, _) = await SeatMapServiceAsync(lab, new FixedOccupiedSeats());
+        var snapshot = await service.ExecuteAsync(new BackofficeGetSeatMapQuery { OfferId = OfferWire.OfferId }, Sale.On(Channel.BackOffice, Pos, OtherPos));
+        var map = SeatMapMapper.Map(snapshot, travellerRef => travellerRef, flight => flight.FlightRef);
+        var ambiguous = Pricing(map.Data[0], "3A", "ADT-1");
+        var agreed = Pricing(map.Data[0], "3B", "ADT-1");
+        var uncategorized = Pricing(map.Data[0], "3C", "ADT-1");
+
+        Assert.Equal(("BLOCKED", (string?)null, (SeatMapPriceDto?)null), (ambiguous.SeatAvailabilityStatus, ambiguous.Id, ambiguous.Price));
+        Assert.Equal(("AVAILABLE", "30.00"), (agreed.SeatAvailabilityStatus, agreed.Price?.Total));
+        Assert.Equal(("AVAILABLE", "0"), (uncategorized.SeatAvailabilityStatus, uncategorized.Price?.Total));
+    }
+
+    private static SeatMapTravelerPricingDto Pricing(SeatMapDto map, string seatNumber, string travellerId)
+        => map.Decks.SelectMany(deck => deck.Cabins).SelectMany(cabin => cabin.Items).Single(item => item.Number == seatNumber).TravelerPricing.Single(row => row.TravelerId == travellerId);
 
     [Fact]
     public void SM_06_three_seat_map_controllers_expose_one_operation_on_three_routes_under_three_policies()

@@ -32,5 +32,8 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Snapshots
         string SeatNumber,
         SeatAvailabilityStatus Status,
         string? Id,
-        PriceAssessment? Price);
+        CanonicalAncillaryOfferCandidate? Candidate)
+    {
+        public PriceAssessment? Price => Candidate?.Price;
+    }
 }

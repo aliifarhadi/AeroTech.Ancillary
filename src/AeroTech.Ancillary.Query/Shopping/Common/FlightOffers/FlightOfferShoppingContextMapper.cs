@@ -144,7 +144,8 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.FlightOffers
                 CabinClassId = fares[0].CabinClassId,
                 RbdId = fares[0].RbdId,
                 BookingClass = fares[0].BookingClass,
-                CouponUpgradable = coupon.IsUpgradable
+                CouponUpgradable = coupon.IsUpgradable,
+                CouponOpenForUse = coupon.IsOpenForUse
             };
         }
 

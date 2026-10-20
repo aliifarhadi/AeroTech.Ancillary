@@ -9,6 +9,8 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSele
     {
         public string? OfferId { get; set; }
 
+        long? IAncillaryOffersQuery.OrderId => null;
+
         public string? OfferItemRef { get; set; }
 
         public ApiAncillarySelectionInput? Selection { get; set; }

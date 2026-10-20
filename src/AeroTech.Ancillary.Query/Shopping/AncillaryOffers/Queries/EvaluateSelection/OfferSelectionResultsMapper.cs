@@ -30,17 +30,18 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSele
         }
 
         public static OfferExactPriceDto ExactPrice(AncillarySelectionSnapshot selection)
+            => ExactPrice(selection.Evaluation.Candidate.Price, OfferPurchase.CanPurchase(selection.Evaluation));
+
+        public static OfferExactPriceDto ExactPrice(PriceAssessment price, bool canPurchase)
         {
-            var candidate = selection.Evaluation.Candidate;
-            var price = candidate.Price;
-            var lineTotal = OfferPurchase.CanPurchase(selection.Evaluation) ? price.RequestedQuantityTotal : null;
+            var lineTotal = canPurchase ? price.RequestedQuantityTotal : null;
 
             return new OfferExactPriceDto(
                 price.Origin.ToString(),
                 price.PricingUnit?.ToString(),
                 price.CurrencyId,
                 price.FiledCurrencyId,
-                candidate.Quantity.RequestedQuantity,
+                price.Units,
                 null,
                 price.BaseAmount,
                 price.AddedTaxLines.Select(Line).ToList(),
@@ -56,7 +57,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSele
                 price.ReasonCodes);
         }
 
-        private static OfferPriceLineDto Line(PriceComponentLine line)
+        public static OfferPriceLineDto Line(PriceComponentLine line)
             => new(line.Code, line.Amount, line.CurrencyId, line.CountryId, line.StationAirportId, line.FeeApplicationUnit?.ToString(), line.TaxTreatment?.ToString());
     }
 }

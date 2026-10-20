@@ -156,6 +156,19 @@ namespace AeroTech.Ancillary.Shopping.Results
         public const string BaggageRuleDeferenceNotSupported = "BaggageRuleDeferenceNotSupported";
         public const string BaggageChargeCombinationNotVerified = "BaggageChargeCombinationNotVerified";
         public const string AppointmentOutsideConfiguredSlots = "AppointmentOutsideConfiguredSlots";
+        public const string OfferItemNotOffered = "OfferItemNotOffered";
+        public const string SeatSelectionNotOffered = "SeatSelectionNotOffered";
+        public const string DuplicateSelection = "DuplicateSelection";
+        public const string SeatSelectedTwice = "SeatSelectedTwice";
+        public const string TravellerSeatSelectedTwice = "TravellerSeatSelectedTwice";
+        public const string SharedFeeNotApplied = "SharedFeeNotApplied";
+        public const string OrderBindingRequired = "OrderBindingRequired";
+        public const string CouponNotOpenForUse = "CouponNotOpenForUse";
+        public const string CouponStateNotVerified = "CouponStateNotVerified";
+        public const string PricedSelectionNotAuthentic = "PricedSelectionNotAuthentic";
+        public const string PricedSelectionForAnotherOrder = "PricedSelectionForAnotherOrder";
+        public const string OrderVersionChanged = "OrderVersionChanged";
+        public const string PriceChanged = "PriceChanged";
 
         public static readonly IReadOnlySet<string> All = new HashSet<string>(StringComparer.Ordinal)
         {
@@ -312,7 +325,20 @@ namespace AeroTech.Ancillary.Shopping.Results
             BaggageTravelApplicationNotSupported,
             BaggageRuleDeferenceNotSupported,
             BaggageChargeCombinationNotVerified,
-            AppointmentOutsideConfiguredSlots
+            AppointmentOutsideConfiguredSlots,
+            OfferItemNotOffered,
+            SeatSelectionNotOffered,
+            DuplicateSelection,
+            SeatSelectedTwice,
+            TravellerSeatSelectedTwice,
+            SharedFeeNotApplied,
+            OrderBindingRequired,
+            CouponNotOpenForUse,
+            CouponStateNotVerified,
+            PricedSelectionNotAuthentic,
+            PricedSelectionForAnotherOrder,
+            OrderVersionChanged,
+            PriceChanged
         };
     }
 }

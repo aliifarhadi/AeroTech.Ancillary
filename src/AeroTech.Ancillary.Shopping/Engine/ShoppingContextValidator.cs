@@ -29,6 +29,9 @@ namespace AeroTech.Ancillary.Shopping.Engine
         {
             Require(source is not null && Enum.IsDefined(source.SourceKind), nameof(SourceIdentityContext.SourceKind));
             Require(source!.SourceKind == ShoppingSourceKind.Order ? source.OrderId is > 0 : source.OrderId is null, nameof(SourceIdentityContext.OrderId));
+            Require(
+                source.SourceKind == ShoppingSourceKind.Order ? source.OrderCommercialVersion is > 0 : source.OrderCommercialVersion is null,
+                nameof(SourceIdentityContext.OrderCommercialVersion));
             Require(source.TicketedAtUtc is null || source.TicketedAtUtc.Value.Offset == TimeSpan.Zero, nameof(SourceIdentityContext.TicketedAtUtc));
             Require(source.ValidUntilUtc is null || source.ValidUntilUtc.Value.Offset == TimeSpan.Zero, nameof(SourceIdentityContext.ValidUntilUtc));
         }

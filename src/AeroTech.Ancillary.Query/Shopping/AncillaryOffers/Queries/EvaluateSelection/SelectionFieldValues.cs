@@ -29,6 +29,6 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSele
             };
 
         public static string? Of(AncillarySelection selection, string fieldName)
-            => Readers.TryGetValue(fieldName, out var read) && read(selection) is { } value && value.Trim().Length > 0 ? value.Trim() : null;
+            => Readers.TryGetValue(fieldName, out var read) && read(selection) is { Length: > 0 } value ? value : null;
     }
 }

@@ -6,11 +6,11 @@
       "name": "Accepted",
       "title": "Accepted"
     },
-    "offerItemRef": "8V2If5Oi-fSyG6Z5CZNIOGof_LXbUz59eEKkqzQZ0oc",
-    "currentOfferItemRef": "8V2If5Oi-fSyG6Z5CZNIOGof_LXbUz59eEKkqzQZ0oc",
+    "offerItemRef": "oFpDN2b-LpbHtq85lA399gF3y_a-_u2QyELK9jRByEg",
+    "currentOfferItemRef": "oFpDN2b-LpbHtq85lA399gF3y_a-_u2QyELK9jRByEg",
     "provisionChangedBySelection": false,
     "offer": {
-      "offerItemRef": "8V2If5Oi-fSyG6Z5CZNIOGof_LXbUz59eEKkqzQZ0oc",
+      "offerItemRef": "oFpDN2b-LpbHtq85lA399gF3y_a-_u2QyELK9jRByEg",
       "pointOfSaleId": "9001",
       "candidateIdentity": {
         "definitionVersionId": "1002",
@@ -216,7 +216,7 @@
         "name": "AvailableForSelection",
         "title": "Available For Selection"
       },
-      "canPurchase": true,
+      "canPurchase": false,
       "reasonCodes": [
         "InventoryNotConfigured"
       ]
