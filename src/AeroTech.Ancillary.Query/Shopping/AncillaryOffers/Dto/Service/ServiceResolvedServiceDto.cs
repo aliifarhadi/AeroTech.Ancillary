@@ -30,6 +30,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Service
         string DocumentType,
         bool DocumentRequired,
         string ConfirmationRequirement,
+        string? FulfillmentProviderKey,
         long? PricingRateId,
         ServiceAncillarySelectionDto Selection);
 }

@@ -49,6 +49,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveSelec
                 candidate.Document.DocumentType.ToString(),
                 candidate.Document.DocumentRequired,
                 candidate.Confirmation.ConfirmationRequirement.ToString(),
+                candidate.Confirmation.FulfillmentProviderKey,
                 candidate.Price.PricingRateId,
                 Selection(line.Ancillary?.Selection ?? line.Seat!.Selection));
 
