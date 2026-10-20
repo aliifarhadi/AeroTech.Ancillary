@@ -140,7 +140,13 @@
               "InventoryNotConfigured"
             ],
             "selectionKind": "QuantityChoice",
-            "coverageScope": "Portion"
+            "coverageScope": "Portion",
+            "optionGroups": [],
+            "interaction": {
+              "mode": "Inline",
+              "requiresDetails": false,
+              "reasonCodes": []
+            }
           }
         },
         "-m0ouG7SpVYldrE55Dtwy00Jq4iHr00wJs9zvd4ANm0": {
@@ -228,7 +234,13 @@
               "InventoryNotConfigured"
             ],
             "selectionKind": "QuantityChoice",
-            "coverageScope": "Portion"
+            "coverageScope": "Portion",
+            "optionGroups": [],
+            "interaction": {
+              "mode": "Inline",
+              "requiresDetails": false,
+              "reasonCodes": []
+            }
           }
         },
         "1WdWFFSimA2c006SpIgWE1ndUxcoSERjSta5IL2mEgM": {
@@ -316,7 +328,13 @@
               "InventoryNotConfigured"
             ],
             "selectionKind": "QuantityChoice",
-            "coverageScope": "Portion"
+            "coverageScope": "Portion",
+            "optionGroups": [],
+            "interaction": {
+              "mode": "Inline",
+              "requiresDetails": false,
+              "reasonCodes": []
+            }
           }
         },
         "mBdO1Ih7281Ig2EwERMEF_jIrvXnY0ECFQeJPaGiObU": {
@@ -404,7 +422,13 @@
               "InventoryNotConfigured"
             ],
             "selectionKind": "QuantityChoice",
-            "coverageScope": "Portion"
+            "coverageScope": "Portion",
+            "optionGroups": [],
+            "interaction": {
+              "mode": "Inline",
+              "requiresDetails": false,
+              "reasonCodes": []
+            }
           }
         }
       },
@@ -486,7 +510,15 @@
               "SelectionRequired"
             ],
             "selectionKind": "SeatMapSelection",
-            "coverageScope": "Sector"
+            "coverageScope": "Sector",
+            "optionGroups": [],
+            "interaction": {
+              "mode": "DetailsOnDemand",
+              "requiresDetails": true,
+              "reasonCodes": [
+                "TypedInputRequired"
+              ]
+            }
           }
         },
         "jJ06CZ2SyhhL-DId08t6ImmtjHqp7T7XqTlVe5g-KMM": {
@@ -566,7 +598,15 @@
               "SelectionRequired"
             ],
             "selectionKind": "SeatMapSelection",
-            "coverageScope": "Sector"
+            "coverageScope": "Sector",
+            "optionGroups": [],
+            "interaction": {
+              "mode": "DetailsOnDemand",
+              "requiresDetails": true,
+              "reasonCodes": [
+                "TypedInputRequired"
+              ]
+            }
           }
         },
         "mSxTUBU3ABcXQl5qJaqKIARVePkaAx6Iqj0Az0akv1A": {
@@ -646,7 +686,15 @@
               "SelectionRequired"
             ],
             "selectionKind": "SeatMapSelection",
-            "coverageScope": "Sector"
+            "coverageScope": "Sector",
+            "optionGroups": [],
+            "interaction": {
+              "mode": "DetailsOnDemand",
+              "requiresDetails": true,
+              "reasonCodes": [
+                "TypedInputRequired"
+              ]
+            }
           }
         },
         "2lwwJDVLrWordEB3jNtW1_wpBfqmWj0QCN0_WtuX5Sg": {
@@ -726,7 +774,15 @@
               "SelectionRequired"
             ],
             "selectionKind": "SeatMapSelection",
-            "coverageScope": "Sector"
+            "coverageScope": "Sector",
+            "optionGroups": [],
+            "interaction": {
+              "mode": "DetailsOnDemand",
+              "requiresDetails": true,
+              "reasonCodes": [
+                "TypedInputRequired"
+              ]
+            }
           }
         },
         "VV5-vhadPoI44gvjvGUrbMtCG9Pum7Jbt5jSzyxZ7m0": {
@@ -827,7 +883,45 @@
               "InventoryNotConfigured"
             ],
             "selectionKind": "TypedForm",
-            "coverageScope": "Sector"
+            "coverageScope": "Sector",
+            "optionGroups": [
+              {
+                "fieldName": "planCode",
+                "sourceState": "Known",
+                "choices": [
+                  {
+                    "optionRef": "4cac6zboJFV2bYvuqODovtCvfspKwOUaxUOCR5edLqI",
+                    "value": "WIFI_FULL_FLIGHT",
+                    "label": "Wi-Fi full flight (FullFlight)",
+                    "availability": "NotChecked",
+                    "applicability": {
+                      "travelerIds": [
+                        "1"
+                      ],
+                      "segmentIds": [
+                        "1"
+                      ],
+                      "portionRefs": [
+                        "B1"
+                      ]
+                    },
+                    "pricePreview": {
+                      "amount": "981000.00",
+                      "currencyCode": "IRR",
+                      "isComplete": false
+                    },
+                    "validUntilUtc": "2026-10-01T10:30:00+00:00"
+                  }
+                ],
+                "totalChoices": 1,
+                "inlineChoicesIncluded": true
+              }
+            ],
+            "interaction": {
+              "mode": "Inline",
+              "requiresDetails": false,
+              "reasonCodes": []
+            }
           }
         },
         "ZhBKFOsDdMrEiXfTy05gw2FfCdK2fYkeA7iKmBgCFOs": {
@@ -928,7 +1022,45 @@
               "InventoryNotConfigured"
             ],
             "selectionKind": "TypedForm",
-            "coverageScope": "Sector"
+            "coverageScope": "Sector",
+            "optionGroups": [
+              {
+                "fieldName": "planCode",
+                "sourceState": "Known",
+                "choices": [
+                  {
+                    "optionRef": "yieLT8dhjSqfsFK1ojHFVZ1LDWI4ABZI-aHgnzFmf1E",
+                    "value": "WIFI_FULL_FLIGHT",
+                    "label": "Wi-Fi full flight (FullFlight)",
+                    "availability": "NotChecked",
+                    "applicability": {
+                      "travelerIds": [
+                        "1"
+                      ],
+                      "segmentIds": [
+                        "2"
+                      ],
+                      "portionRefs": [
+                        "B2"
+                      ]
+                    },
+                    "pricePreview": {
+                      "amount": "981000.00",
+                      "currencyCode": "IRR",
+                      "isComplete": false
+                    },
+                    "validUntilUtc": "2026-10-01T10:30:00+00:00"
+                  }
+                ],
+                "totalChoices": 1,
+                "inlineChoicesIncluded": true
+              }
+            ],
+            "interaction": {
+              "mode": "Inline",
+              "requiresDetails": false,
+              "reasonCodes": []
+            }
           }
         },
         "hlM9fMLY0IzpXRMAOI9Xxq4aeKGSCsWclrYWLsGdYcs": {
@@ -1029,7 +1161,45 @@
               "InventoryNotConfigured"
             ],
             "selectionKind": "TypedForm",
-            "coverageScope": "Sector"
+            "coverageScope": "Sector",
+            "optionGroups": [
+              {
+                "fieldName": "planCode",
+                "sourceState": "Known",
+                "choices": [
+                  {
+                    "optionRef": "2KajXU33Xj8HqGArZk6pMriexhSkxZwsB3_3UQDkWb8",
+                    "value": "WIFI_FULL_FLIGHT",
+                    "label": "Wi-Fi full flight (FullFlight)",
+                    "availability": "NotChecked",
+                    "applicability": {
+                      "travelerIds": [
+                        "2"
+                      ],
+                      "segmentIds": [
+                        "1"
+                      ],
+                      "portionRefs": [
+                        "B1"
+                      ]
+                    },
+                    "pricePreview": {
+                      "amount": "981000.00",
+                      "currencyCode": "IRR",
+                      "isComplete": false
+                    },
+                    "validUntilUtc": "2026-10-01T10:30:00+00:00"
+                  }
+                ],
+                "totalChoices": 1,
+                "inlineChoicesIncluded": true
+              }
+            ],
+            "interaction": {
+              "mode": "Inline",
+              "requiresDetails": false,
+              "reasonCodes": []
+            }
           }
         },
         "ymDKFM7B30Xv_lIDQ2TP0v_4FuufnCyVvbtztD_HoUE": {
@@ -1130,7 +1300,45 @@
               "InventoryNotConfigured"
             ],
             "selectionKind": "TypedForm",
-            "coverageScope": "Sector"
+            "coverageScope": "Sector",
+            "optionGroups": [
+              {
+                "fieldName": "planCode",
+                "sourceState": "Known",
+                "choices": [
+                  {
+                    "optionRef": "GLOM29AEb74wGDb8bm1SLWwJQxX2dEF5AF8gF3g-1Qg",
+                    "value": "WIFI_FULL_FLIGHT",
+                    "label": "Wi-Fi full flight (FullFlight)",
+                    "availability": "NotChecked",
+                    "applicability": {
+                      "travelerIds": [
+                        "2"
+                      ],
+                      "segmentIds": [
+                        "2"
+                      ],
+                      "portionRefs": [
+                        "B2"
+                      ]
+                    },
+                    "pricePreview": {
+                      "amount": "981000.00",
+                      "currencyCode": "IRR",
+                      "isComplete": false
+                    },
+                    "validUntilUtc": "2026-10-01T10:30:00+00:00"
+                  }
+                ],
+                "totalChoices": 1,
+                "inlineChoicesIncluded": true
+              }
+            ],
+            "interaction": {
+              "mode": "Inline",
+              "requiresDetails": false,
+              "reasonCodes": []
+            }
           }
         }
       }

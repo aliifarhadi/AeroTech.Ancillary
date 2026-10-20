@@ -98,14 +98,13 @@ public class S201ContextCoverageTests
     public async Task S201_CTX_02_the_backoffice_answer_states_the_server_evaluation_clock_and_keeps_the_sales_date_as_a_source_fact()
     {
         var offer = (await OfferWire.ReadAsync(OfferWire.Captured())) with { SalesChannel = Channel.BackOffice };
-        var service = new GetAncillaryOffersService(
+        var service = Offers(
             Sources(new FlightOfferShoppingSource(
                 new FixedOffers(offer),
                 new TestOnlyAirportReference(),
                 new TestOnlyAirFareReference(),
                 new FixedClock { Now = Now },
-                new FlightOfferShoppingOptions(SourceContextTtl))),
-            new ShoppingLab().Engine);
+                new FlightOfferShoppingOptions(SourceContextTtl))), new ShoppingLab());
         var answer = BackofficeAncillaryOffersMapper.Map(await service.ExecuteAsync(new OfferQuery(OfferWire.OfferId), Scope));
 
         Assert.Equal(Now, answer.EvaluatedAtUtc);

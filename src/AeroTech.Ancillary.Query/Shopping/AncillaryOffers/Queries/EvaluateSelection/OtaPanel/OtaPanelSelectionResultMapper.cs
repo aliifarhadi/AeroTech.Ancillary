@@ -18,7 +18,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSele
                 selection.Item.OfferItemRef,
                 selection.CurrentOfferItemRef,
                 selection.Evaluation.ProvisionChangedBySelection,
-                OtaPanelAncillaryOffersMapper.Service(selection.CurrentOfferItemRef, selection.Evaluation.Candidate),
+                OtaPanelAncillaryOffersMapper.Service(selection.CurrentOfferItemRef, selection.Evaluation.Candidate, selection.OptionGroups),
                 OtaPanelAncillaryOffersMapper.Money(selection.Evaluation.Candidate.Price.RequestedQuantityTotal, selection.Evaluation.Candidate.Price.CurrencyId),
                 selection.Evaluation.FieldIssues.Select(issue => new OtaPanelInputIssueDto(issue.Field, issue.ReasonCode)).ToList(),
                 canPurchase,

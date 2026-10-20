@@ -78,14 +78,14 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap
                 .ToList();
             var offers = new Dictionary<(string TravellerRef, string FlightRef, string SeatNumber), (string FlightRef, SeatTravellerOffer Offer)>();
             var ambiguous = new HashSet<(string TravellerRef, string FlightRef, string SeatNumber)>();
+            var pricedContexts = new List<PointOfSaleContext>();
 
             foreach (var (pointOfSaleId, context) in shopping.PointsOfSale)
             {
-                var result = await _engine.PriceSeatsAsync(
-                    context with { SeatCharacteristicFacts = facts },
-                    OfferFamilyFilters.SeatMap,
-                    seats.Select(row => row.Seat).ToList(),
-                    cancellationToken);
+                var priced = context with { SeatCharacteristicFacts = facts };
+                var result = await _engine.PriceSeatsAsync(priced, OfferFamilyFilters.SeatMap, seats.Select(row => row.Seat).ToList(), cancellationToken);
+
+                pricedContexts.Add(new PointOfSaleContext(pointOfSaleId, priced));
 
                 foreach (var seat in result.Seats)
                 {
@@ -112,7 +112,8 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap
                         seat.Status == SeatAvailabilityStatus.Available
                             ? OfferItemRef.OfSeat(shopping.Offer.OfferId, scope, pointOfSaleId, seat.TravellerRef, seat.FlightRef, seat.SeatNumber, seat.Candidate?.CandidateIdentity)
                             : null,
-                        seat.Candidate));
+                        seat.Candidate,
+                        pointOfSaleId));
                 }
             }
 
@@ -148,7 +149,8 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap
                         row.Flight.AircraftId!.Value,
                         maps[row.Flight.AircraftId!.Value],
                         offers.Values.Where(value => value.FlightRef == row.FlightRef).Select(value => value.Offer).ToList()))
-                    .ToList());
+                    .ToList(),
+                pricedContexts);
         }
 
         private static bool SamePrice(PriceAssessment? kept, PriceAssessment? offered)

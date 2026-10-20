@@ -48,7 +48,7 @@ public class S2OrderSourceTests
     {
         var (source, _) = await SourceAsync(lab, orders: orders);
 
-        return await new GetAncillaryOffersService(source, lab.Engine).ExecuteAsync(query ?? ByOrder, scope ?? Sale);
+        return await Offers(source, lab).ExecuteAsync(query ?? ByOrder, scope ?? Sale);
     }
 
     private static async Task<BusinessException> RefusedAsync(ShoppingLab lab, IOrderCommercialContextReader orders, OfferQuery? query = null, AncillarySalesScope? scope = null)
@@ -120,9 +120,9 @@ public class S2OrderSourceTests
         var offers = new FixedOffers(await AirAsync());
         var flightOffers = new FlightOfferShoppingSource(offers, new TestOnlyAirportReference(), new TestOnlyAirFareReference(), new FixedClock { Now = Now }, new FlightOfferShoppingOptions(SourceContextTtl));
 
-        var read = await new GetAncillaryOffersService(Sources(flightOffers, new FixedOrders(OrderOf(await AirAsync()))), lab.Engine).ExecuteAsync(ByOrder, Sale);
+        var read = await Offers(Sources(flightOffers, new FixedOrders(OrderOf(await AirAsync()))), lab).ExecuteAsync(ByOrder, Sale);
         var unreachable = await Assert.ThrowsAsync<BusinessException>(
-            () => new GetAncillaryOffersService(Sources(flightOffers, new NotConnectedOrderCommercialContextReader()), lab.Engine).ExecuteAsync(ByOrder, Sale));
+            () => Offers(Sources(flightOffers, new NotConnectedOrderCommercialContextReader()), lab).ExecuteAsync(ByOrder, Sale));
 
         Assert.NotEmpty(read.Items);
         Assert.Equal(0, offers.Calls);

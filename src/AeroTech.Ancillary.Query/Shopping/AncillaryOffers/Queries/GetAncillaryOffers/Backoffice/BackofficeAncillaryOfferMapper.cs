@@ -26,9 +26,9 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
         public static bool IsDiscoverable(OfferReadiness readiness)
             => readiness is OfferReadiness.Selectable or OfferReadiness.NeedsSelection or OfferReadiness.NeedsQuote;
 
-        public static BackofficeAncillaryOfferDto Map(AncillaryOfferItem item) => Map(item.OfferItemRef, item.PointOfSaleId, item.Candidate);
+        public static BackofficeAncillaryOfferDto Map(AncillaryOfferItem item) => Map(item.OfferItemRef, item.PointOfSaleId, item.Candidate, item.OptionGroups);
 
-        public static BackofficeAncillaryOfferDto Map(string offerItemRef, long pointOfSaleId, CanonicalAncillaryOfferCandidate candidate)
+        public static BackofficeAncillaryOfferDto Map(string offerItemRef, long pointOfSaleId, CanonicalAncillaryOfferCandidate candidate, IReadOnlyList<OfferOptionGroup> optionGroups)
             => new(
                 offerItemRef,
                 pointOfSaleId,
@@ -76,7 +76,9 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
                 EnumValueDto.Of(candidate.OfferReadiness),
                 EnumValueDto.Of(DisplayStateOf(candidate.OfferReadiness)),
                 OfferPurchase.CanPurchase(candidate),
-                candidate.ReasonCodes);
+                candidate.ReasonCodes,
+                OfferInlineOptions.Groups(offerItemRef, candidate, optionGroups, refs => refs, refs => refs),
+                OfferInlineOptions.Interaction(candidate, optionGroups));
 
         private static OfferQuantityDto Quantity(QuantityAssessment quantity)
             => new(

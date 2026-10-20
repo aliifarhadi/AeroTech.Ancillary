@@ -55,7 +55,7 @@ public class S2SelectionResolveTests
         var orders = new FixedOrders(OrderOf(air, commercialVersion: Version));
         var (batch, seatMaps) = await SelectionDesk.BatchAsync(lab, clock: clock, orders: orders);
         var (source, _) = await SourceAsync(lab, orders: orders);
-        var item = (await new GetAncillaryOffersService(source, lab.Engine).ExecuteAsync(new OfferQuery(null, OrderId: OrderDesk.OrderId), Sale))
+        var item = (await Offers(source, lab).ExecuteAsync(new OfferQuery(null, OrderId: OrderDesk.OrderId), Sale))
             .Items.First(row => row.Candidate.VariantCode == "A01" && row.Candidate.Travellers.SequenceEqual([Adult]));
         var map = await seatMaps.ExecuteAsync(new BackofficeGetSeatMapQuery { OrderId = OrderDesk.OrderId }, Sale);
         var issued = await batch.ExecuteAsync(
@@ -169,6 +169,24 @@ public class S2SelectionResolveTests
 
         Assert.Equal((SelectionResolutionStatus.Stale, ShoppingReasonCodes.SeatSelectionNotOffered), Verdict(resolution.Results[1]));
         Assert.Equal(new[] { SelectionResolutionStatus.Valid, SelectionResolutionStatus.Valid }, new[] { resolution.Results[0].Status, resolution.Results[2].Status });
+    }
+
+    [Theory]
+    [InlineData("flight-version")]
+    [InlineData("flight-capacity")]
+    public async Task B7_a_flight_change_that_keeps_the_order_version_the_seat_numbers_and_the_prices_still_makes_every_reference_stale(string change)
+    {
+        var desk = await IssuedAsync();
+        var bound = desk.Air.Bounds[0];
+        var flight = bound.Flights[0];
+        var changed = change == "flight-version" ? flight with { FlightVersion = flight.FlightVersion + 1 } : flight with { FlightCapacityId = flight.FlightCapacityId + 1 };
+
+        desk.Orders.Put(OrderOf(desk.Air with { Bounds = [bound with { Flights = [changed, .. bound.Flights.Skip(1)] }, .. desk.Air.Bounds.Skip(1)] }, commercialVersion: Version));
+
+        var resolution = await desk.ResolveAsync();
+
+        Assert.All(resolution.Results, result => Assert.Equal((SelectionResolutionStatus.Stale, ShoppingReasonCodes.SourceVersionChanged), Verdict(result)));
+        Assert.False(resolution.AllValid);
     }
 
     [Fact]

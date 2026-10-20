@@ -89,7 +89,13 @@
             "InventoryNotConfigured"
           ],
           "selectionKind": "QuantityChoice",
-          "coverageScope": "Portion"
+          "coverageScope": "Portion",
+          "optionGroups": [],
+          "interaction": {
+            "mode": "Inline",
+            "requiresDetails": false,
+            "reasonCodes": []
+          }
         }
       },
       "otherService": null,

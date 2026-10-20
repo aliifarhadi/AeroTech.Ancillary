@@ -20,5 +20,16 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Service
         long? FlightCapacityId,
         IReadOnlyList<OfferSelectedOptionDto> SelectedOptions,
         OfferExactPriceDto Price,
-        bool RequiresCheckAtReserve);
+        bool RequiresCheckAtReserve,
+        string VariantCode,
+        string ServiceTypeCode,
+        string ServiceSubCode,
+        string BookingMethod,
+        bool BookingRequired,
+        string DocumentRouting,
+        string DocumentType,
+        bool DocumentRequired,
+        string ConfirmationRequirement,
+        long? PricingRateId,
+        ServiceAncillarySelectionDto Selection);
 }

@@ -90,6 +90,9 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveSelec
             if (currentVersion != expectedVersion || currentVersion != token.OrderCommercialVersion)
                 return Unresolved(reference, SelectionResolutionStatus.Stale, ShoppingReasonCodes.OrderVersionChanged);
 
+            if (OrderBinding.Of(context.SourceIdentity) is not { } binding || !string.Equals(binding.SourceVersion, token.SourceVersion, StringComparison.Ordinal))
+                return Unresolved(reference, SelectionResolutionStatus.Stale, ShoppingReasonCodes.SourceVersionChanged);
+
             if (line.Status == SelectionEvaluationStatus.Rejected)
                 return new ResolvedSelectionSnapshot(
                     reference,
@@ -101,20 +104,43 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveSelec
             if (!line.CanPurchase)
                 return new ResolvedSelectionSnapshot(
                     reference,
-                    line.Candidate?.OfferReadiness switch
-                    {
-                        OfferReadiness.NeedsQuote => SelectionResolutionStatus.NeedsQuote,
-                        OfferReadiness.NeedsVerification => SelectionResolutionStatus.NeedsVerification,
-                        _ => SelectionResolutionStatus.Unavailable
-                    },
-                    line.Candidate?.ReasonCodes ?? [],
+                    line.ReasonCodes.Contains(ShoppingReasonCodes.OrderTravellerNotLinked, StringComparer.Ordinal)
+                        ? SelectionResolutionStatus.NeedsVerification
+                        : line.Candidate?.OfferReadiness switch
+                        {
+                            OfferReadiness.NeedsQuote => SelectionResolutionStatus.NeedsQuote,
+                            OfferReadiness.NeedsVerification => SelectionResolutionStatus.NeedsVerification,
+                            _ => SelectionResolutionStatus.Unavailable
+                        },
+                    [.. line.ReasonCodes.Union(line.Candidate?.ReasonCodes ?? [], StringComparer.Ordinal)],
                     null,
                     null);
 
-            return line.CurrencyId == token.CurrencyId && line.Total == token.Total
+            var fresh = PricedSelectionMapper.Of(line, token.Scope, binding);
+
+            if (!SameFacts(token, fresh))
+                return Unresolved(reference, SelectionResolutionStatus.Stale, ShoppingReasonCodes.SignedFactsChanged);
+
+            return fresh.CurrencyId == token.CurrencyId && fresh.Total == token.Total
                 ? new ResolvedSelectionSnapshot(reference, SelectionResolutionStatus.Valid, [], line, context)
                 : new ResolvedSelectionSnapshot(reference, SelectionResolutionStatus.Stale, [ShoppingReasonCodes.PriceChanged], line, context);
         }
+
+        private static bool SameFacts(PricedSelection signed, PricedSelection fresh)
+            => signed.Kind == fresh.Kind
+               && signed.OfferItemRef == fresh.OfferItemRef
+               && signed.SeatMapSelectionId == fresh.SeatMapSelectionId
+               && signed.Seat == fresh.Seat
+               && signed.CoverageScope == fresh.CoverageScope
+               && signed.TravellerRefs.SequenceEqual(fresh.TravellerRefs, StringComparer.Ordinal)
+               && signed.FlightRefs.SequenceEqual(fresh.FlightRefs, StringComparer.Ordinal)
+               && signed.PortionRefs.SequenceEqual(fresh.PortionRefs, StringComparer.Ordinal)
+               && signed.ServiceDefinitionRef == fresh.ServiceDefinitionRef
+               && signed.DefinitionVersionId == fresh.DefinitionVersionId
+               && signed.ProvisionId == fresh.ProvisionId
+               && signed.PricingRevisionId == fresh.PricingRevisionId
+               && signed.Units == fresh.Units
+               && SelectionCanonicalForm.Of(signed.Selection ?? new AncillarySelection()) == SelectionCanonicalForm.Of(fresh.Selection ?? new AncillarySelection());
 
         private static IReadOnlyList<string> RejectionReasons(SelectionLineSnapshot line)
             => [.. line.ReasonCodes.Union(line.Ancillary?.Evaluation.FieldIssues.Select(issue => issue.ReasonCode) ?? [], StringComparer.Ordinal)];
@@ -125,7 +151,8 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveSelec
                 token.Kind,
                 token.OfferItemRef,
                 token.Kind == SelectionLineKind.Ancillary ? token.Selection ?? new AncillarySelection() : null,
-                token.SeatMapSelectionId);
+                token.SeatMapSelectionId,
+                token.Kind == SelectionLineKind.SeatMap ? token.Selection?.ExitRowTermsAccepted : null);
 
         private static ResolvedSelectionSnapshot Unresolved(string reference, SelectionResolutionStatus status, params string[] reasonCodes)
             => new(reference, status, reasonCodes, null, null);

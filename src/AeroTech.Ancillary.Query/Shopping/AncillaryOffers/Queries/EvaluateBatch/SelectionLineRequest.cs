@@ -8,5 +8,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatc
         SelectionLineKind? Kind,
         string? OfferItemRef,
         AncillarySelection? Selection,
-        string? SeatMapSelectionId);
+        string? SeatMapSelectionId,
+        bool? ExitRowTermsAccepted = null,
+        IReadOnlyDictionary<string, string>? SelectedOptionRefs = null);
 }

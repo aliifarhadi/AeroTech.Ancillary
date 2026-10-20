@@ -310,7 +310,7 @@ public class AncillaryOffersTests
         {
             TravellerBaggageFacts = trip.TravellerBaggageFacts.Select(fact => fact.FlightRef == "F2" ? Trip.WeightAllowance(fact.TravellerRef, "F2", "P2") : fact).ToList()
         });
-        var projected = result.Candidates.Select(candidate => (Candidate: candidate, Offer: BackofficeAncillaryOfferMapper.Map("item", Pos, candidate))).ToList();
+        var projected = result.Candidates.Select(candidate => (Candidate: candidate, Offer: BackofficeAncillaryOfferMapper.Map("item", Pos, candidate, []))).ToList();
 
         Assert.Equal(V122Catalog.Cases.Select(variant => variant.Code).Order(), projected.Select(row => row.Offer.Service.VariantCode).Distinct().Order());
         Assert.All(projected, row =>
@@ -395,14 +395,13 @@ public class AncillaryOffersTests
     public async Task CT_22_an_empty_offer_id_is_refused_before_the_provider_is_called()
     {
         var failure = await Assert.ThrowsAsync<BusinessException>(
-            () => new GetAncillaryOffersService(
+            () => Offers(
                 Sources(new FlightOfferShoppingSource(
                     new FixedOffers(null!),
                     new TestOnlyAirportReference(),
                     new TestOnlyAirFareReference(),
                     new FixedClock(),
-                    new FlightOfferShoppingOptions(SourceContextTtl))),
-                new ShoppingLab().Engine).ExecuteAsync(new OfferQuery(" "), Sale));
+                    new FlightOfferShoppingOptions(SourceContextTtl))), new ShoppingLab()).ExecuteAsync(new OfferQuery(" "), Sale));
 
         Assert.Equal((16803, 422), (failure.Code, failure.HttpStatus));
         Assert.Equal(new[] { "OfferId", "Options", "OrderId" }, typeof(BackofficeGetAncillaryOffersQuery).GetProperties().Select(property => property.Name).Order());

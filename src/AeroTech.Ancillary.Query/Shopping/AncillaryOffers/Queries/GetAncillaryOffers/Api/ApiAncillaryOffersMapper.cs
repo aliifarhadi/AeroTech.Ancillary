@@ -31,13 +31,13 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
                 new ApiIncludedDto(
                     items
                         .Where(item => IsBag(item.Candidate))
-                        .ToDictionary(item => item.OfferItemRef, item => Bag(item.Candidate, references), StringComparer.Ordinal),
+                        .ToDictionary(item => item.OfferItemRef, item => Bag(item.OfferItemRef, item.Candidate, item.OptionGroups, references), StringComparer.Ordinal),
                     items
                         .Where(item => !IsBag(item.Candidate))
-                        .ToDictionary(item => item.OfferItemRef, item => OtherService(item.Candidate, references), StringComparer.Ordinal)));
+                        .ToDictionary(item => item.OfferItemRef, item => OtherService(item.OfferItemRef, item.Candidate, item.OptionGroups, references), StringComparer.Ordinal)));
         }
 
-        public static ApiBagDto Bag(CanonicalAncillaryOfferCandidate candidate, ApiOfferReferences references)
+        public static ApiBagDto Bag(string offerItemRef, CanonicalAncillaryOfferCandidate candidate, IReadOnlyList<OfferOptionGroup> optionGroups, ApiOfferReferences references)
         {
             var specification = references.Baggage(candidate.DefinitionVersionId);
             var weight = specification?.PackageWeightKg ?? specification?.WeightToInclusiveKg ?? specification?.MaxKgPerPiece;
@@ -51,10 +51,10 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
                 candidate.Scope.CoverageScope == ServiceCoverageScope.Journey,
                 references.SegmentIds(candidate.FlightRefs),
                 references.TravelerIds(candidate.Travellers),
-                Ancillary(candidate, references));
+                Ancillary(offerItemRef, candidate, optionGroups, references));
         }
 
-        public static ApiOtherServiceDto OtherService(CanonicalAncillaryOfferCandidate candidate, ApiOfferReferences references)
+        public static ApiOtherServiceDto OtherService(string offerItemRef, CanonicalAncillaryOfferCandidate candidate, IReadOnlyList<OfferOptionGroup> optionGroups, ApiOfferReferences references)
             => new(
                 Name(candidate),
                 Price(candidate.Price.CompleteUnitTotal, candidate.Price.CurrencyId, references),
@@ -62,7 +62,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
                 candidate.Scope.CoverageScope == ServiceCoverageScope.Journey,
                 references.SegmentIds(candidate.FlightRefs),
                 references.TravelerIds(candidate.Travellers),
-                Ancillary(candidate, references));
+                Ancillary(offerItemRef, candidate, optionGroups, references));
 
         public static ApiElementaryPriceDto? Price(decimal? amount, int? currencyId, ApiOfferReferences references)
             => amount is { } value ? new ApiElementaryPriceDto(ApiOfferReferences.Amount(value), references.CurrencyCode(currencyId)) : null;
@@ -70,7 +70,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
         private static string Name(CanonicalAncillaryOfferCandidate candidate)
             => Separators().Replace(AncillaryVariant.Find(candidate.VariantCode)!.Name, "_").Trim('_').ToUpperInvariant();
 
-        private static ApiAncillaryDto Ancillary(CanonicalAncillaryOfferCandidate candidate, ApiOfferReferences references)
+        private static ApiAncillaryDto Ancillary(string offerItemRef, CanonicalAncillaryOfferCandidate candidate, IReadOnlyList<OfferOptionGroup> optionGroups, ApiOfferReferences references)
             => new(
                 candidate.Profile switch
                 {
@@ -89,7 +89,46 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
                 OfferPurchase.CanPurchase(candidate),
                 candidate.ReasonCodes,
                 candidate.Selection.Kind.ToString(),
-                candidate.Scope.CoverageScope.ToString());
+                candidate.Scope.CoverageScope.ToString(),
+                OptionGroups(offerItemRef, candidate, optionGroups, references),
+                OfferInlineOptions.Interaction(candidate, optionGroups));
+
+        private static IReadOnlyList<ApiOptionGroupDto> OptionGroups(
+            string offerItemRef,
+            CanonicalAncillaryOfferCandidate candidate,
+            IReadOnlyList<OfferOptionGroup> groups,
+            ApiOfferReferences references)
+            => groups
+                .Select(group => new ApiOptionGroupDto(
+                    group.FieldName,
+                    group.SourceState.ToString(),
+                    OfferInlineOptions.IncludesChoices(group) ? Choices(offerItemRef, candidate, group, references) : [],
+                    group.Choices.Count,
+                    OfferInlineOptions.IncludesChoices(group)))
+                .ToList();
+
+        private static IReadOnlyList<ApiOptionChoiceDto> Choices(
+            string offerItemRef,
+            CanonicalAncillaryOfferCandidate candidate,
+            OfferOptionGroup group,
+            ApiOfferReferences references)
+        {
+            var applicability = new ApiOptionApplicabilityDto(references.TravelerIds(candidate.Travellers), references.SegmentIds(candidate.FlightRefs), candidate.PortionRefs);
+            var preview = candidate.Price.CompleteUnitTotal is { } amount
+                ? new ApiOptionPricePreviewDto(ApiOfferReferences.Amount(amount), references.CurrencyCode(candidate.Price.CurrencyId), OfferPurchase.IsPriceComplete(candidate.Price))
+                : null;
+
+            return group.Choices
+                .Select(choice => new ApiOptionChoiceDto(
+                    OfferItemRef.OptionOf(offerItemRef, group.FieldName, choice.Value),
+                    choice.Value,
+                    choice.Label,
+                    candidate.Availability.CheckedState.ToString(),
+                    applicability,
+                    preview,
+                    candidate.ExpiresAtUtc))
+                .ToList();
+        }
 
         private static ApiServiceDto Service(CanonicalAncillaryOfferCandidate candidate)
             => new(

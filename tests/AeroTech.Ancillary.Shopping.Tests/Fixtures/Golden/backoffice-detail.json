@@ -211,7 +211,13 @@
       "canPurchase": false,
       "reasonCodes": [
         "InventoryNotConfigured"
-      ]
+      ],
+      "optionGroups": [],
+      "interaction": {
+        "mode": "Inline",
+        "requiresDetails": false,
+        "reasonCodes": []
+      }
     },
     "specification": {
       "baggage": {

@@ -4,7 +4,9 @@ using AeroTech.Ancillary.Application.Orders;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Ancillary.Query.Shopping.Common;
 using AeroTech.Ancillary.Query.Shopping.Common.FlightOffers;
+using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
 using AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap;
+using AeroTech.Messages.AirPrice.Enums;
 using static AeroTech.Ancillary.Shopping.Tests.Fixtures.BackofficeDesk;
 
 namespace AeroTech.Ancillary.Shopping.Tests.Fixtures;
@@ -70,7 +72,32 @@ public static class SeatMapDesk
             new Dictionary<string, string> { ["G"] = "Galley" },
             new Dictionary<string, string> { ["E"] = "Exit row seat", ["W"] = "Window seat" });
 
-    public static async Task<(ShoppingSource Source, TestOnlyAirportReference Airports)> SourceAsync(ShoppingLab lab, FlightOffer? offer = null, IOrderCommercialContextReader? orders = null)
+    public sealed class VerifiedExitRows(IShoppingSource source) : IShoppingSource
+    {
+        public async Task<FlightOfferShopping> LoadAsync(string? offerId, long? orderId, AncillarySalesScope scope, CancellationToken cancellationToken = default)
+        {
+            var shopping = await source.LoadAsync(offerId, orderId, scope, cancellationToken);
+
+            return shopping with
+            {
+                PointsOfSale = shopping.PointsOfSale
+                    .Select(pointOfSale => pointOfSale with
+                    {
+                        Context = pointOfSale.Context with
+                        {
+                            Travellers = pointOfSale.Context.Travellers.Select(traveller => traveller with { VerifiedExitRowEligible = traveller.PassengerTypeCode == PassengerTypeCode.ADT }).ToList()
+                        }
+                    })
+                    .ToList()
+            };
+        }
+    }
+
+    public static async Task<(IShoppingSource Source, TestOnlyAirportReference Airports)> SourceAsync(
+        ShoppingLab lab,
+        FlightOffer? offer = null,
+        IOrderCommercialContextReader? orders = null,
+        bool verifiedExitRows = false)
     {
         var airports = new TestOnlyAirportReference();
         var flightOffers = new FlightOfferShoppingSource(
@@ -87,7 +114,7 @@ public static class SeatMapDesk
         lab.Catalog.AirlineCodes[1] = "DA";
         lab.Catalog.AirlineCodes[3] = "IR";
 
-        return (Sources(flightOffers, orders), airports);
+        return (verifiedExitRows ? new VerifiedExitRows(Sources(flightOffers, orders)) : Sources(flightOffers, orders), airports);
     }
 
     public static async Task<(GetSeatMapService Service, FixedSeatMaps Maps)> SeatMapServiceAsync(ShoppingLab lab, IOccupiedSeatProvider? occupied = null)

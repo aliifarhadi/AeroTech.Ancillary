@@ -13,6 +13,10 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatc
 
         public OtaPanelAncillarySelectionInput? Selection { get; set; }
 
+        public IReadOnlyDictionary<string, string>? SelectedOptionRefs { get; set; }
+
         public string? SeatMapSelectionId { get; set; }
+
+        public bool? ExitRowTermsAccepted { get; set; }
     }
 }

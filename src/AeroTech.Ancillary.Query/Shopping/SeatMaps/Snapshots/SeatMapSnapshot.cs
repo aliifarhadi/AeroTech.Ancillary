@@ -1,4 +1,5 @@
 using AeroTech.Ancillary.Application.FlightOffers;
+using AeroTech.Ancillary.Query.Shopping.Common.FlightOffers;
 using AeroTech.Ancillary.Shopping.Results;
 using AeroTech.Ancillary.Shopping.SeatMaps;
 
@@ -8,7 +9,8 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Snapshots
         FlightOffer Offer,
         int CurrencyId,
         string CurrencyCode,
-        IReadOnlyList<FlightSeatMap> Flights);
+        IReadOnlyList<FlightSeatMap> Flights,
+        IReadOnlyList<PointOfSaleContext> PointsOfSale);
 
     public sealed record FlightSeatMap(
         string FlightRef,
@@ -32,7 +34,8 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Snapshots
         string SeatNumber,
         SeatAvailabilityStatus Status,
         string? Id,
-        CanonicalAncillaryOfferCandidate? Candidate)
+        CanonicalAncillaryOfferCandidate? Candidate,
+        long PointOfSaleId)
     {
         public PriceAssessment? Price => Candidate?.Price;
     }

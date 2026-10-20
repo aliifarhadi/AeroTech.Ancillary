@@ -9,6 +9,7 @@ using AeroTech.Ancillary.Query.Shopping.Common.PricedSelections;
 using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
 using AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap;
 using AeroTech.Ancillary.Query.Shopping.SeatMaps.Snapshots;
+using AeroTech.Ancillary.Shopping.Engine;
 using AeroTech.Ancillary.Shopping.Results;
 using AeroTech.Ancillary.Shopping.Selection;
 using AeroTech.Messages.Ancillary.Enums;
@@ -25,6 +26,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatc
         private readonly IEvaluateSelectionService _selections;
         private readonly IGetSeatMapService _seatMaps;
         private readonly IPricedSelectionTokens _tokens;
+        private readonly IAncillaryShoppingEngine _engine;
 
         public EvaluateBatchService(
             IShoppingSource source,
@@ -32,7 +34,8 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatc
             IGetAncillaryOfferDetailService details,
             IEvaluateSelectionService selections,
             IGetSeatMapService seatMaps,
-            IPricedSelectionTokens tokens)
+            IPricedSelectionTokens tokens,
+            IAncillaryShoppingEngine engine)
         {
             _source = source;
             _offers = offers;
@@ -40,6 +43,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatc
             _selections = selections;
             _seatMaps = seatMaps;
             _tokens = tokens;
+            _engine = engine;
         }
 
         public async Task<SelectionBatchSnapshot> ExecuteAsync(
@@ -55,17 +59,21 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatc
             var evaluated = new List<SelectionLineSnapshot>(requested.Count);
 
             foreach (var line in requested)
-                evaluated.Add(line.Kind == SelectionLineKind.SeatMap ? Seat(line, seatMap!) : await AncillaryAsync(line, shopping, cancellationToken));
+                evaluated.Add(line.Kind == SelectionLineKind.SeatMap ? await SeatAsync(line, seatMap!, cancellationToken) : await AncillaryAsync(line, shopping, cancellationToken));
 
-            var binding = OrderBinding.Of(shopping.PointsOfSale.Select(pointOfSale => pointOfSale.Context.SourceIdentity).FirstOrDefault());
+            var context = shopping.PointsOfSale.Select(pointOfSale => pointOfSale.Context).FirstOrDefault();
+            var binding = OrderBinding.Of(context?.SourceIdentity);
             var settled = SelectionBasketRules.Settle(evaluated);
 
-            if (binding is not null)
-                settled = settled
-                    .Select(line => line.CanPurchase ? line with { PricedSelection = _tokens.Issue(PricedSelectionMapper.Of(line, scope, binding), binding.ValidUntilUtc) } : line)
-                    .ToList();
+            if (binding is not null && context is not null)
+                settled = SelectionBasketRules.Link(settled, context);
 
-            return new SelectionBatchSnapshot(shopping, settled, SelectionBasketRules.Basket(settled, shopping.CurrencyId, binding is not null));
+            var basket = SelectionBasketRules.Basket(settled, shopping.CurrencyId, binding is not null);
+
+            if (basket.AllReady && binding is not null)
+                settled = settled.Select(line => line with { PricedSelection = _tokens.Issue(PricedSelectionMapper.Of(line, scope, binding), binding.ValidUntilUtc) }).ToList();
+
+            return new SelectionBatchSnapshot(shopping, settled, basket);
         }
 
         private async Task<SelectionLineSnapshot> AncillaryAsync(SelectionLineRequest line, AncillaryShoppingSnapshot shopping, CancellationToken cancellationToken)
@@ -78,18 +86,19 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatc
             var detail = await _details.DescribeAsync(shopping, item, cancellationToken);
             var selection = await _selections.EvaluateAsync(detail, line.Selection ?? new AncillarySelection(), cancellationToken);
 
-            return new SelectionLineSnapshot(
-                line.ClientSelectionId!,
-                SelectionLineKind.Ancillary,
-                selection.Evaluation.Status,
-                [],
-                OfferPurchase.CanPurchase(selection.Evaluation),
-                selection,
-                null,
-                null);
+            return OptionRefsMatch(line.SelectedOptionRefs, detail, selection.Selection)
+                ? new SelectionLineSnapshot(line.ClientSelectionId!, SelectionLineKind.Ancillary, selection.Evaluation.Status, [], OfferPurchase.CanPurchase(selection.Evaluation), selection, null, null)
+                : new SelectionLineSnapshot(line.ClientSelectionId!, SelectionLineKind.Ancillary, SelectionEvaluationStatus.Rejected, [ShoppingReasonCodes.SelectedOptionNotOffered], false, selection, null, null);
         }
 
-        private static SelectionLineSnapshot Seat(SelectionLineRequest line, SeatMapSnapshot seatMap)
+        private static bool OptionRefsMatch(IReadOnlyDictionary<string, string>? optionRefs, AncillaryOfferDetailSnapshot detail, AncillarySelection selection)
+            => optionRefs is null
+               || optionRefs.All(pair => detail.OptionGroups.SingleOrDefault(group => string.Equals(group.FieldName, pair.Key, StringComparison.Ordinal)) is { SourceState: OptionSourceState.Known } group
+                                        && SelectionFieldValues.Of(selection, pair.Key) is { } value
+                                        && group.Choices.Any(choice => string.Equals(choice.Value, value, StringComparison.Ordinal))
+                                        && string.Equals(pair.Value, OfferItemRef.OptionOf(detail.Item.OfferItemRef, pair.Key, value), StringComparison.Ordinal));
+
+        private async Task<SelectionLineSnapshot> SeatAsync(SelectionLineRequest line, SeatMapSnapshot seatMap, CancellationToken cancellationToken)
         {
             var found = seatMap.Flights
                 .SelectMany(flight => flight.Offers.Select(offer => (Flight: flight, Offer: offer)))
@@ -98,16 +107,29 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatc
             if (found.Offer is null)
                 return Rejected(line, ShoppingReasonCodes.SeatSelectionNotOffered);
 
-            var canPurchase = OfferPurchase.CanPurchase(found.Offer);
+            if (found.Offer.Candidate is not { } candidate)
+                return new SelectionLineSnapshot(
+                    line.ClientSelectionId!,
+                    SelectionLineKind.SeatMap,
+                    SelectionEvaluationStatus.Accepted,
+                    [],
+                    true,
+                    null,
+                    new SeatSelectionSnapshot(line.SeatMapSelectionId!, found.Flight, found.Offer, seatMap.CurrencyId, new AncillarySelection { SeatNumber = found.Offer.SeatNumber }, null),
+                    null);
+
+            var selection = new AncillarySelection { SeatNumber = found.Offer.SeatNumber, ExitRowTermsAccepted = line.ExitRowTermsAccepted };
+            var context = seatMap.PointsOfSale.Single(pointOfSale => pointOfSale.PointOfSaleId == found.Offer.PointOfSaleId).Context;
+            var evaluation = await _engine.EvaluateSelectionAsync(context, candidate.CandidateIdentity, selection, cancellationToken);
 
             return new SelectionLineSnapshot(
                 line.ClientSelectionId!,
                 SelectionLineKind.SeatMap,
-                canPurchase ? SelectionEvaluationStatus.Accepted : SelectionEvaluationStatus.Incomplete,
+                evaluation.Status,
                 [],
-                canPurchase,
+                OfferPurchase.CanPurchase(evaluation),
                 null,
-                new SeatSelectionSnapshot(line.SeatMapSelectionId!, found.Flight, found.Offer, seatMap.CurrencyId),
+                new SeatSelectionSnapshot(line.SeatMapSelectionId!, found.Flight, found.Offer with { Candidate = evaluation.Candidate }, seatMap.CurrencyId, selection, evaluation),
                 null);
         }
 
@@ -127,15 +149,15 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatc
 
             var malformed = lines.FirstOrDefault(line => line.Kind switch
             {
-                SelectionLineKind.Ancillary => string.IsNullOrWhiteSpace(line.OfferItemRef) || line.SeatMapSelectionId is not null,
-                SelectionLineKind.SeatMap => string.IsNullOrWhiteSpace(line.SeatMapSelectionId) || line.OfferItemRef is not null || line.Selection is not null,
+                SelectionLineKind.Ancillary => string.IsNullOrWhiteSpace(line.OfferItemRef) || line.SeatMapSelectionId is not null || line.ExitRowTermsAccepted is not null,
+                SelectionLineKind.SeatMap => string.IsNullOrWhiteSpace(line.SeatMapSelectionId) || line.OfferItemRef is not null || line.Selection is not null || line.SelectedOptionRefs is not null,
                 _ => true
             });
 
             return malformed is null
                 ? lines
                 : throw ExceptionFactory.ShoppingContextIsInvalid(
-                    $"selection '{malformed.ClientSelectionId}' must be an ancillary line with an offerItemRef or a seatMap line with only a seatMapSelectionId");
+                    $"selection '{malformed.ClientSelectionId}' must be an ancillary line with an offerItemRef or a seatMap line with a seatMapSelectionId and at most exitRowTermsAccepted");
         }
     }
 }

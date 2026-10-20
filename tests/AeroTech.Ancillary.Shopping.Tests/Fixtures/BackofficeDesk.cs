@@ -24,6 +24,8 @@ public static class BackofficeDesk
 
     public static readonly TimeSpan SourceContextTtl = TimeSpan.FromMinutes(30);
 
+    public static GetAncillaryOffersService Offers(IShoppingSource source, ShoppingLab lab) => new(source, lab.Engine, lab.Catalog, lab.Catalog);
+
     public static ShoppingSource Sources(IFlightOfferShoppingSource flightOffers, IOrderCommercialContextReader? orders = null)
         => new(flightOffers, new OrderShoppingSource(orders ?? new OrderDesk.FixedOrders(), flightOffers));
 
@@ -34,14 +36,20 @@ public static class BackofficeDesk
         TestOnlyAirFareReference? airFares = null,
         DeskScope? desk = null,
         Channel channel = Channel.BackOffice)
-        => new(
-            Sources(new FlightOfferShoppingSource(
-                new FixedOffers((desk ?? Sale).Sell(await OfferWire.ReadAsync(wire ?? OfferWire.Captured()), channel)),
-                airports ?? new TestOnlyAirportReference(),
-                airFares ?? new TestOnlyAirFareReference(),
-                new FixedClock { Now = (desk ?? Sale).EvaluatedAtUtc },
-                new FlightOfferShoppingOptions(SourceContextTtl))),
-            lab.Engine);
+        => Offers(await SourceAsync(wire, airports, airFares, desk, channel), lab);
+
+    public static async Task<ShoppingSource> SourceAsync(
+        string? wire = null,
+        TestOnlyAirportReference? airports = null,
+        TestOnlyAirFareReference? airFares = null,
+        DeskScope? desk = null,
+        Channel channel = Channel.BackOffice)
+        => Sources(new FlightOfferShoppingSource(
+            new FixedOffers((desk ?? Sale).Sell(await OfferWire.ReadAsync(wire ?? OfferWire.Captured()), channel)),
+            airports ?? new TestOnlyAirportReference(),
+            airFares ?? new TestOnlyAirFareReference(),
+            new FixedClock { Now = (desk ?? Sale).EvaluatedAtUtc },
+            new FlightOfferShoppingOptions(SourceContextTtl)));
 
     public static async Task<AncillaryShoppingSnapshot> SnapshotAsync(
         ShoppingLab lab,

@@ -5,6 +5,7 @@ using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatch;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSelection;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOfferDetail;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Snapshots;
 using AeroTech.Ancillary.Query.Shopping.Common.PricedSelections;
 using AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap;
 using static AeroTech.Ancillary.Shopping.Tests.Fixtures.BackofficeDesk;
@@ -16,6 +17,8 @@ public static class SelectionDesk
 {
     public const string SigningKey = "ancillary-priced-selection-test-signing-key";
 
+    public static readonly OfferQuery ByOrder = new(null, OrderId: OrderDesk.OrderId);
+
     public static PricedSelectionTokens Tokens(FixedClock clock, string? signingKey = SigningKey) => new(new PricedSelectionOptions(signingKey), clock);
 
     public static async Task<(EvaluateBatchService Service, GetSeatMapService SeatMaps)> BatchAsync(
@@ -23,10 +26,12 @@ public static class SelectionDesk
         IOccupiedSeatProvider? occupied = null,
         FlightOffer? offer = null,
         FixedClock? clock = null,
-        IOrderCommercialContextReader? orders = null)
+        IOrderCommercialContextReader? orders = null,
+        string? signingKey = SigningKey,
+        bool verifiedExitRows = false)
     {
-        var (source, airports) = await SourceAsync(lab, offer, orders);
-        var offers = new GetAncillaryOffersService(source, lab.Engine);
+        var (source, airports) = await SourceAsync(lab, offer, orders, verifiedExitRows);
+        var offers = Offers(source, lab);
         var details = new GetAncillaryOfferDetailService(offers, lab.Catalog, lab.Catalog, lab.Catalog);
         var seatMaps = new GetSeatMapService(source, new FixedSeatMaps(Aircraft()), occupied ?? new FixedOccupiedSeats(), lab.Engine, lab.Catalog, airports, lab.Catalog);
         var service = new EvaluateBatchService(
@@ -35,8 +40,19 @@ public static class SelectionDesk
             details,
             new EvaluateSelectionService(details, lab.Engine),
             seatMaps,
-            Tokens(clock ?? new FixedClock { Now = Sale.EvaluatedAtUtc }));
+            Tokens(clock ?? new FixedClock { Now = Sale.EvaluatedAtUtc }, signingKey),
+            lab.Engine);
 
         return (service, seatMaps);
     }
+
+    public static async Task<AncillaryShoppingSnapshot> ShopOrderAsync(ShoppingLab lab, IOrderCommercialContextReader orders)
+    {
+        var (source, _) = await SourceAsync(lab, orders: orders);
+
+        return await Offers(source, lab).ExecuteAsync(ByOrder, Sale);
+    }
+
+    public static string RefOf(AncillaryShoppingSnapshot shopping, string variantCode, params string[] travellerRefs)
+        => shopping.Items.First(item => item.Candidate.VariantCode == variantCode && item.Candidate.Travellers.SequenceEqual(travellerRefs)).OfferItemRef;
 }

@@ -67,7 +67,23 @@
                     "appliesPer": null
                   }
                 ],
-                "fees": []
+                "fees": [],
+                "selectionContract": {
+                  "kind": "QuantityChoice",
+                  "fields": [
+                    {
+                      "name": "quantity",
+                      "type": "Integer",
+                      "required": true
+                    }
+                  ]
+                },
+                "optionGroups": [],
+                "interaction": {
+                  "mode": "Inline",
+                  "requiresDetails": false,
+                  "reasonCodes": []
+                }
               },
               {
                 "offerItemRef": "AfcuCIAPh5x3W0j6hHHCsXa0ZmWWaHtC-FrT3iaYszw",
@@ -106,7 +122,25 @@
                   "SelectionRequired"
                 ],
                 "taxes": [],
-                "fees": []
+                "fees": [],
+                "selectionContract": {
+                  "kind": "SeatMapSelection",
+                  "fields": [
+                    {
+                      "name": "seatNumber",
+                      "type": "Text",
+                      "required": true
+                    }
+                  ]
+                },
+                "optionGroups": [],
+                "interaction": {
+                  "mode": "DetailsOnDemand",
+                  "requiresDetails": true,
+                  "reasonCodes": [
+                    "TypedInputRequired"
+                  ]
+                }
               },
               {
                 "offerItemRef": "VV5-vhadPoI44gvjvGUrbMtCG9Pum7Jbt5jSzyxZ7m0",
@@ -158,7 +192,61 @@
                     "appliesPer": null
                   }
                 ],
-                "fees": []
+                "fees": [],
+                "selectionContract": {
+                  "kind": "TypedForm",
+                  "fields": [
+                    {
+                      "name": "planCode",
+                      "type": "Code",
+                      "required": true
+                    },
+                    {
+                      "name": "deviceCount",
+                      "type": "Integer",
+                      "required": false
+                    }
+                  ]
+                },
+                "optionGroups": [
+                  {
+                    "fieldName": "planCode",
+                    "sourceState": "Known",
+                    "choices": [
+                      {
+                        "optionRef": "4cac6zboJFV2bYvuqODovtCvfspKwOUaxUOCR5edLqI",
+                        "value": "WIFI_FULL_FLIGHT",
+                        "label": "Wi-Fi full flight (FullFlight)",
+                        "availability": "NotChecked",
+                        "applicability": {
+                          "travellerRefs": [
+                            "ADT-1"
+                          ],
+                          "flightRefs": [
+                            "B1:F1"
+                          ],
+                          "portionRefs": [
+                            "B1"
+                          ]
+                        },
+                        "pricePreview": {
+                          "currencyId": 70,
+                          "amount": 981000,
+                          "isComplete": false
+                        },
+                        "sourceVersion": "D1006-P1021",
+                        "validUntilUtc": "2026-10-01T10:30:00+00:00"
+                      }
+                    ],
+                    "totalChoices": 1,
+                    "inlineChoicesIncluded": true
+                  }
+                ],
+                "interaction": {
+                  "mode": "Inline",
+                  "requiresDetails": false,
+                  "reasonCodes": []
+                }
               }
             ]
           },
@@ -221,7 +309,23 @@
                     "appliesPer": null
                   }
                 ],
-                "fees": []
+                "fees": [],
+                "selectionContract": {
+                  "kind": "QuantityChoice",
+                  "fields": [
+                    {
+                      "name": "quantity",
+                      "type": "Integer",
+                      "required": true
+                    }
+                  ]
+                },
+                "optionGroups": [],
+                "interaction": {
+                  "mode": "Inline",
+                  "requiresDetails": false,
+                  "reasonCodes": []
+                }
               },
               {
                 "offerItemRef": "jJ06CZ2SyhhL-DId08t6ImmtjHqp7T7XqTlVe5g-KMM",
@@ -260,7 +364,25 @@
                   "SelectionRequired"
                 ],
                 "taxes": [],
-                "fees": []
+                "fees": [],
+                "selectionContract": {
+                  "kind": "SeatMapSelection",
+                  "fields": [
+                    {
+                      "name": "seatNumber",
+                      "type": "Text",
+                      "required": true
+                    }
+                  ]
+                },
+                "optionGroups": [],
+                "interaction": {
+                  "mode": "DetailsOnDemand",
+                  "requiresDetails": true,
+                  "reasonCodes": [
+                    "TypedInputRequired"
+                  ]
+                }
               },
               {
                 "offerItemRef": "ZhBKFOsDdMrEiXfTy05gw2FfCdK2fYkeA7iKmBgCFOs",
@@ -312,7 +434,61 @@
                     "appliesPer": null
                   }
                 ],
-                "fees": []
+                "fees": [],
+                "selectionContract": {
+                  "kind": "TypedForm",
+                  "fields": [
+                    {
+                      "name": "planCode",
+                      "type": "Code",
+                      "required": true
+                    },
+                    {
+                      "name": "deviceCount",
+                      "type": "Integer",
+                      "required": false
+                    }
+                  ]
+                },
+                "optionGroups": [
+                  {
+                    "fieldName": "planCode",
+                    "sourceState": "Known",
+                    "choices": [
+                      {
+                        "optionRef": "yieLT8dhjSqfsFK1ojHFVZ1LDWI4ABZI-aHgnzFmf1E",
+                        "value": "WIFI_FULL_FLIGHT",
+                        "label": "Wi-Fi full flight (FullFlight)",
+                        "availability": "NotChecked",
+                        "applicability": {
+                          "travellerRefs": [
+                            "ADT-1"
+                          ],
+                          "flightRefs": [
+                            "B2:F1"
+                          ],
+                          "portionRefs": [
+                            "B2"
+                          ]
+                        },
+                        "pricePreview": {
+                          "currencyId": 70,
+                          "amount": 981000,
+                          "isComplete": false
+                        },
+                        "sourceVersion": "D1006-P1021",
+                        "validUntilUtc": "2026-10-01T10:30:00+00:00"
+                      }
+                    ],
+                    "totalChoices": 1,
+                    "inlineChoicesIncluded": true
+                  }
+                ],
+                "interaction": {
+                  "mode": "Inline",
+                  "requiresDetails": false,
+                  "reasonCodes": []
+                }
               }
             ]
           }
@@ -381,7 +557,23 @@
                     "appliesPer": null
                   }
                 ],
-                "fees": []
+                "fees": [],
+                "selectionContract": {
+                  "kind": "QuantityChoice",
+                  "fields": [
+                    {
+                      "name": "quantity",
+                      "type": "Integer",
+                      "required": true
+                    }
+                  ]
+                },
+                "optionGroups": [],
+                "interaction": {
+                  "mode": "Inline",
+                  "requiresDetails": false,
+                  "reasonCodes": []
+                }
               },
               {
                 "offerItemRef": "mSxTUBU3ABcXQl5qJaqKIARVePkaAx6Iqj0Az0akv1A",
@@ -420,7 +612,25 @@
                   "SelectionRequired"
                 ],
                 "taxes": [],
-                "fees": []
+                "fees": [],
+                "selectionContract": {
+                  "kind": "SeatMapSelection",
+                  "fields": [
+                    {
+                      "name": "seatNumber",
+                      "type": "Text",
+                      "required": true
+                    }
+                  ]
+                },
+                "optionGroups": [],
+                "interaction": {
+                  "mode": "DetailsOnDemand",
+                  "requiresDetails": true,
+                  "reasonCodes": [
+                    "TypedInputRequired"
+                  ]
+                }
               },
               {
                 "offerItemRef": "hlM9fMLY0IzpXRMAOI9Xxq4aeKGSCsWclrYWLsGdYcs",
@@ -472,7 +682,61 @@
                     "appliesPer": null
                   }
                 ],
-                "fees": []
+                "fees": [],
+                "selectionContract": {
+                  "kind": "TypedForm",
+                  "fields": [
+                    {
+                      "name": "planCode",
+                      "type": "Code",
+                      "required": true
+                    },
+                    {
+                      "name": "deviceCount",
+                      "type": "Integer",
+                      "required": false
+                    }
+                  ]
+                },
+                "optionGroups": [
+                  {
+                    "fieldName": "planCode",
+                    "sourceState": "Known",
+                    "choices": [
+                      {
+                        "optionRef": "2KajXU33Xj8HqGArZk6pMriexhSkxZwsB3_3UQDkWb8",
+                        "value": "WIFI_FULL_FLIGHT",
+                        "label": "Wi-Fi full flight (FullFlight)",
+                        "availability": "NotChecked",
+                        "applicability": {
+                          "travellerRefs": [
+                            "CHD-1"
+                          ],
+                          "flightRefs": [
+                            "B1:F1"
+                          ],
+                          "portionRefs": [
+                            "B1"
+                          ]
+                        },
+                        "pricePreview": {
+                          "currencyId": 70,
+                          "amount": 981000,
+                          "isComplete": false
+                        },
+                        "sourceVersion": "D1006-P1021",
+                        "validUntilUtc": "2026-10-01T10:30:00+00:00"
+                      }
+                    ],
+                    "totalChoices": 1,
+                    "inlineChoicesIncluded": true
+                  }
+                ],
+                "interaction": {
+                  "mode": "Inline",
+                  "requiresDetails": false,
+                  "reasonCodes": []
+                }
               }
             ]
           },
@@ -535,7 +799,23 @@
                     "appliesPer": null
                   }
                 ],
-                "fees": []
+                "fees": [],
+                "selectionContract": {
+                  "kind": "QuantityChoice",
+                  "fields": [
+                    {
+                      "name": "quantity",
+                      "type": "Integer",
+                      "required": true
+                    }
+                  ]
+                },
+                "optionGroups": [],
+                "interaction": {
+                  "mode": "Inline",
+                  "requiresDetails": false,
+                  "reasonCodes": []
+                }
               },
               {
                 "offerItemRef": "2lwwJDVLrWordEB3jNtW1_wpBfqmWj0QCN0_WtuX5Sg",
@@ -574,7 +854,25 @@
                   "SelectionRequired"
                 ],
                 "taxes": [],
-                "fees": []
+                "fees": [],
+                "selectionContract": {
+                  "kind": "SeatMapSelection",
+                  "fields": [
+                    {
+                      "name": "seatNumber",
+                      "type": "Text",
+                      "required": true
+                    }
+                  ]
+                },
+                "optionGroups": [],
+                "interaction": {
+                  "mode": "DetailsOnDemand",
+                  "requiresDetails": true,
+                  "reasonCodes": [
+                    "TypedInputRequired"
+                  ]
+                }
               },
               {
                 "offerItemRef": "ymDKFM7B30Xv_lIDQ2TP0v_4FuufnCyVvbtztD_HoUE",
@@ -626,7 +924,61 @@
                     "appliesPer": null
                   }
                 ],
-                "fees": []
+                "fees": [],
+                "selectionContract": {
+                  "kind": "TypedForm",
+                  "fields": [
+                    {
+                      "name": "planCode",
+                      "type": "Code",
+                      "required": true
+                    },
+                    {
+                      "name": "deviceCount",
+                      "type": "Integer",
+                      "required": false
+                    }
+                  ]
+                },
+                "optionGroups": [
+                  {
+                    "fieldName": "planCode",
+                    "sourceState": "Known",
+                    "choices": [
+                      {
+                        "optionRef": "GLOM29AEb74wGDb8bm1SLWwJQxX2dEF5AF8gF3g-1Qg",
+                        "value": "WIFI_FULL_FLIGHT",
+                        "label": "Wi-Fi full flight (FullFlight)",
+                        "availability": "NotChecked",
+                        "applicability": {
+                          "travellerRefs": [
+                            "CHD-1"
+                          ],
+                          "flightRefs": [
+                            "B2:F1"
+                          ],
+                          "portionRefs": [
+                            "B2"
+                          ]
+                        },
+                        "pricePreview": {
+                          "currencyId": 70,
+                          "amount": 981000,
+                          "isComplete": false
+                        },
+                        "sourceVersion": "D1006-P1021",
+                        "validUntilUtc": "2026-10-01T10:30:00+00:00"
+                      }
+                    ],
+                    "totalChoices": 1,
+                    "inlineChoicesIncluded": true
+                  }
+                ],
+                "interaction": {
+                  "mode": "Inline",
+                  "requiresDetails": false,
+                  "reasonCodes": []
+                }
               }
             ]
           }

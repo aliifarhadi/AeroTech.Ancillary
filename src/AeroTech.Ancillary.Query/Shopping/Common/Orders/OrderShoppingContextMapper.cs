@@ -11,7 +11,15 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.Orders
 
         public static AncillaryShoppingContext Map(AncillaryShoppingContext context, OrderCommercialContext order)
         {
-            var travellers = order.Travellers.ToDictionary(traveller => traveller.TravellerRef, StringComparer.Ordinal);
+            var travellers = order.Travellers
+                .Where(traveller => traveller.OrderTravellerId > 0)
+                .GroupBy(traveller => traveller.TravellerRef, StringComparer.Ordinal)
+                .Where(group => group.Count() == 1)
+                .Select(group => group.Single())
+                .GroupBy(traveller => traveller.OrderTravellerId)
+                .Where(group => group.Count() == 1)
+                .Select(group => group.Single())
+                .ToDictionary(traveller => traveller.TravellerRef, StringComparer.Ordinal);
 
             return context with
             {

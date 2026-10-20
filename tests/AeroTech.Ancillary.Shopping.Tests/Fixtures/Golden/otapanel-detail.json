@@ -43,7 +43,23 @@
           "appliesPer": null
         }
       ],
-      "fees": []
+      "fees": [],
+      "selectionContract": {
+        "kind": "QuantityChoice",
+        "fields": [
+          {
+            "name": "quantity",
+            "type": "Integer",
+            "required": true
+          }
+        ]
+      },
+      "optionGroups": [],
+      "interaction": {
+        "mode": "Inline",
+        "requiresDetails": false,
+        "reasonCodes": []
+      }
     },
     "priceBreakdown": {
       "base": {

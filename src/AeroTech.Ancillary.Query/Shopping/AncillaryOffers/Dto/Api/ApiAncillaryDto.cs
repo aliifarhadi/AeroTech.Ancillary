@@ -1,3 +1,5 @@
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Selection;
+
 namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Api
 {
     public sealed record ApiAncillaryDto(
@@ -12,5 +14,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Api
         bool CanPurchase,
         IReadOnlyList<string> Reasons,
         string SelectionKind,
-        string CoverageScope);
+        string CoverageScope,
+        IReadOnlyList<ApiOptionGroupDto> OptionGroups,
+        OfferInteractionDto Interaction);
 }

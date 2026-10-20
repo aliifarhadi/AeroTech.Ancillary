@@ -49,6 +49,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatc
                 Scope = scope,
                 Kind = SelectionLineKind.SeatMap,
                 SeatMapSelectionId = seat.SeatMapSelectionId,
+                Selection = seat.Selection,
                 Seat = new PricedSeat(seat.Offer.TravellerRef, seat.Flight.FlightRef, seat.Flight.Flight.FlightId, seat.Flight.Flight.FlightCapacityId, seat.Offer.SeatNumber),
                 CoverageScope = ServiceCoverageScope.Sector,
                 TravellerRefs = [seat.Offer.TravellerRef],

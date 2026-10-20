@@ -19,7 +19,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSele
                 selection.Item.OfferItemRef,
                 selection.CurrentOfferItemRef,
                 selection.Evaluation.ProvisionChangedBySelection,
-                BackofficeAncillaryOfferMapper.Map(selection.CurrentOfferItemRef, selection.Item.PointOfSaleId, selection.Evaluation.Candidate),
+                BackofficeAncillaryOfferMapper.Map(selection.CurrentOfferItemRef, selection.Item.PointOfSaleId, selection.Evaluation.Candidate, selection.OptionGroups),
                 selection.Evaluation.Candidate.Price.RequestedQuantityTotal,
                 selection.Evaluation.FieldIssues.Select(issue => new BackofficeFieldIssueDto(issue.Field, issue.ReasonCode)).ToList(),
                 canPurchase,

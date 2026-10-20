@@ -32,29 +32,36 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
             AncillaryOfferDetailSnapshot detail,
             Func<IReadOnlyList<string>, IReadOnlyList<string>> travellers,
             Func<IReadOnlyList<string>, IReadOnlyList<string>> flights)
+            => detail.OptionGroups
+                .Select(group => new OfferOptionGroupDto(
+                    group.FieldName,
+                    group.SourceState.ToString(),
+                    Choices(detail.Item.OfferItemRef, detail.Item.Candidate, group, travellers, flights)))
+                .ToList();
+
+        public static IReadOnlyList<OfferOptionChoiceDto> Choices(
+            string offerItemRef,
+            CanonicalAncillaryOfferCandidate candidate,
+            OfferOptionGroup group,
+            Func<IReadOnlyList<string>, IReadOnlyList<string>> travellers,
+            Func<IReadOnlyList<string>, IReadOnlyList<string>> flights)
         {
-            var candidate = detail.Item.Candidate;
             var applicability = new OfferApplicabilityDto(travellers(candidate.Travellers), flights(candidate.FlightRefs), candidate.PortionRefs);
             var preview = candidate.Price is { CurrencyId: { } currencyId, CompleteUnitTotal: { } amount }
                 ? new OfferPricePreviewDto(currencyId, amount, PriceIsComplete(candidate.Price))
                 : null;
             var sourceVersion = string.Create(CultureInfo.InvariantCulture, $"D{candidate.DefinitionVersionId}-P{candidate.ProvisionId}");
 
-            return detail.OptionGroups
-                .Select(group => new OfferOptionGroupDto(
-                    group.FieldName,
-                    group.SourceState.ToString(),
-                    group.Choices
-                        .Select(choice => new OfferOptionChoiceDto(
-                            OfferItemRef.OptionOf(detail.Item.OfferItemRef, group.FieldName, choice.Value),
-                            choice.Value,
-                            choice.Label,
-                            candidate.Availability.CheckedState.ToString(),
-                            applicability,
-                            preview,
-                            sourceVersion,
-                            candidate.ExpiresAtUtc))
-                        .ToList()))
+            return group.Choices
+                .Select(choice => new OfferOptionChoiceDto(
+                    OfferItemRef.OptionOf(offerItemRef, group.FieldName, choice.Value),
+                    choice.Value,
+                    choice.Label,
+                    candidate.Availability.CheckedState.ToString(),
+                    applicability,
+                    preview,
+                    sourceVersion,
+                    candidate.ExpiresAtUtc))
                 .ToList();
         }
 

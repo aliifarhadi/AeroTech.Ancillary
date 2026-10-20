@@ -1,7 +1,5 @@
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
-using AeroTech.Ancillary.Query.Shopping.SeatMaps.Snapshots;
 using AeroTech.Ancillary.Shopping.Results;
-using AeroTech.Ancillary.Shopping.SeatMaps;
 using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Query.Shopping.Common
@@ -20,11 +18,6 @@ namespace AeroTech.Ancillary.Query.Shopping.Common
                && evaluation.Candidate.OfferReadiness == OfferReadiness.Selectable
                && IsPriceComplete(evaluation.Candidate.Price)
                && evaluation.Candidate.Price.RequestedQuantityTotal is not null;
-
-        public static bool CanPurchase(SeatTravellerOffer seat)
-            => seat.Status == SeatAvailabilityStatus.Available
-               && (seat.Candidate is not { } candidate
-                   || (candidate.OfferReadiness == OfferReadiness.Selectable && IsPriceComplete(candidate.Price) && candidate.Price.RequestedQuantityTotal is not null));
 
         private static bool NeedsCustomerInput(CustomerSelectionContract contract)
             => contract.Fields.Any(field => field.Required && !CoverageFields.Contains(field.Name));

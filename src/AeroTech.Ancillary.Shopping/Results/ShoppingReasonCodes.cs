@@ -169,6 +169,11 @@ namespace AeroTech.Ancillary.Shopping.Results
         public const string PricedSelectionForAnotherOrder = "PricedSelectionForAnotherOrder";
         public const string OrderVersionChanged = "OrderVersionChanged";
         public const string PriceChanged = "PriceChanged";
+        public const string OrderTravellerNotLinked = "OrderTravellerNotLinked";
+        public const string QuantitySplitAcrossLines = "QuantitySplitAcrossLines";
+        public const string RepeatedInstanceNotAllowed = "RepeatedInstanceNotAllowed";
+        public const string SourceVersionChanged = "SourceVersionChanged";
+        public const string SignedFactsChanged = "SignedFactsChanged";
 
         public static readonly IReadOnlySet<string> All = new HashSet<string>(StringComparer.Ordinal)
         {
@@ -338,7 +343,12 @@ namespace AeroTech.Ancillary.Shopping.Results
             PricedSelectionNotAuthentic,
             PricedSelectionForAnotherOrder,
             OrderVersionChanged,
-            PriceChanged
+            PriceChanged,
+            OrderTravellerNotLinked,
+            QuantitySplitAcrossLines,
+            RepeatedInstanceNotAllowed,
+            SourceVersionChanged,
+            SignedFactsChanged
         };
     }
 }

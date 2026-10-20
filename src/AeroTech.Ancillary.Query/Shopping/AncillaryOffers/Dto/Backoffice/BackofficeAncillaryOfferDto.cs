@@ -1,4 +1,5 @@
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Dto;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Selection;
 using AeroTech.Ancillary.Query.Shopping.Common;
 using AeroTech.Ancillary.Query._Shared.Enums;
 
@@ -20,7 +21,9 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Backoffice
         EnumValueDto OfferReadiness,
         EnumValueDto DisplayState,
         bool CanPurchase,
-        IReadOnlyList<string> ReasonCodes);
+        IReadOnlyList<string> ReasonCodes,
+        IReadOnlyList<OfferInlineOptionGroupDto> OptionGroups,
+        OfferInteractionDto Interaction);
 
     public sealed record OfferCandidateIdentityDto(
         long DefinitionVersionId,

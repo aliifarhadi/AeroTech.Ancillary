@@ -3,6 +3,7 @@ using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSelectio
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Snapshots;
 using AeroTech.Ancillary.Shopping.Context;
 using AeroTech.Ancillary.Shopping.Results;
+using AeroTech.Ancillary.Shopping.Selection;
 
 namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveSelections.Service
 {
@@ -38,7 +39,61 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveSelec
                 line.Seat?.Flight.Flight.FlightCapacityId,
                 line.Ancillary is { } ancillary ? OfferSelectionResultsMapper.SelectedOptions(ancillary) : [],
                 OfferSelectionResultsMapper.ExactPrice(candidate.Price, line.CanPurchase),
-                candidate.Availability.RequiresCheckAtReserve);
+                candidate.Availability.RequiresCheckAtReserve,
+                candidate.VariantCode,
+                candidate.ServiceTypeCode,
+                candidate.ServiceSubCode,
+                candidate.Booking.Method.ToString(),
+                candidate.Booking.BookingRequired,
+                candidate.Document.Routing.ToString(),
+                candidate.Document.DocumentType.ToString(),
+                candidate.Document.DocumentRequired,
+                candidate.Confirmation.ConfirmationRequirement.ToString(),
+                candidate.Price.PricingRateId,
+                Selection(line.Ancillary?.Selection ?? line.Seat!.Selection));
+
+        private static ServiceAncillarySelectionDto Selection(AncillarySelection selection)
+            => new(
+                selection.Quantity,
+                selection.PackageProductRef,
+                selection.BagRef,
+                selection.MeasuredWeightKg,
+                Dimensions(selection.Dimensions),
+                selection.EquipmentKind,
+                selection.WeightKg,
+                selection.SeatNumber,
+                selection.ExitRowTermsAccepted,
+                selection.Purpose,
+                selection.TargetCabinId,
+                selection.QuoteRef,
+                selection.MealCode,
+                selection.MenuItemRef,
+                selection.AnimalType,
+                selection.OtherAnimalCode,
+                selection.AnimalAgeWeeks,
+                selection.CombinedWeightKg,
+                Dimensions(selection.CarrierDimensions),
+                selection.DocumentAcknowledgements,
+                selection.SizeBracket,
+                selection.AssistanceSsrCode,
+                selection.EquipmentCode,
+                selection.EvidenceDocumentRefs,
+                selection.OxygenUnits,
+                selection.InfantRef,
+                selection.GuardianRef,
+                selection.ChildRef,
+                selection.GuardianHandoffContactProvided,
+                selection.GuardianPickupContactProvided,
+                selection.AirportId,
+                selection.FacilityRef,
+                selection.TimeWithOffset,
+                selection.GuestCount,
+                selection.OptIn,
+                selection.PlanCode,
+                selection.DeviceCount);
+
+        private static ServiceSelectedDimensionsDto? Dimensions(SelectedDimensions? dimensions)
+            => dimensions is null ? null : new ServiceSelectedDimensionsDto(dimensions.LengthCm, dimensions.WidthCm, dimensions.HeightCm);
 
         private static ServiceIncludedSeatDto IncludedSeat(SeatSelectionSnapshot seat, AncillaryShoppingContext context)
             => new(

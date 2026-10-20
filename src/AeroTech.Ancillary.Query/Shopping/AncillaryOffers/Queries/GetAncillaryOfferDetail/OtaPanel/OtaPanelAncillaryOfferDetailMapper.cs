@@ -15,7 +15,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
             return new OtaPanelAncillaryOfferDetailDto(
                 detail.Shopping.Offer.OfferId,
                 candidate.CandidateIdentity.TravellerRef,
-                OtaPanelAncillaryOffersMapper.Service(detail.Item.OfferItemRef, candidate),
+                OtaPanelAncillaryOffersMapper.Service(detail.Item.OfferItemRef, candidate, detail.OptionGroups),
                 new OtaPanelPriceBreakdownDto(
                     OtaPanelAncillaryOffersMapper.Money(price.BaseAmount, price.CurrencyId),
                     price.AddedTaxLines.Select(OtaPanelAncillaryOffersMapper.Fee).ToList(),

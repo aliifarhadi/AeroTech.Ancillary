@@ -70,7 +70,7 @@ public class S2SelectionBatchTests
         Assert.Equal((SelectionEvaluationStatus.Accepted, true, (decimal?)110m, ""), Verdict(batch.Lines[0]));
         Assert.Equal((SelectionEvaluationStatus.Accepted, true, (decimal?)220m, ""), Verdict(batch.Lines[1]));
         Assert.All(batch.Lines, line => Assert.Null(line.PricedSelection));
-        Assert.Equal((true, (decimal?)330m, Eur), (batch.Basket.AllReady, batch.Basket.Total, batch.Basket.CurrencyId));
+        Assert.Equal((false, (decimal?)330m, Eur), (batch.Basket.AllReady, batch.Basket.Total, batch.Basket.CurrencyId));
         Assert.Equal(new[] { ShoppingReasonCodes.OrderBindingRequired }, batch.Basket.ReasonCodes);
     }
 
@@ -92,18 +92,55 @@ public class S2SelectionBatchTests
         Assert.Equal((false, (decimal?)null), (batch.Basket.AllReady, batch.Basket.Total));
     }
 
-    [Fact]
-    public async Task PRICE_20_the_same_offer_item_twice_in_one_basket_rejects_both_lines_without_choosing_a_winner()
+    [Theory]
+    [InlineData(1, 1, ShoppingReasonCodes.DuplicateSelection)]
+    [InlineData(1, 2, ShoppingReasonCodes.QuantitySplitAcrossLines)]
+    public async Task PRICE_20_B4_the_same_offer_item_twice_with_the_same_or_a_split_quantity_rejects_both_lines_without_choosing_a_winner(int first, int second, string reason)
     {
         var lab = BagAndSeatLab();
         var (service, _) = await SelectionDesk.BatchAsync(lab);
         var bag = await BagRefAsync(lab, Adult);
 
-        var batch = await EvaluateAsync(service, Bag("first", bag, 1), Bag("second", bag, 2));
+        var batch = await EvaluateAsync(service, Bag("first", bag, first), Bag("second", bag, second));
 
-        Assert.All(batch.Lines, line => Assert.Equal((SelectionEvaluationStatus.Rejected, false, ShoppingReasonCodes.DuplicateSelection), (line.Status, line.CanPurchase, line.ReasonCodes.Single())));
+        Assert.All(batch.Lines, line => Assert.Equal((SelectionEvaluationStatus.Rejected, false, reason), (line.Status, line.CanPurchase, line.ReasonCodes.Single())));
         Assert.All(batch.Lines, line => Assert.Equal(SelectionEvaluationStatus.Accepted, line.Ancillary!.Evaluation.Status));
         Assert.False(batch.Basket.AllReady);
+    }
+
+    [Fact]
+    public async Task B4_two_different_selections_of_one_candidate_are_refused_because_no_rule_authorizes_a_repeated_instance()
+    {
+        var lab = new ShoppingLab();
+        var wifi = lab.Definition("A24");
+
+        lab.Price(wifi, lab.Provision(wifi), Rate(30m));
+
+        var (service, _) = await SelectionDesk.BatchAsync(lab);
+        var plan = (await SnapshotAsync(lab)).Items.First(item => item.Candidate.VariantCode == "A24").OfferItemRef;
+
+        var batch = await EvaluateAsync(
+            service,
+            new SelectionLineRequest("one-device", SelectionLineKind.Ancillary, plan, new AncillarySelection { PlanCode = wifi.ServiceDefinitionRef, DeviceCount = 1 }, null),
+            new SelectionLineRequest("two-devices", SelectionLineKind.Ancillary, plan, new AncillarySelection { PlanCode = wifi.ServiceDefinitionRef, DeviceCount = 2 }, null));
+
+        Assert.All(batch.Lines, line => Assert.Equal((SelectionEvaluationStatus.Rejected, ShoppingReasonCodes.RepeatedInstanceNotAllowed), (line.Status, line.ReasonCodes.Single())));
+    }
+
+    [Fact]
+    public async Task B4_the_same_product_for_another_traveller_or_another_bound_is_never_a_duplicate_and_one_line_keeps_its_quantity_cap()
+    {
+        var lab = BagAndSeatLab();
+        var (service, _) = await SelectionDesk.BatchAsync(lab);
+        var bags = (await SnapshotAsync(lab)).Items.Where(item => item.Candidate.VariantCode == "A01").Select(item => item.OfferItemRef).ToList();
+
+        var independent = await EvaluateAsync(service, bags.Select((bag, index) => Bag($"bag-{index}", bag, 1)).ToArray());
+        var aboveCap = await EvaluateAsync(service, Bag("seven", bags[0], 7));
+
+        Assert.True(bags.Count >= 4);
+        Assert.All(independent.Lines, line => Assert.Equal((SelectionEvaluationStatus.Accepted, true), (line.Status, line.CanPurchase)));
+        Assert.Equal(SelectionEvaluationStatus.Rejected, aboveCap.Lines[0].Status);
+        Assert.Contains(aboveCap.Lines[0].Ancillary!.Evaluation.FieldIssues, issue => issue.ReasonCode == ShoppingReasonCodes.QuantityAboveMaximum);
     }
 
     [Fact]
@@ -135,7 +172,7 @@ public class S2SelectionBatchTests
         Assert.Equal((false, "SEAT_STANDARD", "3A", Adult), (paid.IsIncludedSeat, paid.Offer.Candidate!.ServiceDefinitionRef, paid.Offer.SeatNumber, paid.Offer.TravellerRef));
         Assert.Equal((true, (CanonicalAncillaryOfferCandidate?)null, "3B", Child), (included.IsIncludedSeat, included.Offer.Candidate, included.Offer.SeatNumber, included.Offer.TravellerRef));
         Assert.Equal((paid.Flight.Flight.FlightId, paid.Flight.Flight.FlightCapacityId), (included.Flight.Flight.FlightId, included.Flight.Flight.FlightCapacityId));
-        Assert.Equal((true, (decimal?)15m), (batch.Basket.AllReady, batch.Basket.Total));
+        Assert.Equal((false, (decimal?)15m), (batch.Basket.AllReady, batch.Basket.Total));
     }
 
     [Fact]
@@ -173,7 +210,7 @@ public class S2SelectionBatchTests
         var batch = await EvaluateAsync(service, Bag("bag", await BagRefAsync(lab, Adult), 2), Seat("seat", await SeatIdAsync(seatMaps, "3A", Adult)));
 
         Assert.Equal(new[] { SelectionLineKind.Ancillary, SelectionLineKind.SeatMap }, batch.Lines.Select(line => line.Kind));
-        Assert.Equal((true, (decimal?)235m), (batch.Basket.AllReady, batch.Basket.Total));
+        Assert.Equal((false, (decimal?)235m), (batch.Basket.AllReady, batch.Basket.Total));
     }
 
     [Fact]
@@ -191,7 +228,7 @@ public class S2SelectionBatchTests
         Assert.Equal((Child, batch.Lines[1].Seat!.Flight.Flight.FlightId.ToString()), (backoffice.Lines[1].Seat!.TravelerId, backoffice.Lines[1].Seat!.SegmentId));
         Assert.Equal((ApiSelectionBatchMapper.AncillarySelectionBatch, "SeatMap", "2", "1"), (api.Data.Type, api.Data.Lines[1].Kind, api.Data.Lines[1].Seat!.TravelerId, api.Data.Lines[1].Seat!.SegmentId));
         Assert.Equal((Child, batch.Lines[1].Seat!.Flight.FlightRef, 15m), (otaPanel.Lines[1].Seat!.TravelerId, otaPanel.Lines[1].Seat!.SegmentId, otaPanel.Lines[1].Seat!.Total!.Value));
-        Assert.Equal((true, (decimal?)125m), (otaPanel.Basket.AllReady, otaPanel.Basket.Total));
+        Assert.Equal((false, (decimal?)125m), (otaPanel.Basket.AllReady, otaPanel.Basket.Total));
     }
 
     [Theory]

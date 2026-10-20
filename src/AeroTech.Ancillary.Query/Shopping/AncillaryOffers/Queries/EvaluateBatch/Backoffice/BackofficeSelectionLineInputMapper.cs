@@ -11,7 +11,9 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatc
                     input.Kind,
                     input.OfferItemRef,
                     input.Selection is null ? null : BackofficeSelectionInputMapper.ToSelection(input.Selection),
-                    input.SeatMapSelectionId))
+                    input.SeatMapSelectionId,
+                    input.ExitRowTermsAccepted,
+                    input.SelectedOptionRefs))
                 .ToList();
     }
 }

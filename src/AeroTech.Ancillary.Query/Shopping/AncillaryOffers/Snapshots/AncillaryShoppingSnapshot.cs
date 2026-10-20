@@ -28,5 +28,6 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Snapshots
         string OfferItemRef,
         long PointOfSaleId,
         AncillaryShoppingContext Context,
-        CanonicalAncillaryOfferCandidate Candidate);
+        CanonicalAncillaryOfferCandidate Candidate,
+        IReadOnlyList<OfferOptionGroup> OptionGroups);
 }

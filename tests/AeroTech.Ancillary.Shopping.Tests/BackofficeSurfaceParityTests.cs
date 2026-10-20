@@ -163,14 +163,13 @@ public class BackofficeSurfaceParityTests
             pricedAt,
             pricedAt + SourceContextTtl,
             FlightOfferFingerprint.Of(offer));
-        var service = new GetAncillaryOffersService(
+        var service = Offers(
             Sources(new FlightOfferShoppingSource(
                 new FixedOffers(offer),
                 new TestOnlyAirportReference(),
                 new TestOnlyAirFareReference(),
                 new FixedClock { Now = pricedAt },
-                new FlightOfferShoppingOptions(SourceContextTtl))),
-            lab.Engine);
+                new FlightOfferShoppingOptions(SourceContextTtl))), lab);
         var response = BackofficeAncillaryOffersMapper.Map(await service.ExecuteAsync(new OfferQuery(OfferWire.OfferId), Desk));
 
         Assert.Equal((Pos, (long?)9000000000000000900, Irr, pricedAt), (context.PointOfSaleId, context.CustomerId, context.CurrencyId, context.EvaluatedAtUtc));

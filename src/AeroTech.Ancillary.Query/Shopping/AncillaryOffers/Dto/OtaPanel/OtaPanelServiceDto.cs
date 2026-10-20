@@ -1,3 +1,5 @@
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Selection;
+
 namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.OtaPanel
 {
     public sealed record OtaPanelServiceDto(
@@ -25,5 +27,8 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.OtaPanel
         string OfferReadiness,
         IReadOnlyList<string> ReasonCodes,
         IReadOnlyList<OtaPanelFeeDto> Taxes,
-        IReadOnlyList<OtaPanelFeeDto> Fees);
+        IReadOnlyList<OtaPanelFeeDto> Fees,
+        OfferSelectionContractDto SelectionContract,
+        IReadOnlyList<OfferInlineOptionGroupDto> OptionGroups,
+        OfferInteractionDto Interaction);
 }

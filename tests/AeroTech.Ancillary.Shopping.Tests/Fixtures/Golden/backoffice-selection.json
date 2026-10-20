@@ -219,7 +219,13 @@
       "canPurchase": false,
       "reasonCodes": [
         "InventoryNotConfigured"
-      ]
+      ],
+      "optionGroups": [],
+      "interaction": {
+        "mode": "Inline",
+        "requiresDetails": false,
+        "reasonCodes": []
+      }
     },
     "selectedQuantityTotal": 10900000,
     "fieldIssues": [],

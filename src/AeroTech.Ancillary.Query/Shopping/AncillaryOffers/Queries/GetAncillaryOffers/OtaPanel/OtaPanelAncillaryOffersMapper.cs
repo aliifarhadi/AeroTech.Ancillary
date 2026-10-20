@@ -1,5 +1,6 @@
 using AeroTech.Ancillary.Application.FlightOffers;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.OtaPanel;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOfferDetail;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Snapshots;
 using AeroTech.Ancillary.Query.Shopping.Common.FlightOffers;
 using AeroTech.Ancillary.Query.Shopping.Common;
@@ -42,7 +43,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
                     .OrderBy(item => item.Candidate.Profile)
                     .ThenBy(item => item.Candidate.ServiceDefinitionRef, StringComparer.Ordinal)
                     .ThenBy(item => item.PointOfSaleId)
-                    .Select(item => Service(item.OfferItemRef, item.Candidate))
+                    .Select(item => Service(item.OfferItemRef, item.Candidate, item.OptionGroups))
                     .ToList());
         }
 
@@ -54,7 +55,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
                 .Select(rate => new OtaPanelRateOfExchangeDto(rate.RateOfExchangeTableId, rate.FromCurrencyId, rate.ToCurrencyId, rate.Rate))
                 .ToList();
 
-        public static OtaPanelServiceDto Service(string offerItemRef, CanonicalAncillaryOfferCandidate candidate)
+        public static OtaPanelServiceDto Service(string offerItemRef, CanonicalAncillaryOfferCandidate candidate, IReadOnlyList<OfferOptionGroup> optionGroups)
             => new(
                 offerItemRef,
                 candidate.Profile.ToString(),
@@ -80,7 +81,10 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
                 candidate.OfferReadiness.ToString(),
                 candidate.Eligibility.ReasonCodes,
                 candidate.Price.AddedTaxLines.Select(Fee).ToList(),
-                candidate.Price.AppliedUnitFeeLines.Select(Fee).ToList());
+                candidate.Price.AppliedUnitFeeLines.Select(Fee).ToList(),
+                OfferSelectionDetailsMapper.SelectionContract(candidate.Selection),
+                OfferInlineOptions.Groups(offerItemRef, candidate, optionGroups, refs => refs, refs => refs),
+                OfferInlineOptions.Interaction(candidate, optionGroups));
 
         public static OtaPanelMoneyDto? Money(decimal? amount, int? currencyId)
             => amount is { } value && currencyId is { } currency ? new OtaPanelMoneyDto(value, currency) : null;
@@ -113,7 +117,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
                     .OrderBy(item => item.Candidate.Profile)
                     .ThenBy(item => item.Candidate.ServiceDefinitionRef, StringComparer.Ordinal)
                     .ThenBy(item => item.PointOfSaleId)
-                    .Select(item => Service(item.OfferItemRef, item.Candidate))
+                    .Select(item => Service(item.OfferItemRef, item.Candidate, item.OptionGroups))
                     .ToList());
         }
     }
