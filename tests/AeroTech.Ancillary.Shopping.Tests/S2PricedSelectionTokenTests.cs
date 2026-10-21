@@ -24,7 +24,6 @@ public class S2PricedSelectionTokenTests
             OrderCommercialVersion = 3,
             SourceVersion = "source-version-1",
             Scope = new AncillarySalesScope(Airline, Channel.PartnerAPI, [Pos], TravelAgencyId: 77, CustomerId: 5001),
-            Kind = SelectionLineKind.Ancillary,
             OfferItemRef = "offer-item-ref",
             Selection = new AncillarySelection
             {

@@ -135,8 +135,7 @@ public class V12PricingAcceptanceTests
             Change(pricing.Id, Pricing(provisionId, Eur, Base(20m, PassengerTypeCode.ADT, null, 65)))));
         await RefusedAsync(16502, 422, scope => scope.ChangePricing.ChangeAsync(
             Change(pricing.Id, Pricing(provisionId, Eur, Base(-20m, PassengerTypeCode.ADT)))));
-        await RefusedAsync(16502, 422, scope => scope.ChangePricing.ChangeAsync(
-            Change(pricing.Id, Pricing(provisionId, Eur, Base(0m, PassengerTypeCode.ADT)))));
+        await DefinePricingAsync(await DraftProvisionAsync(definitionId), Eur, Base(0m, PassengerTypeCode.ADT));
         await RefusedAsync(16512, 422, scope => scope.ChangePricing.ChangeAsync(
             Change(pricing.Id, Pricing(provisionId, Eur, Base(20.005m, PassengerTypeCode.ADT)))));
 

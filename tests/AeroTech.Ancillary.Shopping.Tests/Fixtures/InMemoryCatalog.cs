@@ -80,6 +80,28 @@ public sealed class InMemoryCatalog :
             Pricings.Where(pricing => Unfiltered || (ancillaryProvisionIds.Contains(pricing.AncillaryProvisionId) && pricing.Status == PricingStatus.Active)).ToList());
     }
 
+    public Task<IReadOnlyList<AncillaryServiceDefinition>> FindActiveDefinitionsAsync(IReadOnlyCollection<long> definitionIds, CancellationToken cancellationToken = default)
+    {
+        Reads++;
+
+        return Task.FromResult<IReadOnlyList<AncillaryServiceDefinition>>(
+            Definitions.Where(definition => definitionIds.Contains(definition.Id) && definition.Status == ServiceDefinitionStatus.Active).ToList());
+    }
+
+    public Task<IReadOnlyList<AncillaryPricing>> FindActivePricingsAsync(IReadOnlyCollection<long> pricingIds, CancellationToken cancellationToken = default)
+    {
+        Reads++;
+
+        return Task.FromResult<IReadOnlyList<AncillaryPricing>>(Pricings.Where(pricing => pricingIds.Contains(pricing.Id) && pricing.Status == PricingStatus.Active).ToList());
+    }
+
+    public Task<IReadOnlyList<AncillaryProvision>> FindActiveProvisionsAsync(IReadOnlyCollection<long> provisionIds, CancellationToken cancellationToken = default)
+    {
+        Reads++;
+
+        return Task.FromResult<IReadOnlyList<AncillaryProvision>>(Provisions.Where(provision => provisionIds.Contains(provision.Id) && provision.Status == ProvisionStatus.Active).ToList());
+    }
+
     public Task<IReadOnlyList<InventoryConfiguration>> ListAsync(
         int ownerAirlineId,
         IReadOnlyCollection<string> serviceDefinitionRefs,

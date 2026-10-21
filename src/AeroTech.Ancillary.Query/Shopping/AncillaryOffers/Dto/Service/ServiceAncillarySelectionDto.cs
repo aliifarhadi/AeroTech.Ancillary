@@ -11,7 +11,6 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Service
         string? EquipmentKind,
         decimal? WeightKg,
         string? SeatNumber,
-        bool? ExitRowTermsAccepted,
         ExtraSeatPurpose? Purpose,
         int? TargetCabinId,
         string? QuoteRef,

@@ -8,5 +8,7 @@ namespace AeroTech.Ancillary.Shopping.Reading
             IReadOnlyCollection<long> serviceDefinitionIds,
             long pointOfSaleId,
             CancellationToken cancellationToken = default);
+
+        Task<IReadOnlyList<AncillaryProvision>> FindActiveProvisionsAsync(IReadOnlyCollection<long> provisionIds, CancellationToken cancellationToken = default);
     }
 }

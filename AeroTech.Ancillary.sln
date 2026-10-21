@@ -53,8 +53,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AeroTech.Ancillary.Shopping
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AeroTech.Ancillary.Shopping.Tests", "tests\AeroTech.Ancillary.Shopping.Tests\AeroTech.Ancillary.Shopping.Tests.csproj", "{32B92CB5-651C-4BF2-BA07-7FF8E3121ED2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AeroTech.Ancillary.Stage2.EndToEndTests", "tests\AeroTech.Ancillary.Stage2.EndToEndTests\AeroTech.Ancillary.Stage2.EndToEndTests.csproj", "{2DC22EAE-00E6-45D6-AEF6-79C6FFD89A1F}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -281,18 +279,6 @@ Global
 		{32B92CB5-651C-4BF2-BA07-7FF8E3121ED2}.Release|x64.Build.0 = Release|Any CPU
 		{32B92CB5-651C-4BF2-BA07-7FF8E3121ED2}.Release|x86.ActiveCfg = Release|Any CPU
 		{32B92CB5-651C-4BF2-BA07-7FF8E3121ED2}.Release|x86.Build.0 = Release|Any CPU
-		{2DC22EAE-00E6-45D6-AEF6-79C6FFD89A1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2DC22EAE-00E6-45D6-AEF6-79C6FFD89A1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2DC22EAE-00E6-45D6-AEF6-79C6FFD89A1F}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{2DC22EAE-00E6-45D6-AEF6-79C6FFD89A1F}.Debug|x64.Build.0 = Debug|Any CPU
-		{2DC22EAE-00E6-45D6-AEF6-79C6FFD89A1F}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{2DC22EAE-00E6-45D6-AEF6-79C6FFD89A1F}.Debug|x86.Build.0 = Debug|Any CPU
-		{2DC22EAE-00E6-45D6-AEF6-79C6FFD89A1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2DC22EAE-00E6-45D6-AEF6-79C6FFD89A1F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2DC22EAE-00E6-45D6-AEF6-79C6FFD89A1F}.Release|x64.ActiveCfg = Release|Any CPU
-		{2DC22EAE-00E6-45D6-AEF6-79C6FFD89A1F}.Release|x64.Build.0 = Release|Any CPU
-		{2DC22EAE-00E6-45D6-AEF6-79C6FFD89A1F}.Release|x86.ActiveCfg = Release|Any CPU
-		{2DC22EAE-00E6-45D6-AEF6-79C6FFD89A1F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -319,6 +305,5 @@ Global
 		{47B207CF-6F18-43D3-9AD9-0006EFA38B91} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{7B2B5473-C043-4865-9EA2-CFC0352324CC} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{32B92CB5-651C-4BF2-BA07-7FF8E3121ED2} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
-		{2DC22EAE-00E6-45D6-AEF6-79C6FFD89A1F} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 EndGlobal

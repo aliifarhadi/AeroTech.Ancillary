@@ -57,10 +57,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
                 case AncillaryVariant.StandardSeat or AncillaryVariant.PreferredSeat or AncillaryVariant.ExtraSeat:
                     Add("SeatNumber", SelectionFieldType.Text);
 
-                    if (definition.Seat!.RequiresExitRowEligibility)
-                        Add("ExitRowTermsAccepted", SelectionFieldType.Boolean);
-
-                    if (definition.Seat.SeatPurpose == SeatPurpose.ExtraSeat)
+                    if (definition.Seat!.SeatPurpose == SeatPurpose.ExtraSeat)
                         Add("Purpose", SelectionFieldType.Code);
 
                     return Build(SelectionKind.SeatMapSelection, TravellerRef, FlightRef);

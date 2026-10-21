@@ -32,5 +32,19 @@ namespace AeroTech.Ancillary.Shopping.Reading.Sql
                 .ThenBy(provision => provision.Sequence)
                 .ToListAsync(cancellationToken);
         }
+
+        public async Task<IReadOnlyList<AncillaryProvision>> FindActiveProvisionsAsync(IReadOnlyCollection<long> provisionIds, CancellationToken cancellationToken = default)
+        {
+            if (provisionIds.Count == 0)
+                return [];
+
+            return await _dbContext.AncillaryProvisions
+                .AsNoTracking()
+                .AsSplitQuery()
+                .WithChildren(_dbContext)
+                .Where(provision => provisionIds.Contains(provision.Id) && provision.Status == ProvisionStatus.Active)
+                .OrderBy(provision => provision.Id)
+                .ToListAsync(cancellationToken);
+        }
     }
 }

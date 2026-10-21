@@ -1,5 +1,7 @@
 # S2 standalone real-HTTP E2E — conformance
 
+> **Addendum 2026-10-21 (SeatMap Resolve change set, uncommitted on `ca4242b`).** The seat flows below were rebuilt on the new `POST /Service/v1/Ancillaries/SeatMaps/Resolve` and the recoverable seat id; seat lines no longer exist in EvaluateBatch and `includedSeat` no longer exists in the selection Resolve. The simulator Add now takes `seats[]` beside `pricedSelectionRefs[]` and calls both Resolve routes. Renamed or new tests: `C3_01` (zero-rated 3B, uncategorised 3C blocked), `C3_02` (paid + zero-rated seats resolve, same seat twice rejected), `C3_04` (exit-row terms per id; a seat line in EvaluateBatch is 422 / 16801), new `C3_05` (offer path, hand-made id), `C4_F4` (bag reference + two seat ids in one Add), `C5_07` (taken seat stale at the seat Resolve, nothing inserted). Run on 2026-10-21: 31 discovered, 31 executed, 0 failed, 0 skipped, no aborted line. The statements "no change to the SeatMap DTO or the seat-id algorithm" and the C3/§4 rows below describe the 2026-10-20 state; see `S2-SEATMAP-RESOLVE-CONFORMANCE.md` and `S2-ORDERING-HANDOFF-CONTRACT.md` §1b for the current one.
+
 ## Verdicts
 
 - **`S2_STANDALONE_HTTP_E2E_PASSED`**: C1–C5 pass through real HTTP TestServers. 30 tests were discovered and 30 executed, with 0 failed, 0 skipped and no aborted line. Order additions are verified by a separate GET to the Ordering simulator, and no external service is reached.

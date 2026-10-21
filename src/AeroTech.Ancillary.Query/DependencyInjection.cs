@@ -17,6 +17,7 @@ using AeroTech.Ancillary.Query.Shopping.Common.Orders;
 using AeroTech.Ancillary.Query.Shopping.Common.PricedSelections;
 using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
 using AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap;
+using AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.ResolveSeatMapSelections;
 using AeroTech.Framework.Infrastructure.HealthChecks;
 using AeroTech.Ancillary.Query.AirportSlotInventoryAggregate.Queries.GetAirportSlotInventoriesPaginated;
 using AeroTech.Ancillary.Query.AirportSlotInventoryAggregate.Queries.GetAirportSlotInventoryById;
@@ -78,6 +79,7 @@ namespace AeroTech.Ancillary.Query
             services.AddScoped<IPricedSelectionTokens, PricedSelectionTokens>();
             services.AddScoped<IEvaluateBatchService, EvaluateBatchService>();
             services.AddScoped<IResolveSelectionsService, ResolveSelectionsService>();
+            services.AddScoped<IResolveSeatMapSelectionsService, ResolveSeatMapSelectionsService>();
             services.AddScoped<IPointOfSaleEligibilityReference, PointOfSaleEligibilityService>();
             services.AddScoped<IAgencySalesScopeService, AgencySalesScopeService>();
             services.AddScoped<IBackofficeSalesScopeResolver, BackofficeSalesScopeResolver>();

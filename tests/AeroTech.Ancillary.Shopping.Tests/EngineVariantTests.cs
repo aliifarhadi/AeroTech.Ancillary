@@ -173,16 +173,15 @@ public class EngineVariantTests
         var adult = await ShopAsync("A08");
         var child = await ShopAsync("A08", Trip.Context(travellers: [Trip.Child("T1")]));
         var unverified = await ShopAsync("A08", Trip.Context(travellers: [Trip.Adult() with { VerifiedExitRowEligible = null }]));
-        var seat = new AncillarySelection { SeatNumber = "12A", ExitRowTermsAccepted = true };
+        var seat = new AncillarySelection { SeatNumber = "12A" };
         var exitRow = Trip.Context().WithSeat("12A", "E");
 
         Assert.Equal(OfferReadiness.NeedsSelection, adult.Shown.OfferReadiness);
-        Assert.Contains(adult.Shown.Selection.Fields, field => field is { Name: "ExitRowTermsAccepted", Required: true });
+        Assert.DoesNotContain(adult.Shown.Selection.Fields, field => field.Name == "ExitRowTermsAccepted");
         Assert.Empty(child.Candidates);
         Assert.Equal(OfferReadiness.NeedsVerification, unverified.Shown.OfferReadiness);
         Assert.Contains(ShoppingReasonCodes.ExitRowEligibilityNotVerified, unverified.Shown.ReasonCodes);
         Assert.Equal(SelectionEvaluationStatus.Accepted, (await adult.ChooseAsync(seat, exitRow)).Status);
-        Rejected(await adult.ChooseAsync(seat with { ExitRowTermsAccepted = false }, exitRow), "ExitRowTermsAccepted", ShoppingReasonCodes.ExitRowTermsNotAccepted);
         Rejected(await adult.ChooseAsync(seat, Trip.Context().WithSeat("12A", "W")), "SeatNumber", ShoppingReasonCodes.SeatCharacteristicNotAllowed);
         Assert.Equal(OfferReadiness.NeedsVerification, (await adult.ChooseAsync(seat)).Candidate.OfferReadiness);
     }

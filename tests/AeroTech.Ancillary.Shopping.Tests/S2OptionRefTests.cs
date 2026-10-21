@@ -33,7 +33,7 @@ public class S2OptionRefTests
     {
         var (service, _) = await SelectionDesk.BatchAsync(lab);
 
-        return (await service.ExecuteAsync(new OfferQuery(OfferWire.OfferId), [new SelectionLineRequest("line", SelectionLineKind.Ancillary, offerItemRef, selection, null, null, optionRefs)], Sale)).Lines.Single();
+        return (await service.ExecuteAsync(new OfferQuery(OfferWire.OfferId), [new SelectionLineRequest("line", offerItemRef, selection, optionRefs)], Sale)).Lines.Single();
     }
 
     private static AncillaryOfferItem Item(AncillaryShoppingSnapshot shopping, string code, string traveller)
@@ -109,16 +109,5 @@ public class S2OptionRefTests
 
         Assert.Equal((SelectionEvaluationStatus.Rejected, false, ShoppingReasonCodes.SelectedOptionNotOffered), (withRef.Status, withRef.CanPurchase, withRef.ReasonCodes.Single()));
         Assert.False(withoutRef.CanPurchase);
-    }
-
-    [Fact]
-    public async Task B6_a_seat_line_cannot_carry_option_references()
-    {
-        var (service, _) = await SelectionDesk.BatchAsync(new ShoppingLab());
-
-        var refused = await Assert.ThrowsAsync<BusinessException>(
-            () => service.ExecuteAsync(new OfferQuery(OfferWire.OfferId), [new SelectionLineRequest("seat", SelectionLineKind.SeatMap, null, null, "seat-id", null, new Dictionary<string, string> { ["seatNumber"] = "x" })], Sale));
-
-        Assert.Equal((16801, 422), (refused.Code, refused.HttpStatus));
     }
 }

@@ -5,7 +5,6 @@ using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Service;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatch;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveSelections;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveSelections.Service;
-using AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap.Backoffice;
 using AeroTech.Ancillary.Shopping.Selection;
 using AeroTech.Ancillary.Shopping.Tests.Fixtures;
 using AeroTech.Messages.Ancillary.Enums;
@@ -73,7 +72,7 @@ public class S2ResolveHandoffTests
         var item = shopping.Items.First(row => row.Candidate.VariantCode == code && row.Candidate.Travellers.SequenceEqual([Adult]));
         var sent = Accepted(code);
 
-        var view = await ResolveAsync(lab, orders, clock, new SelectionLineRequest("line", SelectionLineKind.Ancillary, item.OfferItemRef, sent, null));
+        var view = await ResolveAsync(lab, orders, clock, new SelectionLineRequest("line", item.OfferItemRef, sent));
         var service = view.Result!.Service!;
         var candidate = item.Candidate;
 
@@ -87,20 +86,6 @@ public class S2ResolveHandoffTests
             (candidate.Document.Routing.ToString(), candidate.Document.DocumentType.ToString(), candidate.Document.DocumentRequired, candidate.Confirmation.ConfirmationRequirement.ToString(), candidate.Price.PricingRateId),
             (service.DocumentRouting, service.DocumentType, service.DocumentRequired, service.ConfirmationRequirement, service.PricingRateId));
         Assert.Equal(new[] { 101L }, service.OrderTravellerIds);
-    }
-
-    [Fact]
-    public async Task B1_a_paid_seat_reaches_ordering_with_the_seat_number_taken_from_the_seat_map()
-    {
-        var (lab, orders, clock) = await OrderAsync("A07");
-        var (_, seatMaps) = await BatchAsync(lab, clock: clock, orders: orders);
-        var seat = (await seatMaps.ExecuteAsync(new BackofficeGetSeatMapQuery { OrderId = OrderDesk.OrderId }, Sale)).Flights[0].OffersOf("3A").Single(offer => offer.TravellerRef == Child);
-
-        var view = await ResolveAsync(lab, orders, clock, new SelectionLineRequest("seat", SelectionLineKind.SeatMap, null, null, seat.Id));
-        var service = view.Result!.Service!;
-
-        Assert.Equal(("Valid", "A07", "3A", (bool?)null, "3A"), (view.Result.Status, service.VariantCode, service.Selection.SeatNumber, service.Selection.ExitRowTermsAccepted, service.SeatNumber));
-        Assert.Equal(new[] { 102L }, service.OrderTravellerIds);
     }
 
     [Fact]
@@ -129,7 +114,7 @@ public class S2ResolveHandoffTests
             AnimalAgeWeeks = 20
         };
 
-        var view = await ResolveAsync(lab, orders, clock, new SelectionLineRequest("pet", SelectionLineKind.Ancillary, item.OfferItemRef, pet, null));
+        var view = await ResolveAsync(lab, orders, clock, new SelectionLineRequest("pet", item.OfferItemRef, pet));
 
         Assert.False(view.AllReady);
         Assert.Null(view.Result);

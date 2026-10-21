@@ -20,8 +20,6 @@ namespace AeroTech.Ancillary.Shopping.Selection
 
         public string? SeatNumber { get; init; }
 
-        public bool? ExitRowTermsAccepted { get; init; }
-
         public ExtraSeatPurpose? Purpose { get; init; }
 
         public int? TargetCabinId { get; init; }

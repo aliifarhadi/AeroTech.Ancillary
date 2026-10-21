@@ -70,7 +70,6 @@ namespace AeroTech.Ancillary.Shopping.Results
         public const string SeatCharacteristicNotAllowed = "SeatCharacteristicNotAllowed";
         public const string ExitRowEligibilityNotVerified = "ExitRowEligibilityNotVerified";
         public const string ExitRowNotEligible = "ExitRowNotEligible";
-        public const string ExitRowTermsNotAccepted = "ExitRowTermsNotAccepted";
         public const string ExtraSeatPurposeMismatch = "ExtraSeatPurposeMismatch";
         public const string UpgradeFromCabinMismatch = "UpgradeFromCabinMismatch";
         public const string UpgradeTargetCabinMismatch = "UpgradeTargetCabinMismatch";
@@ -245,7 +244,6 @@ namespace AeroTech.Ancillary.Shopping.Results
             SeatCharacteristicNotAllowed,
             ExitRowEligibilityNotVerified,
             ExitRowNotEligible,
-            ExitRowTermsNotAccepted,
             ExtraSeatPurposeMismatch,
             UpgradeFromCabinMismatch,
             UpgradeTargetCabinMismatch,

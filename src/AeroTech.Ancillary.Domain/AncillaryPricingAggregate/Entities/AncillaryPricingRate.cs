@@ -26,8 +26,6 @@ namespace AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Entities
 
             var basePrice = Money.Of(args.BaseAmount, args.CurrencyId);
 
-            Require(basePrice.Amount > 0m, nameof(BaseAmount));
-
             Id = id;
             AncillaryPricingId = ancillaryPricingId;
             PassengerTypeCode = args.PassengerTypeCode;

@@ -19,15 +19,11 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatc
         private static ApiSelectionLineDto Line(SelectionLineSnapshot line, ApiOfferReferences references)
             => new(
                 line.ClientSelectionId,
-                line.Kind.ToString(),
                 line.Status.ToString(),
                 line.ReasonCodes,
                 line.CanPurchase,
                 line.PricedSelection?.Value,
                 line.PricedSelection?.ExpiresAtUtc,
-                line.Ancillary is { } ancillary ? ApiSelectionResultMapper.Data(ancillary, references, line.CanPurchase, line.PricedSelection) : null,
-                line.Seat is null
-                    ? null
-                    : OfferSelectionBatchMapper.Seat(line, travellerRef => references.TravelerIds([travellerRef])[0], flight => references.SegmentIds([flight.FlightRef])[0]));
+                line.Ancillary is { } ancillary ? ApiSelectionResultMapper.Data(ancillary, references, line.CanPurchase, line.PricedSelection) : null);
     }
 }

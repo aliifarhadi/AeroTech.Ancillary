@@ -4,6 +4,5 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Service
         string PricedSelectionRef,
         string Status,
         IReadOnlyList<string> ReasonCodes,
-        ServiceResolvedServiceDto? Service,
-        ServiceIncludedSeatDto? IncludedSeat);
+        ServiceResolvedServiceDto? Service);
 }

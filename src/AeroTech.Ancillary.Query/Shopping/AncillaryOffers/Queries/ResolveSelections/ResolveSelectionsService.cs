@@ -13,7 +13,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveSelec
 {
     public sealed class ResolveSelectionsService : IResolveSelectionsService
     {
-        private static readonly string[] SourceChanges = [ShoppingReasonCodes.OfferItemNotOffered, ShoppingReasonCodes.SeatSelectionNotOffered];
+        private static readonly string[] SourceChanges = [ShoppingReasonCodes.OfferItemNotOffered];
 
         private readonly IPricedSelectionTokens _tokens;
         private readonly IEvaluateBatchService _batches;
@@ -127,10 +127,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveSelec
         }
 
         private static bool SameFacts(PricedSelection signed, PricedSelection fresh)
-            => signed.Kind == fresh.Kind
-               && signed.OfferItemRef == fresh.OfferItemRef
-               && signed.SeatMapSelectionId == fresh.SeatMapSelectionId
-               && signed.Seat == fresh.Seat
+            => signed.OfferItemRef == fresh.OfferItemRef
                && signed.CoverageScope == fresh.CoverageScope
                && signed.TravellerRefs.SequenceEqual(fresh.TravellerRefs, StringComparer.Ordinal)
                && signed.FlightRefs.SequenceEqual(fresh.FlightRefs, StringComparer.Ordinal)
@@ -146,13 +143,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveSelec
             => [.. line.ReasonCodes.Union(line.Ancillary?.Evaluation.FieldIssues.Select(issue => issue.ReasonCode) ?? [], StringComparer.Ordinal)];
 
         private static SelectionLineRequest Request(int index, PricedSelection token)
-            => new(
-                index.ToString(CultureInfo.InvariantCulture),
-                token.Kind,
-                token.OfferItemRef,
-                token.Kind == SelectionLineKind.Ancillary ? token.Selection ?? new AncillarySelection() : null,
-                token.SeatMapSelectionId,
-                token.Kind == SelectionLineKind.SeatMap ? token.Selection?.ExitRowTermsAccepted : null);
+            => new(index.ToString(CultureInfo.InvariantCulture), token.OfferItemRef, token.Selection ?? new AncillarySelection());
 
         private static ResolvedSelectionSnapshot Unresolved(string reference, SelectionResolutionStatus status, params string[] reasonCodes)
             => new(reference, status, reasonCodes, null, null);

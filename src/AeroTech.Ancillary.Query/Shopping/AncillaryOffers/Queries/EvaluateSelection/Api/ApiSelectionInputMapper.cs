@@ -17,7 +17,6 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSele
                     EquipmentKind = input.EquipmentKind,
                     WeightKg = input.WeightKg,
                     SeatNumber = input.SeatNumber,
-                    ExitRowTermsAccepted = input.ExitRowTermsAccepted,
                     Purpose = input.Purpose,
                     TargetCabinId = input.TargetCabinId,
                     QuoteRef = input.QuoteRef,

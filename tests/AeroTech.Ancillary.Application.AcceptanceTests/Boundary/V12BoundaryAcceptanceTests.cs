@@ -258,6 +258,7 @@ public class V12BoundaryAcceptanceTests
             "POST OtaPanel/AncillaryOffers/Selections/Evaluate",
             "POST OtaPanel/AncillaryOffers/Selections/EvaluateBatch",
             "POST OtaPanel/SeatMaps",
+            "POST Service/Ancillaries/SeatMaps/Resolve",
             "POST Service/Ancillaries/Selections/Resolve",
             "POST Backoffice/AncillaryPricings",
             "GET Backoffice/AncillaryPricings/Paginated",
@@ -361,7 +362,7 @@ public class V12BoundaryAcceptanceTests
         Assert.Equal(
             preserved.Concat(added).Concat(typed).Concat(forms).Concat(inventory).OrderBy(route => route, StringComparer.Ordinal),
             routes.OrderBy(route => route, StringComparer.Ordinal));
-        Assert.Equal(154, routes.Count);
+        Assert.Equal(155, routes.Count);
         Assert.Equal(36, inventory.Length);
         Assert.DoesNotContain(routes, route => new[] { "Sell", "Reserve", "Release", "Expire" }.Any(term => route.Contains(term, StringComparison.Ordinal)));
         Assert.Equal(

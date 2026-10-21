@@ -194,9 +194,9 @@ public class V121FinalPricingConformanceTests
     }
 
     [Fact]
-    public void PR17_a_paid_base_is_positive_and_no_amount_is_negative()
+    public void PR17_a_paid_base_may_be_zero_and_no_amount_is_negative()
     {
-        BusinessAssert.Throws(16502, 422, () => Define(PricingUnit.PerItem, Rate(Eur, 0m)));
+        Assert.Equal(0m, Define(PricingUnit.PerItem, Rate(Eur, 0m)).Rates.Single().BaseAmount);
         BusinessAssert.Throws(16502, 422, () => Define(PricingUnit.PerItem, Rate(Eur, -1m)));
         BusinessAssert.Throws(16502, 422, () => Define(PricingUnit.PerItem, Rate(Eur, 10m, components: [Tax("XT", -1m, Eur)])));
         Assert.Equal(0m, Define(PricingUnit.PerItem, Rate(Eur, 10m, components: [Tax("XT", 0m, Eur)])).Rates.Single().Components.Single().Amount.Amount);

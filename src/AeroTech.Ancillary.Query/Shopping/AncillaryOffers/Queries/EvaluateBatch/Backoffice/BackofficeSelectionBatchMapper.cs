@@ -1,4 +1,3 @@
-using System.Globalization;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Backoffice;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSelection.Backoffice;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Snapshots;
@@ -14,15 +13,11 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatc
         private static BackofficeSelectionLineDto Line(SelectionLineSnapshot line)
             => new(
                 line.ClientSelectionId,
-                EnumValueDto.Of(line.Kind),
                 EnumValueDto.Of(line.Status),
                 line.ReasonCodes,
                 line.CanPurchase,
                 line.PricedSelection?.Value,
                 line.PricedSelection?.ExpiresAtUtc,
-                line.Ancillary is { } ancillary ? BackofficeSelectionResultMapper.Map(ancillary, line.CanPurchase, line.PricedSelection) : null,
-                line.Seat is null
-                    ? null
-                    : OfferSelectionBatchMapper.Seat(line, travellerRef => travellerRef, flight => flight.Flight.FlightId.ToString(CultureInfo.InvariantCulture)));
+                line.Ancillary is { } ancillary ? BackofficeSelectionResultMapper.Map(ancillary, line.CanPurchase, line.PricedSelection) : null);
     }
 }

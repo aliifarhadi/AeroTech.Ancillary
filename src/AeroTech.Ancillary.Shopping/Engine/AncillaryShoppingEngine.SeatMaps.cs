@@ -104,8 +104,8 @@ namespace AeroTech.Ancillary.Shopping.Engine
                 .ThenBy(row => row.Definition.ServiceDefinitionRef, StringComparer.Ordinal)
                 .FirstOrDefault();
 
-            return category is null || category.Offered is not null
-                ? new SeatPricing(travellerRef, seat.FlightRef, seat.SeatNumber, SeatAvailabilityStatus.Available, category?.Offered)
+            return category?.Offered is { Price.PricingRevisionId: not null } offered
+                ? new SeatPricing(travellerRef, seat.FlightRef, seat.SeatNumber, SeatAvailabilityStatus.Available, offered)
                 : new SeatPricing(travellerRef, seat.FlightRef, seat.SeatNumber, SeatAvailabilityStatus.Blocked, null);
         }
 

@@ -173,7 +173,7 @@ public static class V122Catalog
         ["A05"] = (SelectionKind.QuantityChoice, ["Quantity", "TravellerRef", "BoundRef"]),
         ["A06"] = (SelectionKind.TypedForm, ["EquipmentKind", "Dimensions", "WeightKg", "TravellerRef", "BoundRef"]),
         ["A07"] = (SelectionKind.SeatMapSelection, ["SeatNumber", "TravellerRef", "FlightRef"]),
-        ["A08"] = (SelectionKind.SeatMapSelection, ["SeatNumber", "ExitRowTermsAccepted", "TravellerRef", "FlightRef"]),
+        ["A08"] = (SelectionKind.SeatMapSelection, ["SeatNumber", "TravellerRef", "FlightRef"]),
         ["A09"] = (SelectionKind.SeatMapSelection, ["SeatNumber", "Purpose", "TravellerRef", "FlightRef"]),
         ["A10"] = (SelectionKind.ExternalQuote, ["TargetCabinId", "QuoteRef", "TravellerRef", "FlightRef"]),
         ["A11"] = (SelectionKind.TypedForm, ["MealCode", "TravellerRef", "FlightRef"]),

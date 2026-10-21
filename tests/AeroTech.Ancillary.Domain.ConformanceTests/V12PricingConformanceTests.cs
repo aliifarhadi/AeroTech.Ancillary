@@ -120,10 +120,10 @@ public class V12PricingConformanceTests
     }
 
     [Fact]
-    public void V12_P07_amounts_keep_the_scale_of_their_currency_and_a_base_is_positive()
+    public void V12_P07_amounts_keep_the_scale_of_their_currency_and_a_base_is_never_negative()
     {
         BusinessAssert.Throws(16502, 422, () => Pricing(PricingUnit.PerItem, [Base(-1m)]));
-        BusinessAssert.Throws(16502, 422, () => Pricing(PricingUnit.PerItem, [Base(0m)]));
+        Assert.Equal(0m, Pricing(PricingUnit.PerItem, [Base(0m)]).Rates.Single().BaseAmount);
         BusinessAssert.Throws(16512, 422, () => Pricing(PricingUnit.PerItem, [Base(10.123m)]));
         BusinessAssert.Throws(16502, 422, () => Pricing(PricingUnit.PerItem, [Base(10m), Component(Tax, "VAT", -0.01m)]));
         BusinessAssert.Throws(16512, 422, () => Pricing(PricingUnit.PerItem, [Base(10m), Component(Tax, "VAT", 0.001m)]));

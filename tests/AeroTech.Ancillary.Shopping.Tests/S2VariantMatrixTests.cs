@@ -37,7 +37,7 @@ public class S2VariantMatrixTests
         new("S2M-A05", "A05", SelectionKind.QuantityChoice, () => new() { Quantity = 1 }, SelectionEvaluationStatus.Accepted, Amount, "Purchasable"),
         new("S2M-A06", "A06", SelectionKind.TypedForm, () => new() { EquipmentKind = "BIKE", Dimensions = new(190m, 70m, 30m), WeightKg = 20m }, SelectionEvaluationStatus.Accepted, Amount, "Purchasable, check at reserve"),
         new("S2M-A07", "A07", SelectionKind.SeatMapSelection, () => new() { SeatNumber = "14C" }, SelectionEvaluationStatus.Accepted, Amount, "SeatMaps + Resolve only"),
-        new("S2M-A08", "A08", SelectionKind.SeatMapSelection, () => new() { SeatNumber = "12A", ExitRowTermsAccepted = true }, SelectionEvaluationStatus.Incomplete, null, "SeatMaps + Resolve only; characteristic not verified without a map"),
+        new("S2M-A08", "A08", SelectionKind.SeatMapSelection, () => new() { SeatNumber = "12A" }, SelectionEvaluationStatus.Incomplete, null, "SeatMaps + Resolve only; characteristic not verified without a map"),
         new("S2M-A09", "A09", SelectionKind.SeatMapSelection, () => new() { SeatNumber = "12A", Purpose = ExtraSeatPurpose.PassengerComfort }, SelectionEvaluationStatus.Incomplete, null, "FailClosed: adjacency not verified"),
         new("S2M-A10", "A10", SelectionKind.ExternalQuote, () => new() { TargetCabinId = 2, QuoteRef = "Q-1" }, SelectionEvaluationStatus.Incomplete, null, "NeedsQuote"),
         new("S2M-A11", "A11", SelectionKind.TypedForm, () => new() { MealCode = "VGML" }, SelectionEvaluationStatus.Accepted, 0m, "Free, zero total"),

@@ -1,14 +1,10 @@
 using AeroTech.Ancillary.Application.AcceptanceTests.Fakes;
 using AeroTech.Ancillary.Application.FlightOffers;
-using AeroTech.Ancillary.Application.Orders;
-using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatch;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveSelections;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveSelections.Service;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Snapshots;
-using AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap;
-using AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap.Backoffice;
 using AeroTech.Ancillary.Shopping.Results;
 using AeroTech.Ancillary.Shopping.Selection;
 using AeroTech.Ancillary.Shopping.Tests.Fixtures;
@@ -33,9 +29,9 @@ public class S2SelectionResolveTests
 
     private sealed record Desk(ShoppingLab Lab, FixedClock Clock, FixedOrders Orders, FlightOffer Air, IReadOnlyList<string> Refs)
     {
-        public async Task<SelectionResolutionSnapshot> ResolveAsync(IReadOnlyList<string>? refs = null, long orderId = OrderDesk.OrderId, int expected = Version, IOccupiedSeatProvider? occupied = null)
+        public async Task<SelectionResolutionSnapshot> ResolveAsync(IReadOnlyList<string>? refs = null, long orderId = OrderDesk.OrderId, int expected = Version)
         {
-            var (batch, _) = await SelectionDesk.BatchAsync(Lab, occupied, clock: Clock, orders: Orders);
+            var (batch, _) = await SelectionDesk.BatchAsync(Lab, clock: Clock, orders: Orders);
 
             return await new ResolveSelectionsService(SelectionDesk.Tokens(Clock), batch).ExecuteAsync(orderId, expected, refs ?? Refs);
         }
@@ -45,25 +41,22 @@ public class S2SelectionResolveTests
     {
         var lab = new ShoppingLab();
         var bag = lab.Definition("A01");
-        var seat = lab.Definition("A07");
 
         lab.Price(bag, lab.Provision(bag, stage: PurchaseStage.Both), Rate(100m));
-        lab.Price(seat, lab.Provision(seat, stage: PurchaseStage.Both, rules: Rules(seats: new ProvisionSeatApplicationArgs([], ["W"]))), Rate(15m));
 
         var clock = new FixedClock { Now = Now };
         var air = Sale.Sell(await OfferWire.ReadAsync(OfferWire.Captured()));
         var orders = new FixedOrders(OrderOf(air, commercialVersion: Version));
-        var (batch, seatMaps) = await SelectionDesk.BatchAsync(lab, clock: clock, orders: orders);
+        var (batch, _) = await SelectionDesk.BatchAsync(lab, clock: clock, orders: orders);
         var (source, _) = await SourceAsync(lab, orders: orders);
-        var item = (await Offers(source, lab).ExecuteAsync(new OfferQuery(null, OrderId: OrderDesk.OrderId), Sale))
-            .Items.First(row => row.Candidate.VariantCode == "A01" && row.Candidate.Travellers.SequenceEqual([Adult]));
-        var map = await seatMaps.ExecuteAsync(new BackofficeGetSeatMapQuery { OrderId = OrderDesk.OrderId }, Sale);
+        var items = (await Offers(source, lab).ExecuteAsync(new OfferQuery(null, OrderId: OrderDesk.OrderId), Sale)).Items.ToList();
+        var adultBag = items.First(row => row.Candidate.VariantCode == "A01" && row.Candidate.Travellers.SequenceEqual([Adult]));
+        var childBag = items.First(row => row.Candidate.VariantCode == "A01" && row.Candidate.Travellers.SequenceEqual([Child]));
         var issued = await batch.ExecuteAsync(
             new OfferQuery(null, OrderId: OrderDesk.OrderId),
             [
-                new SelectionLineRequest("bag", SelectionLineKind.Ancillary, item.OfferItemRef, new AncillarySelection { Quantity = 2 }, null),
-                new SelectionLineRequest("paid-seat", SelectionLineKind.SeatMap, null, null, map.Flights[0].OffersOf("3A").Single(offer => offer.TravellerRef == Child).Id),
-                new SelectionLineRequest("included-seat", SelectionLineKind.SeatMap, null, null, map.Flights[0].OffersOf("3B").Single(offer => offer.TravellerRef == Adult).Id)
+                new SelectionLineRequest("adult-bag", adultBag.OfferItemRef, new AncillarySelection { Quantity = 2 }),
+                new SelectionLineRequest("child-bag", childBag.OfferItemRef, new AncillarySelection { Quantity = 1 })
             ],
             Sale);
 
@@ -73,27 +66,20 @@ public class S2SelectionResolveTests
     private static (SelectionResolutionStatus, string) Verdict(ResolvedSelectionSnapshot result) => (result.Status, string.Join(',', result.ReasonCodes));
 
     [Fact]
-    public async Task SEAT_03_every_signed_line_of_an_unchanged_order_resolves_valid_as_a_typed_service_or_included_seat()
+    public async Task RESOLVE_01_every_signed_line_of_an_unchanged_order_resolves_valid_as_a_typed_service()
     {
         var desk = await IssuedAsync();
 
         var resolution = await desk.ResolveAsync();
         var answer = ServiceSelectionResolutionMapper.Map(resolution, "corr-1");
-        var bag = answer.Results[0].Service!;
-        var paidSeat = answer.Results[1].Service!;
-        var includedSeat = answer.Results[2].IncludedSeat!;
+        var adultBag = answer.Results[0].Service!;
+        var childBag = answer.Results[1].Service!;
 
         Assert.Equal((OrderDesk.OrderId, (int?)Version, "corr-1", true), (answer.OrderId, answer.OrderCommercialVersion, answer.CorrelationId, answer.AllValid));
         Assert.Equal(desk.Refs, answer.Results.Select(result => result.PricedSelectionRef));
         Assert.All(answer.Results, result => Assert.Equal(("Valid", 0), (result.Status, result.ReasonCodes.Count)));
-        Assert.Equal(("Ancillary", "EXTRA_BAG", 200m), (bag.Kind, bag.ServiceDefinitionRef, bag.Price.LineTotal!.Value));
-        Assert.Equal(new[] { 101L }, bag.OrderTravellerIds);
-        Assert.Equal(("SeatMap", "SEAT_STANDARD", "3A", 15m), (paidSeat.Kind, paidSeat.ServiceDefinitionRef, paidSeat.SeatNumber, paidSeat.Price.LineTotal!.Value));
-        Assert.Equal(new[] { 102L }, paidSeat.OrderTravellerIds);
-        Assert.Equal(paidSeat.FlightIds.Single(), includedSeat.FlightId);
-        Assert.Equal(((long?)101L, Adult, "3B", 0m), (includedSeat.OrderTravellerId, includedSeat.TravellerRef, includedSeat.SeatNumber, includedSeat.Fee));
-        Assert.Null(answer.Results[2].Service);
-        Assert.Equal(paidSeat.FlightCapacityId, includedSeat.FlightCapacityId);
+        Assert.Equal(("EXTRA_BAG", 200m, "101"), (adultBag.ServiceDefinitionRef, adultBag.Price.LineTotal!.Value, string.Join(',', adultBag.OrderTravellerIds)));
+        Assert.Equal(("EXTRA_BAG", 100m, "102"), (childBag.ServiceDefinitionRef, childBag.Price.LineTotal!.Value, string.Join(',', childBag.OrderTravellerIds)));
     }
 
     [Fact]
@@ -102,11 +88,11 @@ public class S2SelectionResolveTests
         var desk = await IssuedAsync();
         var tampered = desk.Refs[0][..^4] + (desk.Refs[0][^4..] == "AAAA" ? "BBBB" : "AAAA");
 
-        var resolution = await desk.ResolveAsync([tampered, desk.Refs[1], desk.Refs[2]]);
+        var resolution = await desk.ResolveAsync([tampered, desk.Refs[1]]);
 
         Assert.Equal((SelectionResolutionStatus.Rejected, ShoppingReasonCodes.PricedSelectionNotAuthentic), Verdict(resolution.Results[0]));
         Assert.Null(resolution.Results[0].Line);
-        Assert.All(resolution.Results.Skip(1), result => Assert.Equal(SelectionResolutionStatus.Valid, result.Status));
+        Assert.Equal(SelectionResolutionStatus.Valid, resolution.Results[1].Status);
         Assert.False(resolution.AllValid);
     }
 
@@ -155,26 +141,13 @@ public class S2SelectionResolveTests
 
         var resolution = await desk.ResolveAsync();
 
-        Assert.Equal((SelectionResolutionStatus.Stale, ShoppingReasonCodes.OfferItemNotOffered), Verdict(resolution.Results[0]));
-        Assert.Equal((SelectionResolutionStatus.Stale, ShoppingReasonCodes.SeatSelectionNotOffered), Verdict(resolution.Results[1]));
-        Assert.Equal(SelectionResolutionStatus.Valid, resolution.Results[2].Status);
-    }
-
-    [Fact]
-    public async Task SEAT_07_a_seat_taken_after_evaluation_is_stale_and_its_price_is_never_a_hold()
-    {
-        var desk = await IssuedAsync();
-
-        var resolution = await desk.ResolveAsync(occupied: new FixedOccupiedSeats("3A"));
-
-        Assert.Equal((SelectionResolutionStatus.Stale, ShoppingReasonCodes.SeatSelectionNotOffered), Verdict(resolution.Results[1]));
-        Assert.Equal(new[] { SelectionResolutionStatus.Valid, SelectionResolutionStatus.Valid }, new[] { resolution.Results[0].Status, resolution.Results[2].Status });
+        Assert.All(resolution.Results, result => Assert.Equal((SelectionResolutionStatus.Stale, ShoppingReasonCodes.OfferItemNotOffered), Verdict(result)));
     }
 
     [Theory]
     [InlineData("flight-version")]
     [InlineData("flight-capacity")]
-    public async Task B7_a_flight_change_that_keeps_the_order_version_the_seat_numbers_and_the_prices_still_makes_every_reference_stale(string change)
+    public async Task B7_a_flight_change_that_keeps_the_order_version_and_the_prices_still_makes_every_reference_stale(string change)
     {
         var desk = await IssuedAsync();
         var bound = desk.Air.Bounds[0];
@@ -194,12 +167,11 @@ public class S2SelectionResolveTests
     {
         var desk = await IssuedAsync();
 
-        var resolution = await desk.ResolveAsync([desk.Refs[0], desk.Refs[0], desk.Refs[1], desk.Refs[1]]);
+        var resolution = await desk.ResolveAsync([desk.Refs[0], desk.Refs[0], desk.Refs[1]]);
 
         Assert.Equal((SelectionResolutionStatus.Rejected, ShoppingReasonCodes.DuplicateSelection), Verdict(resolution.Results[0]));
         Assert.Equal((SelectionResolutionStatus.Rejected, ShoppingReasonCodes.DuplicateSelection), Verdict(resolution.Results[1]));
-        Assert.All(resolution.Results.Skip(2), result => Assert.Equal(SelectionResolutionStatus.Rejected, result.Status));
-        Assert.All(resolution.Results.Skip(2), result => Assert.Contains(ShoppingReasonCodes.SeatSelectedTwice, result.ReasonCodes));
+        Assert.Equal(SelectionResolutionStatus.Valid, resolution.Results[2].Status);
     }
 
     [Fact]

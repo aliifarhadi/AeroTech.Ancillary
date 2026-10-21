@@ -8,8 +8,10 @@ using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffe
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Snapshots;
 using AeroTech.Ancillary.Query.Shopping.Common.PricedSelections;
 using AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap;
+using AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.ResolveSeatMapSelections;
 using static AeroTech.Ancillary.Shopping.Tests.Fixtures.BackofficeDesk;
 using static AeroTech.Ancillary.Shopping.Tests.Fixtures.SeatMapDesk;
+using static AeroTech.Ancillary.Shopping.Tests.Fixtures.ShoppingLab;
 
 namespace AeroTech.Ancillary.Shopping.Tests.Fixtures;
 
@@ -39,11 +41,22 @@ public static class SelectionDesk
             offers,
             details,
             new EvaluateSelectionService(details, lab.Engine),
-            seatMaps,
-            Tokens(clock ?? new FixedClock { Now = Sale.EvaluatedAtUtc }, signingKey),
-            lab.Engine);
+            Tokens(clock ?? new FixedClock { Now = Sale.EvaluatedAtUtc }, signingKey));
 
         return (service, seatMaps);
+    }
+
+    public static async Task<(ResolveSeatMapSelectionsService Service, GetSeatMapService SeatMaps)> SeatResolveAsync(
+        ShoppingLab lab,
+        IOccupiedSeatProvider? occupied = null,
+        FlightOffer? offer = null,
+        IOrderCommercialContextReader? orders = null,
+        bool verifiedExitRows = false)
+    {
+        var (source, airports) = await SourceAsync(lab, offer, orders, verifiedExitRows);
+        var seatMaps = new GetSeatMapService(source, new FixedSeatMaps(Aircraft()), occupied ?? new FixedOccupiedSeats(), lab.Engine, lab.Catalog, airports, lab.Catalog);
+
+        return (new ResolveSeatMapSelectionsService(lab.Catalog, lab.Catalog, lab.Catalog), seatMaps);
     }
 
     public static async Task<AncillaryShoppingSnapshot> ShopOrderAsync(ShoppingLab lab, IOrderCommercialContextReader orders)

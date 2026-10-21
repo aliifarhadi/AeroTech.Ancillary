@@ -23,7 +23,6 @@ namespace AeroTech.Ancillary.Shopping.Engine
                 ["EquipmentKind"] = selection => selection.EquipmentKind is not null,
                 ["WeightKg"] = selection => selection.WeightKg is not null,
                 ["SeatNumber"] = selection => selection.SeatNumber is not null,
-                ["ExitRowTermsAccepted"] = selection => selection.ExitRowTermsAccepted is not null,
                 ["Purpose"] = selection => selection.Purpose is not null,
                 ["TargetCabinId"] = selection => selection.TargetCabinId is not null,
                 ["QuoteRef"] = selection => selection.QuoteRef is not null,
@@ -195,9 +194,6 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
             if (Selection is null)
                 return;
-
-            if (specification.RequiresExitRowEligibility && Selection.ExitRowTermsAccepted == false)
-                Outcome.Reject("ExitRowTermsAccepted", ShoppingReasonCodes.ExitRowTermsNotAccepted);
 
             if (Selection.SeatNumber is { } seatNumber && specification.SeatCharacteristicCodes.Count > 0)
                 SeatCharacteristics(seatNumber, specification.SeatCharacteristicCodes.Select(row => row.Code).ToList());

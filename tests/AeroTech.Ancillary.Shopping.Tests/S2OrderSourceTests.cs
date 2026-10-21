@@ -9,7 +9,6 @@ using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Snapshots;
 using AeroTech.Ancillary.Query.Shopping.Common.FlightOffers;
 using AeroTech.Ancillary.Query.Shopping.Common.PricedSelections;
 using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
-using AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap.Backoffice;
 using AeroTech.Ancillary.Shopping.Context;
 using AeroTech.Ancillary.Shopping.Results;
 using AeroTech.Ancillary.Shopping.Selection;
@@ -182,25 +181,18 @@ public class S2OrderSourceTests
     public async Task SEAT_03_an_order_bound_basket_issues_a_signed_reference_per_complete_line_that_reads_back_its_order_and_price()
     {
         var lab = BagLab();
-        var seat = lab.Definition("A07");
-
-        lab.Price(seat, lab.Provision(seat, stage: PurchaseStage.Both, rules: Rules(seats: new ProvisionSeatApplicationArgs([], ["W"]))), Rate(15m));
-
         var clock = new FixedClock { Now = Now };
         var orders = new FixedOrders(OrderOf(await AirAsync(), commercialVersion: 4));
-        var (service, seatMaps) = await SelectionDesk.BatchAsync(lab, clock: clock, orders: orders);
+        var (service, _) = await SelectionDesk.BatchAsync(lab, clock: clock, orders: orders);
         var shopped = await ShopAsync(lab, orders);
-        var bag = shopped.Items.First(item => item.Candidate.VariantCode == "A01" && item.Candidate.Travellers.SequenceEqual([Adult])).OfferItemRef;
-        var map = await seatMaps.ExecuteAsync(new BackofficeGetSeatMapQuery { OrderId = OrderDesk.OrderId }, Sale);
-        var window = map.Flights[0].OffersOf("3A").Single(offer => offer.TravellerRef == Child).Id!;
-        var middle = map.Flights[0].OffersOf("3B").Single(offer => offer.TravellerRef == Adult).Id!;
+        var adultBag = shopped.Items.First(item => item.Candidate.VariantCode == "A01" && item.Candidate.Travellers.SequenceEqual([Adult])).OfferItemRef;
+        var childBag = shopped.Items.First(item => item.Candidate.VariantCode == "A01" && item.Candidate.Travellers.SequenceEqual([Child])).OfferItemRef;
 
         var batch = await service.ExecuteAsync(
             ByOrder,
             [
-                new SelectionLineRequest("bag", SelectionLineKind.Ancillary, bag, new AncillarySelection { Quantity = 1 }, null),
-                new SelectionLineRequest("paid-seat", SelectionLineKind.SeatMap, null, null, window),
-                new SelectionLineRequest("included-seat", SelectionLineKind.SeatMap, null, null, middle)
+                new SelectionLineRequest("adult-bag", adultBag, new AncillarySelection { Quantity = 1 }),
+                new SelectionLineRequest("child-bag", childBag, new AncillarySelection { Quantity = 2 })
             ],
             Sale);
         var tokens = SelectionDesk.Tokens(clock);
@@ -209,22 +201,15 @@ public class S2OrderSourceTests
         foreach (var line in batch.Lines)
             readings.Add(await tokens.ReadAsync(line.PricedSelection!.Value));
 
-        var paidSeat = readings[1].Selection!;
-
-        Assert.Equal((true, (decimal?)115m), (batch.Basket.AllReady, batch.Basket.Total));
+        Assert.Equal((true, (decimal?)300m), (batch.Basket.AllReady, batch.Basket.Total));
         Assert.Empty(batch.Basket.ReasonCodes);
         Assert.All(batch.Lines, line => Assert.Equal(Now + SourceContextTtl, line.PricedSelection!.ExpiresAtUtc));
         Assert.Equal(
             new[]
             {
-                (SelectionResolutionStatus.Valid, OrderDesk.OrderId, 4, SelectionLineKind.Ancillary, (string?)"EXTRA_BAG", 100m),
-                (SelectionResolutionStatus.Valid, OrderDesk.OrderId, 4, SelectionLineKind.SeatMap, "SEAT_STANDARD", 15m),
-                (SelectionResolutionStatus.Valid, OrderDesk.OrderId, 4, SelectionLineKind.SeatMap, null, 0m)
+                (SelectionResolutionStatus.Valid, OrderDesk.OrderId, 4, (string?)"EXTRA_BAG", 100m, adultBag),
+                (SelectionResolutionStatus.Valid, OrderDesk.OrderId, 4, "EXTRA_BAG", 200m, childBag)
             },
-            readings.Select(reading => (reading.Status, reading.Selection!.OrderId, reading.Selection.OrderCommercialVersion, reading.Selection.Kind, reading.Selection.ServiceDefinitionRef, reading.Selection.Total)));
-        Assert.Equal(bag, readings[0].Selection!.OfferItemRef);
-        Assert.Equal(
-            (Child, batch.Lines[1].Seat!.Flight.Flight.FlightCapacityId, "3A", window),
-            (paidSeat.Seat!.TravellerRef, paidSeat.Seat.FlightCapacityId, paidSeat.Seat.SeatNumber, paidSeat.SeatMapSelectionId));
+            readings.Select(reading => (reading.Status, reading.Selection!.OrderId, reading.Selection.OrderCommercialVersion, reading.Selection.ServiceDefinitionRef, reading.Selection.Total, reading.Selection.OfferItemRef)));
     }
 }

@@ -363,7 +363,7 @@ public class ThreeSurfaceTests
         Assert.Equal(new[] { typeof(IAgencySalesScopeService) }, typeof(ApiSalesScopeResolver).GetConstructors().Single().GetParameters().Select(parameter => parameter.ParameterType));
         Assert.Equal(new[] { typeof(IAgencySalesScopeService) }, typeof(OtaPanelSalesScopeResolver).GetConstructors().Single().GetParameters().Select(parameter => parameter.ParameterType));
         Assert.Equal(
-            37,
+            36,
             new[] { typeof(BackofficeAncillarySelectionInput), typeof(ApiAncillarySelectionInput), typeof(OtaPanelAncillarySelectionInput) }
                 .Select(type => Members(type).SequenceEqual(Members(typeof(AncillarySelection))) ? Members(type).Length : -1)
                 .Distinct()

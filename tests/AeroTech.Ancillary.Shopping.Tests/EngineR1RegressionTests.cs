@@ -538,7 +538,7 @@ public class EngineR1RegressionTests
         lab.Sellable("A08");
 
         var shown = (await lab.Engine.ShopAsync(Trip.Context())).One();
-        var seat = new AncillarySelection { SeatNumber = "12A", ExitRowTermsAccepted = true };
+        var seat = new AncillarySelection { SeatNumber = "12A" };
 
         Task<CanonicalAncillarySelectionEvaluation> ChooseAsync(params SeatCharacteristicFacts[] facts)
             => lab.Engine.EvaluateSelectionAsync(Trip.Context() with { SeatCharacteristicFacts = facts }, shown.CandidateIdentity, seat);

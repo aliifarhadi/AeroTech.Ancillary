@@ -1,6 +1,7 @@
 using System.Globalization;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments;
 using AeroTech.Ancillary.Query.Shopping.Common;
+using AeroTech.Ancillary.Query.Shopping.SeatMaps;
 using AeroTech.Ancillary.Query.Shopping.SeatMaps.Dto;
 using AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap;
 using AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap.Api;
@@ -28,7 +29,7 @@ public class SeatMapTests
     private static readonly ShoppingFilter SeatMapFamily = new() { VariantCodes = ["A07", "A08"] };
 
     [Fact]
-    public async Task SM_01_a_seat_takes_its_most_specific_category_and_is_blocked_when_that_category_excludes_the_traveller()
+    public async Task SM_01_a_seat_takes_its_most_specific_category_and_is_blocked_when_that_category_excludes_the_traveller_or_no_category_prices_it()
     {
         var lab = new ShoppingLab();
         var standard = lab.Definition("A07");
@@ -64,13 +65,13 @@ public class SeatMapTests
         Assert.Equal((SeatAvailabilityStatus.Available, "A08", 30m), Of("T1", "12A"));
         Assert.Equal((SeatAvailabilityStatus.Available, "A07", 10m), Of("T1", "12B"));
         Assert.Equal((SeatAvailabilityStatus.Available, "A08", 30m), Of("T1", "12C"));
-        Assert.Equal((SeatAvailabilityStatus.Available, null, null), Of("T1", "14D"));
+        Assert.Equal((SeatAvailabilityStatus.Blocked, null, null), Of("T1", "14D"));
         Assert.Equal((SeatAvailabilityStatus.Occupied, null, null), Of("T1", "15E"));
         Assert.Equal((SeatAvailabilityStatus.Blocked, null, null), Of("T1", "1A"));
         Assert.Equal((SeatAvailabilityStatus.Blocked, null, null), Of("T2", "12A"));
         Assert.Equal((SeatAvailabilityStatus.Available, "A07", 10m), Of("T2", "12B"));
         Assert.Equal((SeatAvailabilityStatus.Blocked, null, null), Of("T2", "12C"));
-        Assert.Equal((SeatAvailabilityStatus.Available, null, null), Of("T2", "14D"));
+        Assert.Equal((SeatAvailabilityStatus.Blocked, null, null), Of("T2", "14D"));
     }
 
     [Fact]
@@ -99,12 +100,12 @@ public class SeatMapTests
         var result = await lab.Engine.PriceSeatsAsync(context, SeatMapFamily, [new SeatMapSeat("F1", "12A", 1, false), new SeatMapSeat("F1", "14D", 1, false)]);
 
         Assert.Equal(
-            new[] { (SeatAvailabilityStatus.Available, (string?)standard.ServiceDefinitionRef, (decimal?)4m), (SeatAvailabilityStatus.Available, null, null) },
+            new[] { (SeatAvailabilityStatus.Available, (string?)standard.ServiceDefinitionRef, (decimal?)4m), (SeatAvailabilityStatus.Blocked, null, null) },
             result.Seats.Select(seat => (seat.Status, seat.Candidate?.ServiceDefinitionRef, seat.Candidate?.Price.CompleteUnitTotal)));
     }
 
     [Fact]
-    public async Task SM_02_without_any_seat_product_every_free_seat_of_the_booked_cabin_is_available_at_no_price()
+    public async Task SM_02_without_any_seat_product_no_seat_is_selectable()
     {
         var lab = new ShoppingLab();
         var context = Trip.Context() with { SeatCharacteristicFacts = [Trip.Seat("12A", codes: ["W"])] };
@@ -112,18 +113,21 @@ public class SeatMapTests
         var result = await lab.Engine.PriceSeatsAsync(context, SeatMapFamily, [new SeatMapSeat("F1", "12A", 1, false), new SeatMapSeat("F1", "1A", 3, false)]);
 
         Assert.Equal(
-            new[] { (SeatAvailabilityStatus.Available, (string?)null), (SeatAvailabilityStatus.Blocked, null) },
+            new[] { (SeatAvailabilityStatus.Blocked, (string?)null), (SeatAvailabilityStatus.Blocked, null) },
             result.Seats.Select(seat => (seat.Status, seat.Candidate?.VariantCode)));
         Assert.Empty(result.RatesOfExchange);
     }
 
     [Fact]
-    public async Task SM_03_the_seat_map_is_the_aircraft_layout_with_a_price_and_status_for_every_traveller_and_a_hold_id_on_free_seats_only()
+    public async Task SM_03_the_seat_map_is_the_aircraft_layout_with_a_price_and_status_for_every_traveller_and_a_recoverable_id_on_selectable_seats_only()
     {
         var lab = new ShoppingLab();
         var standard = lab.Definition("A07");
+        var middle = lab.Definition("A07", "SEAT_STANDARD_MIDDLE");
 
-        lab.Price(standard, lab.Provision(standard), Rate(15m));
+        var paid = lab.Price(standard, lab.Provision(standard), Rate(15m));
+
+        lab.Price(middle, lab.Provision(middle, 20, Rules(seats: new ProvisionSeatApplicationArgs([], ["9"]))), Rate(0m));
 
         var (service, maps) = await SeatMapServiceAsync(lab);
         var snapshot = await service.ExecuteAsync(new BackofficeGetSeatMapQuery { OfferId = OfferWire.OfferId }, Sale);
@@ -138,7 +142,7 @@ public class SeatMapTests
         Assert.Equal((2, 2, SeatMapMapper.SeatMapType, OfferWire.OfferId), (map.Meta.Count, map.Data.Count, first.Type, first.FlightOfferId));
         Assert.Equal(("1", 12, 30), (first.Decks[0].DeckType, first.Decks[0].DeckConfiguration.ExitRowsX.Single(), first.Decks[0].DeckConfiguration.Length));
         Assert.Equal(("AVAILABLE", "EUR", "15.00", "15.00"), (Seat("3A", "ADT-1").SeatAvailabilityStatus, Seat("3A", "ADT-1").Price!.Currency, Seat("3A", "ADT-1").Price!.Base, Seat("3A", "ADT-1").Price!.Total));
-        Assert.Equal(("AVAILABLE", "0", "0"), (Seat("3B", "ADT-1").SeatAvailabilityStatus, Seat("3B", "ADT-1").Price!.Base, Seat("3B", "ADT-1").Price!.Total));
+        Assert.Equal(("AVAILABLE", "0.00", "0.00"), (Seat("3B", "ADT-1").SeatAvailabilityStatus, Seat("3B", "ADT-1").Price!.Base, Seat("3B", "ADT-1").Price!.Total));
         Assert.Equal(("OCCUPIED", (string?)null, (SeatMapPriceDto?)null), (Seat("3C", "ADT-1").SeatAvailabilityStatus, Seat("3C", "ADT-1").Id, Seat("3C", "ADT-1").Price));
         Assert.Equal(("BLOCKED", (string?)null, (SeatMapPriceDto?)null), (Seat("1A", "CHD-1").SeatAvailabilityStatus, Seat("1A", "CHD-1").Id, Seat("1A", "CHD-1").Price));
         Assert.Empty(economy.Items.Single(item => item.Code == "Galley").TravelerPricing);
@@ -150,7 +154,11 @@ public class SeatMapTests
 
         Assert.Equal(8, ids.Count);
         Assert.Equal(ids.Count, ids.Distinct(StringComparer.Ordinal).Count());
-        Assert.All(ids, id => Assert.Matches("^[A-Za-z0-9_-]{43}$", id));
+        Assert.All(ids, id => Assert.Matches("^[A-Za-z0-9_-]+$", id));
+        Assert.Equal(
+            ("ADT-1", snapshot.Flights[0].Flight.FlightId, "3A", paid.Id),
+            SeatMapSelectionId.Decode(Seat("3A", "ADT-1").Id) is { } decoded ? (decoded.TravellerRef, decoded.FlightId, decoded.SeatNumber, decoded.PricingId) : default);
+        Assert.Equal("3B", SeatMapSelectionId.Decode(Seat("3B", "CHD-1").Id)?.SeatNumber);
 
         var again = SeatMapMapper.Map(await service.ExecuteAsync(new BackofficeGetSeatMapQuery { OfferId = OfferWire.OfferId }, Sale), travellerRef => travellerRef, flight => flight.FlightRef);
 
@@ -235,7 +243,7 @@ public class SeatMapTests
     }
 
     [Fact]
-    public async Task SM_11_a_seat_whose_category_has_no_rate_is_blocked_while_a_seat_outside_every_category_stays_free()
+    public async Task SM_11_a_seat_whose_category_has_no_rate_is_blocked_and_so_is_a_seat_outside_every_category()
     {
         var lab = new ShoppingLab();
         var standard = lab.Definition("A07");
@@ -248,12 +256,11 @@ public class SeatMapTests
         var plainSeat = Pricing(map.Data[0], "3B", "ADT-1");
 
         Assert.Equal(("BLOCKED", (string?)null, (SeatMapPriceDto?)null), (windowSeat.SeatAvailabilityStatus, windowSeat.Id, windowSeat.Price));
-        Assert.Equal(("AVAILABLE", "0"), (plainSeat.SeatAvailabilityStatus, plainSeat.Price!.Total));
-        Assert.Matches("^[A-Za-z0-9_-]{43}$", plainSeat.Id);
+        Assert.Equal(("BLOCKED", (string?)null, (SeatMapPriceDto?)null), (plainSeat.SeatAvailabilityStatus, plainSeat.Id, plainSeat.Price));
     }
 
     [Fact]
-    public async Task SM_12_a_seat_two_points_of_sale_price_differently_is_blocked_and_a_seat_they_price_alike_keeps_its_price()
+    public async Task SM_12_a_seat_two_points_of_sale_price_differently_is_blocked_and_a_seat_they_price_alike_keeps_its_price_while_an_uncategorized_seat_is_blocked()
     {
         var lab = new ShoppingLab();
         var window = lab.Definition("A07");
@@ -274,7 +281,7 @@ public class SeatMapTests
 
         Assert.Equal(("BLOCKED", (string?)null, (SeatMapPriceDto?)null), (ambiguous.SeatAvailabilityStatus, ambiguous.Id, ambiguous.Price));
         Assert.Equal(("AVAILABLE", "30.00"), (agreed.SeatAvailabilityStatus, agreed.Price?.Total));
-        Assert.Equal(("AVAILABLE", "0"), (uncategorized.SeatAvailabilityStatus, uncategorized.Price?.Total));
+        Assert.Equal(("BLOCKED", (string?)null, (SeatMapPriceDto?)null), (uncategorized.SeatAvailabilityStatus, uncategorized.Id, uncategorized.Price));
     }
 
     private static SeatMapTravelerPricingDto Pricing(SeatMapDto map, string seatNumber, string travellerId)

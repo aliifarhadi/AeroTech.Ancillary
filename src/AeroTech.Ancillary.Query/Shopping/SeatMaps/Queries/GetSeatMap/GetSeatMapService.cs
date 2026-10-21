@@ -52,6 +52,7 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap
                 .SelectMany(bound => bound.Flights.OrderBy(flight => flight.Sequence).Select(flight => (FlightRef: FlightOfferShoppingContextMapper.FlightRef(bound, flight), Flight: flight)))
                 .Where(row => row.Flight.AircraftId is not null)
                 .ToList();
+            var flightIds = flights.ToDictionary(row => row.FlightRef, row => row.Flight.FlightId, StringComparer.Ordinal);
             var maps = new Dictionary<int, AircraftSeatMap>();
 
             foreach (var aircraftId in flights.Select(row => row.Flight.AircraftId!.Value).Distinct())
@@ -109,8 +110,8 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap
                         seat.TravellerRef,
                         seat.SeatNumber,
                         seat.Status,
-                        seat.Status == SeatAvailabilityStatus.Available
-                            ? OfferItemRef.OfSeat(shopping.Offer.OfferId, scope, pointOfSaleId, seat.TravellerRef, seat.FlightRef, seat.SeatNumber, seat.Candidate?.CandidateIdentity)
+                        seat.Status == SeatAvailabilityStatus.Available && seat.Candidate?.Price.PricingRevisionId is { } pricingId
+                            ? SeatMapSelectionId.Encode(seat.TravellerRef, flightIds[seat.FlightRef], pricingId, seat.SeatNumber)
                             : null,
                         seat.Candidate,
                         pointOfSaleId));

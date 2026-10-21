@@ -17,12 +17,10 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveSelec
                 result.PricedSelectionRef,
                 result.Status.ToString(),
                 result.ReasonCodes,
-                result is { Line: { Candidate: { } candidate } line, Context: { } context } ? Service(line, candidate, context) : null,
-                result is { Line.Seat: { IsIncludedSeat: true } seat, Context: { } seatContext } ? IncludedSeat(seat, seatContext) : null);
+                result is { Line: { Candidate: { } candidate } line, Context: { } context } ? Service(line, candidate, context) : null);
 
         private static ServiceResolvedServiceDto Service(SelectionLineSnapshot line, CanonicalAncillaryOfferCandidate candidate, AncillaryShoppingContext context)
             => new(
-                line.Kind.ToString(),
                 candidate.ServiceDefinitionRef,
                 candidate.DefinitionVersionId,
                 candidate.ProvisionId,
@@ -35,9 +33,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveSelec
                 candidate.Travellers,
                 context.Flights.Where(flight => candidate.FlightRefs.Contains(flight.FlightRef)).Select(flight => flight.FlightId).ToList(),
                 candidate.PortionRefs,
-                line.Seat?.Offer.SeatNumber,
-                line.Seat?.Flight.Flight.FlightCapacityId,
-                line.Ancillary is { } ancillary ? OfferSelectionResultsMapper.SelectedOptions(ancillary) : [],
+                OfferSelectionResultsMapper.SelectedOptions(line.Ancillary!),
                 OfferSelectionResultsMapper.ExactPrice(candidate.Price, line.CanPurchase),
                 candidate.Availability.RequiresCheckAtReserve,
                 candidate.VariantCode,
@@ -51,7 +47,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveSelec
                 candidate.Confirmation.ConfirmationRequirement.ToString(),
                 candidate.Confirmation.FulfillmentProviderKey,
                 candidate.Price.PricingRateId,
-                Selection(line.Ancillary?.Selection ?? line.Seat!.Selection));
+                Selection(line.Ancillary!.Selection));
 
         private static ServiceAncillarySelectionDto Selection(AncillarySelection selection)
             => new(
@@ -63,7 +59,6 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveSelec
                 selection.EquipmentKind,
                 selection.WeightKg,
                 selection.SeatNumber,
-                selection.ExitRowTermsAccepted,
                 selection.Purpose,
                 selection.TargetCabinId,
                 selection.QuoteRef,
@@ -95,15 +90,5 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveSelec
 
         private static ServiceSelectedDimensionsDto? Dimensions(SelectedDimensions? dimensions)
             => dimensions is null ? null : new ServiceSelectedDimensionsDto(dimensions.LengthCm, dimensions.WidthCm, dimensions.HeightCm);
-
-        private static ServiceIncludedSeatDto IncludedSeat(SeatSelectionSnapshot seat, AncillaryShoppingContext context)
-            => new(
-                context.Travellers.FirstOrDefault(traveller => traveller.TravellerRef == seat.Offer.TravellerRef)?.OrderTravellerId,
-                seat.Offer.TravellerRef,
-                seat.Flight.Flight.FlightId,
-                seat.Flight.Flight.FlightCapacityId,
-                seat.Offer.SeatNumber,
-                seat.CurrencyId,
-                decimal.Zero);
     }
 }

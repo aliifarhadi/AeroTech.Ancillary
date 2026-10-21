@@ -20,15 +20,9 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.PricedSelections
 
         public required AncillarySalesScope Scope { get; init; }
 
-        public required SelectionLineKind Kind { get; init; }
-
         public string? OfferItemRef { get; init; }
 
-        public string? SeatMapSelectionId { get; init; }
-
         public AncillarySelection? Selection { get; init; }
-
-        public PricedSeat? Seat { get; init; }
 
         public required ServiceCoverageScope CoverageScope { get; init; }
 

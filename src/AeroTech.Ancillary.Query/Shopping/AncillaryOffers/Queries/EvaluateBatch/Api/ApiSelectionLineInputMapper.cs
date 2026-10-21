@@ -8,11 +8,8 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatc
             => inputs?
                 .Select(input => new SelectionLineRequest(
                     input.ClientSelectionId,
-                    input.Kind,
                     input.OfferItemRef,
                     input.Selection is null ? null : ApiSelectionInputMapper.ToSelection(input.Selection),
-                    input.SeatMapSelectionId,
-                    input.ExitRowTermsAccepted,
                     input.SelectedOptionRefs))
                 .ToList();
     }

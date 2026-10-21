@@ -20,8 +20,6 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSele
 
         public string? SeatNumber { get; set; }
 
-        public bool? ExitRowTermsAccepted { get; set; }
-
         public ExtraSeatPurpose? Purpose { get; set; }
 
         public int? TargetCabinId { get; set; }

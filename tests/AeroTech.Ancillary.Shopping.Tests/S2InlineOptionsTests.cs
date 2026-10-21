@@ -54,6 +54,27 @@ public class S2InlineOptionsTests
 
             return catalog.ListActiveAsync(ancillaryProvisionIds, cancellationToken);
         }
+
+        public Task<IReadOnlyList<AncillaryServiceDefinition>> FindActiveDefinitionsAsync(IReadOnlyCollection<long> definitionIds, CancellationToken cancellationToken = default)
+        {
+            DefinitionReads++;
+
+            return catalog.FindActiveDefinitionsAsync(definitionIds, cancellationToken);
+        }
+
+        public Task<IReadOnlyList<AncillaryPricing>> FindActivePricingsAsync(IReadOnlyCollection<long> pricingIds, CancellationToken cancellationToken = default)
+        {
+            PricingReads++;
+
+            return catalog.FindActivePricingsAsync(pricingIds, cancellationToken);
+        }
+
+        public Task<IReadOnlyList<AncillaryProvision>> FindActiveProvisionsAsync(IReadOnlyCollection<long> provisionIds, CancellationToken cancellationToken = default)
+        {
+            ProvisionReads++;
+
+            return catalog.FindActiveProvisionsAsync(provisionIds, cancellationToken);
+        }
     }
 
     private static ShoppingLab Lab(params string[] codes)

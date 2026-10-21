@@ -51,10 +51,11 @@ public class M1ProvisionConformanceTests
     }
 
     [Fact]
-    public void M1_I01_a_base_price_is_positive_and_keeps_the_scale_of_its_currency()
+    public void M1_I01_a_base_price_may_be_zero_is_never_negative_and_keeps_the_scale_of_its_currency()
     {
         BusinessAssert.Throws(16512, 422, () => LoungePricing(priceLines: [Line(10.123m)]));
-        BusinessAssert.Throws(16502, 422, () => LoungePricing(priceLines: [Line(0m)]));
+        BusinessAssert.Throws(16502, 422, () => LoungePricing(priceLines: [Line(-1m)]));
+        Assert.Equal(0m, LoungePricing(priceLines: [Line(0m)]).Rates.Single().BaseAmount);
     }
 
     [Fact]

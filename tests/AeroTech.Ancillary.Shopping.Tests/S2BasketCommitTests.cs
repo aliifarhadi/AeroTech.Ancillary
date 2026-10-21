@@ -33,7 +33,7 @@ public class S2BasketCommitTests
     private static async Task<FlightOffer> AirAsync() => Sale.Sell(await OfferWire.ReadAsync(OfferWire.Captured()));
 
     private static SelectionLineRequest Bag(string id, string offerItemRef, int quantity)
-        => new(id, SelectionLineKind.Ancillary, offerItemRef, new AncillarySelection { Quantity = quantity }, null);
+        => new(id, offerItemRef, new AncillarySelection { Quantity = quantity });
 
     private static async Task<SelectionBatchSnapshot> EvaluateAsync(ShoppingLab lab, OrderCommercialContext order, string? signingKey = SigningKey, params Func<AncillaryShoppingSnapshot, SelectionLineRequest>[] lines)
     {
@@ -168,7 +168,7 @@ public class S2BasketCommitTests
 
         var batch = await service.ExecuteAsync(
             ByOrder,
-            [new SelectionLineRequest("wifi", SelectionLineKind.Ancillary, item.OfferItemRef, new AncillarySelection { PlanCode = wifi.ServiceDefinitionRef, DeviceCount = 1 }, null)],
+            [new SelectionLineRequest("wifi", item.OfferItemRef, new AncillarySelection { PlanCode = wifi.ServiceDefinitionRef, DeviceCount = 1 })],
             Sale);
         var reading = await Tokens(new() { Now = Now }).ReadAsync(batch.Lines[0].PricedSelection!.Value);
 
