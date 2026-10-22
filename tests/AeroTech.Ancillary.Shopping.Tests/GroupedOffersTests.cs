@@ -68,7 +68,7 @@ public class GroupedOffersTests
             orders);
         var offers = Offers(source, lab);
         var details = new GetAncillaryOfferDetailService(offers, lab.Catalog, lab.Catalog, lab.Catalog);
-        var service = new GetGroupedAncillaryOffersService(offers, lab.Catalog, new GroupedSelectionIdProvider(details, new EvaluateSelectionService(details, lab.Engine)));
+        var service = new GetGroupedAncillaryOffersService(offers, lab.Catalog, new GroupedSelectionIdProvider(new EvaluateSelectionService(details, lab.Engine)));
 
         return await service.ExecuteAsync(new OfferQuery(orderId is null ? OfferWire.OfferId : null, OrderId: orderId), Desk);
     }

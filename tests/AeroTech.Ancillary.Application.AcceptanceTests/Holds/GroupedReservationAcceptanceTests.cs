@@ -32,20 +32,29 @@ public class GroupedReservationAcceptanceTests
         var airlineId = _database.NextAirlineId();
         var scope = new AncillaryScope(_database, _clock);
         var supplier = await scope.RegisterSupplier.RegisterAsync(M1Commands.LocalSupplier(airlineId));
-        var seat = await scope.DefineServiceDefinition.DefineAsync(M1Commands.LoungeDefinition(airlineId, supplier.Id, "GRP_SEAT"));
-        var bag = await scope.DefineServiceDefinition.DefineAsync(M1Commands.LoungeDefinition(airlineId, supplier.Id, "GRP_BAG"));
-        await scope.ActivateServiceDefinition.ActivateAsync(new TestActivateServiceDefinitionCommand(seat.Id));
-        await scope.ActivateServiceDefinition.ActivateAsync(new TestActivateServiceDefinitionCommand(bag.Id));
-        var seatProvision = await scope.DefineProvision.DefineAsync(M1Commands.LoungeProvision(seat.Id));
-        var bagProvision = await scope.DefineProvision.DefineAsync(M1Commands.LoungeProvision(bag.Id, maxQuantity: 3));
-        await scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(seatProvision.Id));
-        await scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(bagProvision.Id));
+        var seat = await PublishedAsync(scope, "A07", airlineId, supplier.Id);
+        var bag = await PublishedAsync(scope, "A01", airlineId, supplier.Id);
 
-        scope.SeatSelections.Catalog[PricingId] = (seat.Id, seatProvision.Id);
-        scope.GroupedSelections.Accepted[BagId] = (bag.Id, bagProvision.Id, 101, FlightId, 2);
-        scope.GroupedSelections.Accepted[OtherBagId] = (bag.Id, bagProvision.Id, 101, FlightId, 3);
+        scope.SeatSelections.Catalog[PricingId] = seat;
+        scope.GroupedSelections.Accepted[BagId] = (bag.DefinitionId, bag.ProvisionId, 101, ServiceCoverageScope.Portion, FlightId, 2);
+        scope.GroupedSelections.Accepted[OtherBagId] = (bag.DefinitionId, bag.ProvisionId, 101, ServiceCoverageScope.Portion, FlightId, 3);
 
         return (NextOrderId, scope);
+    }
+
+    private static async Task<(long DefinitionId, long ProvisionId)> PublishedAsync(AncillaryScope scope, string variantCode, int airlineId, long supplierId)
+    {
+        var variant = V122Catalog.Case(variantCode);
+        var definitionId = (await scope.DefineServiceDefinition.DefineAsync(V122Catalog.Define(variant, airlineId, supplierId))).Id;
+
+        await scope.ActivateServiceDefinition.ActivateAsync(new TestActivateServiceDefinitionCommand(definitionId));
+
+        var provisionId = (await scope.DefineProvision.DefineAsync(V122Catalog.Rule(variant, definitionId))).Id;
+        var pricingId = (await scope.DefinePricing.DefineAsync(V12Commands.Pricing(provisionId, P1Commands.Eur, V12Commands.Base(12m)))).Id;
+
+        await scope.PublishProvision.PublishAsync(new TestPublishProvisionCommand(provisionId, pricingId));
+
+        return (definitionId, provisionId);
     }
 
     private static SeatHoldSelectionInput Seat(long orderServiceId)
@@ -137,5 +146,25 @@ public class GroupedReservationAcceptanceTests
 
         Assert.Equal((hold.HoldId, 1), (replay.HoldId, await RowsAsync(scope, orderId)));
         Assert.Equal([orderId], scope.HoldLock.Acquired);
+    }
+
+    [Fact]
+    public async Task GRP_A05_a_replay_is_answered_from_the_stored_hold_before_any_verification_and_a_changed_batch_under_the_same_key_conflicts()
+    {
+        var (orderId, scope) = await CatalogAsync();
+        await using var _ = scope;
+        var command = Command(orderId, $"GRP-{orderId}", [Seat(orderId * 10 + 1)], [new GroupedHoldSelectionInput(orderId * 10 + 2, BagId)]);
+        var hold = await scope.HoldGroupedSelections.HoldAsync(command);
+        var verifications = scope.GroupedSelections.Verified.Count;
+
+        scope.GroupedSelections.Accepted.Clear();
+        scope.SeatSelections.Catalog.Clear();
+        var replay = await scope.HoldGroupedSelections.HoldAsync(command);
+
+        Assert.Equal((hold.HoldId, verifications, 1), (replay.HoldId, scope.GroupedSelections.Verified.Count, await RowsAsync(scope, orderId)));
+        await BusinessAssert.ThrowsAsync(16403, 409, () => scope.HoldGroupedSelections.HoldAsync(command with { Baggages = [new GroupedHoldSelectionInput(orderId * 10 + 2, OtherBagId)] }));
+        await BusinessAssert.ThrowsAsync(16403, 409, () => scope.HoldGroupedSelections.HoldAsync(command with { Seats = [] }));
+        await BusinessAssert.ThrowsAsync(16402, 422, () => scope.HoldGroupedSelections.HoldAsync(Command(orderId, $"GRP-{orderId}-N", [], [new GroupedHoldSelectionInput(orderId * 10 + 3, OtherBagId)])));
+        Assert.Equal(1, await RowsAsync(scope, orderId));
     }
 }

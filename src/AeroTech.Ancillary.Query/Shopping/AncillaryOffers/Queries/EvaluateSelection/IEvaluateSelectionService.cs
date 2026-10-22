@@ -22,5 +22,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSele
             CancellationToken cancellationToken = default);
 
         Task<AncillarySelectionSnapshot> EvaluateAsync(AncillaryOfferDetailSnapshot detail, AncillarySelection selection, CancellationToken cancellationToken = default);
+
+        Task<AncillarySelectionSnapshot> EvaluateAsync(AncillaryShoppingSnapshot shopping, AncillaryOfferItem item, AncillarySelection selection, CancellationToken cancellationToken = default);
     }
 }

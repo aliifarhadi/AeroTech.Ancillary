@@ -35,18 +35,28 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSele
             CancellationToken cancellationToken = default)
             => await EvaluateAsync(await _details.ExecuteAsync(query, scope, family, cancellationToken), selection, cancellationToken);
 
-        public async Task<AncillarySelectionSnapshot> EvaluateAsync(AncillaryOfferDetailSnapshot detail, AncillarySelection selection, CancellationToken cancellationToken = default)
+        public Task<AncillarySelectionSnapshot> EvaluateAsync(AncillaryOfferDetailSnapshot detail, AncillarySelection selection, CancellationToken cancellationToken = default)
+            => EvaluateAsync(detail.Shopping, detail.Item, detail.OptionGroups, selection, cancellationToken);
+
+        public Task<AncillarySelectionSnapshot> EvaluateAsync(AncillaryShoppingSnapshot shopping, AncillaryOfferItem item, AncillarySelection selection, CancellationToken cancellationToken = default)
+            => EvaluateAsync(shopping, item, item.OptionGroups, selection, cancellationToken);
+
+        private async Task<AncillarySelectionSnapshot> EvaluateAsync(
+            AncillaryShoppingSnapshot shopping,
+            AncillaryOfferItem item,
+            IReadOnlyList<OfferOptionGroup> optionGroups,
+            AncillarySelection selection,
+            CancellationToken cancellationToken)
         {
-            var item = detail.Item;
             var evaluation = await _engine.EvaluateSelectionAsync(item.Context, item.Candidate.CandidateIdentity, selection, cancellationToken);
 
             return new AncillarySelectionSnapshot(
-                detail.Shopping,
+                shopping,
                 item,
                 evaluation,
-                OfferItemRef.Of(detail.Shopping.Offer.OfferId, item.Context.SourceIdentity.TrustedSourceVersion, detail.Shopping.Scope, item.PointOfSaleId, evaluation.Candidate.CandidateIdentity),
+                OfferItemRef.Of(shopping.Offer.OfferId, item.Context.SourceIdentity.TrustedSourceVersion, shopping.Scope, item.PointOfSaleId, evaluation.Candidate.CandidateIdentity),
                 selection,
-                detail.OptionGroups);
+                optionGroups);
         }
     }
 }

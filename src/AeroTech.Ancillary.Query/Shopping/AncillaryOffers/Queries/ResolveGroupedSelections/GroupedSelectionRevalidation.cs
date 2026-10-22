@@ -44,6 +44,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveGroup
                 {
                     null => Unresolved(entries[index], SelectionResolutionStatus.Rejected, ShoppingReasonCodes.PricedSelectionNotAuthentic),
                     { } id when id.Profile != entries[index].Profile => Unresolved(entries[index], SelectionResolutionStatus.Rejected, ShoppingReasonCodes.OfferItemNotOffered),
+                    { Profile: AncillaryProfile.Seat } => Unresolved(entries[index], SelectionResolutionStatus.Unavailable, ShoppingReasonCodes.SeatSelectionNotOffered),
                     { } id when !SameSource(id, offerId, orderId) => Unresolved(entries[index], SelectionResolutionStatus.Rejected, ShoppingReasonCodes.PricedSelectionForAnotherOrder),
                     _ => null
                 };
@@ -122,6 +123,9 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveGroup
 
             if (ancillary.Evaluation.Candidate.Price.UnappliedFeeLines.Count > 0)
                 return Unresolved(entry, SelectionResolutionStatus.Unavailable, ShoppingReasonCodes.SharedFeeNotApplied);
+
+            if (GroupedHoldCapability.Blocker(ancillary.Evaluation.Candidate) is { } blocker)
+                return Unresolved(entry, SelectionResolutionStatus.Unavailable, blocker);
 
             return string.Equals(GroupedSelectionIdProvider.IdOf(ancillary, orderId), entry.SelectionId, StringComparison.Ordinal)
                 ? new GroupedResolvedSelectionSnapshot(entry.Profile, entry.SelectionId, SelectionResolutionStatus.Valid, [], line, context)

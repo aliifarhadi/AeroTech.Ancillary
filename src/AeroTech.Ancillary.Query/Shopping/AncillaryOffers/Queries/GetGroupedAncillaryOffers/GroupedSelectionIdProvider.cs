@@ -1,6 +1,5 @@
 using System.Globalization;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSelection;
-using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOfferDetail;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.SelectionIds;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Snapshots;
 using AeroTech.Ancillary.Query.Shopping.Common;
@@ -10,14 +9,9 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAn
 {
     public sealed class GroupedSelectionIdProvider : IGroupedSelectionIdProvider
     {
-        private readonly IGetAncillaryOfferDetailService _details;
         private readonly IEvaluateSelectionService _selections;
 
-        public GroupedSelectionIdProvider(IGetAncillaryOfferDetailService details, IEvaluateSelectionService selections)
-        {
-            _details = details;
-            _selections = selections;
-        }
+        public GroupedSelectionIdProvider(IEvaluateSelectionService selections) => _selections = selections;
 
         public async Task<(AncillarySelectionSnapshot? Evaluation, string? SelectionId)> IssueAsync(
             AncillaryShoppingSnapshot shopping,
@@ -28,9 +22,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAn
             if (DirectSelection.TryBuild(item.Candidate, item.OptionGroups) is not { } selection)
                 return (null, null);
 
-            var detail = await _details.DescribeAsync(shopping, item, cancellationToken);
-
-            return Issue(await _selections.EvaluateAsync(detail, selection, cancellationToken), orderId);
+            return Issue(await _selections.EvaluateAsync(shopping, item, selection, cancellationToken), orderId);
         }
 
         public (AncillarySelectionSnapshot Evaluation, string? SelectionId) Issue(AncillarySelectionSnapshot evaluation, long? orderId)

@@ -12,5 +12,8 @@ namespace AeroTech.Ancillary.Application.Orders
         ExistingServiceCommercialState CommercialState,
         string? AcceptedSelectionId = null,
         int? AcceptedCurrencyId = null,
-        decimal? AcceptedTotal = null);
+        decimal? AcceptedTotal = null,
+        long? AcceptedServiceDefinitionId = null,
+        long? AcceptedProvisionId = null,
+        long? AcceptedPricingRevisionId = null);
 }

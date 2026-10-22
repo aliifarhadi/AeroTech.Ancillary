@@ -1,8 +1,11 @@
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldAncillaryServices;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldSeatSelections;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Services;
+using AeroTech.Ancillary.Domain.AncillaryReservationAggregate;
 using AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Arguments;
+using AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Contracts;
 using AeroTech.Ancillary.Domain._Shared.Resources;
+using AeroTech.Framework.Core.ServiceContracts;
 using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldGroupedSelections
@@ -14,12 +17,21 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
         private readonly ISeatSelectionVerifier _seats;
         private readonly IGroupedSelectionVerifier _selections;
         private readonly IHoldAncillaryServicesService _holds;
+        private readonly IAncillaryReservationRepository _reservations;
+        private readonly IClock _clock;
 
-        public HoldGroupedSelectionsService(ISeatSelectionVerifier seats, IGroupedSelectionVerifier selections, IHoldAncillaryServicesService holds)
+        public HoldGroupedSelectionsService(
+            ISeatSelectionVerifier seats,
+            IGroupedSelectionVerifier selections,
+            IHoldAncillaryServicesService holds,
+            IAncillaryReservationRepository reservations,
+            IClock clock)
         {
             _seats = seats;
             _selections = selections;
             _holds = holds;
+            _reservations = reservations;
+            _clock = clock;
         }
 
         public async Task<GroupedHoldResult> HoldAsync(IHoldGroupedSelectionsCommand command, CancellationToken cancellationToken = default)
@@ -40,6 +52,9 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
 
             if (entries.Select(entry => entry.SelectionId).Distinct(StringComparer.Ordinal).Count() != entries.Count)
                 throw ExceptionFactory.AncillaryHoldRequestIsInvalid(nameof(GroupedHoldSelectionInput.SelectionId));
+
+            if (await _reservations.FindByIdempotencyKeyAsync(command.IdempotencyKey, cancellationToken) is { } stored)
+                return Project(Replayed(stored, command, entries), entries);
 
             var seats = command.Seats.Count == 0
                 ? []
@@ -79,6 +94,18 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
                 cancellationToken);
 
             return Project(hold, entries);
+        }
+
+        private AncillaryHoldResult Replayed(AncillaryReservation stored, IHoldGroupedSelectionsCommand command, IReadOnlyList<GroupedHoldSelectionEntry> entries)
+        {
+            var same = stored.OrderId == command.OrderId
+                       && stored.Reference == command.Reference
+                       && stored.RequestedExpiresAt == command.RequestedExpiresAt
+                       && stored.Units.Count == command.Seats.Count + entries.Count
+                       && command.Seats.All(seat => stored.Units.Any(unit => unit.OrderServiceId == seat.OrderServiceId && string.Equals(unit.SeatMapSelectionId, seat.SeatMapSelectionId, StringComparison.Ordinal)))
+                       && entries.All(entry => stored.Units.Any(unit => unit.OrderServiceId == entry.OrderServiceId && string.Equals(unit.SelectionId, entry.SelectionId, StringComparison.Ordinal)));
+
+            return same ? stored.ToResult(_clock.GetDateTime()) : throw ExceptionFactory.AncillaryHoldIdempotencyKeyReused();
         }
 
         private static IReadOnlyList<GroupedHoldSelectionEntry> Entries(IHoldGroupedSelectionsCommand command)

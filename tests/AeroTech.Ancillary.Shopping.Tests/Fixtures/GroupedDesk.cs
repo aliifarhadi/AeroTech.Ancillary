@@ -48,7 +48,7 @@ public sealed class GroupedDesk
         var offers = Offers(source, lab);
         var details = new GetAncillaryOfferDetailService(offers, lab.Catalog, lab.Catalog, lab.Catalog);
         var selections = new EvaluateSelectionService(details, lab.Engine);
-        var selectionIds = new GroupedSelectionIdProvider(details, selections);
+        var selectionIds = new GroupedSelectionIdProvider(selections);
         var batches = new EvaluateBatchService(source, offers, details, selections, Tokens(new Application.AcceptanceTests.Fakes.FixedClock { Now = Sale.EvaluatedAtUtc }));
         var home = new HomeAirline();
 
@@ -57,6 +57,6 @@ public sealed class GroupedDesk
             new GetGroupedAncillaryOffersService(offers, lab.Catalog, selectionIds),
             new GetGroupedOfferDetailService(details, selections, selectionIds),
             new ResolveGroupedSelectionsService(new ResolveSeatMapSelectionsService(lab.Catalog, lab.Catalog, lab.Catalog), new GroupedSelectionRevalidation(batches, home)),
-            new GroupedSelectionVerifier(orders ?? new OrderDesk.FixedOrders(), home, batches));
+            new GroupedSelectionVerifier(orders ?? new OrderDesk.FixedOrders(), home, source, lab.Engine, lab.Catalog));
     }
 }

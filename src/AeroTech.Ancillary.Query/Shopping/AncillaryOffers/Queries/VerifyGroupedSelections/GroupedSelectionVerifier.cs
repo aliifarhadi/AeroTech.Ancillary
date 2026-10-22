@@ -2,14 +2,15 @@ using System.Globalization;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldGroupedSelections;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Services;
 using AeroTech.Ancillary.Application.Orders;
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Domain._Shared.Resources;
-using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatch;
-using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAncillaryOffers;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveGroupedSelections;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.SelectionIds;
-using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Snapshots;
+using AeroTech.Ancillary.Query.Shopping.Common;
 using AeroTech.Ancillary.Shopping.Context;
+using AeroTech.Ancillary.Shopping.Engine;
+using AeroTech.Ancillary.Shopping.Reading;
 using AeroTech.Ancillary.Shopping.Results;
 using AeroTech.Messages.Ancillary.Enums;
 
@@ -19,13 +20,22 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.VerifyGroupe
     {
         private readonly IOrderCommercialContextReader _orders;
         private readonly IOperatorAirlineResolver _operatorAirline;
-        private readonly IEvaluateBatchService _batches;
+        private readonly IShoppingSource _source;
+        private readonly IAncillaryShoppingEngine _engine;
+        private readonly IActiveAncillaryDefinitionReader _definitions;
 
-        public GroupedSelectionVerifier(IOrderCommercialContextReader orders, IOperatorAirlineResolver operatorAirline, IEvaluateBatchService batches)
+        public GroupedSelectionVerifier(
+            IOrderCommercialContextReader orders,
+            IOperatorAirlineResolver operatorAirline,
+            IShoppingSource source,
+            IAncillaryShoppingEngine engine,
+            IActiveAncillaryDefinitionReader definitions)
         {
             _orders = orders;
             _operatorAirline = operatorAirline;
-            _batches = batches;
+            _source = source;
+            _engine = engine;
+            _definitions = definitions;
         }
 
         public async Task<IReadOnlyList<VerifiedGroupedSelection>> VerifyAsync(GroupedSelectionVerification verification, CancellationToken cancellationToken = default)
@@ -42,72 +52,89 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.VerifyGroupe
             if (homeAirlineId is not (> 0 and <= int.MaxValue))
                 throw ExceptionFactory.ShoppingCallerNotAuthorized();
 
-            var bound = verification.Selections.Select(entry => Bind(entry, order, verification)).ToList();
+            var definitions = (await _definitions.ListActiveAsync((int)homeAirlineId.Value, cancellationToken)).ToDictionary(definition => definition.Id);
+            var bound = verification.Selections.Select(entry => Bind(entry, order, verification, definitions)).ToList();
+            var held = bound.Select(row => row.Entry.OrderServiceId).ToHashSet();
             var verified = new VerifiedGroupedSelection?[bound.Count];
 
-            foreach (var group in Enumerable.Range(0, bound.Count).GroupBy(index => (bound[index].Id.SourceKind, bound[index].Id.Scope)))
+            foreach (var group in Enumerable.Range(0, bound.Count).GroupBy(index => bound[index].Id.Scope))
             {
-                var first = bound[group.First()].Id;
-                var query = first.SourceKind == ShoppingSourceKind.Offer
-                    ? new GroupedSelectionQuery(first.SourceRef, null)
-                    : new GroupedSelectionQuery(null, verification.OrderId);
-                var batch = await _batches.ExecuteAsync(
-                    query,
-                    group.Select(index => new SelectionLineRequest(index.ToString(CultureInfo.InvariantCulture), bound[index].Id.OfferItemRef, bound[index].Id.Selection)).ToList(),
-                    first.Scope.ToSalesScope((int)homeAirlineId.Value),
+                var scope = group.Key.ToSalesScope((int)homeAirlineId.Value);
+                var shopping = await _source.LoadAsync(null, verification.OrderId, scope, cancellationToken);
+                var context = shopping.PointsOfSale.Single(pointOfSale => pointOfSale.PointOfSaleId == group.Key.PointOfSaleId).Context;
+
+                context = context with { ExistingServiceFacts = context.ExistingServiceFacts.Where(fact => fact.OrderServiceId is not { } id || !held.Contains(id)).ToList() };
+
+                var offered = await _engine.ShopAsync(
+                    context,
+                    new ShoppingFilter { VariantCodes = group.Select(index => bound[index].Id.VariantCode).Distinct(StringComparer.Ordinal).ToList() },
                     cancellationToken);
-                var context = batch.Shopping.PointsOfSale.First().Context;
 
-                foreach (var line in batch.Lines)
-                {
-                    var index = int.Parse(line.ClientSelectionId, CultureInfo.InvariantCulture);
-
-                    verified[index] = Verified(bound[index], line, batch.Shopping, context, order);
-                }
+                foreach (var index in group)
+                    verified[index] = await VerifiedAsync(bound[index], order, context, offered, verification, cancellationToken);
             }
 
             return verified.Select(selection => selection!).ToList();
         }
 
-        private static Bound Bind(GroupedHoldSelectionEntry entry, OrderCommercialContext order, GroupedSelectionVerification verification)
+        private static Bound Bind(
+            GroupedHoldSelectionEntry entry,
+            OrderCommercialContext order,
+            GroupedSelectionVerification verification,
+            IReadOnlyDictionary<long, AncillaryServiceDefinition> definitions)
         {
             var field = $"{entry.Profile}[{entry.OrderServiceId}].{nameof(entry.SelectionId)}";
             var id = NonSeatSelectionIdCodec.Decode(entry.SelectionId) ?? throw Invalid($"{field}:{ShoppingReasonCodes.PricedSelectionNotAuthentic}");
 
-            Require(id.Profile == entry.Profile, $"{field}:{ShoppingReasonCodes.OfferItemNotOffered}");
+            Require(id.Profile == entry.Profile && id.Profile != AncillaryProfile.Seat, $"{field}:{ShoppingReasonCodes.OfferItemNotOffered}");
             Require(id.Scope.PointOfSaleId == verification.PointOfSaleId, $"{field}:{ShoppingReasonCodes.PointOfSaleNotAllowed}");
             Require(
                 id.SourceKind == ShoppingSourceKind.Offer
                     ? string.Equals(id.SourceRef, order.Air.OfferId, StringComparison.Ordinal)
-                    : id.SourceRef == order.OrderId.ToString(CultureInfo.InvariantCulture) && id.OrderCommercialVersion == order.CommercialVersion,
+                    : id.SourceRef == order.OrderId.ToString(CultureInfo.InvariantCulture) && id.OrderCommercialVersion <= order.CommercialVersion,
                 $"{field}:{ShoppingReasonCodes.PricedSelectionForAnotherOrder}");
 
             var service = order.Services.FirstOrDefault(service => service.OrderServiceId == entry.OrderServiceId) ?? throw Invalid($"{entry.Profile}[{entry.OrderServiceId}].{nameof(entry.OrderServiceId)}");
 
             Require(string.Equals(service.AcceptedSelectionId, entry.SelectionId, StringComparison.Ordinal), $"{field}:AcceptedSelectionId");
             Require(service.AcceptedCurrencyId == verification.CurrencyId && service.AcceptedTotal is not null, $"{field}:AcceptedTotal");
+            Require(service is { AcceptedServiceDefinitionId: > 0, AcceptedProvisionId: > 0 }, $"{field}:AcceptedServiceDefinitionId");
+            Require(service.CommercialState == ExistingServiceCommercialState.Active, $"{field}:{nameof(service.CommercialState)}");
+            Require(definitions.TryGetValue(service.AcceptedServiceDefinitionId!.Value, out var definition) && definition.VariantCode == id.VariantCode, $"{field}:{ShoppingReasonCodes.OfferItemNotOffered}");
 
             return new Bound(entry, id, service);
         }
 
-        private static VerifiedGroupedSelection Verified(Bound bound, SelectionLineSnapshot line, AncillaryShoppingSnapshot shopping, AncillaryShoppingContext context, OrderCommercialContext order)
+        private async Task<VerifiedGroupedSelection> VerifiedAsync(
+            Bound bound,
+            OrderCommercialContext order,
+            AncillaryShoppingContext context,
+            CanonicalAncillaryOfferResult offered,
+            GroupedSelectionVerification verification,
+            CancellationToken cancellationToken)
         {
             var field = $"{bound.Entry.Profile}[{bound.Entry.OrderServiceId}].{nameof(bound.Entry.SelectionId)}";
+            var service = bound.Service;
+            var expectedTravellers = service.TravellerRef.Length == 0 ? [] : new[] { service.TravellerRef };
+            var current = offered.Candidates.FirstOrDefault(candidate => candidate.DefinitionVersionId == service.AcceptedServiceDefinitionId
+                                                                       && candidate.ProvisionId == service.AcceptedProvisionId
+                                                                       && candidate.Travellers.SequenceEqual(expectedTravellers, StringComparer.Ordinal)
+                                                                       && candidate.FlightRefs.Order(StringComparer.Ordinal).SequenceEqual(service.FlightRefs.Order(StringComparer.Ordinal), StringComparer.Ordinal))
+                          ?? throw Invalid($"{field}:{ShoppingReasonCodes.OfferItemNotOffered}");
 
-            Require(line.Status != SelectionEvaluationStatus.Rejected && line.CanPurchase, $"{field}:{string.Join(',', line.ReasonCodes.Union(line.Candidate?.ReasonCodes ?? [], StringComparer.Ordinal))}");
+            Require(service.PortionRef is null || current.PortionRefs.Contains(service.PortionRef, StringComparer.Ordinal), $"{field}:{nameof(service.PortionRef)}");
 
-            var ancillary = line.Ancillary!;
-            var candidate = ancillary.Evaluation.Candidate;
+            var evaluation = await _engine.EvaluateSelectionAsync(context, current.CandidateIdentity, bound.Id.Selection, cancellationToken);
+            var candidate = evaluation.Candidate;
 
-            Require(string.Equals(ancillary.CurrentOfferItemRef, bound.Id.OfferItemRef, StringComparison.Ordinal), $"{field}:{ShoppingReasonCodes.SourceVersionChanged}");
             Require(
-                string.Equals(GroupedSelectionIdProvider.IdOf(ancillary, bound.Id.SourceKind == ShoppingSourceKind.Order ? order.OrderId : null), bound.Entry.SelectionId, StringComparison.Ordinal),
-                $"{field}:{ShoppingReasonCodes.SignedFactsChanged}");
-            Require(line.CurrencyId == shopping.CurrencyId && line.Total == bound.Service.AcceptedTotal, $"{field}:{ShoppingReasonCodes.PriceChanged}");
+                evaluation is { Status: SelectionEvaluationStatus.Accepted, ProvisionChangedBySelection: false } && OfferPurchase.CanPurchase(evaluation),
+                $"{field}:{string.Join(',', evaluation.FieldIssues.Select(issue => issue.ReasonCode).Union(candidate.ReasonCodes, StringComparer.Ordinal))}");
+            Require(candidate.Price.PricingRevisionId == service.AcceptedPricingRevisionId, $"{field}:{ShoppingReasonCodes.PriceChanged}");
+            Require(candidate.Price.CurrencyId == verification.CurrencyId && candidate.Price.RequestedQuantityTotal == service.AcceptedTotal, $"{field}:{ShoppingReasonCodes.PriceChanged}");
+            Require(candidate.Price.Units == service.Quantity, $"{field}:{nameof(service.Quantity)}");
             Require(candidate.Price.UnappliedFeeLines.Count == 0, $"{field}:{ShoppingReasonCodes.SharedFeeNotApplied}");
-            Require(
-                candidate.Availability is { InventoryAuthority: InventoryAuthority.Unlimited, RequiresCheckAtReserve: false },
-                $"{field}:{(candidate.Availability.InventoryAuthority is null ? ShoppingReasonCodes.InventoryNotConfigured : ShoppingReasonCodes.AvailabilityMustBeChecked)}");
+            Require(GroupedHoldCapability.Blocker(candidate) is null, $"{field}:{GroupedHoldCapability.Blocker(candidate)}");
 
             var travellers = order.Travellers.Where(traveller => candidate.Travellers.Contains(traveller.TravellerRef, StringComparer.Ordinal)).ToList();
             long? travellerId = candidate.Scope.CoverageScope == ServiceCoverageScope.Order ? null : travellers is [{ OrderTravellerId: > 0 } only] ? only.OrderTravellerId : null;
@@ -123,7 +150,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.VerifyGroupe
                 travellerId,
                 candidate.Scope.CoverageScope,
                 context.Flights.Where(flight => candidate.FlightRefs.Contains(flight.FlightRef, StringComparer.Ordinal)).Select(flight => flight.FlightId).Distinct().ToList(),
-                ancillary.Selection.Quantity ?? 1);
+                service.Quantity);
         }
 
         private static void Require(bool condition, string field)

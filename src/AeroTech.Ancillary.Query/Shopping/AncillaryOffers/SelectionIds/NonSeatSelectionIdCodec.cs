@@ -67,7 +67,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.SelectionIds
 
                 decoded = Read(document.RootElement);
             }
-            catch (JsonException)
+            catch (Exception exception) when (exception is JsonException or FormatException or InvalidOperationException or OverflowException)
             {
                 return null;
             }
@@ -77,7 +77,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.SelectionIds
 
         private static NonSeatSelectionId? Read(JsonElement root)
         {
-            if (!HasExactly(root, Members) || root.GetProperty(Members[0]).ValueKind != JsonValueKind.Number || root.GetProperty(Members[0]).GetInt32() != Version)
+            if (!HasExactly(root, Members) || !root.GetProperty(Members[0]).TryGetInt32(out var version) || version != Version)
                 return null;
 
             var source = root.GetProperty(Members[1]);
@@ -91,9 +91,9 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.SelectionIds
 
             var sourceRef = Text(source, SourceMembers[1]);
             var versionElement = source.GetProperty(SourceMembers[2]);
-            int? version = versionElement.ValueKind == JsonValueKind.Number && versionElement.TryGetInt32(out var number) ? number : null;
+            int? orderVersion = versionElement.ValueKind == JsonValueKind.Number && versionElement.TryGetInt32(out var number) ? number : null;
 
-            if (sourceRef is null || (kind == ShoppingSourceKind.Offer ? versionElement.ValueKind != JsonValueKind.Null : version is not > 0))
+            if (sourceRef is null || (kind == ShoppingSourceKind.Offer ? versionElement.ValueKind != JsonValueKind.Null : orderVersion is not > 0))
                 return null;
 
             if (!Enum.TryParse<Channel>(Text(scope, ScopeMembers[0]), false, out var channel) || !Enum.IsDefined(channel))
@@ -122,7 +122,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.SelectionIds
 
             return selection is null
                 ? null
-                : new NonSeatSelectionId(kind, sourceRef, version, new NonSeatSelectionScope(channel, pointOfSaleId, office, agency, customer, country), offerItemRef, profile, variantCode!, selection);
+                : new NonSeatSelectionId(kind, sourceRef, orderVersion, new NonSeatSelectionScope(channel, pointOfSaleId, office, agency, customer, country), offerItemRef, profile, variantCode!, selection);
         }
 
         private static bool HasExactly(JsonElement element, string[] members)

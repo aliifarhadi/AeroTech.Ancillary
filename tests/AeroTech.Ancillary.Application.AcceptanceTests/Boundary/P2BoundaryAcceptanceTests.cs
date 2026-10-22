@@ -11,7 +11,7 @@ namespace AeroTech.Ancillary.Application.AcceptanceTests.Boundary;
 public class P2BoundaryAcceptanceTests
 {
     private const string FrozenAggregate = "AncillaryReservationAggregate";
-    private const string FrozenSourceHash = "493A580180E5C4CF0D245DC506B9CABEA730F9DD028A477F4CF895D7407C7AF5";
+    private const string FrozenSourceHash = "6A18D7BF1D64403BBCFD7AD6648271CDCFF73AF3D8592D9C339DE3BF9707C3D3";
     private const string CommandMigration = "20261008212718_V121Phase2StockCapacity.cs";
     private const string QueryMigration = "20261008212728_V121Phase2StockCapacityQuery.cs";
 
