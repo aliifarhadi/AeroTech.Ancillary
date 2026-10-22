@@ -18,6 +18,7 @@ using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.Canc
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ConfirmAncillaryHold;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ExpireAncillaryHolds;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldAncillaryServices;
+using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldGroupedSelections;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldSeatSelections;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ReleaseAncillaryHold;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Services;
@@ -137,8 +138,10 @@ public sealed class AncillaryScope : IAsyncDisposable
 
         HoldLock = new TestOnlyHoldLock();
         SeatSelections = new TestOnlySeatSelectionVerifier();
+        GroupedSelections = new TestOnlyGroupedSelectionVerifier();
         HoldAncillaryServices = new HoldAncillaryServicesService(Reservations, Definitions, Provisions, Suppliers, HoldLock, UnitOfWork, ids, clock);
         HoldSeatSelections = new HoldSeatSelectionsService(SeatSelections, HoldAncillaryServices);
+        HoldGroupedSelections = new HoldGroupedSelectionsService(SeatSelections, GroupedSelections, HoldAncillaryServices);
         ConfirmAncillaryHold = new ConfirmAncillaryHoldService(Reservations, UnitOfWork, clock);
         ReleaseAncillaryHold = new ReleaseAncillaryHoldService(Reservations, UnitOfWork, clock);
         CancelAncillaryHold = new CancelAncillaryHoldService(Reservations, UnitOfWork, clock);
@@ -230,9 +233,13 @@ public sealed class AncillaryScope : IAsyncDisposable
 
     public TestOnlySeatSelectionVerifier SeatSelections { get; }
 
+    public TestOnlyGroupedSelectionVerifier GroupedSelections { get; }
+
     public IHoldAncillaryServicesService HoldAncillaryServices { get; }
 
     public IHoldSeatSelectionsService HoldSeatSelections { get; }
+
+    public IHoldGroupedSelectionsService HoldGroupedSelections { get; }
 
     public IConfirmAncillaryHoldService ConfirmAncillaryHold { get; }
 

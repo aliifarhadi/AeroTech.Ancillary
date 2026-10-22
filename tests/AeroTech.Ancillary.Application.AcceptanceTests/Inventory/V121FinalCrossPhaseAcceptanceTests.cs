@@ -20,7 +20,7 @@ public class V121FinalCrossPhaseAcceptanceTests
 {
     private const long Flight = 81234;
     private const string NoSources = "0|0|0|0|0|0";
-    private const string FrozenSourceHash = "BCB3AE2E6A86E92F04238AADA1AA4EB1205348B18C2983137A14DF5D11517269";
+    private const string FrozenSourceHash = "493A580180E5C4CF0D245DC506B9CABEA730F9DD028A477F4CF895D7407C7AF5";
 
     private readonly TestDatabase _database;
     private readonly FixedClock _clock = new();
@@ -309,12 +309,12 @@ public class V121FinalCrossPhaseAcceptanceTests
             .OrderBy(file => file.Path, StringComparer.Ordinal)
             .ToList();
 
-        Assert.Equal(72, frozen.Count);
+        Assert.Equal(91, frozen.Count);
         Assert.Equal(
             FrozenSourceHash,
             Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join('\n', frozen.Select(file => $"{file.Path}:{file.Hash}"))))));
         Assert.Equal(
-            new[] { "CancelAncillaryHold", "ConfirmAncillaryHold", "ExpireAncillaryHolds", "HoldAncillaryServices", "HoldSeatSelections", "ReleaseAncillaryHold" },
+            new[] { "CancelAncillaryHold", "ConfirmAncillaryHold", "ExpireAncillaryHolds", "HoldAncillaryServices", "HoldGroupedSelections", "HoldSeatSelections", "ReleaseAncillaryHold" },
             Folders("AeroTech.Ancillary.Application", "AncillaryReservationAggregate", "Commands"));
         Assert.Equal(new[] { "GetAncillaryHoldById" }, Folders("AeroTech.Ancillary.Query", "AncillaryReservationAggregate", "Queries"));
     }

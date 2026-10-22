@@ -9,5 +9,8 @@ namespace AeroTech.Ancillary.Application.Orders
         string? PortionRef,
         IReadOnlyList<string> FlightRefs,
         int Quantity,
-        ExistingServiceCommercialState CommercialState);
+        ExistingServiceCommercialState CommercialState,
+        string? AcceptedSelectionId = null,
+        int? AcceptedCurrencyId = null,
+        decimal? AcceptedTotal = null);
 }

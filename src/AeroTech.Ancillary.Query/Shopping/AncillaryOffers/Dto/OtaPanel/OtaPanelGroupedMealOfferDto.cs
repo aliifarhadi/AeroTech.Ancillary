@@ -11,6 +11,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.OtaPanel
         string CoverageScope,
         string Readiness,
         OtaPanelGroupedPriceDto Price,
+        OtaPanelGroupedQuantityDto? Quantity,
         string? SelectionId,
         bool RequiresDetails,
         string? DetailsEndpoint,
@@ -29,6 +30,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.OtaPanel
             CoverageScope,
             Readiness,
             Price,
+            Quantity,
             SelectionId,
             RequiresDetails,
             DetailsEndpoint);

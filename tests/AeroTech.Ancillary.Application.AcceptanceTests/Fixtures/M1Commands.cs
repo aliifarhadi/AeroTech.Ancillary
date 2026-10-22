@@ -4,6 +4,7 @@ using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Define
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.CancelAncillaryHold;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ConfirmAncillaryHold;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldAncillaryServices;
+using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldGroupedSelections;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldSeatSelections;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ReleaseAncillaryHold;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ActivateAncillaryServiceDefinition;
@@ -109,6 +110,26 @@ public sealed record TestConfirmAncillaryHoldCommand(long HoldId) : IConfirmAnci
 public sealed record TestReleaseAncillaryHoldCommand(long HoldId) : IReleaseAncillaryHoldCommand;
 
 public sealed record TestCancelAncillaryHoldCommand(long HoldId, string ReasonCode) : ICancelAncillaryHoldCommand;
+
+public sealed record TestHoldGroupedSelectionsCommand(
+    string IdempotencyKey,
+    long OrderId,
+    int OrderCommercialVersion,
+    string Reference,
+    DateTimeOffset RequestedExpiresAt,
+    long PointOfSaleId,
+    int CurrencyId,
+    DateTimeOffset? TicketedAtUtc,
+    IReadOnlyList<SeatHoldSelectionInput> Seats,
+    IReadOnlyList<GroupedHoldSelectionInput> Baggages,
+    IReadOnlyList<GroupedHoldSelectionInput> Meals,
+    IReadOnlyList<GroupedHoldSelectionInput> Pets,
+    IReadOnlyList<GroupedHoldSelectionInput> AssistedTravel,
+    IReadOnlyList<GroupedHoldSelectionInput> AirportServices,
+    IReadOnlyList<GroupedHoldSelectionInput> PriorityServices,
+    IReadOnlyList<GroupedHoldSelectionInput> Connectivity,
+    IReadOnlyList<GroupedHoldSelectionInput> Upgrades,
+    IReadOnlyList<GroupedHoldSelectionInput> ExtraSeats) : IHoldGroupedSelectionsCommand;
 
 public sealed record TestHoldSeatSelectionsCommand(
     string IdempotencyKey,

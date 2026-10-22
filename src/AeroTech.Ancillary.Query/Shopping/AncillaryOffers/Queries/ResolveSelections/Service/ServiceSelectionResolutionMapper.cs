@@ -19,7 +19,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveSelec
                 result.ReasonCodes,
                 result is { Line: { Candidate: { } candidate } line, Context: { } context } ? Service(line, candidate, context) : null);
 
-        private static ServiceResolvedServiceDto Service(SelectionLineSnapshot line, CanonicalAncillaryOfferCandidate candidate, AncillaryShoppingContext context)
+        public static ServiceResolvedServiceDto Service(SelectionLineSnapshot line, CanonicalAncillaryOfferCandidate candidate, AncillaryShoppingContext context)
             => new(
                 candidate.ServiceDefinitionRef,
                 candidate.DefinitionVersionId,

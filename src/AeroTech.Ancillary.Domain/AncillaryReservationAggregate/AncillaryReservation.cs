@@ -75,8 +75,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate
 
             var occurrences = units
                 .Select(unit => unit.CoverageScope == ServiceCoverageScope.Order
-                    ? $"{unit.ServiceDefinitionId}|{orderId}"
-                    : $"{unit.ServiceDefinitionId}|{unit.TravellerId}|{string.Join(',', unit.CoveredFlightIds.Order())}")
+                    ? $"{unit.ServiceDefinitionId}|{orderId}|{unit.SelectionId}"
+                    : $"{unit.ServiceDefinitionId}|{unit.TravellerId}|{string.Join(',', unit.CoveredFlightIds.Order())}|{unit.SelectionId}")
                 .ToList();
 
             Require(occurrences.Distinct(StringComparer.Ordinal).Count() == occurrences.Count, nameof(Units));

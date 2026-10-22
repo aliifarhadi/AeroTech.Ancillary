@@ -13,6 +13,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.OtaPanel
         [property: JsonPropertyOrder(-1)] string CoverageScope,
         [property: JsonPropertyOrder(-1)] string Readiness,
         [property: JsonPropertyOrder(-1)] OtaPanelGroupedPriceDto Price,
+        [property: JsonPropertyOrder(-1)] OtaPanelGroupedQuantityDto? Quantity,
         [property: JsonPropertyOrder(-1)] string? SelectionId,
         [property: JsonPropertyOrder(-1)] bool RequiresDetails,
         [property: JsonPropertyOrder(-1)] string? DetailsEndpoint);

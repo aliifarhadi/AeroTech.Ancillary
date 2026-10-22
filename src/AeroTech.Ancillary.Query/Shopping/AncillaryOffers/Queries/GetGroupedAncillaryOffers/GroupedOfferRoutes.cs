@@ -9,10 +9,9 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAn
 
         public static string SeatMap(string surface) => $"/{surface}/v1/SeatMaps";
 
-        public static string? Details(string surface, AncillaryProfile profile, bool requiresDetails)
-            => requiresDetails && Family(profile) is { } family ? $"/{surface}/v1/AncillaryOffers/{family}/Details" : null;
+        public static string Details(string surface, AncillaryProfile profile) => $"/{surface}/v1/AncillaryOffers/{Family(profile)}/Details";
 
-        private static string? Family(AncillaryProfile profile)
+        public static string Family(AncillaryProfile profile)
             => profile switch
             {
                 AncillaryProfile.Baggage => "Baggages",
@@ -23,7 +22,8 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAn
                 AncillaryProfile.Priority => "PriorityServices",
                 AncillaryProfile.Connectivity => "Connectivity",
                 AncillaryProfile.Upgrade => "Upgrades",
-                _ => null
+                AncillaryProfile.Seat => "ExtraSeats",
+                _ => throw new ArgumentOutOfRangeException(nameof(profile), profile, null)
             };
     }
 }

@@ -14,6 +14,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Backoffice
         [property: JsonPropertyOrder(-1)] EnumValueDto CoverageScope,
         [property: JsonPropertyOrder(-1)] EnumValueDto Readiness,
         [property: JsonPropertyOrder(-1)] BackofficeGroupedPriceDto Price,
+        [property: JsonPropertyOrder(-1)] BackofficeGroupedQuantityDto? Quantity,
         [property: JsonPropertyOrder(-1)] string? SelectionId,
         [property: JsonPropertyOrder(-1)] bool RequiresDetails,
         [property: JsonPropertyOrder(-1)] string? DetailsEndpoint);

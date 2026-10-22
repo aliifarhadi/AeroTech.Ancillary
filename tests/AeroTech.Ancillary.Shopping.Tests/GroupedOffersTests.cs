@@ -5,6 +5,8 @@ using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Backoffice;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.OtaPanel;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAncillaryOffers.Backoffice;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAncillaryOffers.OtaPanel;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSelection;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOfferDetail;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAncillaryOffers;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Snapshots;
 using AeroTech.Ancillary.Query.Shopping.Common.FlightOffers;
@@ -64,7 +66,9 @@ public class GroupedOffersTests
                 new FixedClock { Now = Desk.EvaluatedAtUtc },
                 new FlightOfferShoppingOptions(SourceContextTtl)),
             orders);
-        var service = new GetGroupedAncillaryOffersService(Offers(source, lab), lab.Catalog);
+        var offers = Offers(source, lab);
+        var details = new GetAncillaryOfferDetailService(offers, lab.Catalog, lab.Catalog, lab.Catalog);
+        var service = new GetGroupedAncillaryOffersService(offers, lab.Catalog, new GroupedSelectionIdProvider(details, new EvaluateSelectionService(details, lab.Engine)));
 
         return await service.ExecuteAsync(new OfferQuery(orderId is null ? OfferWire.OfferId : null, OrderId: orderId), Desk);
     }
@@ -87,7 +91,6 @@ public class GroupedOffersTests
         Assert.Empty(grouped.PriorityServices);
         Assert.Empty(grouped.Upgrades);
         Assert.DoesNotContain("A07", All(grouped).Select(item => item.VariantCode));
-        Assert.All(All(grouped), item => Assert.Null(item.SelectionId));
         Assert.All(All(grouped), item => Assert.Contains(item.Readiness.Name, new[] { "Selectable", "NeedsSelection", "NeedsQuote" }));
     }
 
@@ -122,10 +125,10 @@ public class GroupedOffersTests
         var backoffice = BackofficeGroupedAncillaryOffersMapper.Map(snapshot);
         var panel = OtaPanelGroupedAncillaryOffersMapper.Map(snapshot);
 
-        Assert.All(All(backoffice), item => Assert.Equal(item.RequiresDetails, item.DetailsEndpoint is not null || item.VariantCode == "A09"));
-        Assert.All(backoffice.Baggages.Where(bag => bag.RequiresDetails), bag => Assert.Equal("/Backoffice/v1/AncillaryOffers/Baggages/Details", bag.DetailsEndpoint));
-        Assert.All(panel.Baggages.Where(bag => bag.RequiresDetails), bag => Assert.Equal("/OtaPanel/v1/AncillaryOffers/Baggages/Details", bag.DetailsEndpoint));
-        Assert.All(panel.ExtraSeats, extra => Assert.Null(extra.DetailsEndpoint));
+        Assert.All(All(backoffice), item => Assert.Equal(item.SelectionId is null, item.DetailsEndpoint is not null));
+        Assert.All(backoffice.Baggages.Where(bag => bag.SelectionId is null), bag => Assert.Equal("/Backoffice/v1/AncillaryOffers/Baggages/Details", bag.DetailsEndpoint));
+        Assert.All(panel.Baggages.Where(bag => bag.SelectionId is null), bag => Assert.Equal("/OtaPanel/v1/AncillaryOffers/Baggages/Details", bag.DetailsEndpoint));
+        Assert.All(panel.ExtraSeats, extra => Assert.Equal(((string?)null, "/OtaPanel/v1/AncillaryOffers/ExtraSeats/Details"), (extra.SelectionId, extra.DetailsEndpoint)));
         Assert.Equal(All(backoffice).Select(item => item.OfferItemRef), panel.Baggages.Concat<OtaPanelGroupedOfferDto>(panel.Connectivity).Concat(panel.ExtraSeats).Select(item => item.OfferItemRef));
     }
 
@@ -145,7 +148,7 @@ public class GroupedOffersTests
 
         Assert.Equal(new[] { "value", "name", "title" }, bag["readiness"]!.AsObject().Select(member => member.Key));
         Assert.Equal(["offerItemRef", "variantCode", "serviceDefinitionRef", "name"], bag.Select(member => member.Key).Take(4));
-        Assert.Equal("chargeKind", bag.Select(member => member.Key).ElementAt(13));
+        Assert.Equal("chargeKind", bag.Select(member => member.Key).ElementAt(14));
         Assert.Contains("chargeKind", bag.Select(member => member.Key));
         Assert.DoesNotContain("mealKind", bag.Select(member => member.Key));
         Assert.Equal(JsonValueKind.String, panel["baggages"]![0]!["readiness"]!.GetValueKind());
@@ -164,7 +167,9 @@ public class GroupedOffersTests
         {
             Assert.Equal(route, type.GetCustomAttributes(typeof(RouteAttribute), false).Cast<RouteAttribute>().Single().Template);
             Assert.Equal(policy, type.GetCustomAttributes(typeof(AuthorizeAttribute), false).Cast<AuthorizeAttribute>().Single().Policy);
-            Assert.Equal(["Grouped"], type.GetMethods().SelectMany(method => method.GetCustomAttributes(typeof(HttpPostAttribute), false).Cast<HttpPostAttribute>()).Select(post => post.Template));
+            Assert.Equal(
+                ["Grouped", "Baggages/Details", "Meals/Details", "Pets/Details", "AssistedTravel/Details", "AirportServices/Details", "PriorityServices/Details", "Connectivity/Details", "Upgrades/Details", "ExtraSeats/Details"],
+                type.GetMethods().SelectMany(method => method.GetCustomAttributes(typeof(HttpPostAttribute), false).Cast<HttpPostAttribute>()).Select(post => post.Template));
         }
     }
 

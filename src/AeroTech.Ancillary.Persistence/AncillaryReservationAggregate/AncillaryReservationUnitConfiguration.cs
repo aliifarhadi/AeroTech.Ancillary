@@ -14,6 +14,7 @@ namespace AeroTech.Ancillary.Persistence.AncillaryReservationAggregate
 
             builder.Property(unit => unit.SeatMapSelectionId).HasMaxLength(256);
             builder.Property(unit => unit.SeatNumber).HasMaxLength(16);
+            builder.Property(unit => unit.SelectionId).HasMaxLength(4096).IsUnicode(false);
             builder.Property(unit => unit.ProviderUnitRef).HasMaxLength(100);
             builder.Property(unit => unit.CancellationReasonCode).HasMaxLength(50);
 

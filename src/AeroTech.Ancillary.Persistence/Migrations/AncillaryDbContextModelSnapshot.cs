@@ -1843,6 +1843,11 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                         .HasMaxLength(16)
                         .HasColumnType("nvarchar(16)");
 
+                    b.Property<string>("SelectionId")
+                        .HasMaxLength(4096)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(4096)");
+
                     b.Property<long>("ServiceDefinitionId")
                         .HasColumnType("bigint");
 

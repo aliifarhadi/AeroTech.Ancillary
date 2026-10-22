@@ -9,6 +9,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities
     {
         private const int SeatMapSelectionIdMaxLength = 256;
         private const int SeatNumberMaxLength = 16;
+        private const int SelectionIdMaxLength = 4096;
 
         private List<long> _coveredFlightIds = new();
 
@@ -28,6 +29,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities
             Require(args.SeatNumber is null or { Length: >= 1 and <= SeatNumberMaxLength }, nameof(SeatNumber));
             Require((args.SeatMapSelectionId is null) == (args.SeatNumber is null) && (args.SeatNumber is null) == (args.PricingId is null), nameof(SeatMapSelectionId));
             Require(args.PricingId is null or > 0, nameof(PricingId));
+            Require(args.SelectionId is null or { Length: >= 1 and <= SelectionIdMaxLength }, nameof(SelectionId));
+            Require(args.SelectionId is null || args.SeatMapSelectionId is null, nameof(SelectionId));
 
             if (args.CoverageScope == ServiceCoverageScope.Order)
             {
@@ -54,6 +57,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities
             SeatMapSelectionId = args.SeatMapSelectionId;
             SeatNumber = args.SeatNumber?.Trim().ToUpperInvariant();
             PricingId = args.PricingId;
+            SelectionId = args.SelectionId;
             Status = AncillaryReservationUnitStatus.Held;
         }
 
@@ -79,6 +83,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities
 
         public long? PricingId { get; private set; }
 
+        public string? SelectionId { get; private set; }
+
         public long? StockPoolId { get; private set; }
 
         public string? ProviderUnitRef { get; private set; }
@@ -97,7 +103,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities
                && Quantity == args.Quantity
                && string.Equals(SeatMapSelectionId, args.SeatMapSelectionId, StringComparison.Ordinal)
                && string.Equals(SeatNumber, args.SeatNumber?.Trim().ToUpperInvariant(), StringComparison.Ordinal)
-               && PricingId == args.PricingId;
+               && PricingId == args.PricingId
+               && string.Equals(SelectionId, args.SelectionId, StringComparison.Ordinal);
 
         internal void ChangeStatus(AncillaryReservationUnitStatus status) => Status = status;
 

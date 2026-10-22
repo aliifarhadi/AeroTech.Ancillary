@@ -35,7 +35,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAn
 
         private static Common CommonOf(GroupedOfferItem row)
         {
-            var candidate = row.Item.Candidate;
+            var candidate = row.Candidate;
 
             return new Common(
                 row.Item.OfferItemRef,
@@ -48,9 +48,10 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAn
                 EnumValueDto.Of(candidate.Scope.CoverageScope),
                 EnumValueDto.Of(candidate.OfferReadiness),
                 new BackofficeGroupedPriceDto(candidate.Price.CurrencyId, candidate.Price.CompleteUnitTotal, OfferPurchase.IsPriceComplete(candidate.Price)),
-                null,
+                GroupedQuantity.Of(candidate) is { } quantity ? new BackofficeGroupedQuantityDto(quantity.MinPerSelection, quantity.MaxPerSelection, EnumValueDto.Of(quantity.Unit)) : null,
+                row.SelectionId,
                 row.RequiresDetails,
-                GroupedOfferRoutes.Details(Surface, candidate.Profile, row.RequiresDetails));
+                row.SelectionId is null ? GroupedOfferRoutes.Details(Surface, candidate.Profile) : null);
         }
 
         private static BackofficeGroupedBaggageOfferDto Baggage(GroupedOfferItem row, Common c)
@@ -58,7 +59,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAn
             var spec = Specification(row.Definition.Baggage);
 
             return new(
-                c.OfferItemRef, c.VariantCode, c.ServiceDefinitionRef, c.Name, c.TravellerRefs, c.FlightRefs, c.PortionRefs, c.CoverageScope, c.Readiness, c.Price, c.SelectionId, c.RequiresDetails, c.DetailsEndpoint,
+                c.OfferItemRef, c.VariantCode, c.ServiceDefinitionRef, c.Name, c.TravellerRefs, c.FlightRefs, c.PortionRefs, c.CoverageScope, c.Readiness, c.Price, c.Quantity, c.SelectionId, c.RequiresDetails, c.DetailsEndpoint,
                 EnumValueDto.Of(spec.ChargeKind),
                 EnumValueDto.OfNullable(spec.AllowanceConcept),
                 spec.PackageWeightKg,
@@ -73,7 +74,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAn
             var spec = Specification(row.Definition.Meal);
 
             return new(
-                c.OfferItemRef, c.VariantCode, c.ServiceDefinitionRef, c.Name, c.TravellerRefs, c.FlightRefs, c.PortionRefs, c.CoverageScope, c.Readiness, c.Price, c.SelectionId, c.RequiresDetails, c.DetailsEndpoint,
+                c.OfferItemRef, c.VariantCode, c.ServiceDefinitionRef, c.Name, c.TravellerRefs, c.FlightRefs, c.PortionRefs, c.CoverageScope, c.Readiness, c.Price, c.Quantity, c.SelectionId, c.RequiresDetails, c.DetailsEndpoint,
                 EnumValueDto.Of(spec.MealKind),
                 spec.MealCode,
                 spec.MenuItemRef,
@@ -85,7 +86,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAn
             var spec = Specification(row.Definition.Pet);
 
             return new(
-                c.OfferItemRef, c.VariantCode, c.ServiceDefinitionRef, c.Name, c.TravellerRefs, c.FlightRefs, c.PortionRefs, c.CoverageScope, c.Readiness, c.Price, c.SelectionId, c.RequiresDetails, c.DetailsEndpoint,
+                c.OfferItemRef, c.VariantCode, c.ServiceDefinitionRef, c.Name, c.TravellerRefs, c.FlightRefs, c.PortionRefs, c.CoverageScope, c.Readiness, c.Price, c.Quantity, c.SelectionId, c.RequiresDetails, c.DetailsEndpoint,
                 EnumValueDto.Of(spec.TransportMode),
                 spec.MaxCombinedWeightKg,
                 spec.MinAnimalAgeWeeks,
@@ -97,7 +98,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAn
             var spec = Specification(row.Definition.AssistedTravel);
 
             return new(
-                c.OfferItemRef, c.VariantCode, c.ServiceDefinitionRef, c.Name, c.TravellerRefs, c.FlightRefs, c.PortionRefs, c.CoverageScope, c.Readiness, c.Price, c.SelectionId, c.RequiresDetails, c.DetailsEndpoint,
+                c.OfferItemRef, c.VariantCode, c.ServiceDefinitionRef, c.Name, c.TravellerRefs, c.FlightRefs, c.PortionRefs, c.CoverageScope, c.Readiness, c.Price, c.Quantity, c.SelectionId, c.RequiresDetails, c.DetailsEndpoint,
                 EnumValueDto.Of(spec.AssistanceKind),
                 GroupedOfferSpecifications.AllowedSsrCodes(spec));
         }
@@ -107,7 +108,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAn
             var spec = Specification(row.Definition.AirportService);
 
             return new(
-                c.OfferItemRef, c.VariantCode, c.ServiceDefinitionRef, c.Name, c.TravellerRefs, c.FlightRefs, c.PortionRefs, c.CoverageScope, c.Readiness, c.Price, c.SelectionId, c.RequiresDetails, c.DetailsEndpoint,
+                c.OfferItemRef, c.VariantCode, c.ServiceDefinitionRef, c.Name, c.TravellerRefs, c.FlightRefs, c.PortionRefs, c.CoverageScope, c.Readiness, c.Price, c.Quantity, c.SelectionId, c.RequiresDetails, c.DetailsEndpoint,
                 EnumValueDto.Of(spec.Kind),
                 spec.AirportId,
                 spec.FacilityId,
@@ -120,7 +121,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAn
             var spec = Specification(row.Definition.Priority);
 
             return new(
-                c.OfferItemRef, c.VariantCode, c.ServiceDefinitionRef, c.Name, c.TravellerRefs, c.FlightRefs, c.PortionRefs, c.CoverageScope, c.Readiness, c.Price, c.SelectionId, c.RequiresDetails, c.DetailsEndpoint,
+                c.OfferItemRef, c.VariantCode, c.ServiceDefinitionRef, c.Name, c.TravellerRefs, c.FlightRefs, c.PortionRefs, c.CoverageScope, c.Readiness, c.Price, c.Quantity, c.SelectionId, c.RequiresDetails, c.DetailsEndpoint,
                 EnumValueDto.Of(spec.Kind),
                 spec.PriorityZoneCode,
                 spec.PriorityGroupCode);
@@ -131,7 +132,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAn
             var spec = Specification(row.Definition.Connectivity);
 
             return new(
-                c.OfferItemRef, c.VariantCode, c.ServiceDefinitionRef, c.Name, c.TravellerRefs, c.FlightRefs, c.PortionRefs, c.CoverageScope, c.Readiness, c.Price, c.SelectionId, c.RequiresDetails, c.DetailsEndpoint,
+                c.OfferItemRef, c.VariantCode, c.ServiceDefinitionRef, c.Name, c.TravellerRefs, c.FlightRefs, c.PortionRefs, c.CoverageScope, c.Readiness, c.Price, c.Quantity, c.SelectionId, c.RequiresDetails, c.DetailsEndpoint,
                 EnumValueDto.Of(spec.PlanKind),
                 spec.DurationMinutes,
                 spec.IncludedDataMb,
@@ -143,7 +144,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAn
             var spec = Specification(row.Definition.Upgrade);
 
             return new(
-                c.OfferItemRef, c.VariantCode, c.ServiceDefinitionRef, c.Name, c.TravellerRefs, c.FlightRefs, c.PortionRefs, c.CoverageScope, c.Readiness, c.Price, c.SelectionId, c.RequiresDetails, c.DetailsEndpoint,
+                c.OfferItemRef, c.VariantCode, c.ServiceDefinitionRef, c.Name, c.TravellerRefs, c.FlightRefs, c.PortionRefs, c.CoverageScope, c.Readiness, c.Price, c.Quantity, c.SelectionId, c.RequiresDetails, c.DetailsEndpoint,
                 spec.FromCabinId,
                 spec.ToCabinId,
                 EnumValueDto.Of(spec.AllowedUpgradeKind),
@@ -155,7 +156,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAn
             var spec = Specification(row.Definition.Seat);
 
             return new(
-                c.OfferItemRef, c.VariantCode, c.ServiceDefinitionRef, c.Name, c.TravellerRefs, c.FlightRefs, c.PortionRefs, c.CoverageScope, c.Readiness, c.Price, c.SelectionId, c.RequiresDetails, c.DetailsEndpoint,
+                c.OfferItemRef, c.VariantCode, c.ServiceDefinitionRef, c.Name, c.TravellerRefs, c.FlightRefs, c.PortionRefs, c.CoverageScope, c.Readiness, c.Price, c.Quantity, c.SelectionId, c.RequiresDetails, c.DetailsEndpoint,
                 EnumValueDto.OfNullable(spec.ExtraSeatPurpose),
                 spec.ExtraOccupiedSeatCount,
                 spec.RequiresAdjacentSeat,
@@ -176,6 +177,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAn
             EnumValueDto CoverageScope,
             EnumValueDto Readiness,
             BackofficeGroupedPriceDto Price,
+            BackofficeGroupedQuantityDto? Quantity,
             string? SelectionId,
             bool RequiresDetails,
             string? DetailsEndpoint);

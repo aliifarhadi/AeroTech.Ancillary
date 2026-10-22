@@ -13,6 +13,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Backoffice
         EnumValueDto CoverageScope,
         EnumValueDto Readiness,
         BackofficeGroupedPriceDto Price,
+        BackofficeGroupedQuantityDto? Quantity,
         string? SelectionId,
         bool RequiresDetails,
         string? DetailsEndpoint,
@@ -31,6 +32,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Backoffice
             CoverageScope,
             Readiness,
             Price,
+            Quantity,
             SelectionId,
             RequiresDetails,
             DetailsEndpoint);
