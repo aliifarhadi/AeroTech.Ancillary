@@ -8,6 +8,7 @@ using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetSeatProvis
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatch;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSelection;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOfferDetail;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAncillaryOffers;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers.Api;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveSelections;
@@ -76,6 +77,7 @@ namespace AeroTech.Ancillary.Query
             services.AddScoped<IGetAncillaryOffersService, GetAncillaryOffersService>();
             services.AddScoped<IGetSeatMapService, GetSeatMapService>();
             services.AddScoped<IGetAncillaryOfferDetailService, GetAncillaryOfferDetailService>();
+            services.AddScoped<IGetGroupedAncillaryOffersService, GetGroupedAncillaryOffersService>();
             services.AddScoped<IEvaluateSelectionService, EvaluateSelectionService>();
             services.AddSingleton(PricedSelectionOptions.From(configuration));
             services.AddScoped<IPricedSelectionTokens, PricedSelectionTokens>();

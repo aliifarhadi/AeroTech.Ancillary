@@ -1,0 +1,38 @@
+namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.OtaPanel
+{
+    public sealed record OtaPanelGroupedBaggageOfferDto(
+        string OfferItemRef,
+        string VariantCode,
+        string ServiceDefinitionRef,
+        string Name,
+        IReadOnlyList<string> TravellerRefs,
+        IReadOnlyList<string> FlightRefs,
+        IReadOnlyList<string> PortionRefs,
+        string CoverageScope,
+        string Readiness,
+        OtaPanelGroupedPriceDto Price,
+        string? SelectionId,
+        bool RequiresDetails,
+        string? DetailsEndpoint,
+        string ChargeKind,
+        string? AllowanceConcept,
+        decimal? PackageWeightKg,
+        decimal? MaxKgPerPiece,
+        decimal? WeightFromExclusiveKg,
+        decimal? WeightToInclusiveKg,
+        string? EquipmentKind)
+        : OtaPanelGroupedOfferDto(
+            OfferItemRef,
+            VariantCode,
+            ServiceDefinitionRef,
+            Name,
+            TravellerRefs,
+            FlightRefs,
+            PortionRefs,
+            CoverageScope,
+            Readiness,
+            Price,
+            SelectionId,
+            RequiresDetails,
+            DetailsEndpoint);
+}
