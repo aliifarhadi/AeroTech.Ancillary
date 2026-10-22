@@ -167,4 +167,41 @@ public class GroupedReservationAcceptanceTests
         await BusinessAssert.ThrowsAsync(16402, 422, () => scope.HoldGroupedSelections.HoldAsync(Command(orderId, $"GRP-{orderId}-N", [], [new GroupedHoldSelectionInput(orderId * 10 + 3, OtherBagId)])));
         Assert.Equal(1, await RowsAsync(scope, orderId));
     }
+
+    [Fact]
+    public async Task GRP_A06_a_replay_that_moves_a_stored_baggage_unit_into_another_family_is_a_key_conflict_and_the_row_stays_as_saved()
+    {
+        var (orderId, scope) = await CatalogAsync();
+        await using var _ = scope;
+        var bag = new GroupedHoldSelectionInput(orderId * 10 + 2, BagId);
+        var command = Command(orderId, $"GRP-{orderId}", [Seat(orderId * 10 + 1)], [bag]);
+        var hold = await scope.HoldGroupedSelections.HoldAsync(command);
+
+        scope.GroupedSelections.Accepted.Clear();
+        scope.SeatSelections.Catalog.Clear();
+
+        await BusinessAssert.ThrowsAsync(16403, 409, () => scope.HoldGroupedSelections.HoldAsync(command with { Baggages = [], Meals = [bag] }));
+        await BusinessAssert.ThrowsAsync(16403, 409, () => scope.HoldGroupedSelections.HoldAsync(command with { Baggages = [], PriorityServices = [bag] }));
+        var replay = await scope.HoldGroupedSelections.HoldAsync(command);
+        var stored = await scope.Reservations.GetAsync(hold.HoldId);
+
+        Assert.Equal((hold.HoldId, 1, 1, 0), (replay.HoldId, replay.Baggages.Count, replay.Seats.Count, replay.Meals.Count));
+        Assert.Equal((1, BagId), (await RowsAsync(scope, orderId), stored!.Units.Single(unit => unit.SelectionId is not null).SelectionId));
+    }
+
+    [Fact]
+    public async Task GRP_A07_a_hold_stored_by_the_legacy_endpoint_is_never_replayed_as_a_grouped_hold()
+    {
+        var (orderId, scope) = await CatalogAsync();
+        await using var _ = scope;
+        var key = $"GRP-{orderId}-LEGACY";
+        var (definitionId, provisionId) = scope.SeatSelections.Catalog[PricingId];
+        var legacy = await scope.HoldAncillaryServices.HoldAsync(M1Commands.Hold(key, orderId, definitionId, provisionId, _clock.Now.AddMinutes(30), (orderId * 10 + 2, 101, FlightId)));
+
+        await BusinessAssert.ThrowsAsync(16403, 409, () => scope.HoldGroupedSelections.HoldAsync(
+            new TestHoldGroupedSelectionsCommand(key, orderId, 1, $"ORD-{orderId}", _clock.Now.AddMinutes(30), 1, M1Commands.Currency, null, [], [new GroupedHoldSelectionInput(orderId * 10 + 2, BagId)], [], [], [], [], [], [], [], [])));
+        var stored = await scope.Reservations.GetAsync(legacy.HoldId);
+
+        Assert.Equal((1, (string?)null), (await RowsAsync(scope, orderId), stored!.Units.Single().SelectionId));
+    }
 }

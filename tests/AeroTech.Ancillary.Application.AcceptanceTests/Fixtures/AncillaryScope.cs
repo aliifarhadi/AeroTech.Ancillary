@@ -141,7 +141,7 @@ public sealed class AncillaryScope : IAsyncDisposable
         GroupedSelections = new TestOnlyGroupedSelectionVerifier();
         HoldAncillaryServices = new HoldAncillaryServicesService(Reservations, Definitions, Provisions, Suppliers, HoldLock, UnitOfWork, ids, clock);
         HoldSeatSelections = new HoldSeatSelectionsService(SeatSelections, HoldAncillaryServices);
-        HoldGroupedSelections = new HoldGroupedSelectionsService(SeatSelections, GroupedSelections, HoldAncillaryServices, Reservations, clock);
+        HoldGroupedSelections = new HoldGroupedSelectionsService(SeatSelections, GroupedSelections, HoldAncillaryServices, Reservations, Definitions, clock);
         ConfirmAncillaryHold = new ConfirmAncillaryHoldService(Reservations, UnitOfWork, clock);
         ReleaseAncillaryHold = new ReleaseAncillaryHoldService(Reservations, UnitOfWork, clock);
         CancelAncillaryHold = new CancelAncillaryHoldService(Reservations, UnitOfWork, clock);

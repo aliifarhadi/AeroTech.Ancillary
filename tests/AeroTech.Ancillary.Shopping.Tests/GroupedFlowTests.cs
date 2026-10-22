@@ -50,12 +50,15 @@ public class GroupedFlowTests
         var partnerWifi = lab.Definition("A24", "WIFI_PARTNER");
         var extraSeat = lab.Definition("A09");
         var localBag = lab.Definition("A01", "BAG_LOCAL", activate: local is not null);
+        var priority = lab.Definition("A23", specification: input => input with { Priority = input.Priority! with { FareBenefitRef = null, AirportIds = null } });
 
         lab.Price(bag, lab.Provision(bag, stage: PurchaseStage.Both), Rate(5_000_000m, Irr));
         lab.Price(wifi, lab.Provision(wifi, stage: PurchaseStage.Both), Rate(1_500_000m, Irr));
         lab.Price(partnerWifi, lab.Provision(partnerWifi, stage: PurchaseStage.Both), Rate(900_000m, Irr));
         lab.Price(extraSeat, lab.Provision(extraSeat, stage: PurchaseStage.Both), Rate(9_000_000m, Irr));
         lab.Price(localBag, lab.Provision(localBag, stage: PurchaseStage.Both), Rate(4_000_000m, Irr));
+        lab.Price(priority, lab.Provision(priority, stage: PurchaseStage.Both), Rate(700_000m, Irr));
+        lab.Policy(priority, InventoryAuthority.Unlimited);
         lab.Policy(bag, InventoryAuthority.Unlimited);
         lab.Policy(wifi, InventoryAuthority.Unlimited);
         lab.Policy(partnerWifi, InventoryAuthority.Supplier);
@@ -364,6 +367,32 @@ public class GroupedFlowTests
     }
 
     [Fact]
+    public async Task GRP_B11_a_consent_field_is_never_filled_for_the_customer_and_only_an_explicit_opt_in_earns_an_id()
+    {
+        var desk = await GroupedDesk.CreateAsync(Shop(), await AirAsync());
+        var grouped = await ListAsync(desk);
+        var priority = Item(grouped, "A23");
+        var wifi = Item(grouped, "A24", "WIFI_FULL_FLIGHT");
+        var optedIn = await DetailAsync(desk, priority.OfferItemRef, AncillaryProfile.Priority, new AncillarySelection { OptIn = true });
+        var declined = await DetailAsync(desk, priority.OfferItemRef, AncillaryProfile.Priority, new AncillarySelection { OptIn = false });
+        var silent = await DetailAsync(desk, priority.OfferItemRef, AncillaryProfile.Priority, new AncillarySelection());
+        var untouched = await DetailAsync(desk, priority.OfferItemRef, AncillaryProfile.Priority, null);
+        var forged = NonSeatSelectionIdCodec.Encode(NonSeatSelectionIdCodec.Decode(optedIn.SelectionId)! with { Selection = new AncillarySelection { OptIn = false } });
+        var resolved = await desk.Resolve.ExecuteAsync(Resolve(OfferWire.OfferId, null, null, (AncillaryProfile.Priority, optedIn.SelectionId!)));
+        var rejected = await desk.Resolve.ExecuteAsync(Resolve(OfferWire.OfferId, null, null, (AncillaryProfile.Priority, forged)));
+
+        Assert.Equal(((string?)null, true, "/Backoffice/v1/AncillaryOffers/PriorityServices/Details"), (priority.SelectionId, priority.RequiresDetails, priority.DetailsEndpoint));
+        Assert.NotNull(optedIn.SelectionId);
+        Assert.Equal(new AncillarySelection { OptIn = true }, NonSeatSelectionIdCodec.Decode(optedIn.SelectionId)!.Selection);
+        Assert.All(new[] { declined, silent, untouched }, detail => Assert.Null(detail.SelectionId));
+        Assert.Contains(ShoppingReasonCodes.SelectionFieldRequired, declined.ReasonCodes);
+        Assert.Contains(ShoppingReasonCodes.SelectionFieldRequired, silent.ReasonCodes);
+        Assert.True(resolved.AllValid, string.Join(",", resolved.Selections[0].ReasonCodes));
+        Assert.Equal((false, false, ShoppingReasonCodes.SelectionFieldRequired), (rejected.AllValid, rejected.Selections[0].Status == SelectionResolutionStatus.Valid, rejected.Selections[0].ReasonCodes.Single()));
+        Assert.NotNull(wifi.SelectionId);
+    }
+
+    [Fact]
     public async Task GRP_B10_the_grouped_list_reads_the_catalog_a_bounded_number_of_times()
     {
         var lab = Shop();
@@ -374,7 +403,7 @@ public class GroupedFlowTests
         var evaluated = grouped.Baggages.Count + grouped.Connectivity.Count;
         var direct = grouped.Connectivity.Count(item => item.SelectionId is not null);
 
-        Assert.Equal((12, 8), (evaluated, direct));
+        Assert.Equal((12, 8, 4), (evaluated, direct, grouped.PriorityServices.Count(item => item.SelectionId is null && item.RequiresDetails)));
         Assert.True(reads <= 9 + 4 * evaluated, $"grouped list took {reads} catalog reads for {evaluated} evaluated candidates");
     }
 }

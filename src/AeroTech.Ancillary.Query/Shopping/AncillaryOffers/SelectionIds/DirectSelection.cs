@@ -14,7 +14,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.SelectionIds
         {
             var selection = new AncillarySelection();
 
-            foreach (var field in candidate.Selection.Fields.Where(field => field.Required && !CoverageFields.Contains(field.Name)))
+            foreach (var field in Chosen(candidate))
             {
                 var property = SelectionFields.Find(field.Name);
 
@@ -24,7 +24,6 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.SelectionIds
                 object? value = field.Type switch
                 {
                     SelectionFieldType.Integer when field.Name == "Quantity" && candidate.Quantity.MinPerSelection == candidate.Quantity.MaxPerSelection => candidate.Quantity.MinPerSelection,
-                    SelectionFieldType.Boolean => true,
                     SelectionFieldType.Code or SelectionFieldType.Reference => SingleChoice(groups, field) is { } choice ? SelectionFields.Parse(property, choice) : null,
                     _ => null
                 };
@@ -37,6 +36,17 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.SelectionIds
 
             return selection;
         }
+
+        public static bool RequiresConsent(CanonicalAncillaryOfferCandidate candidate)
+            => Chosen(candidate).Any(field => field.Type == SelectionFieldType.Boolean);
+
+        public static bool HasConsent(CanonicalAncillaryOfferCandidate candidate, AncillarySelection selection)
+            => Chosen(candidate)
+                .Where(field => field.Type == SelectionFieldType.Boolean)
+                .All(field => SelectionFields.Find(field.Name)?.GetValue(selection) is true);
+
+        private static IEnumerable<CustomerSelectionField> Chosen(CanonicalAncillaryOfferCandidate candidate)
+            => candidate.Selection.Fields.Where(field => field.Required && !CoverageFields.Contains(field.Name));
 
         private static string? SingleChoice(IReadOnlyList<OfferOptionGroup> groups, CustomerSelectionField field)
             => groups.SingleOrDefault(group => string.Equals(group.FieldName, SelectionFields.CamelCase(field.Name), StringComparison.Ordinal)) is { SourceState: OptionSourceState.Known, Choices: [{ } only] }

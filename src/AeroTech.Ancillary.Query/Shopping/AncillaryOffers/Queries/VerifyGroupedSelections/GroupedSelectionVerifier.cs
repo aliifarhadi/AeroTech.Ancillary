@@ -135,6 +135,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.VerifyGroupe
             Require(candidate.Price.Units == service.Quantity, $"{field}:{nameof(service.Quantity)}");
             Require(candidate.Price.UnappliedFeeLines.Count == 0, $"{field}:{ShoppingReasonCodes.SharedFeeNotApplied}");
             Require(GroupedHoldCapability.Blocker(candidate) is null, $"{field}:{GroupedHoldCapability.Blocker(candidate)}");
+            Require(DirectSelection.HasConsent(candidate, bound.Id.Selection), $"{field}:{ShoppingReasonCodes.SelectionFieldRequired}");
 
             var travellers = order.Travellers.Where(traveller => candidate.Travellers.Contains(traveller.TravellerRef, StringComparer.Ordinal)).ToList();
             long? travellerId = candidate.Scope.CoverageScope == ServiceCoverageScope.Order ? null : travellers is [{ OrderTravellerId: > 0 } only] ? only.OrderTravellerId : null;

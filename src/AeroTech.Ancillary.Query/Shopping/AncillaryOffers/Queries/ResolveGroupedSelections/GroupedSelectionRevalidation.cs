@@ -127,6 +127,9 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveGroup
             if (GroupedHoldCapability.Blocker(ancillary.Evaluation.Candidate) is { } blocker)
                 return Unresolved(entry, SelectionResolutionStatus.Unavailable, blocker);
 
+            if (!DirectSelection.HasConsent(ancillary.Evaluation.Candidate, ancillary.Selection))
+                return Unresolved(entry, SelectionResolutionStatus.Rejected, ShoppingReasonCodes.SelectionFieldRequired);
+
             return string.Equals(GroupedSelectionIdProvider.IdOf(ancillary, orderId), entry.SelectionId, StringComparison.Ordinal)
                 ? new GroupedResolvedSelectionSnapshot(entry.Profile, entry.SelectionId, SelectionResolutionStatus.Valid, [], line, context)
                 : Unresolved(entry, SelectionResolutionStatus.Stale, ShoppingReasonCodes.SignedFactsChanged);

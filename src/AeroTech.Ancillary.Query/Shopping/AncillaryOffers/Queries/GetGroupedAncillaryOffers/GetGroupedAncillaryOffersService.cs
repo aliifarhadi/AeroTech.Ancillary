@@ -1,5 +1,6 @@
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.SelectionIds;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Snapshots;
 using AeroTech.Ancillary.Query.Shopping.Common.FlightOffers;
 using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
@@ -39,7 +40,12 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAn
                     ? (null, null)
                     : await _selectionIds.IssueAsync(shopping, item, query.OrderId, cancellationToken);
 
-                items.Add(new GroupedOfferItem(item, definition, OfferInlineOptions.Interaction(item.Candidate, item.OptionGroups).RequiresDetails, evaluation, selectionId));
+                items.Add(new GroupedOfferItem(
+                    item,
+                    definition,
+                    OfferInlineOptions.Interaction(item.Candidate, item.OptionGroups).RequiresDetails || DirectSelection.RequiresConsent(item.Candidate),
+                    evaluation,
+                    selectionId));
             }
 
             return new GroupedAncillaryOffersSnapshot(

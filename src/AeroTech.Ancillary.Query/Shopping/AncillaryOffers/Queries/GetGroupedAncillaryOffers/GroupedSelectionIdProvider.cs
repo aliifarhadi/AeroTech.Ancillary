@@ -26,7 +26,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAn
         }
 
         public (AncillarySelectionSnapshot Evaluation, string? SelectionId) Issue(AncillarySelectionSnapshot evaluation, long? orderId)
-            => (evaluation, OfferPurchase.CanPurchase(evaluation.Evaluation) ? IdOf(evaluation, orderId) : null);
+            => (evaluation, OfferPurchase.CanPurchase(evaluation.Evaluation) && DirectSelection.HasConsent(evaluation.Evaluation.Candidate, evaluation.Selection) ? IdOf(evaluation, orderId) : null);
 
         public static string IdOf(AncillarySelectionSnapshot evaluation, long? orderId)
         {

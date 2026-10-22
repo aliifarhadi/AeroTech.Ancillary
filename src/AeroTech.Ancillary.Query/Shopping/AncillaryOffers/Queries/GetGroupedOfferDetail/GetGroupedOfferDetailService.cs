@@ -4,6 +4,7 @@ using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSelectio
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOfferDetail;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedAncillaryOffers;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.SelectionIds;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Snapshots;
 using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
 using AeroTech.Ancillary.Query.Shopping.Common;
@@ -58,6 +59,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetGroupedOf
         private static IReadOnlyList<string> Reasons(AncillarySelectionSnapshot evaluation)
             => evaluation.Evaluation.FieldIssues.Select(issue => issue.ReasonCode)
                 .Union(evaluation.Evaluation.Candidate.ReasonCodes, StringComparer.Ordinal)
+                .Union(DirectSelection.HasConsent(evaluation.Evaluation.Candidate, evaluation.Selection) ? [] : [ShoppingReasonCodes.SelectionFieldRequired], StringComparer.Ordinal)
                 .ToList();
     }
 }
