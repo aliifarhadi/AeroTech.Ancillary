@@ -1,8 +1,11 @@
 using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.DefineAncillaryPricing;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ActivateAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.DefineAncillaryProvision;
+using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.CancelAncillaryHold;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ConfirmAncillaryHold;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldAncillaryServices;
+using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldSeatSelections;
+using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ReleaseAncillaryHold;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ActivateAncillaryServiceDefinition;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.DefineAncillaryServiceDefinition;
 using AeroTech.Ancillary.Application.SupplierAggregate.Commands.RegisterSupplier;
@@ -102,6 +105,21 @@ public sealed record TestHoldAncillaryServicesCommand(
     IReadOnlyList<AncillaryHoldServiceInput> Services) : IHoldAncillaryServicesCommand;
 
 public sealed record TestConfirmAncillaryHoldCommand(long HoldId) : IConfirmAncillaryHoldCommand;
+
+public sealed record TestReleaseAncillaryHoldCommand(long HoldId) : IReleaseAncillaryHoldCommand;
+
+public sealed record TestCancelAncillaryHoldCommand(long HoldId, string ReasonCode) : ICancelAncillaryHoldCommand;
+
+public sealed record TestHoldSeatSelectionsCommand(
+    string IdempotencyKey,
+    long OrderId,
+    int OrderCommercialVersion,
+    string Reference,
+    DateTimeOffset RequestedExpiresAt,
+    long PointOfSaleId,
+    int CurrencyId,
+    DateTimeOffset? TicketedAtUtc,
+    IReadOnlyList<SeatHoldSelectionInput> Seats) : IHoldSeatSelectionsCommand;
 
 public static class M1Commands
 {

@@ -40,6 +40,14 @@ namespace AeroTech.Ancillary.Persistence.AncillaryReservationAggregate
                 .Distinct()
                 .ToListAsync(cancellationToken);
 
+        public async Task<IReadOnlyList<AncillaryReservation>> ListExpiredHeldAsync(DateTimeOffset now, int batchSize, CancellationToken cancellationToken = default)
+            => await _dbContext.AncillaryReservations
+                .Include(reservation => reservation.Units)
+                .Where(reservation => reservation.Status == AncillaryReservationStatus.Held && reservation.ExpiresAt != null && reservation.ExpiresAt <= now)
+                .OrderBy(reservation => reservation.ExpiresAt)
+                .Take(batchSize)
+                .ToListAsync(cancellationToken);
+
         public void Update(AncillaryReservation reservation) => _dbContext.AncillaryReservations.Update(reservation);
     }
 }

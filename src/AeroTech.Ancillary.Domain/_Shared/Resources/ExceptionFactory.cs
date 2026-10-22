@@ -178,6 +178,24 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public static BusinessException AncillaryHoldCoverageMismatch(params object?[] args) =>
             new(16410, ExceptionMessages.AncillaryHoldCoverageMismatch, args) { HttpStatus = 422 };
 
+        public static BusinessException AncillaryHoldIsConfirmed(params object?[] args) =>
+            new(16411, ExceptionMessages.AncillaryHoldIsConfirmed, args) { HttpStatus = 409 };
+
+        public static BusinessException AncillaryHoldIsReleased(params object?[] args) =>
+            new(16412, ExceptionMessages.AncillaryHoldIsReleased, args) { HttpStatus = 409 };
+
+        public static BusinessException AncillaryHoldIsCancelled(params object?[] args) =>
+            new(16413, ExceptionMessages.AncillaryHoldIsCancelled, args) { HttpStatus = 409 };
+
+        public static BusinessException AncillaryHoldIsNotConfirmed(params object?[] args) =>
+            new(16414, ExceptionMessages.AncillaryHoldIsNotConfirmed, args) { HttpStatus = 409 };
+
+        public static BusinessException AncillaryHoldSeatNotSellable(params object?[] args) =>
+            new(16415, ExceptionMessages.AncillaryHoldSeatNotSellable, args) { HttpStatus = 422 };
+
+        public static BusinessException AncillaryHoldOrderIsBusy(params object?[] args) =>
+            new(16416, ExceptionMessages.AncillaryHoldOrderIsBusy, args) { HttpStatus = 409 };
+
         public static BusinessException PricingNotFound(params object?[] args) =>
             new(16501, ExceptionMessages.PricingNotFound, args) { HttpStatus = 404 };
 

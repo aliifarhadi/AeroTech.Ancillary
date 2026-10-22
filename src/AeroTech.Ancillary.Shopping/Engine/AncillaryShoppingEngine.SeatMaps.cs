@@ -54,12 +54,12 @@ namespace AeroTech.Ancillary.Shopping.Engine
             var travellerRef = unit.TravellerRef;
 
             if (seat.Occupied)
-                return new SeatPricing(travellerRef, seat.FlightRef, seat.SeatNumber, SeatAvailabilityStatus.Occupied, null);
+                return new SeatPricing(travellerRef, seat.FlightRef, seat.SeatNumber, SeatAvailabilityStatus.Occupied, null, []);
 
             var flight = unit.Flights[0];
 
             if ((unit.FareOf(flight)?.CabinClassId ?? flight.CabinClassId) is not { } bookedCabin || seat.CabinClassId != bookedCabin)
-                return new SeatPricing(travellerRef, seat.FlightRef, seat.SeatNumber, SeatAvailabilityStatus.Blocked, null);
+                return new SeatPricing(travellerRef, seat.FlightRef, seat.SeatNumber, SeatAvailabilityStatus.Blocked, null, []);
 
             var chosen = unit with { Selection = new AncillarySelection { SeatNumber = seat.SeatNumber } };
             var categories = new List<SeatCategory>();
@@ -79,7 +79,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
                     if (outcome.Verdict == RuleVerdict.NoMatch)
                     {
-                        excluded ??= new SeatCategory(definition, provision.Sequence, null);
+                        excluded ??= new SeatCategory(definition, provision.Sequence, null, outcome.ReasonCodes);
 
                         continue;
                     }
@@ -89,7 +89,8 @@ namespace AeroTech.Ancillary.Shopping.Engine
                     decided = new SeatCategory(
                         definition,
                         provision.Sequence,
-                        candidate.OfferReadiness is OfferReadiness.Selectable or OfferReadiness.NeedsSelection ? candidate : null);
+                        candidate.OfferReadiness is OfferReadiness.Selectable or OfferReadiness.NeedsSelection ? candidate : null,
+                        candidate.ReasonCodes);
 
                     break;
                 }
@@ -105,10 +106,10 @@ namespace AeroTech.Ancillary.Shopping.Engine
                 .FirstOrDefault();
 
             return category?.Offered is { Price.PricingRevisionId: not null } offered
-                ? new SeatPricing(travellerRef, seat.FlightRef, seat.SeatNumber, SeatAvailabilityStatus.Available, offered)
-                : new SeatPricing(travellerRef, seat.FlightRef, seat.SeatNumber, SeatAvailabilityStatus.Blocked, null);
+                ? new SeatPricing(travellerRef, seat.FlightRef, seat.SeatNumber, SeatAvailabilityStatus.Available, offered, [])
+                : new SeatPricing(travellerRef, seat.FlightRef, seat.SeatNumber, SeatAvailabilityStatus.Blocked, null, category?.ReasonCodes ?? []);
         }
 
-        private sealed record SeatCategory(AncillaryServiceDefinition Definition, int Sequence, CanonicalAncillaryOfferCandidate? Offered);
+        private sealed record SeatCategory(AncillaryServiceDefinition Definition, int Sequence, CanonicalAncillaryOfferCandidate? Offered, IReadOnlyList<string> ReasonCodes);
     }
 }

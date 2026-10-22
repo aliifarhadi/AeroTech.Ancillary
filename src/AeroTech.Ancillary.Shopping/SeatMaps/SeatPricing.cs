@@ -7,5 +7,6 @@ namespace AeroTech.Ancillary.Shopping.SeatMaps
         string FlightRef,
         string SeatNumber,
         SeatAvailabilityStatus Status,
-        CanonicalAncillaryOfferCandidate? Candidate);
+        CanonicalAncillaryOfferCandidate? Candidate,
+        IReadOnlyList<string> ReasonCodes);
 }

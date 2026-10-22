@@ -1,3 +1,4 @@
+using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Services;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Contracts;
 using AeroTech.Ancillary.Domain.AncillaryReservationAggregate;
 using AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Arguments;
@@ -16,6 +17,7 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
         private readonly IAncillaryServiceDefinitionRepository _definitions;
         private readonly IAncillaryProvisionRepository _provisions;
         private readonly ISupplierRepository _suppliers;
+        private readonly IAncillaryHoldLock _holdLock;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IIdGenerator _idGenerator;
         private readonly IClock _clock;
@@ -25,6 +27,7 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
             IAncillaryServiceDefinitionRepository definitions,
             IAncillaryProvisionRepository provisions,
             ISupplierRepository suppliers,
+            IAncillaryHoldLock holdLock,
             IUnitOfWork unitOfWork,
             IIdGenerator idGenerator,
             IClock clock)
@@ -33,6 +36,7 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
             _definitions = definitions;
             _provisions = provisions;
             _suppliers = suppliers;
+            _holdLock = holdLock;
             _unitOfWork = unitOfWork;
             _idGenerator = idGenerator;
             _clock = clock;
@@ -49,12 +53,17 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
                     service.TravellerId,
                     service.CoverageScope,
                     service.CoveredFlightIds,
-                    service.Quantity))
+                    service.Quantity,
+                    service.SeatMapSelectionId,
+                    service.SeatNumber,
+                    service.PricingId))
                 .ToList();
             var stored = await _reservations.FindByIdempotencyKeyAsync(command.IdempotencyKey, cancellationToken);
 
             if (stored is not null)
                 return Replayed(stored, command, units, now);
+
+            await using var orderLock = await _holdLock.AcquireAsync(command.OrderId, cancellationToken);
 
             try
             {

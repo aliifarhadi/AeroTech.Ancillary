@@ -1,5 +1,7 @@
+using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.CancelAncillaryHold.Service;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ConfirmAncillaryHold.Service;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldAncillaryServices.Service;
+using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ReleaseAncillaryHold.Service;
 using AeroTech.Ancillary.Query.AncillaryReservationAggregate.Queries.GetAncillaryHoldById.Service;
 using AeroTech.Ancillary.RestApi.V1.AncillaryReservationAggregate.Requests;
 using Asp.Versioning;
@@ -35,5 +37,13 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryReservationAggregate.Controller
         [HttpPost("Service-Holds/{holdId:long}/Confirmations")]
         public async Task<IActionResult> Confirm(long holdId, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(new ServiceConfirmAncillaryHoldCommand(holdId), cancellationToken));
+
+        [HttpDelete("Service-Holds/{holdId:long}")]
+        public async Task<IActionResult> Release(long holdId, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new ServiceReleaseAncillaryHoldCommand(holdId), cancellationToken));
+
+        [HttpPost("Service-Holds/{holdId:long}/Cancellations")]
+        public async Task<IActionResult> Cancel(long holdId, [FromBody] CancelAncillaryHoldRequest request, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new ServiceCancelAncillaryHoldCommand(holdId, request.ReasonCode), cancellationToken));
     }
 }

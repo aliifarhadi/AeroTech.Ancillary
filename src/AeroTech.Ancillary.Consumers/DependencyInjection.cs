@@ -39,6 +39,7 @@ namespace AeroTech.Ancillary.Consumers
             services.Configure<MessageRetentionOptions>(configuration.GetSection("MessageRetention"));
             services.AddHostedService<OutboxPublisher>();
             services.AddHostedService<MessageRetentionPoller>();
+            services.AddHostedService<AncillaryHoldExpiryPoller>();
 
             return services;
         }

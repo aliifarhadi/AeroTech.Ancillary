@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Framework\AeroTech.Framework.Presentation\AeroTech.Framework.Presentation.csproj" />
+    <ProjectReference Include="..\AeroTech.Ancillary.Application\AeroTech.Ancillary.Application.csproj" />
     <ProjectReference Include="..\AeroTech.Ancillary.Persistence\AeroTech.Ancillary.Persistence.csproj" />
     <ProjectReference Include="..\AeroTech.Ancillary.Synchronizer\AeroTech.Ancillary.Synchronizer.csproj" />
     <ProjectReference Include="..\..\Contracts\AeroTech.Messages\AeroTech.Messages.csproj" />

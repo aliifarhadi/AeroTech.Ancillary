@@ -187,7 +187,7 @@ public class S2SeatMapResolveTests
 
         Assert.Equal("Service/v{version:apiVersion}/Ancillaries/SeatMaps", controller.GetCustomAttributes(typeof(RouteAttribute), false).Cast<RouteAttribute>().Single().Template);
         Assert.Empty(controller.GetCustomAttributes(typeof(AuthorizeAttribute), true));
-        Assert.Equal(new[] { "Resolve" }, controller.GetMethods().SelectMany(method => method.GetCustomAttributes(typeof(HttpPostAttribute), false).Cast<HttpPostAttribute>()).Select(post => post.Template));
+        Assert.Equal(new[] { "Resolve", "Holds" }, controller.GetMethods().SelectMany(method => method.GetCustomAttributes(typeof(HttpPostAttribute), false).Cast<HttpPostAttribute>()).Select(post => post.Template));
         Assert.Equal(new[] { "Ids" }, typeof(ServiceResolveSeatMapSelectionsQuery).GetProperties().Select(property => property.Name));
     }
 }

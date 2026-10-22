@@ -14,8 +14,14 @@ using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Publis
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ReactivateAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RetireAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.SuspendAncillaryProvision;
+using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.CancelAncillaryHold;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ConfirmAncillaryHold;
+using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ExpireAncillaryHolds;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldAncillaryServices;
+using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldSeatSelections;
+using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ReleaseAncillaryHold;
+using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Services;
+using Microsoft.Extensions.Options;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ActivateAncillaryServiceDefinition;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.AssignAncillaryServiceDefinitionPricingUnit;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.AssignAncillaryServiceDefinitionServiceDateBasis;
@@ -127,8 +133,16 @@ public sealed class AncillaryScope : IAsyncDisposable
         RevisePricing = new ReviseAncillaryPricingService(Pricings, pricingSynchronizer, UnitOfWork, ids, clock);
         SwitchActivePricing = new SwitchActiveAncillaryPricingService(Pricings, Provisions, Definitions, currencies, pricingSynchronizer, UnitOfWork, clock);
 
-        HoldAncillaryServices = new HoldAncillaryServicesService(Reservations, Definitions, Provisions, Suppliers, UnitOfWork, ids, clock);
+        var holdOptions = Options.Create(new AncillaryHoldOptions { LockExpirySeconds = 30, ExpiryPollIntervalSeconds = 60, ExpiryBatchSize = 100 });
+
+        HoldLock = new TestOnlyHoldLock();
+        SeatSelections = new TestOnlySeatSelectionVerifier();
+        HoldAncillaryServices = new HoldAncillaryServicesService(Reservations, Definitions, Provisions, Suppliers, HoldLock, UnitOfWork, ids, clock);
+        HoldSeatSelections = new HoldSeatSelectionsService(SeatSelections, HoldAncillaryServices);
         ConfirmAncillaryHold = new ConfirmAncillaryHoldService(Reservations, UnitOfWork, clock);
+        ReleaseAncillaryHold = new ReleaseAncillaryHoldService(Reservations, UnitOfWork, clock);
+        CancelAncillaryHold = new CancelAncillaryHoldService(Reservations, UnitOfWork, clock);
+        ExpireAncillaryHolds = new ExpireAncillaryHoldsService(Reservations, UnitOfWork, clock, holdOptions);
 
         GetSupplierById = new GetSupplierByIdService(Query);
         GetSuppliersPaginated = new GetSuppliersPaginatedService(Query);
@@ -212,9 +226,21 @@ public sealed class AncillaryScope : IAsyncDisposable
 
     public ISwitchActiveAncillaryPricingService SwitchActivePricing { get; }
 
+    public TestOnlyHoldLock HoldLock { get; }
+
+    public TestOnlySeatSelectionVerifier SeatSelections { get; }
+
     public IHoldAncillaryServicesService HoldAncillaryServices { get; }
 
+    public IHoldSeatSelectionsService HoldSeatSelections { get; }
+
     public IConfirmAncillaryHoldService ConfirmAncillaryHold { get; }
+
+    public IReleaseAncillaryHoldService ReleaseAncillaryHold { get; }
+
+    public ICancelAncillaryHoldService CancelAncillaryHold { get; }
+
+    public IExpireAncillaryHoldsService ExpireAncillaryHolds { get; }
 
     public IGetSupplierByIdService GetSupplierById { get; }
 

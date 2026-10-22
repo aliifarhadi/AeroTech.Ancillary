@@ -24,7 +24,11 @@ namespace AeroTech.Ancillary.Query.AncillaryReservationAggregate.Queries.GetAnci
                         unit.CoverageScope,
                         unit.CoveredFlightIds,
                         unit.Quantity,
-                        reservation.StatusOf(unit, now)))
+                        unit.SeatMapSelectionId,
+                        unit.SeatNumber,
+                        unit.PricingId,
+                        reservation.StatusOf(unit, now),
+                        unit.CancellationReasonCode))
                     .ToList());
     }
 }

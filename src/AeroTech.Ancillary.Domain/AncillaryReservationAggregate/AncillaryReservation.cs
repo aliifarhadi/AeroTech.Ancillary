@@ -11,6 +11,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate
     {
         private const int IdempotencyKeyMaxLength = 128;
         private const int ReferenceMaxLength = 128;
+        private const int CancellationReasonCodeMaxLength = 50;
 
         private readonly List<AncillaryReservationUnit> _units = new();
 
@@ -80,6 +81,13 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate
 
             Require(occurrences.Distinct(StringComparer.Ordinal).Count() == occurrences.Count, nameof(Units));
 
+            var seats = units
+                .Where(unit => unit.SeatNumber is not null)
+                .Select(unit => $"{string.Join(',', unit.CoveredFlightIds.Order())}|{unit.SeatNumber!.Trim().ToUpperInvariant()}")
+                .ToList();
+
+            Require(seats.Distinct(StringComparer.Ordinal).Count() == seats.Count, nameof(AncillaryReservationUnit.SeatNumber));
+
             var reservation = new AncillaryReservation(id, idempotencyKey, orderId, reference, requestedExpiresAt, now);
 
             reservation._units.AddRange(units.Select(unit => new AncillaryReservationUnit(idGenerator.NewId(), id, unit)));
@@ -115,27 +123,80 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate
 
         public bool Confirm(DateTimeOffset now)
         {
-            var statuses = _units.Select(unit => StatusOf(unit, now)).ToList();
-
-            if (statuses.All(status => status == AncillaryReservationUnitStatus.Held))
+            switch (EffectiveStatus(now))
             {
-                foreach (var unit in _units)
-                    unit.ChangeStatus(AncillaryReservationUnitStatus.Confirmed);
-
-                Status = AncillaryReservationStatus.Confirmed;
-                UpdatedAt = now;
-
-                return true;
+                case AncillaryReservationStatus.Confirmed:
+                    return false;
+                case AncillaryReservationStatus.Held:
+                    Transition(AncillaryReservationStatus.Confirmed, AncillaryReservationUnitStatus.Confirmed, now);
+                    return true;
+                default:
+                    throw NotTransitionable(now);
             }
+        }
 
-            if (statuses.All(status => status == AncillaryReservationUnitStatus.Confirmed))
+        public bool Release(DateTimeOffset now)
+        {
+            switch (EffectiveStatus(now))
+            {
+                case AncillaryReservationStatus.Released:
+                    return false;
+                case AncillaryReservationStatus.Held:
+                    Transition(AncillaryReservationStatus.Released, AncillaryReservationUnitStatus.Released, now);
+                    return true;
+                default:
+                    throw NotTransitionable(now);
+            }
+        }
+
+        public bool Cancel(string reasonCode, DateTimeOffset now)
+        {
+            Require(reasonCode is { Length: >= 1 and <= CancellationReasonCodeMaxLength }, nameof(AncillaryReservationUnit.CancellationReasonCode));
+
+            switch (EffectiveStatus(now))
+            {
+                case AncillaryReservationStatus.Cancelled:
+                    return false;
+                case AncillaryReservationStatus.Confirmed:
+                    foreach (var unit in _units)
+                        unit.Cancel(reasonCode);
+
+                    Status = AncillaryReservationStatus.Cancelled;
+                    UpdatedAt = now;
+                    return true;
+                default:
+                    throw NotTransitionable(now);
+            }
+        }
+
+        public bool Expire(DateTimeOffset now)
+        {
+            if (Status != AncillaryReservationStatus.Held || EffectiveStatus(now) != AncillaryReservationStatus.Expired)
                 return false;
 
-            if (statuses.Contains(AncillaryReservationUnitStatus.Expired))
-                throw ExceptionFactory.AncillaryHoldHasExpired();
+            Transition(AncillaryReservationStatus.Expired, AncillaryReservationUnitStatus.Expired, now);
 
-            throw ExceptionFactory.AncillaryHoldIsInMixedState();
+            return true;
         }
+
+        private void Transition(AncillaryReservationStatus status, AncillaryReservationUnitStatus unitStatus, DateTimeOffset now)
+        {
+            foreach (var unit in _units)
+                unit.ChangeStatus(unitStatus);
+
+            Status = status;
+            UpdatedAt = now;
+        }
+
+        private Exception NotTransitionable(DateTimeOffset now)
+            => EffectiveStatus(now) switch
+            {
+                AncillaryReservationStatus.Expired => ExceptionFactory.AncillaryHoldHasExpired(),
+                AncillaryReservationStatus.Released => ExceptionFactory.AncillaryHoldIsReleased(),
+                AncillaryReservationStatus.Cancelled => ExceptionFactory.AncillaryHoldIsCancelled(),
+                AncillaryReservationStatus.Confirmed => ExceptionFactory.AncillaryHoldIsConfirmed(),
+                _ => ExceptionFactory.AncillaryHoldIsNotConfirmed()
+            };
 
         private static void Require(bool condition, string field)
         {

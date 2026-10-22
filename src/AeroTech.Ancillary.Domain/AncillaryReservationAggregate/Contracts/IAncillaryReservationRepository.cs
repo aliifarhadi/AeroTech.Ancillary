@@ -13,6 +13,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Contracts
             DateTimeOffset now,
             CancellationToken cancellationToken = default);
 
+        Task<IReadOnlyList<AncillaryReservation>> ListExpiredHeldAsync(DateTimeOffset now, int batchSize, CancellationToken cancellationToken = default);
+
         void Update(AncillaryReservation reservation);
     }
 }

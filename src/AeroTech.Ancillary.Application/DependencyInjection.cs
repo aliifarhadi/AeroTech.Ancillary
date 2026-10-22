@@ -14,8 +14,13 @@ using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.Publis
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.ReactivateAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.RetireAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.SuspendAncillaryProvision;
+using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.CancelAncillaryHold;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ConfirmAncillaryHold;
+using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ExpireAncillaryHolds;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldAncillaryServices;
+using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldSeatSelections;
+using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ReleaseAncillaryHold;
+using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Services;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ActivateAncillaryServiceDefinition;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.AssignAncillaryServiceDefinitionPricingUnit;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.AssignAncillaryServiceDefinitionServiceDateBasis;
@@ -134,8 +139,19 @@ namespace AeroTech.Ancillary.Application
             services.AddScoped<ISwitchActiveAncillaryPricingService, SwitchActiveAncillaryPricingService>();
             services.AddScoped<IPublishAncillaryProvisionService, PublishAncillaryProvisionService>();
             services.AddScoped<IAssignAncillaryServiceDefinitionServiceDateBasisService, AssignAncillaryServiceDefinitionServiceDateBasisService>();
+            var holds = configuration.GetSection(AncillaryHoldOptions.SectionName).Get<AncillaryHoldOptions>();
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(holds?.LockExpirySeconds ?? 0, $"{AncillaryHoldOptions.SectionName}:{nameof(AncillaryHoldOptions.LockExpirySeconds)}");
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(holds?.ExpiryPollIntervalSeconds ?? 0, $"{AncillaryHoldOptions.SectionName}:{nameof(AncillaryHoldOptions.ExpiryPollIntervalSeconds)}");
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(holds?.ExpiryBatchSize ?? 0, $"{AncillaryHoldOptions.SectionName}:{nameof(AncillaryHoldOptions.ExpiryBatchSize)}");
+
+            services.Configure<AncillaryHoldOptions>(configuration.GetSection(AncillaryHoldOptions.SectionName));
+            services.AddScoped<IAncillaryHoldLock, AncillaryHoldLock>();
             services.AddScoped<IHoldAncillaryServicesService, HoldAncillaryServicesService>();
+            services.AddScoped<IHoldSeatSelectionsService, HoldSeatSelectionsService>();
             services.AddScoped<IConfirmAncillaryHoldService, ConfirmAncillaryHoldService>();
+            services.AddScoped<IReleaseAncillaryHoldService, ReleaseAncillaryHoldService>();
+            services.AddScoped<ICancelAncillaryHoldService, CancelAncillaryHoldService>();
+            services.AddScoped<IExpireAncillaryHoldsService, ExpireAncillaryHoldsService>();
 
             return services;
         }

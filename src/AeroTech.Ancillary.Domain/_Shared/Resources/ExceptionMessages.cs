@@ -53,6 +53,12 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public const string AncillaryHoldIsInMixedState = "The ancillary hold units are in a mixed state.";
         public const string AncillaryHoldQuantityNotAllowed = "The requested quantity is outside the provision quantity rule.";
         public const string AncillaryHoldCoverageMismatch = "The hold unit coverage does not match the provision coverage.";
+        public const string AncillaryHoldIsConfirmed = "The ancillary hold is already confirmed.";
+        public const string AncillaryHoldIsReleased = "The ancillary hold was released.";
+        public const string AncillaryHoldIsCancelled = "The ancillary hold was cancelled.";
+        public const string AncillaryHoldIsNotConfirmed = "The ancillary hold is not confirmed.";
+        public const string AncillaryHoldSeatNotSellable = "Seat {0} cannot be held: {1}.";
+        public const string AncillaryHoldOrderIsBusy = "Another hold operation is running for order {0}.";
         public const string PricingNotFound = "The pricing was not found.";
         public const string PricingIsInvalid = "Pricing field {0} is invalid.";
         public const string PricingStatusChangeNotAllowed = "The pricing status does not allow this change.";

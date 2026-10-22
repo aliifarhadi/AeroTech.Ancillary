@@ -1822,6 +1822,9 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.Property<long>("OrderServiceId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("PricingId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("ProviderUnitRef")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -1831,6 +1834,14 @@ namespace AeroTech.Ancillary.Persistence.Migrations
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
+
+                    b.Property<string>("SeatMapSelectionId")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("SeatNumber")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
 
                     b.Property<long>("ServiceDefinitionId")
                         .HasColumnType("bigint");

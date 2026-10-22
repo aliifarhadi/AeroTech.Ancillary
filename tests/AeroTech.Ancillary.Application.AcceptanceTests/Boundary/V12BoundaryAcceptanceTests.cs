@@ -12,7 +12,7 @@ namespace AeroTech.Ancillary.Application.AcceptanceTests.Boundary;
 public class V12BoundaryAcceptanceTests
 {
     private const string FrozenAggregate = "AncillaryReservationAggregate";
-    private const string FrozenSourceHash = "6974ABA2C62BAFE7CDE159BDCE8A4969F1CAECCF25368012F30D1BE7DDA4E486";
+    private const string FrozenSourceHash = "BCB3AE2E6A86E92F04238AADA1AA4EB1205348B18C2983137A14DF5D11517269";
     private const string CommandMigration = "20261008103942_V12Phase1NormalizedProvisionAndPricing.cs";
     private const string QueryMigration = "20261008103947_V12Phase1NormalizedProvisionAndPricingQuery.cs";
     private const string RuleGroupCommandMigration = "20261008135403_V121Phase1RuleGroups.cs";
@@ -121,13 +121,13 @@ public class V12BoundaryAcceptanceTests
             .ToArray();
 
         Assert.Equal(
-            new[] { "ConfirmAncillaryHold", "HoldAncillaryServices" },
+            new[] { "CancelAncillaryHold", "ConfirmAncillaryHold", "ExpireAncillaryHolds", "HoldAncillaryServices", "HoldSeatSelections", "ReleaseAncillaryHold" },
             Folders("AeroTech.Ancillary.Application", FrozenAggregate, "Commands"));
         Assert.Equal(
             new[] { "GetAncillaryHoldById" },
             Folders("AeroTech.Ancillary.Query", FrozenAggregate, "Queries"));
         Assert.DoesNotContain(
-            Files(Source).Select(path => Path.GetFileName(path)!).Where(name => !name.Contains("CancellationRule", StringComparison.Ordinal) && !name.EndsWith("IssueDto.cs", StringComparison.Ordinal)),
+            Files(Source).Where(path => !InFolder(path, FrozenAggregate)).Select(path => Path.GetFileName(path)!).Where(name => !name.Contains("CancellationRule", StringComparison.Ordinal) && !name.EndsWith("IssueDto.cs", StringComparison.Ordinal)),
             name => new[] { "Cancel", "Release", "Issue", "Split", "History" }.Any(term => name.Contains(term, StringComparison.Ordinal)));
 
         var frozen = Files(Source)
@@ -138,7 +138,7 @@ public class V12BoundaryAcceptanceTests
             .OrderBy(file => file.Path, StringComparer.Ordinal)
             .ToList();
 
-        Assert.Equal(36, frozen.Count);
+        Assert.Equal(72, frozen.Count);
         Assert.Equal(
             FrozenSourceHash,
             Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join('\n', frozen.Select(file => $"{file.Path}:{file.Hash}"))))));
@@ -239,6 +239,9 @@ public class V12BoundaryAcceptanceTests
 
         string[] added =
         [
+            "DELETE Service/Ancillaries/Service-Holds/{holdId:long}",
+            "POST Service/Ancillaries/Service-Holds/{holdId:long}/Cancellations",
+            "POST Service/Ancillaries/SeatMaps/Holds",
             "POST Backoffice/AncillaryServiceDefinitions/{serviceDefinitionId:long}/AssignPricingUnit",
             "POST Backoffice/AncillaryServiceDefinitions/{serviceDefinitionId:long}/AssignServiceDateBasis",
             "POST Backoffice/AncillaryProvisions/{provisionId:long}/Publish",
@@ -362,11 +365,17 @@ public class V12BoundaryAcceptanceTests
         Assert.Equal(
             preserved.Concat(added).Concat(typed).Concat(forms).Concat(inventory).OrderBy(route => route, StringComparer.Ordinal),
             routes.OrderBy(route => route, StringComparer.Ordinal));
-        Assert.Equal(155, routes.Count);
+        Assert.Equal(158, routes.Count);
         Assert.Equal(36, inventory.Length);
         Assert.DoesNotContain(routes, route => new[] { "Sell", "Reserve", "Release", "Expire" }.Any(term => route.Contains(term, StringComparison.Ordinal)));
         Assert.Equal(
-            new[] { "POST Service/Ancillaries/Service-Holds", "POST Service/Ancillaries/Service-Holds/{holdId:long}/Confirmations" },
+            new[]
+            {
+                "POST Service/Ancillaries/SeatMaps/Holds",
+                "POST Service/Ancillaries/Service-Holds",
+                "POST Service/Ancillaries/Service-Holds/{holdId:long}/Cancellations",
+                "POST Service/Ancillaries/Service-Holds/{holdId:long}/Confirmations"
+            },
             routes.Where(route => route.Contains("Hold", StringComparison.Ordinal) && route.StartsWith("POST", StringComparison.Ordinal)).OrderBy(route => route, StringComparer.Ordinal));
         Assert.All(preserved, route => Assert.Contains(route, routes));
         Assert.DoesNotContain(routes, route => new[] { "TravelDates", "SeasonalPeriods", "DayTimeRestrictions" }.Any(term => route.Contains(term, StringComparison.Ordinal)));
@@ -476,7 +485,14 @@ public class V12BoundaryAcceptanceTests
     [Fact]
     public void V12_C02_every_command_service_of_the_application_is_registered_once_as_scoped()
     {
-        var services = new ServiceCollection().AddApplication(new ConfigurationBuilder().Build());
+        var services = new ServiceCollection().AddApplication(new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Holds:LockExpirySeconds"] = "30",
+                ["Holds:ExpiryPollIntervalSeconds"] = "60",
+                ["Holds:ExpiryBatchSize"] = "200"
+            })
+            .Build());
 
         var contracts = typeof(DependencyInjection).Assembly.GetTypes()
             .Where(type => type.IsInterface
@@ -485,7 +501,7 @@ public class V12BoundaryAcceptanceTests
                            && type.Name.EndsWith("Service", StringComparison.Ordinal))
             .ToList();
 
-        Assert.Equal(54, contracts.Count);
+        Assert.Equal(58, contracts.Count);
         Assert.Equal(5, contracts.Count(contract => contract.Namespace!.Contains(".AncillaryInventoryPolicyAggregate.", StringComparison.Ordinal)));
         Assert.Equal(7, contracts.Count(contract => contract.Namespace!.Contains(".FlightCountInventoryAggregate.", StringComparison.Ordinal)));
         Assert.Equal(7, contracts.Count(contract => contract.Namespace!.Contains(".FlightWeightInventoryAggregate.", StringComparison.Ordinal)));
@@ -493,7 +509,7 @@ public class V12BoundaryAcceptanceTests
         Assert.Equal(7, contracts.Count(contract => contract.Namespace!.Contains(".AncillaryProvisionAggregate.", StringComparison.Ordinal)));
         Assert.Equal(9, contracts.Count(contract => contract.Namespace!.Contains(".AncillaryServiceDefinitionAggregate.", StringComparison.Ordinal)));
         Assert.Equal(8, contracts.Count(contract => contract.Namespace!.Contains(".AncillaryPricingAggregate.", StringComparison.Ordinal)));
-        Assert.Equal(2, contracts.Count(contract => contract.Namespace!.Contains($".{FrozenAggregate}.", StringComparison.Ordinal)));
+        Assert.Equal(6, contracts.Count(contract => contract.Namespace!.Contains($".{FrozenAggregate}.", StringComparison.Ordinal)));
 
         foreach (var contract in contracts)
         {

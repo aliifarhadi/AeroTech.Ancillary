@@ -20,5 +20,9 @@ namespace AeroTech.Ancillary.Query.AncillaryReservationAggregate.Dto
         ServiceCoverageScope CoverageScope,
         IReadOnlyList<long> CoveredFlightIds,
         int Quantity,
-        AncillaryReservationUnitStatus Status);
+        string? SeatMapSelectionId,
+        string? SeatNumber,
+        long? PricingId,
+        AncillaryReservationUnitStatus Status,
+        string? CancellationReasonCode);
 }
