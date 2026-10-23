@@ -54,7 +54,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
             => row.QuantityOptions?.Select(option => new OfferQuantityOptionDto(option.Quantity, option.SelectionId, option.TotalAmount)).ToList();
 
         public static string? OptionsEndpoint(string surface, AncillaryOfferRow row)
-            => row.Reference is { } reference ? $"/{surface}/v1/AncillaryOffers/{OfferFamilyRoutes.Of(row.Candidate.Profile)}/{reference}/Options" : null;
+            => row.Reference is null ? null : $"/{surface}/v1/AncillaryOffers/{OfferFamilyRoutes.Of(row.Candidate.Profile)}/{{reference}}/Options";
 
         public static BaggageDetailsDto Baggage(AncillaryServiceDefinition definition)
         {

@@ -89,6 +89,7 @@ Each point is already built as stated and can be flipped without touching the re
 | S2-3 | `medicalEquipment`, `unaccompaniedMinor` sub-objects | 02 §3 lists them; A17 and A19 are gated | not built; they can never be emitted |
 | S2-4 | `includedBaggage` in baggage details | 03 §3.1, optional, from the Offer | not built |
 | S2-5 | Element types of `extraSeats` and `travelInsurance` | 03 §3.9 defines ExtraSeat details; 03 §3.10 says insurance has none | `ExtraSeatDetailsDto` as 03 §3.9, empty `TravelInsuranceDetailsDto`; both lists always `[]` |
+| S2-7 | `optionsEndpoint` repeated the 509-character `r_` | 02 §2.2 "exact route returned to caller"; in a live answer `reference` and `optionsEndpoint` took 52% of 79,643 bytes | **decided by you 2026-10-24**: `optionsEndpoint` stays, as the template `/{Surface}/v1/AncillaryOffers/{Family}/{reference}/Options` with `{reference}` left literal |
 | S2-6 | Fixed quantity above 1 | 02 §2.5 says min/max 1 for a fixed Direct | a `QuantityChoice` provision with min = max signs its min, and the policy shows that value; it is 1 in every case where min = 1 |
 
 ## 4. Stage3 — points applied, for your review
@@ -100,6 +101,7 @@ Each point is already built as stated and can be flipped without touching the re
 | S3-3 | `s_` collision retry once | 04 §3 | not built: 128 random bits, and a retry needs a new path through the unit of work |
 | S3-4 | Meals and Upgrades options | 02 §1 lists both families | no POST route: A10, A11 and A12 take no customer input in the current domain, so no `r_` exists for them; GET answers 409 |
 | S3-5 | 404 versus 409 for a missing rate chain | 02 §6 | 409 for both, because the readers return Active rows only; a forged rate cannot pass the MAC |
+| S3-7 | Exclusive lower bounds in the form | 02 §4 has only inclusive `min`; the engine refuses a weight at the lower bound | **approved by you 2026-10-24**: descriptor field `exclusiveMin` (a number, like JSON Schema `exclusiveMinimum`): A03 `measuredWeightKg` = tier lower bound or 0, A06 `weightKg` = 0, A13/A14 `combinedWeightKg` = 0 |
 | S3-6 | A18 bassinet | 04 §1 gates it while no trusted traveller source exists | open: the offer reload of Q4 is that trusted source; choices follow the engine (guardian = unit traveller, infants linked to it) |
 
 ## 5. Stage4 — points applied, for your review

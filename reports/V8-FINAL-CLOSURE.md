@@ -11,7 +11,7 @@
 | Command | Result |
 |---|---|
 | `dotnet build AeroTech.Ancillary.sln --no-incremental` | 0 errors, 61 warnings. 4 are new NuGet advisories (NU1902, NU1903) from the restored Shopping test project; Gate0 had 63 with that project present. No compiler warning comes from a changed file |
-| `dotnet test tests/AeroTech.Ancillary.Shopping.Tests` | 74 discovered, 74 passed |
+| `dotnet test tests/AeroTech.Ancillary.Shopping.Tests` | 75 discovered, 75 passed (74 scenario tests plus `ExclusiveMinimumsFollowTheEngineRules` for S3-7) |
 | `dotnet test tests/AeroTech.Ancillary.Domain.ConformanceTests` | 264 discovered, 264 passed |
 | `dotnet test tests/AeroTech.Ancillary.Application.AcceptanceTests` | 232 discovered, 232 passed (1 min 25 s) |
 

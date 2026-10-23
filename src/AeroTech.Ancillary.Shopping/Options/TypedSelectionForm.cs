@@ -23,7 +23,13 @@ namespace AeroTech.Ancillary.Shopping.Options
                 AncillaryVariant.Overweight =>
                 [
                     new SelectionFieldDescriptor("bagRef", SelectionControls.Text, true),
-                    new SelectionFieldDescriptor("measuredWeightKg", SelectionControls.Number, true, Unit: Kilograms, Max: definition.Baggage!.WeightToInclusiveKg)
+                    new SelectionFieldDescriptor(
+                        "measuredWeightKg",
+                        SelectionControls.Number,
+                        true,
+                        Unit: Kilograms,
+                        ExclusiveMin: definition.Baggage!.WeightFromExclusiveKg ?? 0m,
+                        Max: definition.Baggage.WeightToInclusiveKg)
                 ],
                 AncillaryVariant.Oversize => [new SelectionFieldDescriptor("dimensions", SelectionControls.Dimensions, true, Unit: Centimetres)],
                 AncillaryVariant.SpecialEquipment => SpecialEquipment(definition.Baggage!),
@@ -67,7 +73,7 @@ namespace AeroTech.Ancillary.Shopping.Options
                 fields.Add(new SelectionFieldDescriptor("dimensions", SelectionControls.Dimensions, true, Unit: Centimetres));
 
             if (baggage.MaxKgPerPiece is { } maximum)
-                fields.Add(new SelectionFieldDescriptor("weightKg", SelectionControls.Number, true, Unit: Kilograms, Max: maximum));
+                fields.Add(new SelectionFieldDescriptor("weightKg", SelectionControls.Number, true, Unit: Kilograms, ExclusiveMin: 0m, Max: maximum));
 
             return fields;
         }
@@ -84,7 +90,13 @@ namespace AeroTech.Ancillary.Shopping.Options
             if ((rule?.MinAnimalAgeWeeksOverride ?? pet.MinAnimalAgeWeeks) is > 0 and var minimumAge)
                 fields.Add(new SelectionFieldDescriptor("animalAgeWeeks", SelectionControls.Number, false, Min: minimumAge));
 
-            fields.Add(new SelectionFieldDescriptor("combinedWeightKg", SelectionControls.Number, true, Unit: Kilograms, Max: rule?.MaxCombinedKgOverride ?? pet.MaxCombinedWeightKg));
+            fields.Add(new SelectionFieldDescriptor(
+                "combinedWeightKg",
+                SelectionControls.Number,
+                true,
+                Unit: Kilograms,
+                ExclusiveMin: 0m,
+                Max: rule?.MaxCombinedKgOverride ?? pet.MaxCombinedWeightKg));
             fields.Add(new SelectionFieldDescriptor("carrierDimensions", SelectionControls.Dimensions, true, Unit: Centimetres));
 
             if (pet.RequiredDocumentCodes.Count > 0)

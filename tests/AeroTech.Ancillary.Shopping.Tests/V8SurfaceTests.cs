@@ -45,7 +45,7 @@ public sealed class V8SurfaceTests
 
         Assert.All(Families, family => Assert.IsType<JsonArray>(answer[family]));
         Assert.Equal("PerTravellerPerFlight", (string?)typed["selectionScope"]!["name"]);
-        Assert.StartsWith("/Backoffice/v1/AncillaryOffers/AssistedTravel/r_", (string?)typed["optionsEndpoint"]);
+        Assert.Equal("/Backoffice/v1/AncillaryOffers/AssistedTravel/{reference}/Options", (string?)typed["optionsEndpoint"]);
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public sealed class V8SurfaceTests
 
         Assert.All(Families, family => Assert.IsType<JsonArray>(answer[family]));
         Assert.Equal("PerTravellerPerFlight", (string?)Row(answer, "assistedTravel", "A15")["selectionScope"]);
-        Assert.StartsWith("/OtaPanel/v1/AncillaryOffers/AssistedTravel/r_", (string?)Row(answer, "assistedTravel", "A15")["optionsEndpoint"]);
+        Assert.Equal("/OtaPanel/v1/AncillaryOffers/AssistedTravel/{reference}/Options", (string?)Row(answer, "assistedTravel", "A15")["optionsEndpoint"]);
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public sealed class V8SurfaceTests
         var answer = Node(AncillaryOffersMapper.Map(V8Lab.Snapshot(rows), "Api"));
 
         Assert.All(Families, family => Assert.IsType<JsonArray>(answer[family]));
-        Assert.StartsWith("/Api/v1/AncillaryOffers/AssistedTravel/r_", (string?)Row(answer, "assistedTravel", "A15")["optionsEndpoint"]);
+        Assert.Equal("/Api/v1/AncillaryOffers/AssistedTravel/{reference}/Options", (string?)Row(answer, "assistedTravel", "A15")["optionsEndpoint"]);
     }
 
     [Fact]

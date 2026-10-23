@@ -183,6 +183,29 @@ public sealed class V8OptionsTests
     }
 
     [Fact]
+    public async Task ExclusiveMinimumsFollowTheEngineRules()
+    {
+        var (lab, context, reference) = await ReferenceAsync("A03", 50m);
+        var overweight = Assert.Single((await FormAsync(lab, context, reference, AncillaryProfile.Baggage)).Fields, field => field.Name == "measuredWeightKg");
+        var equipment = new V8Lab();
+        var (bike, bikeRule, _) = equipment.Sellable("A06", amount: 30m);
+        var pets = new V8Lab();
+        var pet = pets.Shop.Definition("A13");
+        var petRule = pets.Shop.Provision(pet, disposition: CommercialDisposition.Paid);
+
+        Assert.Equal((23m, (decimal?)null, 32m), (overweight.ExclusiveMin, overweight.Min, overweight.Max));
+        Assert.Equal(0m, Assert.Single(TypedSelectionForm.Fields(bike, bikeRule, [], string.Empty), field => field.Name == "weightKg").ExclusiveMin);
+        Assert.Equal(0m, Assert.Single(TypedSelectionForm.Fields(pet, petRule, [], string.Empty), field => field.Name == "combinedWeightKg").ExclusiveMin);
+        await BusinessAssert.ThrowsAsync(
+            InvalidOptions,
+            422,
+            () => lab.SubmitAsync(reference, AncillaryProfile.Baggage, new BaggageSelectionOptions("BAG-1", 23m, null, null), context));
+        Assert.Empty(lab.Shop.Catalog.Snapshots);
+        await lab.SubmitAsync(reference, AncillaryProfile.Baggage, new BaggageSelectionOptions("BAG-1", 24m, null, null), context);
+        Assert.Single(lab.Shop.Catalog.Snapshots);
+    }
+
+    [Fact]
     public async Task O12_SamePostTwiceGivesTwoValidIds()
     {
         var (lab, context, reference) = await ReferenceAsync("A15");

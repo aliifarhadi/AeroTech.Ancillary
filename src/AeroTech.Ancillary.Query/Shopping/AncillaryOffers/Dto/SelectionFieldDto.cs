@@ -8,5 +8,6 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto
         [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<SelectionFieldChoiceDto>? Choices,
         [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Unit,
         [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] decimal? Min,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] decimal? ExclusiveMin,
         [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] decimal? Max);
 }

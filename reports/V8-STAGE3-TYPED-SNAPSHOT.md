@@ -20,7 +20,7 @@ GET and POST start the same way:
 
 Then:
 
-- **GET** returns `{variantCode, fields:{name:{control, required, choices?, unit?, min?, max?}}}` built by `Shopping/Options/TypedSelectionForm` (pack 03 §4). Values fixed by the definition are not asked again (03 §2).
+- **GET** returns `{variantCode, fields:{name:{control, required, choices?, unit?, min?, exclusiveMin?, max?}}}` (`exclusiveMin` added with your approval on 2026-10-24, see S3-7) built by `Shopping/Options/TypedSelectionForm` (pack 03 §4). Values fixed by the definition are not asked again (03 §2).
 - **POST** takes the family body, fills the fixed values from the definition (A06 equipment kind, A20–A22 airport and facility, A24 plan), and runs the engine's `EvaluateSelectionAsync` on the same candidate (Q4). It accepts only an `Accepted` evaluation with the same rate that passes the Stage1 sell gate. Then it stores one snapshot and returns `{selectionId, expiresAtUtc}`.
 - **POST errors:** field issues give 422 (16821); any other refusal gives 409 (16820). A23 refuses an `optIn` that is not `true` with 422, because the engine checks only that the field is present.
 
@@ -30,10 +30,10 @@ Then:
 
 | Variant | Fields asked |
 |---|---|
-| A03 | `bagRef` text R; `measuredWeightKg` number R, kg, max = tier upper bound |
+| A03 | `bagRef` text R; `measuredWeightKg` number R, kg, `exclusiveMin` = tier lower bound (or 0), max = tier upper bound |
 | A04 | `dimensions` R, cm |
-| A06 | `dimensions` R when max size or linear sum is defined; `weightKg` number R, max per piece, when defined |
-| A13, A14 | `animalType` select R; `otherAnimalCode` select when RegisteredOther is allowed; `animalAgeWeeks` number, min = provision override or definition, when defined; `combinedWeightKg` number R, max = provision override or definition; `carrierDimensions` R; `documentAcknowledgements` multi-select R when codes exist; `sizeBracket` select R when brackets exist |
+| A06 | `dimensions` R when max size or linear sum is defined; `weightKg` number R, `exclusiveMin` 0, max per piece, when defined |
+| A13, A14 | `animalType` select R; `otherAnimalCode` select when RegisteredOther is allowed; `animalAgeWeeks` number, min = provision override or definition, when defined; `combinedWeightKg` number R, `exclusiveMin` 0, max = provision override or definition; `carrierDimensions` R; `documentAcknowledgements` multi-select R when codes exist; `sizeBracket` select R when brackets exist |
 | A15, A16 | `assistanceSsrCode` select R from the allowed SSR codes |
 | A18 | `infantRef` select R (INF travellers linked to the unit traveller); `guardianRef` select R (the unit traveller), as the engine's bassinet rule requires |
 | A20–A22 | `timeWithOffset` date-time R when an appointment is required; `guestCount` number, 0..max, when guests are allowed |

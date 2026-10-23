@@ -16,6 +16,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetSelection
                         field.Choices?.Select(choice => new SelectionFieldChoiceDto(choice.Value, choice.Label)).ToList(),
                         field.Unit,
                         field.Min,
+                        field.ExclusiveMin,
                         field.Max),
                     StringComparer.Ordinal));
     }
