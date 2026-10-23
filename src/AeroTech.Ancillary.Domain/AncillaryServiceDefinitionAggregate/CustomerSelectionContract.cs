@@ -98,7 +98,11 @@ namespace AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate
                         Add("EvidenceDocumentRefs", SelectionFieldType.CodeSet);
 
                     if (definition.AssistedTravel.MedicalEquipment.EquipmentKind == MedicalEquipmentKind.Oxygen)
+                    {
                         Add("OxygenUnits", SelectionFieldType.Decimal);
+                        Add("OxygenFlowRateLitersPerMinute", SelectionFieldType.Decimal);
+                        Add("FrequentTravellerMedicalCardNumber", SelectionFieldType.Text, false);
+                    }
 
                     return Build(SelectionKind.TypedForm, TravellerRef, FlightRef);
                 case AncillaryVariant.Bassinet:

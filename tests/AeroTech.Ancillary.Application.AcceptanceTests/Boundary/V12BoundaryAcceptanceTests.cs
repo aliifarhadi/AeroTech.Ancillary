@@ -247,22 +247,34 @@ public class V12BoundaryAcceptanceTests
             "POST Backoffice/AncillaryProvisions/{provisionId:long}/Publish",
             "POST Backoffice/AncillaryProvisions/{provisionId:long}/SwitchActivePricing",
             "POST Backoffice/AncillaryOffers",
-            "POST Backoffice/AncillaryOffers/Details",
-            "POST Backoffice/AncillaryOffers/Selections/Evaluate",
-            "POST Backoffice/AncillaryOffers/Selections/EvaluateBatch",
+            "GET Backoffice/AncillaryOffers/{family}/{reference}/Options",
+            "POST Backoffice/AncillaryOffers/Baggages/{reference}/Options",
+            "POST Backoffice/AncillaryOffers/Pets/{reference}/Options",
+            "POST Backoffice/AncillaryOffers/AssistedTravel/{reference}/Options",
+            "POST Backoffice/AncillaryOffers/AirportServices/{reference}/Options",
+            "POST Backoffice/AncillaryOffers/PriorityServices/{reference}/Options",
+            "POST Backoffice/AncillaryOffers/Connectivity/{reference}/Options",
             "POST Backoffice/SeatMaps",
             "POST Api/AncillaryOffers",
-            "POST Api/AncillaryOffers/Details",
-            "POST Api/AncillaryOffers/Selections/Evaluate",
-            "POST Api/AncillaryOffers/Selections/EvaluateBatch",
+            "GET Api/AncillaryOffers/{family}/{reference}/Options",
+            "POST Api/AncillaryOffers/Baggages/{reference}/Options",
+            "POST Api/AncillaryOffers/Pets/{reference}/Options",
+            "POST Api/AncillaryOffers/AssistedTravel/{reference}/Options",
+            "POST Api/AncillaryOffers/AirportServices/{reference}/Options",
+            "POST Api/AncillaryOffers/PriorityServices/{reference}/Options",
+            "POST Api/AncillaryOffers/Connectivity/{reference}/Options",
             "POST Api/SeatMaps",
             "POST OtaPanel/AncillaryOffers",
-            "POST OtaPanel/AncillaryOffers/Details",
-            "POST OtaPanel/AncillaryOffers/Selections/Evaluate",
-            "POST OtaPanel/AncillaryOffers/Selections/EvaluateBatch",
+            "GET OtaPanel/AncillaryOffers/{family}/{reference}/Options",
+            "POST OtaPanel/AncillaryOffers/Baggages/{reference}/Options",
+            "POST OtaPanel/AncillaryOffers/Pets/{reference}/Options",
+            "POST OtaPanel/AncillaryOffers/AssistedTravel/{reference}/Options",
+            "POST OtaPanel/AncillaryOffers/AirportServices/{reference}/Options",
+            "POST OtaPanel/AncillaryOffers/PriorityServices/{reference}/Options",
+            "POST OtaPanel/AncillaryOffers/Connectivity/{reference}/Options",
             "POST OtaPanel/SeatMaps",
             "POST Service/Ancillaries/SeatMaps/Resolve",
-            "POST Service/Ancillaries/Selections/Resolve",
+            "POST Service/Ancillaries/Selections/ResolveGrouped",
             "POST Backoffice/AncillaryPricings",
             "GET Backoffice/AncillaryPricings/Paginated",
             "GET Backoffice/AncillaryPricings/{pricingId:long}",
@@ -365,7 +377,7 @@ public class V12BoundaryAcceptanceTests
         Assert.Equal(
             preserved.Concat(added).Concat(typed).Concat(forms).Concat(inventory).OrderBy(route => route, StringComparer.Ordinal),
             routes.OrderBy(route => route, StringComparer.Ordinal));
-        Assert.Equal(158, routes.Count);
+        Assert.Equal(170, routes.Count);
         Assert.Equal(36, inventory.Length);
         Assert.DoesNotContain(routes, route => new[] { "Sell", "Reserve", "Release", "Expire" }.Any(term => route.Contains(term, StringComparison.Ordinal)));
         Assert.Equal(
@@ -501,7 +513,7 @@ public class V12BoundaryAcceptanceTests
                            && type.Name.EndsWith("Service", StringComparison.Ordinal))
             .ToList();
 
-        Assert.Equal(58, contracts.Count);
+        Assert.Equal(59, contracts.Count);
         Assert.Equal(5, contracts.Count(contract => contract.Namespace!.Contains(".AncillaryInventoryPolicyAggregate.", StringComparison.Ordinal)));
         Assert.Equal(7, contracts.Count(contract => contract.Namespace!.Contains(".FlightCountInventoryAggregate.", StringComparison.Ordinal)));
         Assert.Equal(7, contracts.Count(contract => contract.Namespace!.Contains(".FlightWeightInventoryAggregate.", StringComparison.Ordinal)));

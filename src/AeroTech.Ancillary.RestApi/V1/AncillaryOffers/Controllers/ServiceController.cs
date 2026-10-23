@@ -1,4 +1,4 @@
-using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveSelections.Service;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveGroupedSelections.Service;
 using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -16,8 +16,8 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryOffers.Controllers
 
         public ServiceController(IMediator mediator) => _mediator = mediator;
 
-        [HttpPost("Resolve")]
-        public async Task<IActionResult> Resolve([FromBody] ServiceResolveSelectionsQuery query, CancellationToken cancellationToken)
+        [HttpPost("ResolveGrouped")]
+        public async Task<IActionResult> ResolveGrouped([FromBody] ServiceResolveGroupedSelectionsQuery query, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(query, cancellationToken));
     }
 }

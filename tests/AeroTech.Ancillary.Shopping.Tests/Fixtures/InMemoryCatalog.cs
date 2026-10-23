@@ -1,6 +1,7 @@
 using AeroTech.Ancillary.Domain.AncillaryPricingAggregate;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
+using AeroTech.Ancillary.Domain.SelectionSnapshotAggregate;
 using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Shopping.Reading;
 using AeroTech.Messages.Ancillary.Enums;
@@ -17,7 +18,8 @@ public sealed class InMemoryCatalog :
     IRateOfExchangeReference,
     IInventoryResourceReference,
     IAirportFacilityReference,
-    ICountingFamilyReference
+    ICountingFamilyReference,
+    ISelectionSnapshotReader
 {
     public List<AncillaryServiceDefinition> Definitions { get; } = [];
 
@@ -26,6 +28,8 @@ public sealed class InMemoryCatalog :
     public List<AncillaryPricing> Pricings { get; } = [];
 
     public List<InventoryConfiguration> Inventory { get; } = [];
+
+    public List<SelectionSnapshot> Snapshots { get; } = [];
 
     public Dictionary<int, int> CurrencyScales { get; } = new() { [47] = 2, [155] = 2, [75] = 0, [82] = 3 };
 
@@ -93,6 +97,21 @@ public sealed class InMemoryCatalog :
         Reads++;
 
         return Task.FromResult<IReadOnlyList<AncillaryPricing>>(Pricings.Where(pricing => pricingIds.Contains(pricing.Id) && pricing.Status == PricingStatus.Active).ToList());
+    }
+
+    public Task<IReadOnlyList<AncillaryPricing>> FindActiveByRateIdsAsync(IReadOnlyCollection<long> pricingRateIds, CancellationToken cancellationToken = default)
+    {
+        Reads++;
+
+        return Task.FromResult<IReadOnlyList<AncillaryPricing>>(
+            Pricings.Where(pricing => pricing.Status == PricingStatus.Active && pricing.Rates.Any(rate => pricingRateIds.Contains(rate.Id))).ToList());
+    }
+
+    public Task<IReadOnlyList<SelectionSnapshot>> FindAsync(IReadOnlyCollection<string> ids, CancellationToken cancellationToken = default)
+    {
+        Reads++;
+
+        return Task.FromResult<IReadOnlyList<SelectionSnapshot>>(Snapshots.Where(snapshot => ids.Contains(snapshot.Id)).ToList());
     }
 
     public Task<IReadOnlyList<AncillaryProvision>> FindActiveProvisionsAsync(IReadOnlyCollection<long> provisionIds, CancellationToken cancellationToken = default)

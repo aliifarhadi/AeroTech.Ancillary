@@ -2207,6 +2207,59 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.ToTable("FlightWeightInventories", "Ancillary");
                 });
 
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.SelectionSnapshotAggregate.SelectionSnapshot", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(24)");
+
+                    b.Property<string>("CoverageRef")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<short>("CoverageScope")
+                        .HasColumnType("smallint");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("ExpiresAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("OfferBinding")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("char(43)");
+
+                    b.Property<long>("PricingRateId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SalesBinding")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("char(43)");
+
+                    b.Property<string>("SelectedJson")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TravellerRef")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<short>("Version")
+                        .HasColumnType("smallint");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SelectionSnapshots", "Ancillary");
+                });
+
             modelBuilder.Entity("AeroTech.Ancillary.Domain.SupplierAggregate.Supplier", b =>
                 {
                     b.Property<long>("Id")

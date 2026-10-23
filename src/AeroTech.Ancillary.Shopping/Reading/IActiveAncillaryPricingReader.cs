@@ -7,5 +7,7 @@ namespace AeroTech.Ancillary.Shopping.Reading
         Task<IReadOnlyList<AncillaryPricing>> ListActiveAsync(IReadOnlyCollection<long> ancillaryProvisionIds, CancellationToken cancellationToken = default);
 
         Task<IReadOnlyList<AncillaryPricing>> FindActivePricingsAsync(IReadOnlyCollection<long> pricingIds, CancellationToken cancellationToken = default);
+
+        Task<IReadOnlyList<AncillaryPricing>> FindActiveByRateIdsAsync(IReadOnlyCollection<long> pricingRateIds, CancellationToken cancellationToken = default);
     }
 }

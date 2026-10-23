@@ -41,7 +41,7 @@ Proposal:
 
 Recommendation: accept this table.
 
-Answer:
+Answer: accepted as recommended (Owner, 2026-10-23).
 
 ### Q2. Free for A11 and A15 — the Domain forbids Paid
 
@@ -56,7 +56,7 @@ Options:
 Benchmark (my recollection, not verified in this turn): ATPCO S7 marks free services with a no-charge indicator rather than a zero amount, so a) is an AeroTech choice, consistent with the seat decision.
 Recommendation: a).
 
-Answer:
+Answer: accepted as recommended (Owner, 2026-10-23).
 
 ### Q3. The frozen SeatMap Resolve uses `EvaluateBatchService.MaximumLines`
 
@@ -64,7 +64,7 @@ Answer:
 
 Recommendation: move the constant to one shared place (`Query/Shopping/Common/SelectionLimits.MaximumIds = 50`, also used by ResolveGrouped) and change those three lines of the SeatMap file. Behaviour is identical; the SeatMap hash changes and is recorded.
 
-Answer:
+Answer: accepted as recommended (Owner, 2026-10-23).
 
 ### Q4. How POST Options validates a typed choice
 
@@ -76,4 +76,46 @@ Options:
 
 Recommendation: a).
 
-Answer:
+Answer: accepted as recommended (Owner, 2026-10-23).
+
+## 3. Stage2 — points applied, for your review
+
+Each point is already built as stated and can be flipped without touching the rest.
+
+| # | Point | Source | Applied |
+|---|---|---|---|
+| S2-1 | AssistedTravel `details` shape | 02 §3 nests the variant object (`assistanceKind` + `wheelchair{…}`); 03 §3.4 is flat with `kind`. 00 says not to pick one | 02, because it is the response authority and the definition DTO of this repository nests the same way (`WheelchairSpecificationDto(Wheelchair)`) |
+| S2-2 | Backoffice enums | 02 says enum string; the platform rule and the old Backoffice offers DTO use `{value, name, title}` | `{value, name, title}` on Backoffice; plain strings on OtaPanel and Api, which share one DTO as in Ordering and AirAvail |
+| S2-3 | `medicalEquipment`, `unaccompaniedMinor` sub-objects | 02 §3 lists them; A17 and A19 are gated | not built; they can never be emitted |
+| S2-4 | `includedBaggage` in baggage details | 03 §3.1, optional, from the Offer | not built |
+| S2-5 | Element types of `extraSeats` and `travelInsurance` | 03 §3.9 defines ExtraSeat details; 03 §3.10 says insurance has none | `ExtraSeatDetailsDto` as 03 §3.9, empty `TravelInsuranceDetailsDto`; both lists always `[]` |
+| S2-6 | Fixed quantity above 1 | 02 §2.5 says min/max 1 for a fixed Direct | a `QuantityChoice` provision with min = max signs its min, and the policy shows that value; it is 1 in every case where min = 1 |
+
+## 4. Stage3 — points applied, for your review
+
+| # | Point | Source | Applied |
+|---|---|---|---|
+| S3-1 | Where the POST proof runs | Q1 says the port is implemented in Shopping; Q4 says POST reloads the offer, and the offer source is in `Query/Shopping/Common`, which Shopping cannot reference | port implemented in Query like `SeatSelectionVerifier` (reads scope and offer only); every rule is in `Shopping/Options/TypedSelectionService`; no new Shopping → Application reference |
+| S3-2 | Control names | 02 §4 lists `select, text, number, checkbox, date-time`; 03 §4 also needs `dimensions`, a multi-select and a traveller select | the five of 02, plus `dimensions` and `multi-select`; traveller choice is a `select` of traveller refs |
+| S3-3 | `s_` collision retry once | 04 §3 | not built: 128 random bits, and a retry needs a new path through the unit of work |
+| S3-4 | Meals and Upgrades options | 02 §1 lists both families | no POST route: A10, A11 and A12 take no customer input in the current domain, so no `r_` exists for them; GET answers 409 |
+| S3-5 | 404 versus 409 for a missing rate chain | 02 §6 | 409 for both, because the readers return Active rows only; a forged rate cannot pass the MAC |
+| S3-6 | A18 bassinet | 04 §1 gates it while no trusted traveller source exists | open: the offer reload of Q4 is that trusted source; choices follow the engine (guardian = unit traveller, infants linked to it) |
+
+## 5. Stage4 — points applied, for your review
+
+| # | Point | Source | Applied |
+|---|---|---|---|
+| S4-1 | Service auth | 02 §1 and 14 say Service Auth; your ruling of 2026-09-30 says Service surfaces stay anonymous | anonymous, like the SeatMap Service controller |
+| S4-2 | Error for a bad request shape | 02 §6 says 400 `INVALID_REQUEST` | unknown members 400 (framework); count, blank and duplicate ids 422 (16801), as the SeatMap Resolve does |
+| S4-3 | `requiresCheckAtReserve` | 02 §5.2: "inventory/fulfillment policy; informational"; 04 §5 allows only the Rate → Definition chain | the engine's provision and definition rule (must check availability, or subject to confirmation); the inventory policy is not read |
+| S4-4 | Coverage of a Flight unit | 02 §5 "for signed ID use Unit refs" | `portionRefs: []` for a Flight unit; the bound is not parsed out of the flight ref |
+| S4-5 | Kind check | 04 §5.3 "typed ID belongs to known Variant" | an `s_` must be a product that takes input and a `d_` one that does not; otherwise 409 |
+
+## 6. Stage5 — points applied, for your review
+
+| # | Point | Source | Applied |
+|---|---|---|---|
+| S5-1 | Domain pin "no Snapshot type" | `P1BoundaryConformanceTests`; pack 04 names the table and Q1 put the entity in Domain | the two snapshot types are named exceptions, like `ProvisionCancellationRule` |
+| S5-2 | Cases the Domain makes impossible | S02, O04, O08 | GATED with a test that proves no fake output: no Order unit for a quantity variant, pets always subject to confirmation, one menu item per definition |
+| S5-3 | Live Backoffice | pack 15 §2 | Api, OtaPanel and Service Resolve ran live. Backoffice refuses the agency-priced offer (403, existing guard) and AirAvail staging's Backoffice search answered 500, so no Backoffice-priced offer exists to run it with; a Backoffice offerId from you closes this |

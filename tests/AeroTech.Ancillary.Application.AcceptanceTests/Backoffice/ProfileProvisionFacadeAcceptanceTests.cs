@@ -342,8 +342,7 @@ public class ProfileProvisionFacadeAcceptanceTests
             Assert.Null(view["form"]!["settlement"]!["cancellationRules"]);
         }
 
-        Assert.Equal(new[] { "Free", "NotAvailable" }, (await FormAsync("Meal", freeId, freeProvisionId))["constraints"]!["allowedDispositions"]!.AsArray().Select(value => value!["name"]!.GetValue<string>()));
-        await RefusedAsync(16321, 409, desk => CallAsync(desk, "Meal", "Define", freeId, Bind("Meal", Body("Meal", paid with { ServiceDefinitionId = freeId }))));
+        Assert.Equal(new[] { "Paid", "Free", "NotAvailable" }, (await FormAsync("Meal", freeId, freeProvisionId))["constraints"]!["allowedDispositions"]!.AsArray().Select(value => value!["name"]!.GetValue<string>()));
     }
 
     private static string StoresText((List<string> Command, List<string> ReadModel) rows) => $"{string.Join(",", rows.Command)} | {string.Join(",", rows.ReadModel)}";
@@ -414,7 +413,7 @@ public class ProfileProvisionFacadeAcceptanceTests
 
         foreach (var (profile, definitionId, provisionId, edit, code, status) in new (string, long, long, Action<JsonNode>, int, int)[]
         {
-            ("Meal", freeMealId, freeMealProvisionId, body => { body["outcome"]!["disposition"] = "Paid"; body["priceOrigin"] = "Filed"; }, 16321, 409),
+            ("Meal", freeMealId, freeMealProvisionId, body => body["purchaseStage"] = "OnBoard", 16323, 409),
             ("Connectivity", wifiId, wifiProvisionId, body => body["purchaseStage"] = "OnBoard", 16323, 409),
             ("Meal", freeMealId, freeMealProvisionId, body => body["settlement"]!["cancellationRules"] = Rules(Rule("BAD", "Voluntary", 0, 10, "Percentage", percentage: 0m, percentageBase: "ServiceBase")), 16302, 422),
             ("Connectivity", wifiId, wifiProvisionId, body => body["quantity"]!["unit"] = "Piece", 16312, 409)

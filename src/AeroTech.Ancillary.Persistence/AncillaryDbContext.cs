@@ -10,6 +10,7 @@ using AeroTech.Ancillary.Domain.AncillaryReservationAggregate;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.Domain.FlightCountInventoryAggregate;
 using AeroTech.Ancillary.Domain.FlightWeightInventoryAggregate;
+using AeroTech.Ancillary.Domain.SelectionSnapshotAggregate;
 using AeroTech.Ancillary.Domain.SupplierAggregate;
 using AeroTech.Ancillary.Persistence.Inbox;
 using AeroTech.Ancillary.Persistence.Outbox;
@@ -50,6 +51,8 @@ namespace AeroTech.Ancillary.Persistence
         public DbSet<FlightWeightInventory> FlightWeightInventories => Set<FlightWeightInventory>();
 
         public DbSet<AirportSlotInventory> AirportSlotInventories => Set<AirportSlotInventory>();
+
+        public DbSet<SelectionSnapshot> SelectionSnapshots => Set<SelectionSnapshot>();
 
         public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 

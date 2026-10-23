@@ -9,10 +9,9 @@ namespace AeroTech.Ancillary.Domain.AncillaryProvisionAggregate
 
         private static readonly PurchaseStage[] GroundPurchaseStages = [PurchaseStage.PreOrder, PurchaseStage.PostTicketed, PurchaseStage.Both];
 
-        public static IReadOnlyList<CommercialDisposition> AllowedDispositions(AncillaryServiceDefinition definition)
-            => definition.VariantCode is AncillaryVariant.FreeSpecialMeal or AncillaryVariant.Wheelchair
-                ? [CommercialDisposition.Free, CommercialDisposition.NotAvailable]
-                : [CommercialDisposition.Paid, CommercialDisposition.Free, CommercialDisposition.NotAvailable];
+        private static readonly CommercialDisposition[] Dispositions = [CommercialDisposition.Paid, CommercialDisposition.Free, CommercialDisposition.NotAvailable];
+
+        public static IReadOnlyList<CommercialDisposition> AllowedDispositions(AncillaryServiceDefinition definition) => Dispositions;
 
         public static IReadOnlyList<PriceOrigin> AllowedPriceOrigins(AncillaryServiceDefinition definition)
             => AllowedDispositions(definition)

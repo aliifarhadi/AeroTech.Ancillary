@@ -52,6 +52,10 @@ namespace AeroTech.Ancillary.Shopping.Selection
 
         public decimal? OxygenUnits { get; init; }
 
+        public decimal? OxygenFlowRateLitersPerMinute { get; init; }
+
+        public string? FrequentTravellerMedicalCardNumber { get; init; }
+
         public string? InfantRef { get; init; }
 
         public string? GuardianRef { get; init; }

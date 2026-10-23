@@ -1,5 +1,5 @@
 using AeroTech.Ancillary.Domain._Shared.Resources;
-using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatch;
+using AeroTech.Ancillary.Query.Shopping.Common;
 using AeroTech.Ancillary.Query.Shopping.SeatMaps.Snapshots;
 using AeroTech.Ancillary.Shopping.Reading;
 using AeroTech.Messages.Ancillary.Enums;
@@ -43,8 +43,8 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.ResolveSeatMapSelec
 
         private static IReadOnlyList<(string Id, SeatMapSelection Selection)> WellFormed(IReadOnlyList<string>? ids)
         {
-            if (ids is not { Count: > 0 and <= EvaluateBatchService.MaximumLines })
-                throw ExceptionFactory.ShoppingContextIsInvalid($"ids must hold between 1 and {EvaluateBatchService.MaximumLines} seat ids");
+            if (ids is not { Count: > 0 and <= SelectionLimits.MaximumIds })
+                throw ExceptionFactory.ShoppingContextIsInvalid($"ids must hold between 1 and {SelectionLimits.MaximumIds} seat ids");
 
             if (ids.GroupBy(id => id, StringComparer.Ordinal).Any(group => group.Skip(1).Any()))
                 throw ExceptionFactory.ShoppingContextIsInvalid("a seat id must appear once");

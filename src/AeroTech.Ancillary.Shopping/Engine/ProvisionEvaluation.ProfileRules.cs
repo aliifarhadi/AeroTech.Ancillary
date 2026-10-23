@@ -37,6 +37,8 @@ namespace AeroTech.Ancillary.Shopping.Engine
                 ["EquipmentCode"] = selection => selection.EquipmentCode is not null,
                 ["EvidenceDocumentRefs"] = selection => selection.EvidenceDocumentRefs is not null,
                 ["OxygenUnits"] = selection => selection.OxygenUnits is not null,
+                ["OxygenFlowRateLitersPerMinute"] = selection => selection.OxygenFlowRateLitersPerMinute is not null,
+                ["FrequentTravellerMedicalCardNumber"] = selection => selection.FrequentTravellerMedicalCardNumber is not null,
                 ["InfantRef"] = selection => selection.InfantRef is not null,
                 ["GuardianRef"] = selection => selection.GuardianRef is not null,
                 ["ChildRef"] = selection => selection.ChildRef is not null,
@@ -333,6 +335,9 @@ namespace AeroTech.Ancillary.Shopping.Engine
 
             if (Selection.OxygenUnits is { } oxygen && (oxygen <= 0 || oxygen > (medical.OxygenUnits ?? decimal.MaxValue)))
                 Outcome.Reject("OxygenUnits", ShoppingReasonCodes.OxygenUnitsAboveMaximum);
+
+            if (Selection.OxygenFlowRateLitersPerMinute is <= 0)
+                Outcome.Reject("OxygenFlowRateLitersPerMinute", ShoppingReasonCodes.OxygenFlowRateNotPositive);
         }
 
         private void UnaccompaniedMinor(UnaccompaniedMinorDetails minor, MinorConnectionPolicy policy)

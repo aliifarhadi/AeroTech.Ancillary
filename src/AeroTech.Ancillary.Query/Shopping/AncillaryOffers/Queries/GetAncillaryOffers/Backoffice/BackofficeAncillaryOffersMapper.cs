@@ -1,151 +1,115 @@
-using AeroTech.Ancillary.Application.FlightOffers;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Backoffice;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Snapshots;
-using AeroTech.Ancillary.Query.Shopping.Common.FlightOffers;
 using AeroTech.Ancillary.Query._Shared.Enums;
-using AeroTech.Ancillary.Shopping.Context;
-using AeroTech.Ancillary.Shopping.Results;
+using AeroTech.Ancillary.Shopping.Offers;
 using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice
 {
     public static class BackofficeAncillaryOffersMapper
     {
-        public const string NoApplicableProduct = "NO_APPLICABLE_PRODUCT";
-        public const string NoAuthorizedPointOfSale = "NO_AUTHORIZED_POINT_OF_SALE";
-
-        public static BackofficeAncillaryOffersDto Map(AncillaryShoppingSnapshot snapshot)
-        {
-            var offer = snapshot.Offer;
-            var scope = snapshot.Scope;
-            var offers = snapshot.Items.Where(item => BackofficeAncillaryOfferMapper.IsDiscoverable(item.Candidate.OfferReadiness)).ToList();
-            var blocked = snapshot.Items.Where(item => !BackofficeAncillaryOfferMapper.IsDiscoverable(item.Candidate.OfferReadiness)).ToList();
-
-            return new BackofficeAncillaryOffersDto(
-                offer.OfferId,
-                snapshot.EvaluatedAtUtc,
-                new OfferCurrencyDto(snapshot.CurrencyId, snapshot.CurrencyId == offer.CurrencyId ? offer.CurrencyCode : null),
-                new FlightOfferSummaryDto(offer.LastTicketingDate, offer.PricedAt, offer.CurrencyId, offer.BaseAmount, offer.ChargeAmount, offer.TotalAmount),
-                new OfferScopeDto(
-                    scope.OwnerAirlineId,
-                    snapshot.PointsOfSale.Count == 1 ? snapshot.PointsOfSale[0].PointOfSaleId : null,
-                    snapshot.PointsOfSale.Select(pointOfSale => pointOfSale.PointOfSaleId).ToList(),
-                    EnumValueDto.Of(FlightOfferShoppingContextMapper.Stage)),
-                new OfferJourneyDto(offer.Bounds.Select(Portion).ToList()),
-                offer.Tickets.Select(ticket => Traveller(ticket, snapshot.Facts)).ToList(),
-                Categories(offers.Select(item => item.Candidate).ToList()),
-                offers.Select(BackofficeAncillaryOfferMapper.Map).ToList(),
-                blocked.Select(BackofficeAncillaryOfferMapper.Map).ToList(),
-                Diagnostics(snapshot),
-                RatesOfExchange(snapshot),
-                new OfferCompletenessDto(
-                    true,
-                    snapshot.PointsOfSale.Count > 0 && snapshot.PointsOfSale.All(pointOfSale => IsComplete(pointOfSale.Context)),
-                    blocked.Count > 0,
-                    false));
-        }
-
-        private static OfferPortionDto Portion(FlightOfferBound bound)
+        public static BackofficeAncillaryOffersDto Map(AncillaryOffersSnapshot snapshot, string surface)
             => new(
-                bound.BoundId,
-                bound.Sequence,
-                EnumValueDto.OfNullable(bound.Direction),
-                bound.OriginAirportId,
-                bound.DestinationAirportId,
-                bound.Flights
-                    .Select(flight => new OfferFlightDto(
-                        FlightOfferShoppingContextMapper.FlightRef(bound, flight),
-                        flight.FlightId,
-                        flight.FlightVersion,
-                        flight.FlightNumber,
-                        flight.MarketingAirlineId,
-                        flight.OperatingAirlineId,
-                        flight.OriginAirportId,
-                        flight.DestinationAirportId,
-                        flight.DepartureAt,
-                        flight.ArrivalAt,
-                        flight.CabinClassId,
-                        flight.RbdId,
-                        flight.AircraftId,
-                        flight.Legs
-                            .Select(leg => new OfferFlightLegDto(leg.Sequence, leg.OriginAirportId, leg.DestinationAirportId, leg.DepartureAt, leg.ArrivalAt))
-                            .ToList()))
-                    .ToList());
+                snapshot.OfferId,
+                snapshot.CurrencyId,
+                Family(snapshot, surface, AncillaryProfile.Baggage, row => Baggage(AncillaryOffersMapper.Baggage(row.Definition))),
+                Family(snapshot, surface, AncillaryProfile.Meal, row => Meal(AncillaryOffersMapper.Meal(row.Definition))),
+                Family(snapshot, surface, AncillaryProfile.Pet, row => Pet(AncillaryOffersMapper.Pet(row.Definition))),
+                Family(snapshot, surface, AncillaryProfile.AssistedTravel, row => AssistedTravel(AncillaryOffersMapper.AssistedTravel(row.Definition))),
+                Family(snapshot, surface, AncillaryProfile.AirportService, row => AirportService(AncillaryOffersMapper.AirportService(row.Definition, row.Provision))),
+                Family(snapshot, surface, AncillaryProfile.Priority, row => Priority(AncillaryOffersMapper.Priority(row.Definition))),
+                Family(snapshot, surface, AncillaryProfile.Connectivity, row => Connectivity(AncillaryOffersMapper.Connectivity(row.Definition))),
+                Family(snapshot, surface, AncillaryProfile.Upgrade, row => Upgrade(AncillaryOffersMapper.Upgrade(row.Definition))),
+                [],
+                []);
 
-        private static OfferTravellerDto Traveller(FlightOfferTicket ticket, FlightOfferFacts facts)
+        private static IReadOnlyList<BackofficeAncillaryOfferDto<TDetails>> Family<TDetails>(
+            AncillaryOffersSnapshot snapshot,
+            string surface,
+            AncillaryProfile profile,
+            Func<AncillaryOfferRow, TDetails> details)
+            => AncillaryOffersMapper.RowsOf(snapshot, profile)
+                .Select(row => new BackofficeAncillaryOfferDto<TDetails>(
+                    row.Candidate.VariantCode,
+                    row.Candidate.CommercialName,
+                    row.Candidate.Description,
+                    EnumValueDto.Of(row.SelectionScope),
+                    AncillaryOffersMapper.Unit(row),
+                    AncillaryOffersMapper.Coverage(row),
+                    AncillaryOffersMapper.UnitPrice(snapshot, row),
+                    new BackofficeQuantityPolicyDto(row.QuantityPolicy.Selectable, row.QuantityPolicy.Min, row.QuantityPolicy.Max, EnumValueDto.Of(row.QuantityPolicy.Unit)),
+                    row.SelectionId,
+                    AncillaryOffersMapper.QuantityOptions(row),
+                    row.Reference,
+                    AncillaryOffersMapper.OptionsEndpoint(surface, row),
+                    details(row)))
+                .ToList();
+
+        private static BackofficeBaggageDetailsDto Baggage(BaggageDetailsDto baggage)
             => new(
-                ticket.TravellerRef,
-                ticket.TravellerIndex,
-                EnumValueDto.Of(ticket.PassengerTypeCode),
-                facts.Baggage
-                    .Where(fact => fact.TravellerRef == ticket.TravellerRef)
-                    .Select(fact => new OfferIncludedBaggageDto(
-                        fact.FlightRef,
-                        fact.CheckedPieces,
-                        fact.CheckedWeight,
-                        EnumValueDto.OfNullable(fact.CheckedWeightUnit),
-                        fact.CabinPieces,
-                        fact.CabinWeight,
-                        EnumValueDto.OfNullable(fact.CabinWeightUnit)))
-                    .ToList(),
-                facts.Fares
-                    .Where(fact => fact.TravellerRef == ticket.TravellerRef)
-                    .Select(fact => new OfferFareDto(
-                        fact.FlightRef,
-                        fact.AirFareId,
-                        fact.FareBasisCode,
-                        fact.FareFamilyCodeOrName,
-                        fact.FareFamilyId,
-                        fact.CabinClassId,
-                        fact.RbdId))
-                    .ToList());
+                EnumValueDto.Of(baggage.ChargeKind),
+                EnumValueDto.OfNullable(baggage.AllowanceConcept),
+                baggage.PackageWeightKg,
+                baggage.MaxKgPerPiece,
+                baggage.WeightFromExclusiveKg,
+                baggage.WeightToInclusiveKg,
+                baggage.MaxSizeCm,
+                baggage.MaxLinearSumCm,
+                baggage.EquipmentKind,
+                EnumValueDto.OfNullable(baggage.ChargeCombination));
 
-        private static IReadOnlyList<OfferCategoryDto> Categories(IReadOnlyList<CanonicalAncillaryOfferCandidate> offers)
-            => offers
-                .GroupBy(candidate => candidate.Profile)
-                .OrderBy(group => group.Key)
-                .Select(group => new OfferCategoryDto(EnumValueDto.Of(group.Key), EnumValueDto.Of(group.Key).Title, group.Count()))
-                .ToList();
+        private static BackofficeMealDetailsDto Meal(MealDetailsDto meal)
+            => new(EnumValueDto.Of(meal.MealKind), meal.MealCode, meal.MenuItemRef, meal.DietaryCode, meal.CateringLeadTimeMinutes, meal.ExclusiveMealFamilyCode);
 
-        private static IReadOnlyList<OfferRateOfExchangeDto> RatesOfExchange(AncillaryShoppingSnapshot snapshot)
-            => snapshot.PointsOfSale
-                .SelectMany(pointOfSale => pointOfSale.Result.RatesOfExchange)
-                .DistinctBy(rate => rate.RateOfExchangeTableId, StringComparer.Ordinal)
-                .OrderBy(rate => rate.FromCurrencyId)
-                .Select(rate => BackofficeAncillaryOfferMapper.RateOfExchange(rate)!)
-                .ToList();
+        private static BackofficePetDetailsDto Pet(PetDetailsDto pet)
+            => new(
+                EnumValueDto.Of(pet.TransportMode),
+                pet.AllowedAnimalTypes.Select(animal => new BackofficePetAnimalDto(EnumValueDto.Of(animal.AnimalType), animal.OtherCode)).ToList(),
+                pet.MaxCombinedWeightKg,
+                pet.CarrierDimensionsMaxCm,
+                pet.MinAnimalAgeWeeks,
+                pet.RequiredDocumentCodes,
+                pet.AllowedHoldAnimalSizeBrackets);
 
-        private static IReadOnlyList<OfferDiagnosticDto> Diagnostics(AncillaryShoppingSnapshot snapshot)
-        {
-            var diagnostics = snapshot.PointsOfSale
-                .SelectMany(pointOfSale => pointOfSale.Result.Diagnostics)
-                .DistinctBy(diagnostic => (diagnostic.Code, diagnostic.Severity, string.Join('|', diagnostic.MissingContextFields), diagnostic.SourceAuthority))
-                .Select(diagnostic => new OfferDiagnosticDto(
-                    diagnostic.Code,
-                    EnumValueDto.Of(diagnostic.Severity),
-                    diagnostic.MissingContextFields,
-                    diagnostic.SourceAuthority))
-                .ToList();
+        private static BackofficeAssistedTravelDetailsDto AssistedTravel(AssistedTravelDetailsDto assisted)
+            => new(
+                EnumValueDto.Of(assisted.AssistanceKind),
+                assisted.Wheelchair,
+                assisted.DisabilityAssistance is { } disability
+                    ? new BackofficeDisabilityAssistanceDetailsDto(disability.AllowedSsrCodes, EnumValueDto.OfNullable(disability.RequiredCommunicationMethod))
+                    : null,
+                assisted.Bassinet);
 
-            if (snapshot.PointsOfSale.Count == 0)
-                diagnostics.Add(new OfferDiagnosticDto(NoAuthorizedPointOfSale, EnumValueDto.Of(ShoppingDiagnosticSeverity.Info), [], null));
-            else if (!snapshot.Items.Any())
-                diagnostics.Add(new OfferDiagnosticDto(NoApplicableProduct, EnumValueDto.Of(ShoppingDiagnosticSeverity.Info), [], null));
+        private static BackofficeAirportServiceDetailsDto AirportService(AirportServiceDetailsDto airport)
+            => new(
+                EnumValueDto.Of(airport.Kind),
+                airport.AirportId,
+                airport.TerminalRef,
+                airport.FacilityId,
+                EnumValueDto.Of(airport.Direction),
+                airport.ServiceWindowStart,
+                airport.ServiceWindowEnd,
+                airport.IanaTimeZone,
+                airport.VisitDurationMinutes,
+                airport.MaxGuestsPerPrimary,
+                airport.RequiresSpecificAppointment,
+                airport.IncludedComponentCodes);
 
-            return diagnostics;
-        }
+        private static BackofficePriorityDetailsDto Priority(PriorityDetailsDto priority)
+            => new(EnumValueDto.Of(priority.Kind), priority.PriorityZoneCode, priority.PriorityGroupCode, priority.FareBenefitRef, priority.AirportIds);
 
-        private static bool IsComplete(AncillaryShoppingContext context)
-            => context.CoverageCompleteness is
-               {
-                   TravellersComplete: true,
-                   ItineraryComplete: true,
-                   FareFactsComplete: true,
-                   BaggageFactsComplete: true,
-                   FareBenefitsComplete: true,
-                   ExistingServicesComplete: true
-               }
-               && context.Flights.All(flight => flight is { OriginIanaTimeZoneId: not null, OriginCountryId: not null, DestinationCountryId: not null })
-               && context.Travellers.All(traveller => traveller.DateOfBirth is not null || traveller.VerifiedAgeAtTravel is not null);
+        private static BackofficeConnectivityDetailsDto Connectivity(ConnectivityDetailsDto connectivity)
+            => new(
+                EnumValueDto.Of(connectivity.PlanKind),
+                connectivity.DurationMinutes,
+                connectivity.IncludedDataMb,
+                connectivity.MaxDevices,
+                EnumValueDto.Of(connectivity.DeliveryStage),
+                connectivity.FulfillmentProviderRef,
+                connectivity.EligibleAircraftIds);
+
+        private static BackofficeUpgradeDetailsDto Upgrade(UpgradeDetailsDto upgrade)
+            => new(upgrade.FromCabinId, upgrade.ToCabinId, EnumValueDto.Of(upgrade.AllowedUpgradeKind), upgrade.RequiresTicketExchange, upgrade.EligibleFareFamilyIds);
     }
 }

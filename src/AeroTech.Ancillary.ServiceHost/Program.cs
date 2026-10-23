@@ -32,7 +32,7 @@ builder.Services
     .AddConsumers(builder.Configuration)
     .AddApplication(builder.Configuration)
     .AddReferenceData(builder.Configuration)
-    .AddAncillaryShopping()
+    .AddAncillaryShopping(builder.Configuration)
     .AddPresentation(builder.Configuration, typeof(RestApiAssembly).Assembly, typeof(ReferenceDataAssembly).Assembly)
     .AddSurfaceAuthorization()
     .AddContractDocumentation();

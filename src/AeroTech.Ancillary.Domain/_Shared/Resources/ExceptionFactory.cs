@@ -351,5 +351,26 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
 
         public static BusinessException OrderSourceUnavailable(params object?[] args) =>
             new(16815, ExceptionMessages.OrderSourceUnavailable, args) { HttpStatus = 503 };
+
+        public static BusinessException SelectionSignatureIsInvalid(params object?[] args) =>
+            new(16816, ExceptionMessages.SelectionSignatureIsInvalid, args) { HttpStatus = 422 };
+
+        public static BusinessException SelectionHasExpired(params object?[] args) =>
+            new(16817, ExceptionMessages.SelectionHasExpired, args) { HttpStatus = 410 };
+
+        public static BusinessException SelectionBindingMismatch(params object?[] args) =>
+            new(16818, ExceptionMessages.SelectionBindingMismatch, args) { HttpStatus = 403 };
+
+        public static BusinessException SelectionWasNotFound(params object?[] args) =>
+            new(16819, ExceptionMessages.SelectionWasNotFound, args) { HttpStatus = 404 };
+
+        public static BusinessException SelectionIsNotSellable(params object?[] args) =>
+            new(16820, ExceptionMessages.SelectionIsNotSellable, args) { HttpStatus = 409 };
+
+        public static BusinessException SelectionOptionsAreInvalid(params object?[] args) =>
+            new(16821, ExceptionMessages.SelectionOptionsAreInvalid, args) { HttpStatus = 422 };
+
+        public static BusinessException SelectionSnapshotIsInvalid(params object?[] args) =>
+            new(16822, ExceptionMessages.SelectionSnapshotIsInvalid, args) { HttpStatus = 422 };
     }
 }

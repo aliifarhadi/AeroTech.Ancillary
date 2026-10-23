@@ -38,5 +38,19 @@ namespace AeroTech.Ancillary.Shopping.Reading.Sql
                 .OrderBy(pricing => pricing.Id)
                 .ToListAsync(cancellationToken);
         }
+
+        public async Task<IReadOnlyList<AncillaryPricing>> FindActiveByRateIdsAsync(IReadOnlyCollection<long> pricingRateIds, CancellationToken cancellationToken = default)
+        {
+            if (pricingRateIds.Count == 0)
+                return [];
+
+            return await _dbContext.AncillaryPricings
+                .AsNoTracking()
+                .AsSplitQuery()
+                .WithChildren(_dbContext)
+                .Where(pricing => pricing.Status == PricingStatus.Active && pricing.Rates.Any(rate => pricingRateIds.Contains(rate.Id)))
+                .OrderBy(pricing => pricing.Id)
+                .ToListAsync(cancellationToken);
+        }
     }
 }

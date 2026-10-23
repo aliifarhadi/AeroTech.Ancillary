@@ -251,16 +251,17 @@ namespace AeroTech.Ancillary.Shopping.Engine
             if (price.Status == PriceAssessmentStatus.QuoteRequired)
                 return OfferReadiness.NeedsQuote;
 
-            var unverifiable = availability.CheckedState is AvailabilityCheckState.SourceUnavailable or AvailabilityCheckState.Unknown
-                               || quantity.ReasonCodes.Contains(ShoppingReasonCodes.UsageNotVerified)
-                               || quantity.ReasonCodes.Contains(ShoppingReasonCodes.CountingFamilyNotVerified)
-                               || (provision.Availability.MustCheckAvailability
-                                   && availability.ConfigState is InventoryCapacityReadState.NotConfigured
-                                       or InventoryCapacityReadState.Unknown
-                                       or InventoryCapacityReadState.UnsupportedPattern);
-
-            return unverifiable ? OfferReadiness.NeedsVerification : OfferReadiness.Selectable;
+            return IsUnverifiable(provision, availability, quantity) ? OfferReadiness.NeedsVerification : OfferReadiness.Selectable;
         }
+
+        internal static bool IsUnverifiable(AncillaryProvision provision, AvailabilityAssessment availability, QuantityAssessment quantity)
+            => availability.CheckedState is AvailabilityCheckState.SourceUnavailable or AvailabilityCheckState.Unknown
+               || quantity.ReasonCodes.Contains(ShoppingReasonCodes.UsageNotVerified)
+               || quantity.ReasonCodes.Contains(ShoppingReasonCodes.CountingFamilyNotVerified)
+               || (provision.Availability.MustCheckAvailability
+                   && availability.ConfigState is InventoryCapacityReadState.NotConfigured
+                       or InventoryCapacityReadState.Unknown
+                       or InventoryCapacityReadState.UnsupportedPattern);
 
         private async Task<ShoppingCatalog> LoadAsync(AncillaryShoppingContext context, Func<AncillaryServiceDefinition, bool> selected, CancellationToken cancellationToken)
         {

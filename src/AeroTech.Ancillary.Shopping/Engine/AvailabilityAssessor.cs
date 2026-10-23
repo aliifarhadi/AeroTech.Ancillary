@@ -19,8 +19,7 @@ namespace AeroTech.Ancillary.Shopping.Engine
             CancellationToken cancellationToken)
         {
             var reasons = new List<string>();
-            var checkAtReserve = provision.Availability.MustCheckAvailability
-                                 || (provision.PetRule?.AcceptanceMode ?? definition.Booking.ConfirmationRequirement) == ConfirmationRequirement.SubjectToConfirmation;
+            var checkAtReserve = MustCheckAtReserve(definition, provision);
 
             if (provision.Availability.MustCheckAvailability)
                 reasons.Add(ShoppingReasonCodes.AvailabilityMustBeChecked);
@@ -202,6 +201,10 @@ namespace AeroTech.Ancillary.Shopping.Engine
                     return AvailabilityCheckState.NotChecked;
             }
         }
+
+        internal static bool MustCheckAtReserve(AncillaryServiceDefinition definition, AncillaryProvision provision)
+            => provision.Availability.MustCheckAvailability
+               || (provision.PetRule?.AcceptanceMode ?? definition.Booking.ConfirmationRequirement) == ConfirmationRequirement.SubjectToConfirmation;
 
         private static AvailabilityAssessment Assessment(
             InventoryAuthority? authority,

@@ -1,8 +1,9 @@
-using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateBatch.Backoffice;
-using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.EvaluateSelection.Backoffice;
-using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOfferDetail.Backoffice;
+using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.SubmitSelectionOptions;
+using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.SubmitSelectionOptions.Backoffice;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers.Backoffice;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetSelectionOptions.Backoffice;
 using AeroTech.Ancillary.RestApi.V1._Shared;
+using AeroTech.Messages.Ancillary.Enums;
 using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -26,16 +27,32 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryOffers.Controllers
         public async Task<IActionResult> GetByOfferId([FromBody] BackofficeGetAncillaryOffersQuery query, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(query, cancellationToken));
 
-        [HttpPost("Details")]
-        public async Task<IActionResult> GetDetail([FromBody] BackofficeGetAncillaryOfferDetailQuery query, CancellationToken cancellationToken)
-            => Ok(await _mediator.Send(query, cancellationToken));
+        [HttpGet("{family}/{reference}/Options")]
+        public async Task<IActionResult> GetOptions(string family, string reference, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new BackofficeGetSelectionOptionsQuery(family, reference), cancellationToken));
 
-        [HttpPost("Selections/Evaluate")]
-        public async Task<IActionResult> EvaluateSelection([FromBody] BackofficeEvaluateSelectionQuery query, CancellationToken cancellationToken)
-            => Ok(await _mediator.Send(query, cancellationToken));
+        [HttpPost("Baggages/{reference}/Options")]
+        public async Task<IActionResult> SubmitBaggageOptions(string reference, [FromBody] BaggageSelectionOptions options, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new BackofficeSubmitSelectionOptionsCommand(reference, AncillaryProfile.Baggage, options), cancellationToken));
 
-        [HttpPost("Selections/EvaluateBatch")]
-        public async Task<IActionResult> EvaluateBatch([FromBody] BackofficeEvaluateBatchQuery query, CancellationToken cancellationToken)
-            => Ok(await _mediator.Send(query, cancellationToken));
+        [HttpPost("Pets/{reference}/Options")]
+        public async Task<IActionResult> SubmitPetOptions(string reference, [FromBody] PetSelectionOptions options, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new BackofficeSubmitSelectionOptionsCommand(reference, AncillaryProfile.Pet, options), cancellationToken));
+
+        [HttpPost("AssistedTravel/{reference}/Options")]
+        public async Task<IActionResult> SubmitAssistedTravelOptions(string reference, [FromBody] AssistedTravelSelectionOptions options, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new BackofficeSubmitSelectionOptionsCommand(reference, AncillaryProfile.AssistedTravel, options), cancellationToken));
+
+        [HttpPost("AirportServices/{reference}/Options")]
+        public async Task<IActionResult> SubmitAirportServiceOptions(string reference, [FromBody] AirportServiceSelectionOptions options, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new BackofficeSubmitSelectionOptionsCommand(reference, AncillaryProfile.AirportService, options), cancellationToken));
+
+        [HttpPost("PriorityServices/{reference}/Options")]
+        public async Task<IActionResult> SubmitPriorityOptions(string reference, [FromBody] PrioritySelectionOptions options, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new BackofficeSubmitSelectionOptionsCommand(reference, AncillaryProfile.Priority, options), cancellationToken));
+
+        [HttpPost("Connectivity/{reference}/Options")]
+        public async Task<IActionResult> SubmitConnectivityOptions(string reference, [FromBody] ConnectivitySelectionOptions options, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new BackofficeSubmitSelectionOptionsCommand(reference, AncillaryProfile.Connectivity, options), cancellationToken));
     }
 }

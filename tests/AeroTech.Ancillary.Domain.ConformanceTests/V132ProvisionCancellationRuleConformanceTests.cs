@@ -185,9 +185,9 @@ public class V132ProvisionCancellationRuleConformanceTests
         var flightRules = new ProvisionRulesArgs(null, null, null, new ProvisionFlightApplicationArgs([], [], ["1124"], [], []), null, null, null, null, null, null);
 
         Assert.Equal(
-            new[] { CommercialDisposition.Free, CommercialDisposition.NotAvailable },
+            new[] { CommercialDisposition.Paid, CommercialDisposition.Free, CommercialDisposition.NotAvailable },
             AncillaryProvision.AllowedDispositions(freeMeal));
-        Assert.Equal(new[] { PriceOrigin.Free, PriceOrigin.NotAvailable }, AncillaryProvision.AllowedPriceOrigins(freeMeal));
+        Assert.Equal(new[] { PriceOrigin.Filed, PriceOrigin.ExternalQuote, PriceOrigin.Free, PriceOrigin.NotAvailable }, AncillaryProvision.AllowedPriceOrigins(freeMeal));
         Assert.Equal(new[] { PurchaseStage.PreOrder, PurchaseStage.PostTicketed, PurchaseStage.Both }, AncillaryProvision.AllowedPurchaseStages(freeMeal));
         Assert.Equal((AncillaryQuantityUnit?)AncillaryQuantityUnit.Each, AncillaryProvision.QuantityUnitOf(seat));
         Assert.Equal((int?)1, AncillaryProvision.MaxQuantityOf(seat));
@@ -195,7 +195,7 @@ public class V132ProvisionCancellationRuleConformanceTests
 
         Assert.Equal(CommercialDisposition.Free, Define(null, freeMeal, CommercialDisposition.Free).Outcome.Disposition);
         Assert.Equal(CommercialDisposition.NotAvailable, Define(null, freeMeal, CommercialDisposition.NotAvailable).Outcome.Disposition);
-        BusinessAssert.Throws(16321, 409, () => Define(null, freeMeal, CommercialDisposition.Paid));
+        Assert.Equal(CommercialDisposition.Paid, Define(null, freeMeal, CommercialDisposition.Paid).Outcome.Disposition);
         BusinessAssert.Throws(16321, 409, () => Define(null, seat, applicationType: ProvisionApplicationType.Seat, maxQuantity: 2, groups: seatRules));
         Assert.Equal(1, Define(null, seat, applicationType: ProvisionApplicationType.Seat, groups: seatRules).Quantity.MaxQuantity);
         BusinessAssert.Throws(16313, 409, () => Define(null, lounge, groups: flightRules));
@@ -253,7 +253,7 @@ public class V132ProvisionCancellationRuleConformanceTests
         (AncillaryProvision Draft, AncillaryServiceDefinition Definition, Action<AncillaryProvision> Refused, int Code)[] cases =
         [
             (Define([Fixed(), Percent()], freeMeal, CommercialDisposition.Free, groups: dated, ids: ids), freeMeal,
-                draft => ChangeTo(draft, freeMeal, ids, disposition: CommercialDisposition.Paid, groups: dated with { CancellationRules = [Fixed(amount: 99m)] }), 16321),
+                draft => ChangeTo(draft, freeMeal, ids, purchaseStage: PurchaseStage.OnBoard, groups: dated with { CancellationRules = [Fixed(amount: 99m)] }), 16323),
             (Define([Fixed()], wifi, groups: dated, ids: ids), wifi,
                 draft => ChangeTo(draft, wifi, ids, purchaseStage: PurchaseStage.OnBoard, groups: dated with { CancellationRules = [] }), 16323),
             (Define([Fixed()], seat, applicationType: ProvisionApplicationType.Seat, groups: seatRules, ids: ids), seat,

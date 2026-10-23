@@ -118,5 +118,12 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public const string AircraftSeatMapCouldNotBeRetrieved = "The seat map of aircraft {0} could not be retrieved: {1}.";
         public const string OccupiedSeatsCouldNotBeRetrieved = "The occupied seats of the flights could not be retrieved: {0}.";
         public const string OrderSourceUnavailable = "The commercial context of order {0} could not be read: {1}.";
+        public const string SelectionSignatureIsInvalid = "INVALID_SELECTION_SIGNATURE: the selection reference is not valid.";
+        public const string SelectionHasExpired = "SELECTION_EXPIRED: the selection reference has expired; ask for the ancillary offers again.";
+        public const string SelectionBindingMismatch = "SELECTION_BINDING_MISMATCH: the selection reference was issued to another sales context.";
+        public const string SelectionWasNotFound = "SELECTION_NOT_FOUND: {0}.";
+        public const string SelectionIsNotSellable = "SELECTION_NOT_SELLABLE: {0}.";
+        public const string SelectionOptionsAreInvalid = "INVALID_SELECTION_OPTIONS: {0}.";
+        public const string SelectionSnapshotIsInvalid = "The selection snapshot is not valid: {0}.";
     }
 }

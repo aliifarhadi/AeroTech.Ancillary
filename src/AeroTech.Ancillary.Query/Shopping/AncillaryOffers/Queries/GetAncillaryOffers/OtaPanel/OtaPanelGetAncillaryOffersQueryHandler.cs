@@ -1,13 +1,13 @@
-using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.OtaPanel;
-using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto;
 using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
-using AeroTech.Ancillary.Query.Shopping.Common;
 using MediatR;
 
 namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers.OtaPanel
 {
-    public sealed class OtaPanelGetAncillaryOffersQueryHandler : IRequestHandler<OtaPanelGetAncillaryOffersQuery, OtaPanelAncillaryOffersDto>
+    public sealed class OtaPanelGetAncillaryOffersQueryHandler : IRequestHandler<OtaPanelGetAncillaryOffersQuery, AncillaryOffersDto>
     {
+        private const string Surface = "OtaPanel";
+
         private readonly IOtaPanelSalesScopeResolver _salesScope;
         private readonly IGetAncillaryOffersService _service;
 
@@ -17,7 +17,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
             _service = service;
         }
 
-        public async Task<OtaPanelAncillaryOffersDto> Handle(OtaPanelGetAncillaryOffersQuery query, CancellationToken cancellationToken)
-            => OtaPanelAncillaryOffersMapper.Map(await _service.ExecuteAsync(query, await _salesScope.ResolveAsync(cancellationToken), OfferFamilyFilters.Services, cancellationToken));
+        public async Task<AncillaryOffersDto> Handle(OtaPanelGetAncillaryOffersQuery query, CancellationToken cancellationToken)
+            => AncillaryOffersMapper.Map(await _service.ExecuteAsync(query, await _salesScope.ResolveAsync(cancellationToken), cancellationToken), Surface);
     }
 }

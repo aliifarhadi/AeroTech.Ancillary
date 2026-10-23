@@ -95,6 +95,7 @@ namespace AeroTech.Ancillary.Shopping.Results
         public const string MedicalEvidenceMissing = "MedicalEvidenceMissing";
         public const string MedicalApprovalRequired = "MedicalApprovalRequired";
         public const string OxygenUnitsAboveMaximum = "OxygenUnitsAboveMaximum";
+        public const string OxygenFlowRateNotPositive = "OxygenFlowRateNotPositive";
         public const string InfantGuardianRequired = "InfantGuardianRequired";
         public const string InfantTooOld = "InfantTooOld";
         public const string MinorAgeOutsideBand = "MinorAgeOutsideBand";
@@ -269,6 +270,7 @@ namespace AeroTech.Ancillary.Shopping.Results
             MedicalEvidenceMissing,
             MedicalApprovalRequired,
             OxygenUnitsAboveMaximum,
+            OxygenFlowRateNotPositive,
             InfantGuardianRequired,
             InfantTooOld,
             MinorAgeOutsideBand,
