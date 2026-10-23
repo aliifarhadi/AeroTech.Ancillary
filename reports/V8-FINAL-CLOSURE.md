@@ -11,7 +11,7 @@
 | Command | Result |
 |---|---|
 | `dotnet build AeroTech.Ancillary.sln --no-incremental` | 0 errors, 61 warnings. 4 are new NuGet advisories (NU1902, NU1903) from the restored Shopping test project; Gate0 had 63 with that project present. No compiler warning comes from a changed file |
-| `dotnet test tests/AeroTech.Ancillary.Shopping.Tests` | 75 discovered, 75 passed (74 scenario tests plus `ExclusiveMinimumsFollowTheEngineRules` for S3-7) |
+| `dotnet test tests/AeroTech.Ancillary.Shopping.Tests` | 77 discovered, 77 passed (74 scenario tests, `ExclusiveMinimumsFollowTheEngineRules` for S3-7, and for S3-8 `ReferenceCarriesNoOfferIdAndOnlyMatchesItsOwnOffer` and `OptionsWithoutAnOfferIdAreRefusedByTheValidator`) |
 | `dotnet test tests/AeroTech.Ancillary.Domain.ConformanceTests` | 264 discovered, 264 passed |
 | `dotnet test tests/AeroTech.Ancillary.Application.AcceptanceTests` | 232 discovered, 232 passed (1 min 25 s) |
 
@@ -57,6 +57,8 @@ Steps of the Api run:
 | unknown member in Resolve | 400 | |
 | unknown `s_` | 404 | 16819 |
 | offers without a token | 401 | |
+
+After S3-8 (offerId as a query parameter, 2026-10-24) the run was repeated on OtaPanel with your second token of that day. GET and POST Options with `?offerId=` gave 200. Every refusal above gave the same status. Without `offerId` the answer was 422 (16803), and with another offer's id it was 409 (16820). The average `r_` length dropped from 509 to 334 characters. The rollback point is commit `838e839`; no database change was made.
 
 Two pack demo items were not shown live. This offer lists no quantity row and no A15. A15 is explained: the dev A15 definitions are subject to confirmation, so the gate drops them. Why the 11 dev A01 provisions give no row for this offer was not traced. The quantity path is proven in memory (S04, S05, S11, H05, R05).
 

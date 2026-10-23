@@ -54,7 +54,6 @@ namespace AeroTech.Ancillary.Shopping.Selections
                 identity.TravellerRef,
                 identity.CoverageRef,
                 quantity,
-                kind == SelectionIdKind.Reference ? source.TrustedSourceReference : null,
                 SelectionBindings.Offer(source.TrustedSourceReference!, source.TrustedSourceVersion!),
                 SelectionBindings.Sales(context),
                 expiresAtUtc));

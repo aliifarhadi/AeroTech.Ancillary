@@ -31,7 +31,7 @@ A `d_` is signed only for a `Selectable` candidate with quantity ≥ 1, an `r_` 
 - not the Seat profile (A07/A08/A09), not A17 (no encryption at rest) and not A19 (text/boolean mismatch);
 - exactly one traveller, equal to the unit's traveller; none for an Order unit.
 
-Bindings come only from the trusted engine context: offer id and trusted version, owner, the candidate's point of sale and the offer's customer. The `r_` also carries the offer id (Q4); `d_` does not.
+Bindings come only from the trusted engine context: offer id and trusted version, owner, the candidate's point of sale and the offer's customer. Since S3-8 (2026-10-24) the `r_` no longer carries the offer id. Q4 is met by the `?offerId=` of the Options routes. The loaded offer must match the signed `ob`.
 
 Finding: the engine fills `RateOfExchange` even without conversion (identity rate 1, same currency). "No FX" is therefore checked as filed currency = sales currency.
 

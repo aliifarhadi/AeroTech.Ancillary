@@ -9,7 +9,6 @@ namespace AeroTech.Ancillary.Shopping.Selections
         string TravellerRef,
         string CoverageRef,
         int? Quantity,
-        string? OfferId,
         string OfferBinding,
         string SalesBinding,
         DateTimeOffset ExpiresAtUtc);

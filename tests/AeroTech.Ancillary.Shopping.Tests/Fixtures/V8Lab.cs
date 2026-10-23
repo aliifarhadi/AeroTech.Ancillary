@@ -79,6 +79,6 @@ public sealed class V8Lab
         var store = new SnapshotStore(Shop.Catalog);
         var service = new SubmitSelectionOptionsService(new LabVerifier(Typed, contexts), store, store, Clock);
 
-        return service.SubmitAsync(new ApiSubmitSelectionOptionsCommand(reference, family, options));
+        return service.SubmitAsync(new ApiSubmitSelectionOptionsCommand(reference, Offer, family, options));
     }
 }

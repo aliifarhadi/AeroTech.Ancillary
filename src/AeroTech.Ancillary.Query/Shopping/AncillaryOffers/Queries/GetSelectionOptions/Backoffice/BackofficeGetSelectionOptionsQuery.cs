@@ -3,5 +3,5 @@ using MediatR;
 
 namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetSelectionOptions.Backoffice
 {
-    public sealed record BackofficeGetSelectionOptionsQuery(string Family, string Reference) : IRequest<SelectionOptionsDto>, ISelectionOptionsQuery;
+    public sealed record BackofficeGetSelectionOptionsQuery(string Family, string Reference, string? OfferId) : IRequest<SelectionOptionsDto>, ISelectionOptionsQuery;
 }

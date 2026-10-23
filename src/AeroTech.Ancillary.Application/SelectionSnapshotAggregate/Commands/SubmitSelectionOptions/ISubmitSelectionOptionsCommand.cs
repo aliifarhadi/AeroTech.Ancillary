@@ -9,6 +9,8 @@ namespace AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.Sub
 
         string Reference { get; }
 
+        string? OfferId { get; }
+
         AncillaryProfile Family { get; }
 
         ISelectionOptions Options { get; }

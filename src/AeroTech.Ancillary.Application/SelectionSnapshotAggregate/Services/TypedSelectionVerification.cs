@@ -7,6 +7,7 @@ namespace AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Services
     public sealed record TypedSelectionVerification(
         AuthorizationSurface Surface,
         string Reference,
+        string? OfferId,
         AncillaryProfile Family,
         ISelectionOptions Options);
 }

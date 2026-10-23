@@ -42,7 +42,7 @@ namespace AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.Sub
         public async Task<SelectionSnapshotResult> SubmitAsync(ISubmitSelectionOptionsCommand command, CancellationToken cancellationToken = default)
         {
             var verified = await _verifier.VerifyAsync(
-                new TypedSelectionVerification(command.Surface, command.Reference, command.Family, command.Options),
+                new TypedSelectionVerification(command.Surface, command.Reference, command.OfferId, command.Family, command.Options),
                 cancellationToken);
             var snapshot = SelectionSnapshot.Create(
                 IdPrefix + Base64Url.EncodeToString(RandomNumberGenerator.GetBytes(IdRandomBytes)),

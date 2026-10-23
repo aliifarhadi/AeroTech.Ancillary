@@ -102,6 +102,7 @@ Each point is already built as stated and can be flipped without touching the re
 | S3-4 | Meals and Upgrades options | 02 §1 lists both families | no POST route: A10, A11 and A12 take no customer input in the current domain, so no `r_` exists for them; GET answers 409 |
 | S3-5 | 404 versus 409 for a missing rate chain | 02 §6 | 409 for both, because the readers return Active rows only; a forged rate cannot pass the MAC |
 | S3-7 | Exclusive lower bounds in the form | 02 §4 has only inclusive `min`; the engine refuses a weight at the lower bound | **approved by you 2026-10-24**: descriptor field `exclusiveMin` (a number, like JSON Schema `exclusiveMinimum`): A03 `measuredWeightKg` = tier lower bound or 0, A06 `weightKg` = 0, A13/A14 `combinedWeightKg` = 0 |
+| S3-8 | offerId inside every `r_` | 04 §4 "the reference path is the only binding argument; no OfferId in POST body"; `oid` was about a third of each `r_` | **decided by you 2026-10-24**, rollback point commit `838e839`: `oid` removed from `r_`; GET and POST Options take `?offerId=`; the server loads that offer and accepts it only when its hash equals the signed `ob` (otherwise 409); a missing offerId gives 16803. `optionsEndpoint` = `…/{reference}/Options?offerId={offerId}`. Live: `r_` 509 → 334 characters |
 | S3-6 | A18 bassinet | 04 §1 gates it while no trusted traveller source exists | open: the offer reload of Q4 is that trusted source; choices follow the engine (guardian = unit traveller, infants linked to it) |
 
 ## 5. Stage4 — points applied, for your review

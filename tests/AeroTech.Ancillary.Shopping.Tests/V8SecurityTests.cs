@@ -1,5 +1,8 @@
+using System.Buffers.Text;
+using System.Text;
 using AeroTech.Ancillary.Application.AcceptanceTests.Fixtures;
 using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.SubmitSelectionOptions;
+using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.SubmitSelectionOptions.Api;
 using AeroTech.Ancillary.Shopping.Context;
 using AeroTech.Ancillary.Shopping.Offers;
 using AeroTech.Ancillary.Shopping.Tests.Fixtures;
@@ -203,6 +206,32 @@ public sealed class V8SecurityTests
         lab.Shop.Catalog.Pricings.Single(pricing => pricing.Rates.Single().BaseAmount == 0m).Retire(ShoppingLab.Now);
 
         await BusinessAssert.ThrowsAsync(NotSellable, 409, () => lab.Resolver.ResolveAsync([snapshot.SelectionId]));
+    }
+
+    [Fact]
+    public async Task ReferenceCarriesNoOfferIdAndOnlyMatchesItsOwnOffer()
+    {
+        var (lab, context, _, reference) = await IssuedAsync();
+        var payload = reference[2..].Split('.')[1];
+        var otherOffer = context with { SourceIdentity = context.SourceIdentity with { TrustedSourceReference = "OFFER-2" } };
+
+        Assert.DoesNotContain("\"oid\"", Encoding.UTF8.GetString(Base64Url.DecodeFromChars(payload)));
+        await BusinessAssert.ThrowsAsync(NotSellable, 409, () => lab.SubmitAsync(reference, AncillaryProfile.AssistedTravel, Wheelchair, otherOffer));
+        Assert.Empty(lab.Shop.Catalog.Snapshots);
+    }
+
+    [Fact]
+    public void OptionsWithoutAnOfferIdAreRefusedByTheValidator()
+    {
+        var validator = new ApiSubmitSelectionOptionsCommandValidator();
+
+        var result = validator.Validate(new ApiSubmitSelectionOptionsCommand(
+            "r_x",
+            null,
+            AncillaryProfile.AssistedTravel,
+            Wheelchair));
+
+        Assert.Contains(result.Errors, error => error.PropertyName == "OfferId");
     }
 
     [Fact]

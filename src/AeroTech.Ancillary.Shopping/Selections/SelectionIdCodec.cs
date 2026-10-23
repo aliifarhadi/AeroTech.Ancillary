@@ -20,7 +20,6 @@ namespace AeroTech.Ancillary.Shopping.Selections
         private const string TravellerClaim = "tr";
         private const string CoverageClaim = "cv";
         private const string QuantityClaim = "q";
-        private const string OfferClaim = "oid";
         private const string OfferBindingClaim = "ob";
         private const string SalesBindingClaim = "sb";
 
@@ -64,9 +63,6 @@ namespace AeroTech.Ancillary.Shopping.Selections
 
             if (selection.Quantity is { } quantity)
                 claims.Add(new Claim(QuantityClaim, Number(quantity), ClaimValueTypes.Integer32));
-
-            if (selection.OfferId is { } offerId)
-                claims.Add(new Claim(OfferClaim, offerId));
 
             var token = _handler.CreateToken(new SecurityTokenDescriptor
             {
@@ -118,7 +114,6 @@ namespace AeroTech.Ancillary.Shopping.Selections
                 return null;
 
             int? quantity = token.TryGetPayloadValue<int>(QuantityClaim, out var count) ? count : null;
-            var offerId = token.TryGetPayloadValue<string>(OfferClaim, out var offer) ? offer : null;
             var selection = new SignedSelection(
                 kind,
                 rate,
@@ -126,7 +121,6 @@ namespace AeroTech.Ancillary.Shopping.Selections
                 traveller,
                 coverage,
                 quantity,
-                offerId,
                 offerBinding,
                 salesBinding,
                 new DateTimeOffset(token.ValidTo, TimeSpan.Zero));
@@ -142,8 +136,8 @@ namespace AeroTech.Ancillary.Shopping.Selections
                && selection.SalesBinding is { Length: SelectionBindings.Length }
                && selection.Kind switch
                {
-                   SelectionIdKind.Direct => selection is { Quantity: > 0, OfferId: null },
-                   SelectionIdKind.Reference => selection is { Quantity: null, OfferId.Length: > 0 },
+                   SelectionIdKind.Direct => selection is { Quantity: > 0 },
+                   SelectionIdKind.Reference => selection is { Quantity: null },
                    _ => false
                };
 

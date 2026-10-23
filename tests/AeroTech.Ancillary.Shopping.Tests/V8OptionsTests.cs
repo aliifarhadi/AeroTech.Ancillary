@@ -80,7 +80,6 @@ public sealed class V8OptionsTests
             "T1",
             "P1",
             null,
-            V8Lab.Offer,
             SelectionBindings.Offer(V8Lab.Offer, V8Lab.Version),
             SelectionBindings.Sales(context),
             ShoppingLab.Now.AddMinutes(15)));

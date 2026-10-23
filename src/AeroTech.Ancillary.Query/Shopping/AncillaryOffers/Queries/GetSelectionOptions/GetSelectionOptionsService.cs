@@ -21,7 +21,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetSelection
         {
             var family = OfferFamilyRoutes.ProfileOf(query.Family) ?? throw ExceptionFactory.SelectionWasNotFound("the family does not exist");
             var reference = await _typed.ReadReferenceAsync(query.Reference);
-            var shopping = await _source.LoadAsync(reference.OfferId, scope, cancellationToken);
+            var shopping = await _source.LoadAsync(query.OfferId, scope, cancellationToken);
 
             PricedOfferScopeGuard.EnsureSellable(shopping.Offer, scope);
 

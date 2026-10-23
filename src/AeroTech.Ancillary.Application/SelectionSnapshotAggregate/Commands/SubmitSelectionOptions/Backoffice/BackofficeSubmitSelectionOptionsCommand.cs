@@ -6,6 +6,7 @@ namespace AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.Sub
 {
     public sealed record BackofficeSubmitSelectionOptionsCommand(
         string Reference,
+        string? OfferId,
         AncillaryProfile Family,
         ISelectionOptions Options) : IRequest<SelectionSnapshotResult>, ISubmitSelectionOptionsCommand
     {

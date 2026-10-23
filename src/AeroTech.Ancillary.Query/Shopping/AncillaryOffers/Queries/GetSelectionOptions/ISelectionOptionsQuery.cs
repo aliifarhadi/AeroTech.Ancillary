@@ -5,5 +5,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetSelection
         string Family { get; }
 
         string Reference { get; }
+
+        string? OfferId { get; }
     }
 }

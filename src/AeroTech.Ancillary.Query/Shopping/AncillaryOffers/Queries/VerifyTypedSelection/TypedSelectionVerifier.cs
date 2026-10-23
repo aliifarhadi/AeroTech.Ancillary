@@ -35,7 +35,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.VerifyTypedS
         {
             var reference = await _typed.ReadReferenceAsync(verification.Reference);
             var scope = await ScopeAsync(verification.Surface, cancellationToken);
-            var shopping = await _source.LoadAsync(reference.OfferId, scope, cancellationToken);
+            var shopping = await _source.LoadAsync(verification.OfferId, scope, cancellationToken);
 
             PricedOfferScopeGuard.EnsureSellable(shopping.Offer, scope);
 

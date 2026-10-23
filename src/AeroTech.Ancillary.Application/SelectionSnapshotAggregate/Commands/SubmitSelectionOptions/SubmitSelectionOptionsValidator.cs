@@ -8,6 +8,7 @@ namespace AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.Sub
         protected SubmitSelectionOptionsValidator()
         {
             RuleFor(command => command.Reference).NotEmpty().MaximumLength(1024);
+            RuleFor(command => command.OfferId).NotEmpty();
             RuleFor(command => command.Options).NotNull();
             RuleFor(command => command.Options.Dimensions!)
                 .SetValidator(new SelectedDimensionsInputValidator())

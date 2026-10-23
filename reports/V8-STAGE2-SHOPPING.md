@@ -64,7 +64,7 @@ Each row has `variantCode`, `title`, `description` (omitted when absent), `selec
 | Portion | `PerTravellerPerPortion` | `{travellerRef, portionRef}` |
 | Sector | `PerTravellerPerFlight` | `{travellerRef, flightRef}` |
 
-`optionsEndpoint` is the route template `/{Surface}/v1/AncillaryOffers/{Family}/{reference}/Options`, with the surface and the family names of pack 02 §1 filled in and `{reference}` left as written; the caller puts the row's `reference` there. Your decision of 2026-10-24 (S2-7): the full token was repeated in every typed row and made about 27% of a live answer.
+`optionsEndpoint` is the route template `/{Surface}/v1/AncillaryOffers/{Family}/{reference}/Options?offerId={offerId}` (S3-8), with the surface and the family names of pack 02 §1 filled in and `{reference}` left as written; the caller puts the row's `reference` there. Your decision of 2026-10-24 (S2-7): the full token was repeated in every typed row and made about 27% of a live answer.
 
 `details` per family follows 02 §3 plus the extra fields of 03 §3, all read from the definition. Airport services use the provision rule first and the definition second for terminal, facility, direction, service window and guests, as the engine does.
 

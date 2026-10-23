@@ -47,7 +47,7 @@ namespace AeroTech.Ancillary.Shopping.Options
         public async Task<SignedSelection> ReadReferenceAsync(string? reference)
             => await _codec.ReadAsync(reference, SelectionIdKind.Reference) switch
             {
-                { Status: SignedSelectionStatus.Valid, Selection: { OfferId: not null } selection } => selection,
+                { Status: SignedSelectionStatus.Valid, Selection: { } selection } => selection,
                 { Status: SignedSelectionStatus.Expired } => throw ExceptionFactory.SelectionHasExpired(),
                 _ => throw ExceptionFactory.SelectionSignatureIsInvalid()
             };
@@ -119,7 +119,7 @@ namespace AeroTech.Ancillary.Shopping.Options
 
             if (context.SourceIdentity is not { TrustedSourceReference: { } offerId, TrustedSourceVersion: { } version }
                 || SelectionBindings.Offer(offerId, version) != reference.OfferBinding)
-                throw ExceptionFactory.SelectionIsNotSellable("the flight offer changed; ask for the ancillary offers again");
+                throw ExceptionFactory.SelectionIsNotSellable("the flight offer does not match the reference; ask for the ancillary offers again");
 
             var pricing = (await _pricings.FindActiveByRateIdsAsync([reference.PricingRateId], cancellationToken)).SingleOrDefault()
                           ?? throw ExceptionFactory.SelectionIsNotSellable("the price is no longer active");

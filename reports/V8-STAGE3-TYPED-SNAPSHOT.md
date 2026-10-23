@@ -14,8 +14,8 @@
 GET and POST start the same way:
 
 1. The `r_` is read with the Stage1 codec, purpose Reference only. A bad MAC gives 422 (16816) and an expired one gives 410 (16817).
-2. The offer is reloaded with the `offerId` signed inside the `r_` (Q4), through the existing offer source, the caller's sales scope and `PricedOfferScopeGuard`.
-3. The point-of-sale context whose sales binding equals the signed one is selected. No match gives 403 (16818). If the offer binding no longer matches, the result is 409 (16820).
+2. The offer is reloaded with the `offerId` query parameter (S3-8; before 2026-10-24 it was signed inside the `r_`), through the existing offer source, the caller's sales scope and `PricedOfferScopeGuard`.
+3. The point-of-sale context whose sales binding equals the signed one is selected. No match gives 403 (16818). If the loaded offer's binding does not equal the signed `ob` (another or a changed offer), the result is 409 (16820).
 4. Rate → Pricing → Provision → Definition are read through the Active-only readers. A missing link gives 409. A definition of another family than the route gives 404 (16819). A product that takes no customer input gives 409.
 
 Then:
