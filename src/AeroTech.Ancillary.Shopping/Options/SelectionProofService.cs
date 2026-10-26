@@ -67,6 +67,12 @@ namespace AeroTech.Ancillary.Shopping.Options
             if (requested < minimum || requested > maximum)
                 throw ExceptionFactory.SelectionOptionsAreInvalid($"quantity must be between {minimum} and {maximum}");
 
+            await EvaluateAsync(
+                target,
+                selection,
+                new AncillarySelection { Quantity = target.Definition.SelectionContract!.Kind == SelectionKind.QuantityChoice ? requested : null },
+                cancellationToken);
+
             return Proof(selection, requested, target.Definition);
         }
 
@@ -82,9 +88,16 @@ namespace AeroTech.Ancillary.Shopping.Options
             if (target.Definition.VariantCode == AncillaryVariant.PriorityBoardingCheckin && selection.OptIn != true)
                 throw ExceptionFactory.SelectionOptionsAreInvalid("optIn must be true");
 
+            await EvaluateAsync(target, reference, selection, cancellationToken);
+
+            return Proof(reference, SingleUnit, target.Definition);
+        }
+
+        private async Task EvaluateAsync(Target target, SignedSelection signed, AncillarySelection selection, CancellationToken cancellationToken)
+        {
             var evaluation = await _engine.EvaluateSelectionAsync(
                 target.Context,
-                new CandidateIdentity(target.Definition.Id, target.Provision.Id, reference.CoverageScope, reference.TravellerRef, reference.CoverageRef, target.Pricing.Id),
+                new CandidateIdentity(target.Definition.Id, target.Provision.Id, signed.CoverageScope, signed.TravellerRef, signed.CoverageRef, target.Pricing.Id),
                 TypedSelectionForm.WithFixedChoices(selection, target.Definition, target.Provision),
                 cancellationToken);
 
@@ -93,10 +106,8 @@ namespace AeroTech.Ancillary.Shopping.Options
                     ? ExceptionFactory.SelectionOptionsAreInvalid(string.Join(", ", evaluation.FieldIssues.Select(issue => $"{issue.Field} {issue.ReasonCode}")))
                     : ExceptionFactory.SelectionIsNotSellable(string.Join(", ", evaluation.Candidate.ReasonCodes));
 
-            if (evaluation.Candidate.Price.PricingRateId != reference.PricingRateId || !SellableCandidate.Is(evaluation.Candidate, target.Context.CurrencyId))
+            if (evaluation.Candidate.Price.PricingRateId != signed.PricingRateId || !SellableCandidate.Is(evaluation.Candidate, target.Context.CurrencyId))
                 throw ExceptionFactory.SelectionIsNotSellable("the price or the sale conditions changed; ask for the ancillary offers again");
-
-            return Proof(reference, SingleUnit, target.Definition);
         }
 
         private SelectionProof Proof(SignedSelection selection, int quantity, AncillaryServiceDefinition definition)

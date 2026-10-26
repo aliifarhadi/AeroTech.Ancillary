@@ -281,3 +281,33 @@
 | `ef migrations has-pending-model-changes` | No changes |
 | Hash فایل‌های SeatMap | `cf4211…e39d`، بدون تغییر |
 | زنده OtaPanel (host خودم 4146، Token تازه شما) | همه 11 مرحله همان نتیجه مورد انتظار را دادند. Price یک Id و 6 خط ثبت کرد. GetBySubmitId روی 6 unit `selected` نشان داد. `offerItemId`های پاسخ Resolve دقیقاً همان‌هایی‌اند که فرستاده شدند. مسیرهای قدیم (`Options`، `Details`) 404 می‌دهند. host پس از اجرا متوقف شد |
+
+## 10. R8 (2026-10-26، روی `e001b23`، دستور مالک)
+
+**۱. ارزیابی دوباره خط Direct در `/Price` (انجام شد):**
+- `SelectionProofService.ProveDirectAsync` حالا مثل خط گزینه‌دار، همان `EvaluateSelectionAsync` موتور را با تعداد انتخاب‌شده اجرا می‌کند. یک متد مشترک `EvaluateAsync` برای هر دو نوع خط است.
+- قواعد، محدودیت تجمعی و موجودی حالا دوباره بررسی می‌شوند. پس از تأیید، همان Snapshot قبلی ساخته می‌شود.
+- انتخاب‌های ثابت Definition در `TypedSelectionForm.WithFixedChoices` کامل شد: `MealCode`، `MenuItemRef`، `TargetCabinId` و `PackageProductRef`، همان مقدارهایی که موتور با Definition مقایسه می‌کند.
+- Validator، سرویس یا تغییر API تازه‌ای اضافه نشد.
+- تست `V9PriceRevalidationTests.ADirectQuantityIsCheckedAgainstTheRemainingAtPrice`:
+  - هنگام Shopping بازه 1 تا 3 مجاز است. پیش از `/Price` مانده به 1 می‌رسد.
+  - تعداد 3 ← 409 `QuantityExceedsVerifiedRemaining`. تعداد 1 پذیرفته می‌شود.
+  - این تست روی کد قبلی اجرا نشد.
+
+**۲. محدودیت تجمعی کل سبد (فقط تست، بدون منطق تازه):**
+- تست دو محصول (A01 و A05) با یک Counting Family و سقف 2 نشان داد که `/Price` جمع 2+1 را می‌پذیرد، چون هر خط جدا بررسی می‌شود.
+- در تنظیمات واقعی این حالت امروز رخ نمی‌دهد:
+  - dev: 53 policy فعال و 0 ردیف usage limit.
+  - منبع Counting Family وصل نیست: `NotConnectedCountingFamilyReference` جواب SourceUnavailable می‌دهد.
+  - `AncillaryInventoryPolicy.Activate` policy دارای usage limit را بدون Family تأییدشده نمی‌پذیرد.
+  - Domain اشتراک یک Family بین چند policy را مجاز می‌داند و فقط یکسانی واحد مصرف را کنترل می‌کند.
+- پس طبق دستور شما منطق تازه‌ای ساخته نشد. تست با `Skip` و دلیل در پروژه ماند تا وقتی منبع Family وصل شد فعال شود.
+
+**شواهد:**
+
+| فرمان | نتیجه |
+|---|---|
+| side build host (`-o` scratch) | 0 خطا. build کامل sln فقط خطای قفل فایل `ServiceHost/bin` داد (MSB3021/MSB3027، host شما روی 4046) و خطای کامپایل نداشت |
+| Shopping / Domain / Application | 124 کشف‌شده: 123 قبول و 1 Skip / 264/264 / 232/232 |
+| Hash فایل‌های SeatMap | `cf4211…e39d`، بدون تغییر |
+| زنده OtaPanel (host خودم 4146) | همه 11 مرحله همان نتیجه مورد انتظار را دادند. یک Price با 9 خط پذیرفته شد: Direct برای A01 (تعداد 3)، A11، A12، A21 و A10، و 4 خط گزینه‌دار. host متوقف شد |

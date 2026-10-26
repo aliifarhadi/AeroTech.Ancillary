@@ -55,7 +55,11 @@ namespace AeroTech.Ancillary.Shopping.Options
         public static AncillarySelection WithFixedChoices(AncillarySelection selection, AncillaryServiceDefinition definition, AncillaryProvision provision)
             => definition.VariantCode switch
             {
+                AncillaryVariant.ExtraWeightPackage => selection with { PackageProductRef = definition.ServiceDefinitionRef },
                 AncillaryVariant.SpecialEquipment => selection with { EquipmentKind = definition.Baggage!.EquipmentKind },
+                AncillaryVariant.CabinUpgrade => selection with { TargetCabinId = definition.Upgrade!.ToCabinId },
+                AncillaryVariant.FreeSpecialMeal => selection with { MealCode = definition.Meal!.MealCode },
+                AncillaryVariant.PaidPreorderMeal => selection with { MenuItemRef = definition.Meal!.MenuItemRef },
                 AncillaryVariant.Lounge or AncillaryVariant.FastTrack or AncillaryVariant.CipMeetAssist => selection with
                 {
                     AirportId = definition.AirportService!.AirportId,
