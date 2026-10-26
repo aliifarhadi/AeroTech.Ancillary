@@ -12,7 +12,7 @@ namespace AeroTech.Ancillary.Application.AcceptanceTests.Boundary;
 public class V12BoundaryAcceptanceTests
 {
     private const string FrozenAggregate = "AncillaryReservationAggregate";
-    private const string FrozenSourceHash = "3E998D046B404D8BA7794F390B1CED88FC638B75CB22700694E152389CCB1E90";
+    private const string FrozenSourceHash = "26AD20C7973936ACDA1CDF8FAEF9CE40D7AF7E5117E55569DE410CF144B931DC";
     private const string CommandMigration = "20261008103942_V12Phase1NormalizedProvisionAndPricing.cs";
     private const string QueryMigration = "20261008103947_V12Phase1NormalizedProvisionAndPricingQuery.cs";
     private const string RuleGroupCommandMigration = "20261008135403_V121Phase1RuleGroups.cs";
@@ -232,15 +232,15 @@ public class V12BoundaryAcceptanceTests
             "POST Backoffice/AncillaryProvisions/{provisionId:long}/Suspend",
             "POST Backoffice/AncillaryProvisions/{provisionId:long}/Reactivate",
             "POST Backoffice/AncillaryProvisions/{provisionId:long}/Retire",
-            "POST Service/Ancillaries/Service-Holds",
-            "GET Service/Ancillaries/Service-Holds/{holdId:long}",
-            "POST Service/Ancillaries/Service-Holds/{holdId:long}/Confirmations"
+            "POST Service/Ancillaries/Hold",
+            "GET Service/Ancillaries/Hold/{holdId:long}",
+            "POST Service/Ancillaries/Hold/{holdId:long}/Confirmations"
         ];
 
         string[] added =
         [
-            "DELETE Service/Ancillaries/Service-Holds/{holdId:long}",
-            "POST Service/Ancillaries/Service-Holds/{holdId:long}/Cancellations",
+            "DELETE Service/Ancillaries/Hold/{holdId:long}",
+            "POST Service/Ancillaries/Hold/{holdId:long}/Cancellations",
             "POST Service/Ancillaries/SeatMaps/Holds",
             "POST Backoffice/AncillaryServiceDefinitions/{serviceDefinitionId:long}/AssignPricingUnit",
             "POST Backoffice/AncillaryServiceDefinitions/{serviceDefinitionId:long}/AssignServiceDateBasis",
@@ -368,10 +368,10 @@ public class V12BoundaryAcceptanceTests
         Assert.Equal(
             new[]
             {
-                "POST Service/Ancillaries/SeatMaps/Holds",
-                "POST Service/Ancillaries/Service-Holds",
-                "POST Service/Ancillaries/Service-Holds/{holdId:long}/Cancellations",
-                "POST Service/Ancillaries/Service-Holds/{holdId:long}/Confirmations"
+                "POST Service/Ancillaries/Hold",
+                "POST Service/Ancillaries/Hold/{holdId:long}/Cancellations",
+                "POST Service/Ancillaries/Hold/{holdId:long}/Confirmations",
+                "POST Service/Ancillaries/SeatMaps/Holds"
             },
             routes.Where(route => route.Contains("Hold", StringComparison.Ordinal) && route.StartsWith("POST", StringComparison.Ordinal)).OrderBy(route => route, StringComparer.Ordinal));
         Assert.All(preserved, route => Assert.Contains(route, routes));

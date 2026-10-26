@@ -15,10 +15,10 @@
 1. `AncillaryOffers` به Frontend `baggages[]`, `meals[]` ... می‌دهد؛ Variant Card/Product/Unit و options inline.
 2. Frontend به `/Price` انتخاب‌های نوعی را می‌دهد؛ Price یک `selectionId=s_...` سبد می‌دهد. `Resolve` سپس `ServiceResolvedSelectionDto<T>` با `provision.provisionId`, `definition.variantCode`, `unit`, `coverage`, `selected` و `details` برمی‌گرداند.
 3. Ordering از `Resolve` و Order **در سمت خودش** حداقل Payload رزرو را می‌سازد؛ برای هر Family کارت/Variant/Product/Units. **در Ancillary هیچ رجوعی به Ordering یا Price وجود ندارد**.
-4. `POST Service-Holds`: for each product Ancillary reads the Active Provision from `provisionId`, then the Definition, Variant, Scope and InventoryPolicy. It validates only the selected fields of that variant against the static rules of the Definition and Provision, captures the fixed choices of the Definition with the same rule Price uses (both through the port in 05 §1), makes the final selection immutable, allocates Count/Weight/Slot stock in one transaction under the source lock, saves Root + Units + Allocations, and returns a small Receipt.
+4. `POST Hold`: for each product Ancillary reads the Active Provision from `provisionId`, then the Definition, Variant, Scope and InventoryPolicy. It validates only the selected fields of that variant against the static rules of the Definition and Provision, captures the fixed choices of the Definition with the same rule Price uses (both through the port in 05 §1), makes the final selection immutable, allocates Count/Weight/Slot stock in one transaction under the source lock, saves Root + Units + Allocations, and returns a small Receipt.
 5. Ordering درخواست اختصاصی `SeatMaps/Holds` را برای Seat-only یا Append به همان Hold ارسال می‌کند. Ancillary فقط commercial verifier و lifecycle را اجرا می‌کند؛ ۰ تماس فیزیکی/OccupiedSeats.
-6. `Confirm` روی Root واحد، حتی اگر بعضی Units Released شده باشند. `DELETE Service-Holds/{holdId}` همه یا فقط UnitIds[] Held را آزاد می‌کند. `Cancellations` Confirmedها را طبق reason cancel می‌کند. Expiry برای Held منطقی و persisted است.
-7. `GET Service-Holds/{holdId}` historical typed selection را از **داده پایدار همان Reservation** می‌دهد، حتی پس از انقضا/بازنشستگی Definition/Price Snapshot؛ بدون lookup بیرونی.
+6. `Confirm` روی Root واحد، حتی اگر بعضی Units Released شده باشند. `DELETE Hold/{holdId}` همه یا فقط UnitIds[] Held را آزاد می‌کند. `Cancellations` Confirmedها را طبق reason cancel می‌کند. Expiry برای Held منطقی و persisted است.
+7. `GET Hold/{holdId}` historical typed selection را از **داده پایدار همان Reservation** می‌دهد، حتی پس از انقضا/بازنشستگی Definition/Price Snapshot؛ بدون lookup بیرونی.
 
 ## D. قرارداد ذهنی Wire — متقارن با AncillaryOffers
 `AncillaryOffers` = `baggages → [{variantCode,products:[{productKey,...,units:[{unit,coverage,quantityPolicy,selectionId/reference,...}]}]}]`.
@@ -40,7 +40,7 @@
 - SeatMap تنها commercial unit و بدون Allocation. **Retire یک Source دارای ActiveUsage>0 باید 409** زیر همان قفل فعلی بدهد. Connection pool tuning عملیاتی است، نه علت بازطراحی.
 
 ## G. عملیات بیرونی و گزارش دقیق
-`POST Service-Holds`؛ `GET Service-Holds/{id}`؛ `POST .../Confirmations`؛ `DELETE Service-Holds/{id}?unitIds=...`؛ `POST .../Cancellations`؛ `POST SeatMaps/Holds` — **۶ Endpoint و فقط همین‌ها در Scope رزرو**. جزئیات و JSON کامل تک‌تک در 02.
+`POST Hold`؛ `GET Hold/{id}`؛ `POST .../Confirmations`؛ `DELETE Hold/{id}?unitIds=...`؛ `POST .../Cancellations`؛ `POST SeatMaps/Holds` — **۶ Endpoint و فقط همین‌ها در Scope رزرو**. جزئیات و JSON کامل تک‌تک در 02.
 
 ## H. معیار Closure
 برای تمام Variantهای اعلام‌شده Supported: `AncillaryOffers/Resolve.selected` → `Hold wire` → SQL → GET **بایت/مقدار انتخابی برابر**؛ تداخل Stock بر اساس SQL؛ بدون Order client در Ancillary؛ Seat physical untouched؛ replay/expiry/partial statuses؛ plain migration on emptied dev reservation tables (Q5)؛ تمام تست‌های 07 با نام و فرمان و نتیجه واقعی. **`NOT VERIFIED` و `GATED` هرگز PASS نیستند**.
@@ -83,3 +83,4 @@ Source: `reports/V11-GATE5-QUESTIONS-AND-CONFLICTS.md`.
 | G5-Q1 | The Q6 catalog (A15 `Immediate`; A20 on a local Supplier with `RequiresSpecificAppointment = true` and an Unlimited policy) is created through the Backoffice routes of the agent's own host with the Owner's Backoffice token, so the Domain validates it. | 15 |
 | G5-Q2 | The live seat append uses a seat-map selection id from `POST OtaPanel/v1/SeatMaps` on the Owner's priced AirAvail offer. | 15 |
 | G5-Q3 | "GET after the Definition is retired" uses one extra throwaway A15 (`Immediate`); the Q6 products stay active. | 15 |
+| G5-R1 | The reservation routes are `Service/v1/Ancillaries/Hold`, `Hold/{holdId}`, `Hold/{holdId}/Confirmations`, `DELETE Hold/{holdId}` and `Hold/{holdId}/Cancellations` (renamed from `Service-Holds`, Owner 2026-10-27); `SeatMaps/Holds` is unchanged. | 01, 02 |

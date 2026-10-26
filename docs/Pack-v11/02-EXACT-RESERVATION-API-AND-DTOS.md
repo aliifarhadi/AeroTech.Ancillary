@@ -9,7 +9,7 @@
 - Request samples below use numbers (accepted); response samples show the real output.
 
 ## 1. Create mixed Hold
-`POST /Service/v1/Ancillaries/Service-Holds` — `Content-Type: application/json` — موفق `201 Created`.
+`POST /Service/v1/Ancillaries/Hold` — `Content-Type: application/json` — موفق `201 Created`.
 
 ```json
 {
@@ -136,7 +136,7 @@
 The Receipt is short on purpose: the caller already has the selection and the Order. It echoes no Definition, Provision, scope, pricing, flights, SSR or SeatMap token. Details come from the GET. No fabricated ProviderUnitRef.
 
 ## 3. GET Reservation with the historical typed selections
-`GET /Service/v1/Ancillaries/Service-Holds/{holdId:long}` → `200 OK`.
+`GET /Service/v1/Ancillaries/Hold/{holdId:long}` → `200 OK`.
 
 ```json
 {
@@ -183,19 +183,19 @@ The Receipt is short on purpose: the caller already has the selection and the Or
 ## 4. سایر endpointها ــ دقیق
 ### 4.1 Confirm all
 ```http
-POST /Service/v1/Ancillaries/Service-Holds/9001/Confirmations
+POST /Service/v1/Ancillaries/Hold/9001/Confirmations
 ```
 Body ندارد؛ `200` Receipt. فقط Held فعال قبل از deadline Confirm؛ Unitهای Released دست‌نخورده؛ تأیید مجدد Idempotent. **این عملیات صدور EMD نیست.**
 
 ### 4.2 Release all یا برخی Held
 ```http
-DELETE /Service/v1/Ancillaries/Service-Holds/9001?unitIds=9102&unitIds=9103
+DELETE /Service/v1/Ancillaries/Hold/9001?unitIds=9102&unitIds=9103
 ```
 بدون Body؛ `unitIds:long[]?` positive/distinct؛ absent = کل Unitهای Held؛ وجود یکی invalid/Confirmed/foreign ⇒ **همه عملیات rollback**. Replay همان Released no-op و response current Receipt؛ ظرفیت از predicate ledger با تغییر وضعیت آزاد می‌شود. **بدون Route `Units/{unitId}`**.
 
 ### 4.3 Cancel all یا برخی Confirmed
 ```http
-POST /Service/v1/Ancillaries/Service-Holds/9001/Cancellations
+POST /Service/v1/Ancillaries/Hold/9001/Cancellations
 Content-Type: application/json
 
 {"reasonCode":"CUSTOMER_REQUEST","unitIds":[9101]}
