@@ -2,7 +2,9 @@ using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Arguments;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate.Entities;
 using AeroTech.Ancillary.Domain.SelectionSnapshotAggregate;
+using AeroTech.Ancillary.Domain.SelectionSnapshotAggregate.Arguments;
 using AeroTech.Ancillary.Domain.SelectionSnapshotAggregate.Contracts;
+using AeroTech.Ancillary.Domain.SelectionSnapshotAggregate.Entities;
 using AeroTech.Framework.Core.Domain.Aggregates;
 using Xunit;
 
@@ -57,6 +59,8 @@ public class P1BoundaryConformanceTests
                         && type != typeof(ProvisionCancellationRule)
                         && type != typeof(ProvisionCancellationRuleArgs)
                         && type != typeof(SelectionSnapshot)
+                        && type != typeof(SelectionSnapshotLine)
+                        && type != typeof(SelectionSnapshotLineArgs)
                         && type != typeof(ISelectionSnapshotRepository));
     }
 }

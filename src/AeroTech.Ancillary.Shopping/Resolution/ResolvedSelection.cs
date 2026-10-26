@@ -7,7 +7,7 @@ using AeroTech.Messages.Ancillary.Enums;
 namespace AeroTech.Ancillary.Shopping.Resolution
 {
     public sealed record ResolvedSelection(
-        string SelectionId,
+        string OfferItemId,
         SelectionScope SelectionScope,
         ServiceCoverageScope CoverageScope,
         string TravellerRef,

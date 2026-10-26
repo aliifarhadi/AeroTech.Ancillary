@@ -1,5 +1,5 @@
 using AeroTech.Ancillary.Application.AcceptanceTests.Fixtures;
-using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.SubmitSelectionOptions;
+using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.PriceAncillaryOffers;
 using AeroTech.Ancillary.Shopping.Context;
 using AeroTech.Ancillary.Shopping.Offers;
 using AeroTech.Ancillary.Shopping.Tests.Fixtures;
@@ -21,7 +21,7 @@ public sealed class V8ScopeTests
         => TwoTravellers([F1, F2, F3], [Trip.Portion("P1", 1, F1, F2), Trip.Portion("P2", 2, F3)]);
 
     private static IReadOnlyList<string> Ids(IEnumerable<AncillaryOfferRow> rows)
-        => rows.SelectMany(row => row.QuantityOptions?.Select(option => option.SelectionId) ?? [row.SelectionId!]).ToList();
+        => rows.Select(row => row.OfferItemId!).ToList();
 
     [Fact]
     public async Task S01_OrderUnitDirectGivesOneRowAndOneSignedId()
@@ -32,9 +32,9 @@ public sealed class V8ScopeTests
         var row = Assert.Single(await lab.ShopAsync(V8Lab.Context()));
 
         Assert.Equal(SelectionScope.PerOrder, row.SelectionScope);
-        Assert.StartsWith("d_", row.SelectionId);
-        Assert.Null(row.Reference);
-        Assert.Null(row.QuantityOptions);
+        Assert.StartsWith("d_", row.OfferItemId);
+        Assert.Null(row.Options);
+        Assert.False(row.QuantityPolicy.Selectable);
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public sealed class V8ScopeTests
     }
 
     [Fact]
-    public async Task S04_TravellerJourneyQuantityGivesDistinctOptionsPerTraveller()
+    public async Task S04_TravellerJourneyQuantityGivesOneIdAndRangePerTraveller()
     {
         var lab = new V8Lab();
         lab.Sellable("A01", scope: ServiceCoverageScope.Journey, maxQuantity: 2);
@@ -69,8 +69,8 @@ public sealed class V8ScopeTests
         var rows = await lab.ShopAsync(TwoTravellers([F1], [Trip.Portion("P1", 1, F1)]));
 
         Assert.Equal(2, rows.Count);
-        Assert.All(rows, row => Assert.Equal([1, 2], row.QuantityOptions!.Select(option => option.Quantity)));
-        Assert.Equal(4, Ids(rows).Distinct().Count());
+        Assert.All(rows, row => Assert.Equal((true, 1, 2), (row.QuantityPolicy.Selectable, row.QuantityPolicy.Min, row.QuantityPolicy.Max)));
+        Assert.Equal(2, Ids(rows).Distinct().Count());
     }
 
     [Fact]
@@ -118,7 +118,7 @@ public sealed class V8ScopeTests
         var rows = (await lab.ShopAsync(TwoTravellers([F1], [Trip.Portion("P1", 1, F1)]))).ToList();
 
         Assert.Equal(rows[0].Candidate.Price.PricingRateId, rows[1].Candidate.Price.PricingRateId);
-        Assert.NotEqual(rows[0].SelectionId, rows[1].SelectionId);
+        Assert.NotEqual(rows[0].OfferItemId, rows[1].OfferItemId);
     }
 
     [Fact]
@@ -131,7 +131,7 @@ public sealed class V8ScopeTests
 
         Assert.Equal(2, rows.Count);
         Assert.Equal(rows[0].Candidate.Price.PricingRateId, rows[1].Candidate.Price.PricingRateId);
-        Assert.NotEqual(rows[0].SelectionId, rows[1].SelectionId);
+        Assert.NotEqual(rows[0].OfferItemId, rows[1].OfferItemId);
     }
 
     [Fact]
@@ -144,22 +144,20 @@ public sealed class V8ScopeTests
 
         Assert.Equal(2, rows.Count);
         Assert.Equal(rows[0].Candidate.Price.PricingRateId, rows[1].Candidate.Price.PricingRateId);
-        Assert.NotEqual(rows[0].SelectionId, rows[1].SelectionId);
+        Assert.NotEqual(rows[0].OfferItemId, rows[1].OfferItemId);
     }
 
     [Fact]
-    public async Task S11_SameUnitQuantityOneAndTwoGetDifferentIds()
+    public async Task S11_OneIdCarriesTheAllowedQuantityRange()
     {
         var lab = new V8Lab();
         lab.Sellable("A01", maxQuantity: 2);
 
         var row = Assert.Single(await lab.ShopAsync(V8Lab.Context()));
-        var one = (await lab.Codec.ReadAsync(row.QuantityOptions![0].SelectionId, SelectionIdKind.Direct)).Selection!;
-        var two = (await lab.Codec.ReadAsync(row.QuantityOptions[1].SelectionId, SelectionIdKind.Direct)).Selection!;
+        var signed = (await lab.Codec.ReadAsync(row.OfferItemId, SelectionIdKind.Direct)).Selection!;
 
-        Assert.NotEqual(row.QuantityOptions[0].SelectionId, row.QuantityOptions[1].SelectionId);
-        Assert.Equal((1, 2), (one.Quantity, two.Quantity));
-        Assert.Equal((one.TravellerRef, one.CoverageRef), (two.TravellerRef, two.CoverageRef));
+        Assert.Equal((1, 2), (signed.MinQuantity, signed.MaxQuantity));
+        Assert.Equal((row.QuantityPolicy.Min, row.QuantityPolicy.Max), (signed.MinQuantity!.Value, signed.MaxQuantity!.Value));
     }
 
     [Fact]
@@ -171,8 +169,8 @@ public sealed class V8ScopeTests
 
         var row = Assert.Single(await lab.ShopAsync(context));
 
-        Assert.DoesNotContain(row.QuantityOptions!, option => option.Quantity == 0);
-        Assert.Null(lab.Signer.SignDirect(context, row.Candidate, provision, 0));
+        Assert.Equal(1, row.QuantityPolicy.Min);
+        Assert.Null(lab.Signer.SignDirect(context, row.Candidate, provision, 0, 2));
     }
 
     [Fact]
@@ -182,7 +180,7 @@ public sealed class V8ScopeTests
         lab.Sellable("A11", amount: 0m);
 
         var row = Assert.Single(await lab.ShopAsync(V8Lab.Context()));
-        var signed = (await lab.Codec.ReadAsync(row.SelectionId, SelectionIdKind.Direct)).Selection!;
+        var signed = (await lab.Codec.ReadAsync(row.OfferItemId, SelectionIdKind.Direct)).Selection!;
 
         Assert.Equal(0m, row.UnitAmount);
         Assert.True(signed.PricingRateId > 0);
@@ -209,7 +207,7 @@ public sealed class V8ScopeTests
         var row = Assert.Single(await lab.ShopAsync(context));
         var forged = row.Candidate with { Scope = row.Candidate.Scope with { TravellerRefs = ["T9"] } };
 
-        Assert.Null(lab.Signer.SignDirect(context, forged, provision, 1));
+        Assert.Null(lab.Signer.SignDirect(context, forged, provision, 1, 1));
     }
 
     [Fact]
@@ -219,7 +217,7 @@ public sealed class V8ScopeTests
         lab.Sellable("A15", amount: 0m);
         var context = V8Lab.Context();
         var row = Assert.Single(await lab.ShopAsync(context));
-        var signed = (await lab.Codec.ReadAsync(row.Reference, SelectionIdKind.Reference)).Selection!;
+        var signed = (await lab.Codec.ReadAsync(row.OfferItemId, SelectionIdKind.Reference)).Selection!;
         var forged = lab.Codec.Issue(signed with { CoverageRef = "F9" });
 
         await BusinessAssert.ThrowsAsync(16802, 404, () => lab.SubmitAsync(

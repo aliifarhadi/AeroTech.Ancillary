@@ -25,7 +25,7 @@ namespace AeroTech.Ancillary.Shopping
             services.AddScoped<ISelectionIdCodec, SelectionIdCodec>();
             services.AddScoped<ISelectionSigner, SelectionSigner>();
             services.AddScoped<IAncillaryOfferListing, AncillaryOfferListing>();
-            services.AddScoped<ITypedSelectionService, TypedSelectionService>();
+            services.AddScoped<ISelectionProofService, SelectionProofService>();
             services.AddScoped<ISelectionSnapshotReader, SqlSelectionSnapshotReader>();
             services.AddScoped<ISelectionResolver, SelectionResolver>();
 

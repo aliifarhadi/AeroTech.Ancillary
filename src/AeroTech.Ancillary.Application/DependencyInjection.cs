@@ -19,7 +19,7 @@ using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.Conf
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ExpireAncillaryHolds;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldAncillaryServices;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldSeatSelections;
-using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.SubmitSelectionOptions;
+using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.PriceAncillaryOffers;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ReleaseAncillaryHold;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Services;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ActivateAncillaryServiceDefinition;
@@ -149,7 +149,7 @@ namespace AeroTech.Ancillary.Application
             services.AddScoped<IAncillaryHoldLock, AncillaryHoldLock>();
             services.AddScoped<IHoldAncillaryServicesService, HoldAncillaryServicesService>();
             services.AddScoped<IHoldSeatSelectionsService, HoldSeatSelectionsService>();
-            services.AddScoped<ISubmitSelectionOptionsService, SubmitSelectionOptionsService>();
+            services.AddScoped<IPriceAncillaryOffersService, PriceAncillaryOffersService>();
             services.AddScoped<IConfirmAncillaryHoldService, ConfirmAncillaryHoldService>();
             services.AddScoped<IReleaseAncillaryHoldService, ReleaseAncillaryHoldService>();
             services.AddScoped<ICancelAncillaryHoldService, CancelAncillaryHoldService>();

@@ -31,7 +31,7 @@ namespace AeroTech.Ancillary.Shopping.Options
                         ExclusiveMin: definition.Baggage!.WeightFromExclusiveKg ?? 0m,
                         Max: definition.Baggage.WeightToInclusiveKg)
                 ],
-                AncillaryVariant.Oversize => [new SelectionFieldDescriptor("dimensions", SelectionControls.Dimensions, true, Unit: Centimetres)],
+                AncillaryVariant.Oversize => [Dimensions("dimensions")],
                 AncillaryVariant.SpecialEquipment => SpecialEquipment(definition.Baggage!),
                 AncillaryVariant.PetInCabin or AncillaryVariant.PetInHold => Pet(definition.Pet!, provision),
                 AncillaryVariant.Wheelchair => [Select("assistanceSsrCode", definition.AssistedTravel!.Wheelchair!.AllowedSsrCodes.Select(code => code.Code))],
@@ -70,7 +70,7 @@ namespace AeroTech.Ancillary.Shopping.Options
             var fields = new List<SelectionFieldDescriptor>();
 
             if (baggage.MaxSize is not null || baggage.MaxLinearSumCm is not null)
-                fields.Add(new SelectionFieldDescriptor("dimensions", SelectionControls.Dimensions, true, Unit: Centimetres));
+                fields.Add(Dimensions("dimensions"));
 
             if (baggage.MaxKgPerPiece is { } maximum)
                 fields.Add(new SelectionFieldDescriptor("weightKg", SelectionControls.Number, true, Unit: Kilograms, ExclusiveMin: 0m, Max: maximum));
@@ -97,7 +97,7 @@ namespace AeroTech.Ancillary.Shopping.Options
                 Unit: Kilograms,
                 ExclusiveMin: 0m,
                 Max: rule?.MaxCombinedKgOverride ?? pet.MaxCombinedWeightKg));
-            fields.Add(new SelectionFieldDescriptor("carrierDimensions", SelectionControls.Dimensions, true, Unit: Centimetres));
+            fields.Add(Dimensions("carrierDimensions"));
 
             if (pet.RequiredDocumentCodes.Count > 0)
                 fields.Add(new SelectionFieldDescriptor("documentAcknowledgements", SelectionControls.MultiSelect, true, Choices(pet.RequiredDocumentCodes.Select(code => code.Code))));
@@ -125,6 +125,11 @@ namespace AeroTech.Ancillary.Shopping.Options
 
             return fields;
         }
+
+        private static SelectionFieldDescriptor Dimensions(string name)
+            => new(name, SelectionControls.Dimensions, true, Unit: Centimetres, Fields: [Centimetre("lengthCm"), Centimetre("widthCm"), Centimetre("heightCm")]);
+
+        private static SelectionFieldDescriptor Centimetre(string name) => new(name, SelectionControls.Number, true, Unit: Centimetres, ExclusiveMin: 0m);
 
         private static SelectionFieldDescriptor Select(string name, IEnumerable<string> values, bool required = true)
             => new(name, SelectionControls.Select, required, Choices(values));

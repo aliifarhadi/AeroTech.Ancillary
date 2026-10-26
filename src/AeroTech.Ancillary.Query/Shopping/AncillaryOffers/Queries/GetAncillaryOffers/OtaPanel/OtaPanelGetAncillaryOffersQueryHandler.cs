@@ -6,8 +6,6 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
 {
     public sealed class OtaPanelGetAncillaryOffersQueryHandler : IRequestHandler<OtaPanelGetAncillaryOffersQuery, AncillaryOffersDto>
     {
-        private const string Surface = "OtaPanel";
-
         private readonly IOtaPanelSalesScopeResolver _salesScope;
         private readonly IGetAncillaryOffersService _service;
 
@@ -18,6 +16,6 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
         }
 
         public async Task<AncillaryOffersDto> Handle(OtaPanelGetAncillaryOffersQuery query, CancellationToken cancellationToken)
-            => AncillaryOffersMapper.Map(await _service.ExecuteAsync(query, await _salesScope.ResolveAsync(cancellationToken), cancellationToken), Surface);
+            => AncillaryOffersMapper.Map(await _service.ExecuteAsync(query, await _salesScope.ResolveAsync(cancellationToken), cancellationToken));
     }
 }

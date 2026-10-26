@@ -1,3 +1,4 @@
+using AeroTech.Ancillary.Domain.SelectionSnapshotAggregate;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Snapshots;
 using AeroTech.Ancillary.Query.Shopping.Common;
 using AeroTech.Ancillary.Query.Shopping.Common.FlightOffers;
@@ -17,16 +18,26 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
             _offers = offers;
         }
 
-        public async Task<AncillaryOffersSnapshot> ExecuteAsync(IAncillaryOffersQuery query, AncillarySalesScope scope, CancellationToken cancellationToken = default)
+        public Task<AncillaryOffersSnapshot> ExecuteAsync(IAncillaryOffersQuery query, AncillarySalesScope scope, CancellationToken cancellationToken = default)
+            => ListAsync(query.OfferId, scope, null, cancellationToken);
+
+        public Task<AncillaryOffersSnapshot> ExecuteAsync(SelectionSnapshot selection, AncillarySalesScope scope, CancellationToken cancellationToken = default)
+            => ListAsync(selection.OfferId, scope, selection, cancellationToken);
+
+        private async Task<AncillaryOffersSnapshot> ListAsync(
+            string? offerId,
+            AncillarySalesScope scope,
+            SelectionSnapshot? selection,
+            CancellationToken cancellationToken)
         {
-            var shopping = await _source.LoadAsync(query.OfferId, scope, cancellationToken);
+            var shopping = await _source.LoadAsync(offerId, scope, cancellationToken);
 
             PricedOfferScopeGuard.EnsureSellable(shopping.Offer, scope);
 
             return new AncillaryOffersSnapshot(
                 shopping.Offer.OfferId,
                 shopping.CurrencyId,
-                await _offers.ListAsync(shopping.PointsOfSale.Select(pointOfSale => pointOfSale.Context).ToList(), OfferFamilyFilters.Services, cancellationToken));
+                await _offers.ListAsync(shopping.PointsOfSale.Select(pointOfSale => pointOfSale.Context).ToList(), OfferFamilyFilters.Services, selection, cancellationToken));
         }
     }
 }

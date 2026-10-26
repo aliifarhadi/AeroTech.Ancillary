@@ -3,14 +3,14 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto
     public sealed record AncillaryOffersDto(
         string OfferId,
         int CurrencyId,
-        IReadOnlyList<AncillaryOfferDto<BaggageDetailsDto>> Baggages,
-        IReadOnlyList<AncillaryOfferDto<MealDetailsDto>> Meals,
-        IReadOnlyList<AncillaryOfferDto<PetDetailsDto>> Pets,
-        IReadOnlyList<AncillaryOfferDto<AssistedTravelDetailsDto>> AssistedTravel,
-        IReadOnlyList<AncillaryOfferDto<AirportServiceDetailsDto>> AirportServices,
-        IReadOnlyList<AncillaryOfferDto<PriorityDetailsDto>> PriorityServices,
-        IReadOnlyList<AncillaryOfferDto<ConnectivityDetailsDto>> Connectivity,
-        IReadOnlyList<AncillaryOfferDto<UpgradeDetailsDto>> Upgrades,
-        IReadOnlyList<AncillaryOfferDto<ExtraSeatDetailsDto>> ExtraSeats,
-        IReadOnlyList<AncillaryOfferDto<TravelInsuranceDetailsDto>> TravelInsurance);
+        IReadOnlyList<AncillaryVariantGroupDto<BaggageDetailsDto>> Baggages,
+        IReadOnlyList<AncillaryVariantGroupDto<MealDetailsDto>> Meals,
+        IReadOnlyList<AncillaryVariantGroupDto<PetDetailsDto>> Pets,
+        IReadOnlyList<AncillaryVariantGroupDto<AssistedTravelDetailsDto>> AssistedTravel,
+        IReadOnlyList<AncillaryVariantGroupDto<AirportServiceDetailsDto>> AirportServices,
+        IReadOnlyList<AncillaryVariantGroupDto<PriorityDetailsDto>> PriorityServices,
+        IReadOnlyList<AncillaryVariantGroupDto<ConnectivityDetailsDto>> Connectivity,
+        IReadOnlyList<AncillaryVariantGroupDto<UpgradeDetailsDto>> Upgrades,
+        IReadOnlyList<AncillaryVariantGroupDto<ExtraSeatDetailsDto>> ExtraSeats,
+        IReadOnlyList<AncillaryVariantGroupDto<TravelInsuranceDetailsDto>> TravelInsurance);
 }

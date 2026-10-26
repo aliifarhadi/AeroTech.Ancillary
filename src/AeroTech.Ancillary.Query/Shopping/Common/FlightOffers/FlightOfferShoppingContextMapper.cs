@@ -31,7 +31,7 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.FlightOffers
                     FareFactsComplete = fareFacts.All(fact => fact is not null),
                     BaggageFactsComplete = coupons.All(row => row.Coupon is { CheckedBaggage: not null, CabinBaggage: not null }),
                     FareBenefitsComplete = false,
-                    ExistingServicesComplete = false,
+                    ExistingServicesComplete = true,
                     Provenance = Provenance
                 });
         }

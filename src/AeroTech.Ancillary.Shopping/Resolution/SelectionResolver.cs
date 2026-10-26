@@ -3,6 +3,7 @@ using AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Entities;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.Domain.SelectionSnapshotAggregate;
+using AeroTech.Ancillary.Domain.SelectionSnapshotAggregate.Entities;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Ancillary.Shopping.Engine;
 using AeroTech.Ancillary.Shopping.Offers;
@@ -15,9 +16,6 @@ namespace AeroTech.Ancillary.Shopping.Resolution
 {
     public sealed class SelectionResolver : ISelectionResolver
     {
-        private const string SnapshotPrefix = "s_";
-
-        private readonly ISelectionIdCodec _codec;
         private readonly ISelectionSnapshotReader _snapshots;
         private readonly IActiveAncillaryPricingReader _pricings;
         private readonly IActiveAncillaryProvisionReader _provisions;
@@ -25,14 +23,12 @@ namespace AeroTech.Ancillary.Shopping.Resolution
         private readonly IClock _clock;
 
         public SelectionResolver(
-            ISelectionIdCodec codec,
             ISelectionSnapshotReader snapshots,
             IActiveAncillaryPricingReader pricings,
             IActiveAncillaryProvisionReader provisions,
             IActiveAncillaryDefinitionReader definitions,
             IClock clock)
         {
-            _codec = codec;
             _snapshots = snapshots;
             _pricings = pricings;
             _provisions = provisions;
@@ -40,119 +36,89 @@ namespace AeroTech.Ancillary.Shopping.Resolution
             _clock = clock;
         }
 
-        public async Task<IReadOnlyList<ResolvedSelection>> ResolveAsync(IReadOnlyList<string> ids, CancellationToken cancellationToken = default)
+        public async Task<SelectionSnapshot> OpenAsync(string selectionId, CancellationToken cancellationToken = default)
         {
-            var now = _clock.GetDateTime();
-            var snapshots = (await _snapshots.FindAsync(ids.Where(IsSnapshot).ToList(), cancellationToken)).ToDictionary(snapshot => snapshot.Id, StringComparer.Ordinal);
-            var units = new List<SelectedUnit>();
+            var snapshot = await _snapshots.FindAsync(selectionId, cancellationToken)
+                           ?? throw ExceptionFactory.SelectionWasNotFound($"selection {selectionId} does not exist");
 
-            foreach (var id in ids)
-                units.Add(IsSnapshot(id) ? FromSnapshot(id, snapshots, now) : await FromSignedAsync(id));
+            if (snapshot.HasExpired(_clock.GetDateTime()))
+                throw ExceptionFactory.SelectionHasExpired();
 
-            var rates = (await _pricings.FindActiveByRateIdsAsync(units.Select(unit => unit.PricingRateId).Distinct().ToList(), cancellationToken))
+            return snapshot;
+        }
+
+        public async Task<IReadOnlyList<ResolvedSelection>> ResolveAsync(string selectionId, CancellationToken cancellationToken = default)
+        {
+            var lines = (await OpenAsync(selectionId, cancellationToken)).Lines.OrderBy(line => line.Sequence).ToList();
+            var rates = (await _pricings.FindActiveByRateIdsAsync(lines.Select(line => line.PricingRateId).Distinct().ToList(), cancellationToken))
                 .SelectMany(pricing => pricing.Rates.Select(rate => (Pricing: pricing, Rate: rate)))
                 .ToDictionary(owner => owner.Rate.Id);
             var provisions = (await _provisions.FindActiveProvisionsAsync(rates.Values.Select(owner => owner.Pricing.AncillaryProvisionId).Distinct().ToList(), cancellationToken))
                 .ToDictionary(provision => provision.Id);
             var definitions = (await _definitions.FindActiveDefinitionsAsync(provisions.Values.Select(provision => provision.ServiceDefinitionId).Distinct().ToList(), cancellationToken))
                 .ToDictionary(definition => definition.Id);
+            var selections = new List<ResolvedSelection>(lines.Count);
 
-            return units.Select(unit => Resolve(unit, rates, provisions, definitions)).ToList();
-        }
-
-        private static bool IsSnapshot(string id) => id.StartsWith(SnapshotPrefix, StringComparison.Ordinal);
-
-        private static SelectedUnit FromSnapshot(string id, IReadOnlyDictionary<string, SelectionSnapshot> snapshots, DateTimeOffset now)
-        {
-            var snapshot = snapshots.GetValueOrDefault(id) ?? throw ExceptionFactory.SelectionWasNotFound($"selection {id} does not exist");
-
-            if (now >= snapshot.ExpiresAtUtc)
-                throw ExceptionFactory.SelectionHasExpired();
-
-            return new SelectedUnit(
-                id,
-                snapshot.PricingRateId,
-                snapshot.CoverageScope,
-                snapshot.TravellerRef ?? string.Empty,
-                snapshot.CoverageRef,
-                snapshot.OfferBinding,
-                snapshot.SalesBinding,
-                snapshot.Quantity,
-                snapshot.SelectedJson);
-        }
-
-        private async Task<SelectedUnit> FromSignedAsync(string id)
-            => await _codec.ReadAsync(id, SelectionIdKind.Direct) switch
+            foreach (var line in lines)
             {
-                { Status: SignedSelectionStatus.Valid, Selection: { Quantity: { } quantity } selection } => new SelectedUnit(
-                    id,
-                    selection.PricingRateId,
-                    selection.CoverageScope,
-                    selection.TravellerRef,
-                    selection.CoverageRef,
-                    selection.OfferBinding,
-                    selection.SalesBinding,
-                    quantity,
-                    null),
-                { Status: SignedSelectionStatus.Expired } => throw ExceptionFactory.SelectionHasExpired(),
-                _ => throw ExceptionFactory.SelectionSignatureIsInvalid()
-            };
+                var selection = Resolve(line, rates, provisions, definitions);
+
+                if (SelectionBasketRules.Conflict(selections.Select(BasketLine).ToList(), BasketLine(selection)) is { } conflict)
+                    throw ExceptionFactory.SelectionIsNotSellable($"selections[{line.Sequence - 1}]: {conflict}");
+
+                selections.Add(selection);
+            }
+
+            return selections;
+        }
+
+        private static SelectionBasketLine BasketLine(ResolvedSelection selection)
+            => new(selection.Rate.Id, selection.CoverageScope, selection.TravellerRef, selection.CoverageRef, selection.Definition);
 
         private static ResolvedSelection Resolve(
-            SelectedUnit unit,
+            SelectionSnapshotLine line,
             IReadOnlyDictionary<long, (AncillaryPricing Pricing, AncillaryPricingRate Rate)> rates,
             IReadOnlyDictionary<long, AncillaryProvision> provisions,
             IReadOnlyDictionary<long, AncillaryServiceDefinition> definitions)
         {
-            if (!rates.TryGetValue(unit.PricingRateId, out var owner))
-                throw ExceptionFactory.SelectionIsNotSellable($"selection {unit.SelectionId}: the price is no longer active");
+            if (!rates.TryGetValue(line.PricingRateId, out var owner))
+                throw ExceptionFactory.SelectionIsNotSellable($"selections[{line.Sequence - 1}]: the price is no longer active");
 
             var provision = provisions.GetValueOrDefault(owner.Pricing.AncillaryProvisionId)
-                            ?? throw ExceptionFactory.SelectionIsNotSellable($"selection {unit.SelectionId}: the product rule is no longer active");
+                            ?? throw ExceptionFactory.SelectionIsNotSellable($"selections[{line.Sequence - 1}]: the product rule is no longer active");
             var definition = definitions.GetValueOrDefault(provision.ServiceDefinitionId)
-                             ?? throw ExceptionFactory.SelectionIsNotSellable($"selection {unit.SelectionId}: the product is no longer active");
+                             ?? throw ExceptionFactory.SelectionIsNotSellable($"selections[{line.Sequence - 1}]: the product is no longer active");
 
-            if (provision.CoverageScope != unit.CoverageScope)
-                throw ExceptionFactory.SelectionIsNotSellable($"selection {unit.SelectionId}: the unit does not match the product rule");
+            if (provision.CoverageScope != line.CoverageScope)
+                throw ExceptionFactory.SelectionIsNotSellable($"selections[{line.Sequence - 1}]: the unit does not match the product rule");
 
-            if (definition.Profile == AncillaryProfile.Seat || CustomerInputs.AreRequested(definition, provision) != (unit.SelectedJson is not null))
-                throw ExceptionFactory.SelectionIsNotSellable($"selection {unit.SelectionId}: the selection kind does not match the product");
+            if (definition.Profile == AncillaryProfile.Seat || CustomerInputs.AreRequested(definition, provision) != (line.SelectedJson is not null))
+                throw ExceptionFactory.SelectionIsNotSellable($"selections[{line.Sequence - 1}]: the selection kind does not match the product");
 
             if (owner.Pricing.PricingUnit is not { } pricingUnit)
-                throw ExceptionFactory.SelectionIsNotSellable($"selection {unit.SelectionId}: the price has no pricing unit");
+                throw ExceptionFactory.SelectionIsNotSellable($"selections[{line.Sequence - 1}]: the price has no pricing unit");
 
             var unitAmount = owner.Rate.UnitTotal.Amount;
 
             return new ResolvedSelection(
-                unit.SelectionId,
-                SelectionScopes.Of(unit.CoverageScope),
-                unit.CoverageScope,
-                unit.TravellerRef,
-                unit.CoverageRef,
-                unit.OfferBinding,
-                unit.SalesBinding,
+                line.OfferItemId,
+                SelectionScopes.Of(line.CoverageScope),
+                line.CoverageScope,
+                line.TravellerRef ?? string.Empty,
+                line.CoverageRef,
+                line.OfferBinding,
+                line.SalesBinding,
                 definition,
                 provision,
                 owner.Pricing,
                 owner.Rate,
                 pricingUnit,
-                unit.Quantity,
+                line.Quantity,
                 unitAmount,
-                unitAmount * unit.Quantity,
+                unitAmount * line.Quantity,
                 provision.PetRule?.AcceptanceMode ?? definition.Booking.ConfirmationRequirement,
                 AvailabilityAssessor.MustCheckAtReserve(definition, provision),
-                unit.SelectedJson);
+                line.SelectedJson);
         }
-
-        private sealed record SelectedUnit(
-            string SelectionId,
-            long PricingRateId,
-            ServiceCoverageScope CoverageScope,
-            string TravellerRef,
-            string CoverageRef,
-            string OfferBinding,
-            string SalesBinding,
-            int Quantity,
-            string? SelectedJson);
     }
 }

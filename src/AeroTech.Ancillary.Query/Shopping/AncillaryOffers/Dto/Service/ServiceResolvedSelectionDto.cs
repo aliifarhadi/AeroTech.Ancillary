@@ -1,11 +1,9 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Service
 {
     public sealed record ServiceResolvedSelectionDto<TDetails>(
-        string SelectionId,
+        string OfferItemId,
         string VariantCode,
         SelectionScope SelectionScope,
         OfferUnitDto Unit,
@@ -15,5 +13,5 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Service
         ServiceResolvedProvisionDto Provision,
         ServiceResolvedPricingDto Pricing,
         TDetails Details,
-        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] JsonElement? Selected);
+        SelectedUnitDto Selected);
 }

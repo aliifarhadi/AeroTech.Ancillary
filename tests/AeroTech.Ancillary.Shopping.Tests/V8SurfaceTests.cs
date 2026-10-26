@@ -32,20 +32,22 @@ public sealed class V8SurfaceTests
 
     private static JsonObject Node<TValue>(TValue value) => JsonNode.Parse(JsonSerializer.Serialize(value, Json))!.AsObject();
 
-    private static JsonObject Row(JsonObject answer, string family, string variantCode)
-        => answer[family]!.AsArray().Select(row => row!.AsObject()).Single(row => (string?)row["variantCode"] == variantCode);
+    private static JsonObject Unit(JsonObject answer, string family, string variantCode)
+        => answer[family]!.AsArray()
+            .Select(card => card!.AsObject())
+            .Single(card => (string?)card["variantCode"] == variantCode)["products"]![0]!["units"]![0]!.AsObject();
 
     [Fact]
     public async Task H01_BackofficeAnswersFamilyArraysWithEnumObjects()
     {
         var (_, rows) = await MixedAsync();
 
-        var answer = Node(BackofficeAncillaryOffersMapper.Map(V8Lab.Snapshot(rows), "Backoffice"));
-        var typed = Row(answer, "assistedTravel", "A15");
+        var answer = Node(BackofficeAncillaryOffersMapper.Map(V8Lab.Snapshot(rows)));
+        var typed = Unit(answer, "assistedTravel", "A15");
 
         Assert.All(Families, family => Assert.IsType<JsonArray>(answer[family]));
         Assert.Equal("PerTravellerPerFlight", (string?)typed["selectionScope"]!["name"]);
-        Assert.Equal("/Backoffice/v1/AncillaryOffers/AssistedTravel/{reference}/Options?offerId={offerId}", (string?)typed["optionsEndpoint"]);
+        Assert.Null(typed["optionsEndpoint"]);
     }
 
     [Fact]
@@ -53,11 +55,11 @@ public sealed class V8SurfaceTests
     {
         var (_, rows) = await MixedAsync();
 
-        var answer = Node(AncillaryOffersMapper.Map(V8Lab.Snapshot(rows), "OtaPanel"));
+        var answer = Node(AncillaryOffersMapper.Map(V8Lab.Snapshot(rows)));
 
         Assert.All(Families, family => Assert.IsType<JsonArray>(answer[family]));
-        Assert.Equal("PerTravellerPerFlight", (string?)Row(answer, "assistedTravel", "A15")["selectionScope"]);
-        Assert.Equal("/OtaPanel/v1/AncillaryOffers/AssistedTravel/{reference}/Options?offerId={offerId}", (string?)Row(answer, "assistedTravel", "A15")["optionsEndpoint"]);
+        Assert.Equal("PerTravellerPerFlight", (string?)Unit(answer, "assistedTravel", "A15")["selectionScope"]);
+        Assert.Null(Unit(answer, "assistedTravel", "A15")["optionsEndpoint"]);
     }
 
     [Fact]
@@ -65,50 +67,50 @@ public sealed class V8SurfaceTests
     {
         var (_, rows) = await MixedAsync();
 
-        var answer = Node(AncillaryOffersMapper.Map(V8Lab.Snapshot(rows), "Api"));
+        var answer = Node(AncillaryOffersMapper.Map(V8Lab.Snapshot(rows)));
 
         Assert.All(Families, family => Assert.IsType<JsonArray>(answer[family]));
-        Assert.Equal("/Api/v1/AncillaryOffers/AssistedTravel/{reference}/Options?offerId={offerId}", (string?)Row(answer, "assistedTravel", "A15")["optionsEndpoint"]);
+        Assert.Null(Unit(answer, "assistedTravel", "A15")["optionsEndpoint"]);
     }
 
     [Fact]
-    public async Task H04_FixedDirectHasSelectionIdAndRealPriceOnly()
+    public async Task H04_FixedDirectHasOfferItemIdAndRealPriceOnly()
     {
         var (_, rows) = await MixedAsync();
 
-        var row = Row(Node(AncillaryOffersMapper.Map(V8Lab.Snapshot(rows), "Api")), "baggages", "A05");
+        var row = Unit(Node(AncillaryOffersMapper.Map(V8Lab.Snapshot(rows))), "baggages", "A05");
 
-        Assert.StartsWith("d_", (string?)row["selectionId"]);
+        Assert.StartsWith("d_", (string?)row["offerItemId"]);
         Assert.Equal(40m, (decimal)row["unitPrice"]!["amount"]!);
-        Assert.Null(row["reference"]);
+        Assert.Null(row["options"]);
         Assert.Null(row["quantityOptions"]);
         Assert.Null(row["optionsEndpoint"]);
     }
 
     [Fact]
-    public async Task H05_QuantityOnlyBagHasQuantityOptionsAndNoSnapshot()
+    public async Task H05_QuantityOnlyBagHasOneIdWithItsRangeAndNoSnapshot()
     {
         var (lab, rows) = await MixedAsync();
 
-        var row = Row(Node(AncillaryOffersMapper.Map(V8Lab.Snapshot(rows), "Api")), "baggages", "A01");
+        var row = Unit(Node(AncillaryOffersMapper.Map(V8Lab.Snapshot(rows))), "baggages", "A01");
 
-        Assert.Equal(2, row["quantityOptions"]!.AsArray().Count);
-        Assert.Equal(200m, (decimal)row["quantityOptions"]![1]!["totalAmount"]!);
-        Assert.Null(row["selectionId"]);
-        Assert.Null(row["reference"]);
+        Assert.StartsWith("d_", (string?)row["offerItemId"]);
+        Assert.Equal((true, 1, 2), ((bool)row["quantityPolicy"]!["selectable"]!, (int)row["quantityPolicy"]!["min"]!, (int)row["quantityPolicy"]!["max"]!));
+        Assert.Null(row["quantityOptions"]);
+        Assert.Null(row["options"]);
         Assert.Empty(lab.Shop.Catalog.Snapshots);
     }
 
     [Fact]
-    public async Task H06_TypedWheelchairHasReferenceAndEndpointOnly()
+    public async Task H06_TypedWheelchairHasOfferItemIdAndOptions()
     {
         var (_, rows) = await MixedAsync();
 
-        var row = Row(Node(AncillaryOffersMapper.Map(V8Lab.Snapshot(rows), "Api")), "assistedTravel", "A15");
+        var row = Unit(Node(AncillaryOffersMapper.Map(V8Lab.Snapshot(rows))), "assistedTravel", "A15");
 
-        Assert.StartsWith("r_", (string?)row["reference"]);
-        Assert.NotNull(row["optionsEndpoint"]);
-        Assert.Null(row["selectionId"]);
+        Assert.StartsWith("r_", (string?)row["offerItemId"]);
+        Assert.Null(row["optionsEndpoint"]);
+        Assert.NotNull(row["options"]);
         Assert.Null(row["quantityOptions"]);
     }
 
@@ -159,7 +161,7 @@ public sealed class V8SurfaceTests
         var rows = await lab.ShopAsync(V8Lab.Context());
 
         Assert.Empty(rows);
-        Assert.Empty(AncillaryOffersMapper.Map(V8Lab.Snapshot(rows), "Api").ExtraSeats);
+        Assert.Empty(AncillaryOffersMapper.Map(V8Lab.Snapshot(rows)).ExtraSeats);
     }
 
     [Fact]
@@ -167,7 +169,7 @@ public sealed class V8SurfaceTests
     {
         var (_, rows) = await MixedAsync();
 
-        Assert.Empty(AncillaryOffersMapper.Map(V8Lab.Snapshot(rows), "Api").TravelInsurance);
+        Assert.Empty(AncillaryOffersMapper.Map(V8Lab.Snapshot(rows)).TravelInsurance);
         Assert.Equal(24, AncillaryVariant.All.Count);
     }
 
@@ -176,10 +178,10 @@ public sealed class V8SurfaceTests
     {
         var (_, rows) = await MixedAsync();
 
-        var answer = Node(AncillaryOffersMapper.Map(V8Lab.Snapshot(rows), "Api"));
+        var answer = Node(AncillaryOffersMapper.Map(V8Lab.Snapshot(rows)));
 
         Assert.Equal(ShoppingLab.Eur, (int)answer["currencyId"]!);
-        Assert.Equal(47, (int)Row(answer, "baggages", "A05")["unitPrice"]!["currencyId"]!);
+        Assert.Equal(47, (int)Unit(answer, "baggages", "A05")["unitPrice"]!["currencyId"]!);
     }
 
     [Fact]

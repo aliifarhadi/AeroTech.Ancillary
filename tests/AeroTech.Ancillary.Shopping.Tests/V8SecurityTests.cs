@@ -1,8 +1,8 @@
 using System.Buffers.Text;
 using System.Text;
 using AeroTech.Ancillary.Application.AcceptanceTests.Fixtures;
-using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.SubmitSelectionOptions;
-using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.SubmitSelectionOptions.Api;
+using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.PriceAncillaryOffers;
+using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.PriceAncillaryOffers.Api;
 using AeroTech.Ancillary.Shopping.Context;
 using AeroTech.Ancillary.Shopping.Offers;
 using AeroTech.Ancillary.Shopping.Tests.Fixtures;
@@ -29,58 +29,61 @@ public sealed class V8SecurityTests
         var context = V8Lab.Context();
         var rows = await lab.ShopAsync(context);
 
-        return (lab, context, Single(rows, "A05").SelectionId!, Single(rows, "A15").Reference!);
+        return (lab, context, Single(rows, "A05").OfferItemId!, Single(rows, "A15").OfferItemId!);
     }
 
     private static AncillaryOfferRow Single(IEnumerable<AncillaryOfferRow> rows, string variantCode)
         => Assert.Single(rows, row => row.Candidate.VariantCode == variantCode);
+
+    private static Task<SelectionSnapshotResult> SubmitDirectAsync(V8Lab lab, AncillaryShoppingContext context, string selectionId)
+        => lab.SubmitAsync([V8Lab.Direct(selectionId)], context);
 
     [Fact]
     public async Task T01_UnsignedReferenceIsRefused()
     {
         var (lab, _, _, reference) = await IssuedAsync();
 
-        await BusinessAssert.ThrowsAsync(InvalidSignature, 422, () => lab.Typed.ReadReferenceAsync(TokenTamper.Unsigned(reference)));
+        await BusinessAssert.ThrowsAsync(InvalidSignature, 422, () => lab.Proofs.ReadAsync(TokenTamper.Unsigned(reference), SelectionIdKind.Reference));
     }
 
     [Fact]
     public async Task T02_UnsignedDirectIdIsRefused()
     {
-        var (lab, _, direct, _) = await IssuedAsync();
+        var (lab, context, direct, _) = await IssuedAsync();
 
-        await BusinessAssert.ThrowsAsync(InvalidSignature, 422, () => lab.Resolver.ResolveAsync([TokenTamper.Unsigned(direct)]));
+        await BusinessAssert.ThrowsAsync(InvalidSignature, 422, () => SubmitDirectAsync(lab, context, TokenTamper.Unsigned(direct)));
     }
 
     [Fact]
     public async Task T03_MutatedRateIsRefused()
     {
-        var (lab, _, direct, _) = await IssuedAsync();
+        var (lab, context, direct, _) = await IssuedAsync();
 
-        await BusinessAssert.ThrowsAsync(InvalidSignature, 422, () => lab.Resolver.ResolveAsync([TokenTamper.Claim(direct, "rate", 1L)]));
+        await BusinessAssert.ThrowsAsync(InvalidSignature, 422, () => SubmitDirectAsync(lab, context, TokenTamper.Claim(direct, "rate", 1L)));
     }
 
     [Fact]
     public async Task T04_MutatedQuantityIsRefused()
     {
-        var (lab, _, direct, _) = await IssuedAsync();
+        var (lab, context, direct, _) = await IssuedAsync();
 
-        await BusinessAssert.ThrowsAsync(InvalidSignature, 422, () => lab.Resolver.ResolveAsync([TokenTamper.Claim(direct, "q", 2)]));
+        await BusinessAssert.ThrowsAsync(InvalidSignature, 422, () => SubmitDirectAsync(lab, context, TokenTamper.Claim(direct, "q", 2)));
     }
 
     [Fact]
     public async Task T05_MutatedTravellerIsRefused()
     {
-        var (lab, _, direct, _) = await IssuedAsync();
+        var (lab, context, direct, _) = await IssuedAsync();
 
-        await BusinessAssert.ThrowsAsync(InvalidSignature, 422, () => lab.Resolver.ResolveAsync([TokenTamper.Claim(direct, "tr", "T2")]));
+        await BusinessAssert.ThrowsAsync(InvalidSignature, 422, () => SubmitDirectAsync(lab, context, TokenTamper.Claim(direct, "tr", "T2")));
     }
 
     [Fact]
     public async Task T06_MutatedFlightIsRefused()
     {
-        var (lab, _, direct, _) = await IssuedAsync();
+        var (lab, context, direct, _) = await IssuedAsync();
 
-        await BusinessAssert.ThrowsAsync(InvalidSignature, 422, () => lab.Resolver.ResolveAsync([TokenTamper.Claim(direct, "cv", "F2")]));
+        await BusinessAssert.ThrowsAsync(InvalidSignature, 422, () => SubmitDirectAsync(lab, context, TokenTamper.Claim(direct, "cv", "F2")));
     }
 
     [Fact]
@@ -88,28 +91,28 @@ public sealed class V8SecurityTests
     {
         var lab = new V8Lab();
         lab.Sellable("A01", maxQuantity: 1);
-        var portion = Assert.Single(await lab.ShopAsync(V8Lab.Context())).SelectionId!;
+        var portion = Assert.Single(await lab.ShopAsync(V8Lab.Context())).OfferItemId!;
 
-        await BusinessAssert.ThrowsAsync(InvalidSignature, 422, () => lab.Resolver.ResolveAsync([TokenTamper.Claim(portion, "cv", "P2")]));
+        await BusinessAssert.ThrowsAsync(InvalidSignature, 422, () => SubmitDirectAsync(lab, V8Lab.Context(), TokenTamper.Claim(portion, "cv", "P2")));
     }
 
     [Fact]
     public async Task T08_MutatedExpiryIsRefused()
     {
-        var (lab, _, direct, _) = await IssuedAsync();
+        var (lab, context, direct, _) = await IssuedAsync();
 
         await BusinessAssert.ThrowsAsync(
             InvalidSignature,
             422,
-            () => lab.Resolver.ResolveAsync([TokenTamper.Claim(direct, "exp", ShoppingLab.Now.AddDays(1).ToUnixTimeSeconds())]));
+            () => SubmitDirectAsync(lab, context, TokenTamper.Claim(direct, "exp", ShoppingLab.Now.AddDays(1).ToUnixTimeSeconds())));
     }
 
     [Fact]
-    public async Task T09_ReferenceIsNotAFinalId()
+    public async Task T09_ReferenceIsNotADirectSelectionId()
     {
-        var (lab, _, _, reference) = await IssuedAsync();
+        var (lab, context, _, reference) = await IssuedAsync();
 
-        await BusinessAssert.ThrowsAsync(InvalidSignature, 422, () => lab.Resolver.ResolveAsync([reference]));
+        await BusinessAssert.ThrowsAsync(InvalidSignature, 422, () => SubmitDirectAsync(lab, context, reference));
     }
 
     [Fact]
@@ -117,7 +120,7 @@ public sealed class V8SecurityTests
     {
         var (lab, _, direct, _) = await IssuedAsync();
 
-        await BusinessAssert.ThrowsAsync(InvalidSignature, 422, () => lab.Typed.ReadReferenceAsync(direct));
+        await BusinessAssert.ThrowsAsync(InvalidSignature, 422, () => lab.Proofs.ReadAsync(direct, SelectionIdKind.Reference));
     }
 
     [Fact]
@@ -167,12 +170,12 @@ public sealed class V8SecurityTests
     [Fact]
     public async Task T15_ExpiredDirectAndReferenceAreGone()
     {
-        var (lab, _, direct, reference) = await IssuedAsync();
+        var (lab, context, direct, reference) = await IssuedAsync();
 
         lab.Clock.Now = (await lab.Codec.ReadAsync(direct, SelectionIdKind.Direct)).Selection!.ExpiresAtUtc;
 
-        await BusinessAssert.ThrowsAsync(Expired, 410, () => lab.Resolver.ResolveAsync([direct]));
-        await BusinessAssert.ThrowsAsync(Expired, 410, () => lab.Typed.ReadReferenceAsync(reference));
+        await BusinessAssert.ThrowsAsync(Expired, 410, () => SubmitDirectAsync(lab, context, direct));
+        await BusinessAssert.ThrowsAsync(Expired, 410, () => lab.Proofs.ReadAsync(reference, SelectionIdKind.Reference));
     }
 
     [Fact]
@@ -184,17 +187,17 @@ public sealed class V8SecurityTests
         lab.Clock.Now = snapshot.ExpiresAtUtc;
 
         Assert.Single(lab.Shop.Catalog.Snapshots);
-        await BusinessAssert.ThrowsAsync(Expired, 410, () => lab.Resolver.ResolveAsync([snapshot.SelectionId]));
+        await BusinessAssert.ThrowsAsync(Expired, 410, () => lab.Resolver.ResolveAsync(snapshot.SelectionId));
     }
 
     [Fact]
-    public async Task T17_DirectIdOfARetiredPricingIsRefused()
+    public async Task T17_DirectIdOfARetiredPricingIsRefusedAtSubmit()
     {
-        var (lab, _, direct, _) = await IssuedAsync();
+        var (lab, context, direct, _) = await IssuedAsync();
 
         lab.Shop.Catalog.Pricings.Single(pricing => pricing.Rates.Single().BaseAmount == 40m).Retire(ShoppingLab.Now);
 
-        await BusinessAssert.ThrowsAsync(NotSellable, 409, () => lab.Resolver.ResolveAsync([direct]));
+        await BusinessAssert.ThrowsAsync(NotSellable, 409, () => SubmitDirectAsync(lab, context, direct));
     }
 
     [Fact]
@@ -205,7 +208,7 @@ public sealed class V8SecurityTests
 
         lab.Shop.Catalog.Pricings.Single(pricing => pricing.Rates.Single().BaseAmount == 0m).Retire(ShoppingLab.Now);
 
-        await BusinessAssert.ThrowsAsync(NotSellable, 409, () => lab.Resolver.ResolveAsync([snapshot.SelectionId]));
+        await BusinessAssert.ThrowsAsync(NotSellable, 409, () => lab.Resolver.ResolveAsync(snapshot.SelectionId));
     }
 
     [Fact]
@@ -223,13 +226,9 @@ public sealed class V8SecurityTests
     [Fact]
     public void OptionsWithoutAnOfferIdAreRefusedByTheValidator()
     {
-        var validator = new ApiSubmitSelectionOptionsCommandValidator();
+        var validator = new ApiPriceAncillaryOffersCommandValidator();
 
-        var result = validator.Validate(new ApiSubmitSelectionOptionsCommand(
-            "r_x",
-            null,
-            AncillaryProfile.AssistedTravel,
-            Wheelchair));
+        var result = validator.Validate(new ApiPriceAncillaryOffersCommand(null, [V8Lab.Line("r_x", AncillaryProfile.AssistedTravel, Wheelchair)]));
 
         Assert.Contains(result.Errors, error => error.PropertyName == "OfferId");
     }

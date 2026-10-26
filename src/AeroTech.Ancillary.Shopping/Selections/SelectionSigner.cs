@@ -21,14 +21,14 @@ namespace AeroTech.Ancillary.Shopping.Selections
             _clock = clock;
         }
 
-        public string? SignDirect(AncillaryShoppingContext context, CanonicalAncillaryOfferCandidate candidate, AncillaryProvision provision, int quantity)
-            => quantity > 0 && IsDecided(candidate, provision) && ExpiryOf(context, candidate) is { } expiresAtUtc
-                ? Sign(SelectionIdKind.Direct, context, candidate, quantity, expiresAtUtc)
+        public string? SignDirect(AncillaryShoppingContext context, CanonicalAncillaryOfferCandidate candidate, AncillaryProvision provision, int minQuantity, int maxQuantity)
+            => minQuantity > 0 && maxQuantity >= minQuantity && IsDecided(candidate, provision) && ExpiryOf(context, candidate) is { } expiresAtUtc
+                ? Sign(SelectionIdKind.Direct, context, candidate, minQuantity, maxQuantity, expiresAtUtc)
                 : null;
 
         public string? SignReference(AncillaryShoppingContext context, CanonicalAncillaryOfferCandidate candidate)
             => candidate.OfferReadiness is OfferReadiness.Selectable or OfferReadiness.NeedsSelection && ExpiryOf(context, candidate) is { } expiresAtUtc
-                ? Sign(SelectionIdKind.Reference, context, candidate, null, expiresAtUtc)
+                ? Sign(SelectionIdKind.Reference, context, candidate, null, null, expiresAtUtc)
                 : null;
 
         private static bool IsDecided(CanonicalAncillaryOfferCandidate candidate, AncillaryProvision provision)
@@ -41,7 +41,8 @@ namespace AeroTech.Ancillary.Shopping.Selections
             SelectionIdKind kind,
             AncillaryShoppingContext context,
             CanonicalAncillaryOfferCandidate candidate,
-            int? quantity,
+            int? minQuantity,
+            int? maxQuantity,
             DateTimeOffset expiresAtUtc)
         {
             var source = context.SourceIdentity;
@@ -53,7 +54,8 @@ namespace AeroTech.Ancillary.Shopping.Selections
                 identity.CoverageScope,
                 identity.TravellerRef,
                 identity.CoverageRef,
-                quantity,
+                minQuantity,
+                maxQuantity,
                 SelectionBindings.Offer(source.TrustedSourceReference!, source.TrustedSourceVersion!),
                 SelectionBindings.Sales(context),
                 expiresAtUtc));

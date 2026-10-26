@@ -2207,11 +2207,14 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.ToTable("FlightWeightInventories", "Ancillary");
                 });
 
-            modelBuilder.Entity("AeroTech.Ancillary.Domain.SelectionSnapshotAggregate.SelectionSnapshot", b =>
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.SelectionSnapshotAggregate.Entities.SelectionSnapshotLine", b =>
                 {
-                    b.Property<string>("Id")
+                    b.Property<string>("SelectionSnapshotId")
                         .HasMaxLength(256)
                         .HasColumnType("varchar(24)");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("int");
 
                     b.Property<string>("CoverageRef")
                         .IsRequired()
@@ -2221,16 +2224,15 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.Property<short>("CoverageScope")
                         .HasColumnType("smallint");
 
-                    b.Property<DateTimeOffset>("CreatedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<DateTimeOffset>("ExpiresAtUtc")
-                        .HasColumnType("datetimeoffset");
-
                     b.Property<string>("OfferBinding")
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("char(43)");
+
+                    b.Property<string>("OfferItemId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(1024)");
 
                     b.Property<long>("PricingRateId")
                         .HasColumnType("bigint");
@@ -2244,13 +2246,34 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                         .HasColumnType("char(43)");
 
                     b.Property<string>("SelectedJson")
-                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TravellerRef")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("SelectionSnapshotId", "Sequence");
+
+                    b.ToTable("SelectionSnapshotLines", "Ancillary");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.SelectionSnapshotAggregate.SelectionSnapshot", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(24)");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("ExpiresAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("OfferId")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
 
                     b.Property<short>("Version")
                         .HasColumnType("smallint");
@@ -4042,6 +4065,15 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.SelectionSnapshotAggregate.Entities.SelectionSnapshotLine", b =>
+                {
+                    b.HasOne("AeroTech.Ancillary.Domain.SelectionSnapshotAggregate.SelectionSnapshot", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("SelectionSnapshotId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AirportSlotInventoryAggregate.AirportSlotInventory", b =>
                 {
                     b.Navigation("Adjustments");
@@ -4184,6 +4216,11 @@ namespace AeroTech.Ancillary.Persistence.Migrations
             modelBuilder.Entity("AeroTech.Ancillary.Domain.FlightWeightInventoryAggregate.FlightWeightInventory", b =>
                 {
                     b.Navigation("Adjustments");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.SelectionSnapshotAggregate.SelectionSnapshot", b =>
+                {
+                    b.Navigation("Lines");
                 });
 #pragma warning restore 612, 618
         }

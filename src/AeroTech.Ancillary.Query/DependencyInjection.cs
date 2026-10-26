@@ -7,9 +7,9 @@ using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetSeatProvis
 using AeroTech.Ancillary.Query.AncillaryProvisionAggregate.Queries.GetSeatProvisionForm;
 using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Services;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers;
-using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetSelectionOptions;
-using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveGroupedSelections;
-using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.VerifyTypedSelection;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetPricedAncillaryOffers;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveAncillarySelection;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.VerifySelections;
 using AeroTech.Ancillary.Query.Shopping.Common;
 using AeroTech.Ancillary.Query.Shopping.Common.FlightOffers;
 using AeroTech.Ancillary.Query.Shopping.Common.Orders;
@@ -74,9 +74,9 @@ namespace AeroTech.Ancillary.Query
             services.AddScoped<IGetAncillaryOffersService, GetAncillaryOffersService>();
             services.AddScoped<IGetSeatMapService, GetSeatMapService>();
             services.AddScoped<IResolveSeatMapSelectionsService, ResolveSeatMapSelectionsService>();
-            services.AddScoped<IGetSelectionOptionsService, GetSelectionOptionsService>();
-            services.AddScoped<ITypedSelectionVerifier, TypedSelectionVerifier>();
-            services.AddScoped<IResolveGroupedSelectionsService, ResolveGroupedSelectionsService>();
+            services.AddScoped<IGetPricedAncillaryOffersService, GetPricedAncillaryOffersService>();
+            services.AddScoped<ISelectionVerifier, SelectionVerifier>();
+            services.AddScoped<IResolveAncillarySelectionService, ResolveAncillarySelectionService>();
             services.AddScoped<ISeatSelectionVerifier, SeatSelectionVerifier>();
             services.AddScoped<IPointOfSaleEligibilityReference, PointOfSaleEligibilityService>();
             services.AddScoped<IAgencySalesScopeService, AgencySalesScopeService>();

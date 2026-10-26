@@ -19,7 +19,8 @@ namespace AeroTech.Ancillary.Shopping.Selections
         private const string ScopeClaim = "sc";
         private const string TravellerClaim = "tr";
         private const string CoverageClaim = "cv";
-        private const string QuantityClaim = "q";
+        private const string MinQuantityClaim = "qn";
+        private const string MaxQuantityClaim = "qx";
         private const string OfferBindingClaim = "ob";
         private const string SalesBindingClaim = "sb";
 
@@ -61,8 +62,11 @@ namespace AeroTech.Ancillary.Shopping.Selections
                 new(SalesBindingClaim, selection.SalesBinding)
             };
 
-            if (selection.Quantity is { } quantity)
-                claims.Add(new Claim(QuantityClaim, Number(quantity), ClaimValueTypes.Integer32));
+            if (selection is { MinQuantity: { } minimum, MaxQuantity: { } maximum })
+            {
+                claims.Add(new Claim(MinQuantityClaim, Number(minimum), ClaimValueTypes.Integer32));
+                claims.Add(new Claim(MaxQuantityClaim, Number(maximum), ClaimValueTypes.Integer32));
+            }
 
             var token = _handler.CreateToken(new SecurityTokenDescriptor
             {
@@ -113,14 +117,16 @@ namespace AeroTech.Ancillary.Shopping.Selections
                 || !token.TryGetPayloadValue<string>(SalesBindingClaim, out var salesBinding))
                 return null;
 
-            int? quantity = token.TryGetPayloadValue<int>(QuantityClaim, out var count) ? count : null;
+            int? minimum = token.TryGetPayloadValue<int>(MinQuantityClaim, out var least) ? least : null;
+            int? maximum = token.TryGetPayloadValue<int>(MaxQuantityClaim, out var most) ? most : null;
             var selection = new SignedSelection(
                 kind,
                 rate,
                 (ServiceCoverageScope)scope,
                 traveller,
                 coverage,
-                quantity,
+                minimum,
+                maximum,
                 offerBinding,
                 salesBinding,
                 new DateTimeOffset(token.ValidTo, TimeSpan.Zero));
@@ -136,8 +142,8 @@ namespace AeroTech.Ancillary.Shopping.Selections
                && selection.SalesBinding is { Length: SelectionBindings.Length }
                && selection.Kind switch
                {
-                   SelectionIdKind.Direct => selection is { Quantity: > 0 },
-                   SelectionIdKind.Reference => selection is { Quantity: null },
+                   SelectionIdKind.Direct => selection is { MinQuantity: { } minimum, MaxQuantity: { } maximum } && minimum > 0 && maximum >= minimum,
+                   SelectionIdKind.Reference => selection is { MinQuantity: null, MaxQuantity: null },
                    _ => false
                };
 

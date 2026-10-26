@@ -6,7 +6,7 @@ namespace AeroTech.Ancillary.Shopping.Selections
 {
     public interface ISelectionSigner
     {
-        string? SignDirect(AncillaryShoppingContext context, CanonicalAncillaryOfferCandidate candidate, AncillaryProvision provision, int quantity);
+        string? SignDirect(AncillaryShoppingContext context, CanonicalAncillaryOfferCandidate candidate, AncillaryProvision provision, int minQuantity, int maxQuantity);
 
         string? SignReference(AncillaryShoppingContext context, CanonicalAncillaryOfferCandidate candidate);
     }

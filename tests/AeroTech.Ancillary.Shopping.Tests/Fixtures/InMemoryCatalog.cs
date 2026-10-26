@@ -107,11 +107,11 @@ public sealed class InMemoryCatalog :
             Pricings.Where(pricing => pricing.Status == PricingStatus.Active && pricing.Rates.Any(rate => pricingRateIds.Contains(rate.Id))).ToList());
     }
 
-    public Task<IReadOnlyList<SelectionSnapshot>> FindAsync(IReadOnlyCollection<string> ids, CancellationToken cancellationToken = default)
+    public Task<SelectionSnapshot?> FindAsync(string id, CancellationToken cancellationToken = default)
     {
         Reads++;
 
-        return Task.FromResult<IReadOnlyList<SelectionSnapshot>>(Snapshots.Where(snapshot => ids.Contains(snapshot.Id)).ToList());
+        return Task.FromResult(Snapshots.SingleOrDefault(snapshot => snapshot.Id == id));
     }
 
     public Task<IReadOnlyList<AncillaryProvision>> FindActiveProvisionsAsync(IReadOnlyCollection<long> provisionIds, CancellationToken cancellationToken = default)

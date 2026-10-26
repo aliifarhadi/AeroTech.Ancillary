@@ -13,12 +13,12 @@ namespace AeroTech.Ancillary.Persistence.SelectionSnapshotAggregate
             builder.Property(snapshot => snapshot.Id).HasColumnType("varchar(24)").ValueGeneratedNever();
 
             builder.Property(snapshot => snapshot.Version).HasColumnType("smallint");
-            builder.Property(snapshot => snapshot.CoverageScope).HasConversion<short>().HasColumnType("smallint");
-            builder.Property(snapshot => snapshot.TravellerRef).HasMaxLength(100);
-            builder.Property(snapshot => snapshot.CoverageRef).HasMaxLength(100).IsRequired();
-            builder.Property(snapshot => snapshot.OfferBinding).HasColumnType("char(43)").IsRequired();
-            builder.Property(snapshot => snapshot.SalesBinding).HasColumnType("char(43)").IsRequired();
-            builder.Property(snapshot => snapshot.SelectedJson).HasColumnType("nvarchar(max)").IsRequired();
+            builder.Property(snapshot => snapshot.OfferId).HasMaxLength(512).IsRequired();
+            builder.HasMany(snapshot => snapshot.Lines)
+                .WithOne()
+                .HasForeignKey(line => line.SelectionSnapshotId)
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.Navigation(snapshot => snapshot.Lines).UsePropertyAccessMode(PropertyAccessMode.Field);
         }
     }
 }

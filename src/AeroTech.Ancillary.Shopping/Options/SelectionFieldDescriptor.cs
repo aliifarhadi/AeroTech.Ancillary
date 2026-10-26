@@ -8,5 +8,6 @@ namespace AeroTech.Ancillary.Shopping.Options
         string? Unit = null,
         decimal? Min = null,
         decimal? ExclusiveMin = null,
-        decimal? Max = null);
+        decimal? Max = null,
+        IReadOnlyList<SelectionFieldDescriptor>? Fields = null);
 }

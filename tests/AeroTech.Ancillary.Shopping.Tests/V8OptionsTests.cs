@@ -1,6 +1,7 @@
 using AeroTech.Ancillary.Application.AcceptanceTests.Fixtures;
-using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.SubmitSelectionOptions;
+using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.PriceAncillaryOffers;
 using AeroTech.Ancillary.Shopping.Context;
+using AeroTech.Ancillary.Shopping.Offers;
 using AeroTech.Ancillary.Shopping.Options;
 using AeroTech.Ancillary.Shopping.Selections;
 using AeroTech.Ancillary.Shopping.Tests.Fixtures;
@@ -13,18 +14,21 @@ public sealed class V8OptionsTests
 {
     private const int InvalidOptions = 16821;
 
-    private static async Task<(V8Lab Lab, AncillaryShoppingContext Context, string Reference)> ReferenceAsync(string code, decimal amount = 0m)
+    private static async Task<(V8Lab Lab, AncillaryShoppingContext Context, AncillaryOfferRow Row)> RowAsync(string code, decimal amount = 0m)
     {
         var lab = new V8Lab();
         lab.Sellable(code, amount: amount);
         var context = V8Lab.Context();
-        var row = Assert.Single(await lab.ShopAsync(context));
 
-        return (lab, context, row.Reference!);
+        return (lab, context, Assert.Single(await lab.ShopAsync(context)));
     }
 
-    private static async Task<SelectionOptionsForm> FormAsync(V8Lab lab, AncillaryShoppingContext context, string reference, AncillaryProfile family)
-        => await lab.Typed.FormAsync(await lab.Typed.ReadReferenceAsync(reference), family, [context]);
+    private static async Task<(V8Lab Lab, AncillaryShoppingContext Context, string Reference)> ReferenceAsync(string code, decimal amount = 0m)
+    {
+        var (lab, context, row) = await RowAsync(code, amount);
+
+        return (lab, context, row.OfferItemId!);
+    }
 
     private static PetSelectionOptions Pet(decimal weight)
         => new(PetAnimalType.Cat, null, null, weight, new SelectedDimensionsInput(40m, 30m, 20m), ["ENTRY_RULES_ACK"], null);
@@ -32,9 +36,9 @@ public sealed class V8OptionsTests
     [Fact]
     public async Task O01_WheelchairFormListsTheAuthoredSsrCodes()
     {
-        var (lab, context, reference) = await ReferenceAsync("A15");
+        var (_, _, row) = await RowAsync("A15");
 
-        var field = Assert.Single((await FormAsync(lab, context, reference, AncillaryProfile.AssistedTravel)).Fields);
+        var field = Assert.Single(row.Options!);
 
         Assert.Equal(("assistanceSsrCode", SelectionControls.Select, true), (field.Name, field.Control, field.Required));
         Assert.Equal(["WCHC", "WCHR", "WCHS"], field.Choices!.Select(choice => choice.Value));
@@ -48,10 +52,11 @@ public sealed class V8OptionsTests
         var result = await lab.SubmitAsync(reference, AncillaryProfile.AssistedTravel, new AssistedTravelSelectionOptions("WCHS", null, null), context);
 
         var snapshot = Assert.Single(lab.Shop.Catalog.Snapshots);
+        var line = Assert.Single(snapshot.Lines);
         Assert.Equal(result.SelectionId, snapshot.Id);
         Assert.Matches("^s_[A-Za-z0-9_-]{22}$", result.SelectionId);
-        Assert.Equal("{\"assistanceSsrCode\":\"WCHS\"}", snapshot.SelectedJson);
-        Assert.Equal(1, snapshot.Quantity);
+        Assert.Equal("{\"assistanceSsrCode\":\"WCHS\"}", line.SelectedJson);
+        Assert.Equal(1, line.Quantity);
     }
 
     [Fact]
@@ -79,6 +84,7 @@ public sealed class V8OptionsTests
             provision.CoverageScope,
             "T1",
             "P1",
+            null,
             null,
             SelectionBindings.Offer(V8Lab.Offer, V8Lab.Version),
             SelectionBindings.Sales(context),
@@ -109,32 +115,32 @@ public sealed class V8OptionsTests
     [Fact]
     public async Task O06_EquipmentDimensionsAreAskedOnlyWhenTheProductLimitsThem()
     {
-        var (lab, context, reference) = await ReferenceAsync("A06", amount: 30m);
+        var (_, _, row) = await RowAsync("A06", amount: 30m);
         var unlimited = new V8Lab();
         unlimited.Sellable("A06", amount: 30m, specification: spec => spec with
         {
             Baggage = spec.Baggage! with { MaxSize = null, MaxLinearSumCm = null, MaxKgPerPiece = null }
         });
 
-        var fields = (await FormAsync(lab, context, reference, AncillaryProfile.Baggage)).Fields;
+        var fields = row.Options!;
         var direct = Assert.Single(await unlimited.ShopAsync(V8Lab.Context()));
 
         Assert.Equal([("dimensions", true), ("weightKg", true)], fields.Select(field => (field.Name, field.Required)));
-        Assert.StartsWith("d_", direct.SelectionId);
-        Assert.Null(direct.Reference);
+        Assert.StartsWith("d_", direct.OfferItemId);
+        Assert.Null(direct.Options);
     }
 
     [Fact]
-    public async Task O07_FixedMenuWithQuantityHasSignedOptionsAndNoSnapshot()
+    public async Task O07_FixedMenuWithQuantityHasOneSignedIdAndNoSnapshot()
     {
         var lab = new V8Lab();
         lab.Sellable("A12", amount: 12m, maxQuantity: 2);
 
         var row = Assert.Single(await lab.ShopAsync(V8Lab.Context()));
 
-        Assert.Equal([1, 2], row.QuantityOptions!.Select(option => option.Quantity));
-        Assert.All(row.QuantityOptions!, option => Assert.StartsWith("d_", option.SelectionId));
-        Assert.Null(row.Reference);
+        Assert.StartsWith("d_", row.OfferItemId);
+        Assert.Equal((true, 1, 2), (row.QuantityPolicy.Selectable, row.QuantityPolicy.Min, row.QuantityPolicy.Max));
+        Assert.Null(row.Options);
         Assert.Empty(lab.Shop.Catalog.Snapshots);
     }
 
@@ -145,7 +151,7 @@ public sealed class V8OptionsTests
         var (definition, provision, _) = lab.Sellable("A12", amount: 12m);
 
         Assert.Empty(TypedSelectionForm.Fields(definition, provision, [], string.Empty));
-        Assert.Null(Assert.Single(await lab.ShopAsync(V8Lab.Context())).Reference);
+        Assert.Null(Assert.Single(await lab.ShopAsync(V8Lab.Context())).Options);
     }
 
     [Fact]
@@ -165,7 +171,7 @@ public sealed class V8OptionsTests
 
         var result = await lab.SubmitAsync(reference, AncillaryProfile.Priority, new PrioritySelectionOptions(true), context);
 
-        Assert.Equal("{\"optIn\":true}", Assert.Single(lab.Shop.Catalog.Snapshots, snapshot => snapshot.Id == result.SelectionId).SelectedJson);
+        Assert.Equal("{\"optIn\":true}", Assert.Single(Assert.Single(lab.Shop.Catalog.Snapshots, snapshot => snapshot.Id == result.SelectionId).Lines).SelectedJson);
     }
 
     [Fact]
@@ -184,8 +190,9 @@ public sealed class V8OptionsTests
     [Fact]
     public async Task ExclusiveMinimumsFollowTheEngineRules()
     {
-        var (lab, context, reference) = await ReferenceAsync("A03", 50m);
-        var overweight = Assert.Single((await FormAsync(lab, context, reference, AncillaryProfile.Baggage)).Fields, field => field.Name == "measuredWeightKg");
+        var (lab, context, row) = await RowAsync("A03", 50m);
+        var reference = row.OfferItemId!;
+        var overweight = Assert.Single(row.Options!, field => field.Name == "measuredWeightKg");
         var equipment = new V8Lab();
         var (bike, bikeRule, _) = equipment.Sellable("A06", amount: 30m);
         var pets = new V8Lab();
@@ -214,6 +221,7 @@ public sealed class V8OptionsTests
         var second = await lab.SubmitAsync(reference, AncillaryProfile.AssistedTravel, options, context);
 
         Assert.NotEqual(first.SelectionId, second.SelectionId);
-        Assert.Equal(2, (await lab.Resolver.ResolveAsync([first.SelectionId, second.SelectionId])).Count);
+        Assert.Single(await lab.Resolver.ResolveAsync(first.SelectionId));
+        Assert.Single(await lab.Resolver.ResolveAsync(second.SelectionId));
     }
 }

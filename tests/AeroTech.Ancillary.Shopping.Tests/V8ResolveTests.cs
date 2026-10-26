@@ -2,9 +2,10 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using AeroTech.Ancillary.Application.AcceptanceTests.Fixtures;
-using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.SubmitSelectionOptions;
-using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveGroupedSelections;
-using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveGroupedSelections.Service;
+using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.PriceAncillaryOffers;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Service;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveAncillarySelection;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveAncillarySelection.Service;
 using AeroTech.Ancillary.Shopping.Context;
 using AeroTech.Ancillary.Shopping.Offers;
 using AeroTech.Ancillary.Shopping.Selections;
@@ -17,11 +18,24 @@ namespace AeroTech.Ancillary.Shopping.Tests;
 public sealed class V8ResolveTests
 {
     private const int InvalidRequest = 16801;
+    private const int NotFound = 16819;
     private const int NotSellable = 16820;
 
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
 
-    private sealed record Basket(V8Lab Lab, AncillaryShoppingContext Context, string Bag, string BagsOfTwo, string Meal, string Wheelchair);
+    private sealed record Basket(
+        V8Lab Lab,
+        AncillaryShoppingContext Context,
+        AncillarySelectionLine Bag,
+        AncillarySelectionLine BagsOfTwo,
+        AncillarySelectionLine Meal,
+        AncillarySelectionLine Wheelchair)
+    {
+        public async Task<string> SubmitAsync(params AncillarySelectionLine[] lines) => (await Lab.SubmitAsync(lines, Context)).SelectionId;
+
+        public async Task<ServiceResolvedSelectionsDto> ResolveAsync(params AncillarySelectionLine[] lines)
+            => ServiceResolvedSelectionsMapper.Map(await Lab.Resolver.ResolveAsync(await SubmitAsync(lines)));
+    }
 
     private static async Task<Basket> BasketAsync()
     {
@@ -32,9 +46,14 @@ public sealed class V8ResolveTests
         lab.Sellable("A15", amount: 0m);
         var context = V8Lab.Context();
         var rows = await lab.ShopAsync(context);
-        var wheelchair = await lab.SubmitAsync(Row(rows, "A15").Reference!, AncillaryProfile.AssistedTravel, new AssistedTravelSelectionOptions("WCHS", null, null), context);
 
-        return new Basket(lab, context, Row(rows, "A05").SelectionId!, Row(rows, "A01").QuantityOptions![1].SelectionId, Row(rows, "A11").SelectionId!, wheelchair.SelectionId);
+        return new Basket(
+            lab,
+            context,
+            V8Lab.Direct(Row(rows, "A05").OfferItemId!),
+            V8Lab.Direct(Row(rows, "A01").OfferItemId!, 2),
+            V8Lab.Direct(Row(rows, "A11").OfferItemId!),
+            V8Lab.Line(Row(rows, "A15").OfferItemId!, AncillaryProfile.AssistedTravel, new AssistedTravelSelectionOptions("WCHS", null, null)));
     }
 
     private static AncillaryOfferRow Row(IEnumerable<AncillaryOfferRow> rows, string variantCode)
@@ -44,24 +63,25 @@ public sealed class V8ResolveTests
     public async Task R01_MixedIdsAreGroupedByTheirFamily()
     {
         var basket = await BasketAsync();
+        var selectionId = await basket.SubmitAsync(basket.Bag, basket.BagsOfTwo, basket.Meal, basket.Wheelchair);
+        var answer = ServiceResolvedSelectionsMapper.Map(await basket.Lab.Resolver.ResolveAsync(selectionId));
 
-        var answer = ServiceResolvedSelectionsMapper.Map(await basket.Lab.Resolver.ResolveAsync([basket.Bag, basket.BagsOfTwo, basket.Meal, basket.Wheelchair]));
-
-        Assert.Equal([basket.Bag, basket.BagsOfTwo], answer.Baggages.Select(item => item.SelectionId));
-        Assert.Equal(basket.Meal, Assert.Single(answer.Meals).SelectionId);
-        Assert.Equal(basket.Wheelchair, Assert.Single(answer.AssistedTravel).SelectionId);
+        Assert.Equal([basket.Bag.OfferItemId, basket.BagsOfTwo.OfferItemId], answer.Baggages.Select(item => item.OfferItemId));
+        Assert.Equal(basket.Meal.OfferItemId, Assert.Single(answer.Meals).OfferItemId);
+        Assert.Equal(basket.Wheelchair.OfferItemId, Assert.Single(answer.AssistedTravel).OfferItemId);
+        Assert.Equal(2, answer.Baggages[1].Selected.Quantity);
         Assert.Empty(answer.Pets);
     }
 
     [Fact]
-    public void R02_RequestHoldsIdsOnly()
+    public void R02_RequestHoldsTheSelectionIdOnly()
     {
-        var properties = typeof(ServiceResolveGroupedSelectionsQuery).GetProperties().Select(property => property.Name);
+        var properties = typeof(ServiceResolveAncillarySelectionQuery).GetProperties().Select(property => property.Name);
 
-        Assert.Equal(["Ids"], properties);
+        Assert.Equal(["SelectionId"], properties);
         Assert.Equal(
             JsonUnmappedMemberHandling.Disallow,
-            typeof(ServiceResolveGroupedSelectionsQuery).GetCustomAttribute<JsonUnmappedMemberHandlingAttribute>()!.UnmappedMemberHandling);
+            typeof(ServiceResolveAncillarySelectionQuery).GetCustomAttribute<JsonUnmappedMemberHandlingAttribute>()!.UnmappedMemberHandling);
     }
 
     [Fact]
@@ -70,7 +90,7 @@ public sealed class V8ResolveTests
         var basket = await BasketAsync();
         var catalog = basket.Lab.Shop.Catalog;
 
-        var item = Assert.Single(ServiceResolvedSelectionsMapper.Map(await basket.Lab.Resolver.ResolveAsync([basket.Bag])).Baggages);
+        var item = Assert.Single((await basket.ResolveAsync(basket.Bag)).Baggages);
         var pricing = catalog.Pricings.Single(row => row.Id == item.Pricing.PricingId);
 
         Assert.Equal(pricing.Rates.Single().Id, item.Pricing.PricingRateId);
@@ -84,7 +104,7 @@ public sealed class V8ResolveTests
     {
         var basket = await BasketAsync();
 
-        var meal = Assert.Single(ServiceResolvedSelectionsMapper.Map(await basket.Lab.Resolver.ResolveAsync([basket.Meal])).Meals);
+        var meal = Assert.Single((await basket.ResolveAsync(basket.Meal)).Meals);
 
         Assert.True(meal.Pricing.PricingRateId > 0);
         Assert.Equal((0m, 0m), (meal.Pricing.UnitAmount, meal.Pricing.TotalAmount));
@@ -95,7 +115,7 @@ public sealed class V8ResolveTests
     {
         var basket = await BasketAsync();
 
-        var bag = Assert.Single(ServiceResolvedSelectionsMapper.Map(await basket.Lab.Resolver.ResolveAsync([basket.BagsOfTwo])).Baggages);
+        var bag = Assert.Single((await basket.ResolveAsync(basket.BagsOfTwo)).Baggages);
 
         Assert.Equal((2, 100m, 200m), (bag.Pricing.Quantity, bag.Pricing.UnitAmount, bag.Pricing.TotalAmount));
     }
@@ -105,31 +125,31 @@ public sealed class V8ResolveTests
     {
         var basket = await BasketAsync();
 
-        var wheelchair = Assert.Single(ServiceResolvedSelectionsMapper.Map(await basket.Lab.Resolver.ResolveAsync([basket.Wheelchair])).AssistedTravel);
+        var wheelchair = Assert.Single((await basket.ResolveAsync(basket.Wheelchair)).AssistedTravel);
 
-        Assert.Equal("WCHS", wheelchair.Selected!.Value.GetProperty("assistanceSsrCode").GetString());
+        Assert.Equal(1, wheelchair.Selected.Quantity);
+        Assert.Equal("WCHS", wheelchair.Selected.Options!.AssistedTravel!["assistanceSsrCode"]!.GetValue<string>());
     }
 
     [Fact]
-    public async Task R07_DuplicateOrTooManyOrBlankIdsFailTheWholeRequest()
+    public async Task R07_BlankOrUnknownSelectionIdIsRefused()
     {
         var basket = await BasketAsync();
-        var service = new ResolveGroupedSelectionsService(basket.Lab.Resolver);
+        var service = new ResolveAncillarySelectionService(basket.Lab.Resolver);
 
-        await BusinessAssert.ThrowsAsync(InvalidRequest, 422, () => service.ExecuteAsync([basket.Bag, basket.Bag]));
-        await BusinessAssert.ThrowsAsync(InvalidRequest, 422, () => service.ExecuteAsync(Enumerable.Range(0, 51).Select(index => $"d_{index}").ToList()));
-        await BusinessAssert.ThrowsAsync(InvalidRequest, 422, () => service.ExecuteAsync([basket.Bag, " "]));
-        await BusinessAssert.ThrowsAsync(InvalidRequest, 422, () => service.ExecuteAsync([]));
+        await BusinessAssert.ThrowsAsync(InvalidRequest, 422, () => service.ExecuteAsync(null));
+        await BusinessAssert.ThrowsAsync(InvalidRequest, 422, () => service.ExecuteAsync(" "));
+        await BusinessAssert.ThrowsAsync(NotFound, 404, () => service.ExecuteAsync("s_unknown"));
     }
 
     [Fact]
     public async Task R08_RepeatedResolveGivesTheSameAnswerAndKeepsTheSnapshot()
     {
         var basket = await BasketAsync();
-        string[] ids = [basket.Bag, basket.Wheelchair];
+        var selectionId = await basket.SubmitAsync(basket.Bag, basket.Wheelchair);
 
-        var first = JsonSerializer.Serialize(ServiceResolvedSelectionsMapper.Map(await basket.Lab.Resolver.ResolveAsync(ids)), Json);
-        var second = JsonSerializer.Serialize(ServiceResolvedSelectionsMapper.Map(await basket.Lab.Resolver.ResolveAsync(ids)), Json);
+        var first = JsonSerializer.Serialize(ServiceResolvedSelectionsMapper.Map(await basket.Lab.Resolver.ResolveAsync(selectionId)), Json);
+        var second = JsonSerializer.Serialize(ServiceResolvedSelectionsMapper.Map(await basket.Lab.Resolver.ResolveAsync(selectionId)), Json);
 
         Assert.Equal(first, second);
         Assert.Single(basket.Lab.Shop.Catalog.Snapshots);
@@ -141,9 +161,10 @@ public sealed class V8ResolveTests
         var lab = new V8Lab();
         lab.Sellable("A01", maxQuantity: 1);
         var context = V8Lab.Context([Trip.Flight("F1", 101), Trip.Flight("F2", 102)], [Trip.Portion("P1", 1, Trip.Flight("F1", 101), Trip.Flight("F2", 102))]);
-        var id = Assert.Single(await lab.ShopAsync(context)).SelectionId!;
+        var id = Assert.Single(await lab.ShopAsync(context)).OfferItemId!;
+        var selectionId = (await lab.SubmitAsync([V8Lab.Direct(id)], context)).SelectionId;
 
-        var bag = Assert.Single(ServiceResolvedSelectionsMapper.Map(await lab.Resolver.ResolveAsync([id])).Baggages);
+        var bag = Assert.Single(ServiceResolvedSelectionsMapper.Map(await lab.Resolver.ResolveAsync(selectionId)).Baggages);
 
         Assert.Equal(SelectionScope.PerTravellerPerPortion, bag.SelectionScope);
         Assert.Equal(["P1"], bag.Coverage.PortionRefs);
@@ -155,7 +176,7 @@ public sealed class V8ResolveTests
     {
         var basket = await BasketAsync();
 
-        var item = Assert.Single(ServiceResolvedSelectionsMapper.Map(await basket.Lab.Resolver.ResolveAsync([basket.Bag])).Baggages);
+        var item = Assert.Single((await basket.ResolveAsync(basket.Bag)).Baggages);
 
         Assert.Equal(SelectionBindings.Offer(V8Lab.Offer, V8Lab.Version), item.SourceBinding.OfferHash);
         Assert.NotEqual(SelectionBindings.Offer("OFFER-2", V8Lab.Version), item.SourceBinding.OfferHash);
@@ -166,7 +187,7 @@ public sealed class V8ResolveTests
     {
         var basket = await BasketAsync();
 
-        var item = Assert.Single(ServiceResolvedSelectionsMapper.Map(await basket.Lab.Resolver.ResolveAsync([basket.Bag])).Baggages);
+        var item = Assert.Single((await basket.ResolveAsync(basket.Bag)).Baggages);
 
         Assert.Equal(["T1"], item.Coverage.TravellerRefs);
         Assert.Contains(basket.Context.Travellers, traveller => traveller.TravellerRef == "T1");
@@ -177,7 +198,7 @@ public sealed class V8ResolveTests
     {
         var basket = await BasketAsync();
 
-        var item = Assert.Single(ServiceResolvedSelectionsMapper.Map(await basket.Lab.Resolver.ResolveAsync([basket.Bag])).Baggages);
+        var item = Assert.Single((await basket.ResolveAsync(basket.Bag)).Baggages);
 
         Assert.Equal(SelectionBindings.Sales(basket.Context), item.SourceBinding.SalesHash);
         Assert.NotEqual(SelectionBindings.Sales(V8Lab.Context(pointOfSaleId: ShoppingLab.OtherPos)), item.SourceBinding.SalesHash);
@@ -187,19 +208,21 @@ public sealed class V8ResolveTests
     public async Task R13_SuspendedPricingRefusesAValidUnexpiredId()
     {
         var basket = await BasketAsync();
+        var selectionId = await basket.SubmitAsync(basket.Bag);
 
         basket.Lab.Shop.Catalog.Pricings.Single(pricing => pricing.Rates.Single().BaseAmount == 40m).Suspend(ShoppingLab.Now);
 
-        await BusinessAssert.ThrowsAsync(NotSellable, 409, () => basket.Lab.Resolver.ResolveAsync([basket.Bag]));
+        await BusinessAssert.ThrowsAsync(NotSellable, 409, () => basket.Lab.Resolver.ResolveAsync(selectionId));
     }
 
     [Fact]
-    public async Task R14_OneRetiredIdFailsTheWholeBatch()
+    public async Task R14_OneRetiredLineFailsTheWholeSelection()
     {
         var basket = await BasketAsync();
+        var selectionId = await basket.SubmitAsync(basket.Meal, basket.Bag, basket.Wheelchair);
 
         basket.Lab.Shop.Catalog.Pricings.Single(pricing => pricing.Rates.Single().BaseAmount == 40m).Retire(ShoppingLab.Now);
 
-        await BusinessAssert.ThrowsAsync(NotSellable, 409, () => basket.Lab.Resolver.ResolveAsync([basket.Meal, basket.Bag, basket.Wheelchair]));
+        await BusinessAssert.ThrowsAsync(NotSellable, 409, () => basket.Lab.Resolver.ResolveAsync(selectionId));
     }
 }

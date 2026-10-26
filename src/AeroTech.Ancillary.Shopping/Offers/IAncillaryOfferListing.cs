@@ -1,3 +1,4 @@
+using AeroTech.Ancillary.Domain.SelectionSnapshotAggregate;
 using AeroTech.Ancillary.Shopping.Context;
 
 namespace AeroTech.Ancillary.Shopping.Offers
@@ -7,6 +8,7 @@ namespace AeroTech.Ancillary.Shopping.Offers
         Task<IReadOnlyList<AncillaryOfferRow>> ListAsync(
             IReadOnlyList<AncillaryShoppingContext> contexts,
             ShoppingFilter filter,
+            SelectionSnapshot? selection,
             CancellationToken cancellationToken = default);
     }
 }

@@ -10,15 +10,10 @@ namespace AeroTech.Ancillary.Shopping.Reading.Sql
 
         public SqlSelectionSnapshotReader(AncillaryDbContext dbContext) => _dbContext = dbContext;
 
-        public async Task<IReadOnlyList<SelectionSnapshot>> FindAsync(IReadOnlyCollection<string> ids, CancellationToken cancellationToken = default)
-        {
-            if (ids.Count == 0)
-                return [];
-
-            return await _dbContext.SelectionSnapshots
+        public Task<SelectionSnapshot?> FindAsync(string id, CancellationToken cancellationToken = default)
+            => _dbContext.SelectionSnapshots
                 .AsNoTracking()
-                .Where(snapshot => ids.Contains(snapshot.Id))
-                .ToListAsync(cancellationToken);
-        }
+                .Include(snapshot => snapshot.Lines.OrderBy(line => line.Sequence))
+                .SingleOrDefaultAsync(snapshot => snapshot.Id == id, cancellationToken);
     }
 }

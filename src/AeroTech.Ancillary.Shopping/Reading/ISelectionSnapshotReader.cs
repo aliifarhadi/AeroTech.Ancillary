@@ -4,6 +4,6 @@ namespace AeroTech.Ancillary.Shopping.Reading
 {
     public interface ISelectionSnapshotReader
     {
-        Task<IReadOnlyList<SelectionSnapshot>> FindAsync(IReadOnlyCollection<string> ids, CancellationToken cancellationToken = default);
+        Task<SelectionSnapshot?> FindAsync(string id, CancellationToken cancellationToken = default);
     }
 }

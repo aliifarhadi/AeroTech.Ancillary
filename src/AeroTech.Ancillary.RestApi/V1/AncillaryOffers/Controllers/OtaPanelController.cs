@@ -1,9 +1,8 @@
-using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.SubmitSelectionOptions;
-using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.SubmitSelectionOptions.OtaPanel;
+using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.PriceAncillaryOffers.OtaPanel;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers.OtaPanel;
-using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetSelectionOptions.OtaPanel;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetPricedAncillaryOffers.OtaPanel;
+using AeroTech.Ancillary.RestApi.V1.AncillaryOffers.Requests;
 using AeroTech.Ancillary.RestApi.V1._Shared;
-using AeroTech.Messages.Ancillary.Enums;
 using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -27,32 +26,12 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryOffers.Controllers
         public async Task<IActionResult> GetByOfferId([FromBody] OtaPanelGetAncillaryOffersQuery query, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(query, cancellationToken));
 
-        [HttpGet("{family}/{reference}/Options")]
-        public async Task<IActionResult> GetOptions(string family, string reference, [FromQuery] string? offerId, CancellationToken cancellationToken)
-            => Ok(await _mediator.Send(new OtaPanelGetSelectionOptionsQuery(family, reference, offerId), cancellationToken));
+        [HttpPost("Price")]
+        public async Task<IActionResult> Price([FromBody] PriceAncillaryOffersRequest request, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new OtaPanelPriceAncillaryOffersCommand(request.OfferId, request.Selections), cancellationToken));
 
-        [HttpPost("Baggages/{reference}/Options")]
-        public async Task<IActionResult> SubmitBaggageOptions(string reference, [FromQuery] string? offerId, [FromBody] BaggageSelectionOptions options, CancellationToken cancellationToken)
-            => Ok(await _mediator.Send(new OtaPanelSubmitSelectionOptionsCommand(reference, offerId, AncillaryProfile.Baggage, options), cancellationToken));
-
-        [HttpPost("Pets/{reference}/Options")]
-        public async Task<IActionResult> SubmitPetOptions(string reference, [FromQuery] string? offerId, [FromBody] PetSelectionOptions options, CancellationToken cancellationToken)
-            => Ok(await _mediator.Send(new OtaPanelSubmitSelectionOptionsCommand(reference, offerId, AncillaryProfile.Pet, options), cancellationToken));
-
-        [HttpPost("AssistedTravel/{reference}/Options")]
-        public async Task<IActionResult> SubmitAssistedTravelOptions(string reference, [FromQuery] string? offerId, [FromBody] AssistedTravelSelectionOptions options, CancellationToken cancellationToken)
-            => Ok(await _mediator.Send(new OtaPanelSubmitSelectionOptionsCommand(reference, offerId, AncillaryProfile.AssistedTravel, options), cancellationToken));
-
-        [HttpPost("AirportServices/{reference}/Options")]
-        public async Task<IActionResult> SubmitAirportServiceOptions(string reference, [FromQuery] string? offerId, [FromBody] AirportServiceSelectionOptions options, CancellationToken cancellationToken)
-            => Ok(await _mediator.Send(new OtaPanelSubmitSelectionOptionsCommand(reference, offerId, AncillaryProfile.AirportService, options), cancellationToken));
-
-        [HttpPost("PriorityServices/{reference}/Options")]
-        public async Task<IActionResult> SubmitPriorityOptions(string reference, [FromQuery] string? offerId, [FromBody] PrioritySelectionOptions options, CancellationToken cancellationToken)
-            => Ok(await _mediator.Send(new OtaPanelSubmitSelectionOptionsCommand(reference, offerId, AncillaryProfile.Priority, options), cancellationToken));
-
-        [HttpPost("Connectivity/{reference}/Options")]
-        public async Task<IActionResult> SubmitConnectivityOptions(string reference, [FromQuery] string? offerId, [FromBody] ConnectivitySelectionOptions options, CancellationToken cancellationToken)
-            => Ok(await _mediator.Send(new OtaPanelSubmitSelectionOptionsCommand(reference, offerId, AncillaryProfile.Connectivity, options), cancellationToken));
+        [HttpGet("Price/{selectionId}")]
+        public async Task<IActionResult> GetBySelectionId(string selectionId, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new OtaPanelGetPricedAncillaryOffersQuery(selectionId), cancellationToken));
     }
 }

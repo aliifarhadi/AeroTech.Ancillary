@@ -4,7 +4,6 @@ using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Snapshots;
-using AeroTech.Ancillary.Query.Shopping.Common;
 using AeroTech.Ancillary.Shopping.Offers;
 using AeroTech.Messages.Ancillary.Enums;
 
@@ -14,23 +13,33 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
     {
         private const string TimeFormat = "HH:mm:ss";
 
-        public static AncillaryOffersDto Map(AncillaryOffersSnapshot snapshot, string surface)
+        public static AncillaryOffersDto Map(AncillaryOffersSnapshot snapshot)
             => new(
                 snapshot.OfferId,
                 snapshot.CurrencyId,
-                Family(snapshot, surface, AncillaryProfile.Baggage, row => Baggage(row.Definition)),
-                Family(snapshot, surface, AncillaryProfile.Meal, row => Meal(row.Definition)),
-                Family(snapshot, surface, AncillaryProfile.Pet, row => Pet(row.Definition)),
-                Family(snapshot, surface, AncillaryProfile.AssistedTravel, row => AssistedTravel(row.Definition)),
-                Family(snapshot, surface, AncillaryProfile.AirportService, row => AirportService(row.Definition, row.Provision)),
-                Family(snapshot, surface, AncillaryProfile.Priority, row => Priority(row.Definition)),
-                Family(snapshot, surface, AncillaryProfile.Connectivity, row => Connectivity(row.Definition)),
-                Family(snapshot, surface, AncillaryProfile.Upgrade, row => Upgrade(row.Definition)),
+                Family(snapshot, AncillaryProfile.Baggage, row => Baggage(row.Definition)),
+                Family(snapshot, AncillaryProfile.Meal, row => Meal(row.Definition)),
+                Family(snapshot, AncillaryProfile.Pet, row => Pet(row.Definition)),
+                Family(snapshot, AncillaryProfile.AssistedTravel, row => AssistedTravel(row.Definition)),
+                Family(snapshot, AncillaryProfile.AirportService, row => AirportService(row.Definition, row.Provision)),
+                Family(snapshot, AncillaryProfile.Priority, row => Priority(row.Definition)),
+                Family(snapshot, AncillaryProfile.Connectivity, row => Connectivity(row.Definition)),
+                Family(snapshot, AncillaryProfile.Upgrade, row => Upgrade(row.Definition)),
                 [],
                 []);
 
-        public static IEnumerable<AncillaryOfferRow> RowsOf(AncillaryOffersSnapshot snapshot, AncillaryProfile profile)
-            => snapshot.Rows.Where(row => row.Candidate.Profile == profile);
+        public static IEnumerable<IGrouping<string, AncillaryOfferRow>> VariantsOf(AncillaryOffersSnapshot snapshot, AncillaryProfile profile)
+            => snapshot.Rows.Where(row => row.Candidate.Profile == profile).GroupBy(row => row.Candidate.VariantCode, StringComparer.Ordinal);
+
+        public static IEnumerable<IReadOnlyList<AncillaryOfferRow>> ProductsOf(IEnumerable<AncillaryOfferRow> variant)
+            => variant
+                .GroupBy(row => (row.Candidate.DefinitionVersionId, row.Candidate.ProvisionId))
+                .Select(product => (IReadOnlyList<AncillaryOfferRow>)product.ToList());
+
+        public static string VariantTitle(string variantCode) => AncillaryVariant.Find(variantCode)!.Name;
+
+        public static string ProductKey(AncillaryOfferRow row)
+            => string.Create(CultureInfo.InvariantCulture, $"{row.Candidate.DefinitionVersionId}:{row.Candidate.ProvisionId}");
 
         public static OfferUnitDto Unit(AncillaryOfferRow row)
             => Unit(row.SelectionScope, row.Candidate.CandidateIdentity.TravellerRef, row.Candidate.CandidateIdentity.CoverageRef);
@@ -49,12 +58,6 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
             => new(row.Candidate.Scope.TravellerRefs, row.Candidate.Scope.PortionRefs, row.Candidate.Scope.FlightRefs);
 
         public static OfferMoneyDto UnitPrice(AncillaryOffersSnapshot snapshot, AncillaryOfferRow row) => new(snapshot.CurrencyId, row.UnitAmount);
-
-        public static IReadOnlyList<OfferQuantityOptionDto>? QuantityOptions(AncillaryOfferRow row)
-            => row.QuantityOptions?.Select(option => new OfferQuantityOptionDto(option.Quantity, option.SelectionId, option.TotalAmount)).ToList();
-
-        public static string? OptionsEndpoint(string surface, AncillaryOfferRow row)
-            => row.Reference is null ? null : $"/{surface}/v1/AncillaryOffers/{OfferFamilyRoutes.Of(row.Candidate.Profile)}/{{reference}}/Options?offerId={{offerId}}";
 
         public static BaggageDetailsDto Baggage(AncillaryServiceDefinition definition)
         {
@@ -166,27 +169,43 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
                 upgrade.EligibleFareFamilies.Select(fareFamily => fareFamily.ReferenceId).ToList());
         }
 
-        private static IReadOnlyList<AncillaryOfferDto<TDetails>> Family<TDetails>(
+        private static IReadOnlyList<AncillaryVariantGroupDto<TDetails>> Family<TDetails>(
             AncillaryOffersSnapshot snapshot,
-            string surface,
             AncillaryProfile profile,
             Func<AncillaryOfferRow, TDetails> details)
-            => RowsOf(snapshot, profile)
-                .Select(row => new AncillaryOfferDto<TDetails>(
-                    row.Candidate.VariantCode,
-                    row.Candidate.CommercialName,
-                    row.Candidate.Description,
-                    row.SelectionScope,
-                    Unit(row),
-                    Coverage(row),
-                    UnitPrice(snapshot, row),
-                    new OfferQuantityPolicyDto(row.QuantityPolicy.Selectable, row.QuantityPolicy.Min, row.QuantityPolicy.Max, row.QuantityPolicy.Unit),
-                    row.SelectionId,
-                    QuantityOptions(row),
-                    row.Reference,
-                    OptionsEndpoint(surface, row),
-                    details(row)))
+            => VariantsOf(snapshot, profile)
+                .Select(variant => new AncillaryVariantGroupDto<TDetails>(
+                    variant.Key,
+                    VariantTitle(variant.Key),
+                    ProductsOf(variant).Select(rows => Product(snapshot, rows, details)).ToList()))
                 .ToList();
+
+        private static AncillaryProductGroupDto<TDetails> Product<TDetails>(
+            AncillaryOffersSnapshot snapshot,
+            IReadOnlyList<AncillaryOfferRow> rows,
+            Func<AncillaryOfferRow, TDetails> details)
+        {
+            var first = rows[0];
+
+            return new AncillaryProductGroupDto<TDetails>(
+                ProductKey(first),
+                first.Candidate.ServiceDefinitionRef,
+                first.Candidate.CommercialName,
+                first.Candidate.Description,
+                details(first),
+                rows.Select(row => UnitOffer(snapshot, row)).ToList());
+        }
+
+        private static AncillaryUnitOfferDto UnitOffer(AncillaryOffersSnapshot snapshot, AncillaryOfferRow row)
+            => new(
+                row.SelectionScope,
+                Unit(row),
+                Coverage(row),
+                UnitPrice(snapshot, row),
+                new OfferQuantityPolicyDto(row.QuantityPolicy.Selectable, row.QuantityPolicy.Min, row.QuantityPolicy.Max, row.QuantityPolicy.Unit),
+                row.OfferItemId!,
+                SelectionOptionsMapper.Options(row),
+                SelectionOptionsMapper.Selected(row));
 
         private static OfferDimensionsDto Dimensions(DimensionsCm dimensions) => new(dimensions.LengthCm, dimensions.WidthCm, dimensions.HeightCm);
 

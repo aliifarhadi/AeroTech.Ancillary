@@ -11,6 +11,10 @@ public sealed class SnapshotStore : ISelectionSnapshotRepository, IUnitOfWork
 
     public SnapshotStore(InMemoryCatalog catalog) => _catalog = catalog;
 
+    public int Saves { get; private set; }
+
+    public bool FailsOnSave { get; init; }
+
     public Task AddAsync(SelectionSnapshot snapshot, CancellationToken cancellationToken = default)
     {
         _pending.Add(snapshot);
@@ -20,6 +24,11 @@ public sealed class SnapshotStore : ISelectionSnapshotRepository, IUnitOfWork
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
+        Saves++;
+
+        if (FailsOnSave)
+            throw new InvalidOperationException("The database refused the transaction.");
+
         var saved = _pending.Count;
 
         _catalog.Snapshots.AddRange(_pending);

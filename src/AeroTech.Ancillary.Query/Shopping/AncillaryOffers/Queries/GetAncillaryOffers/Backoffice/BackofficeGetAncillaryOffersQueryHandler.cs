@@ -6,8 +6,6 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
 {
     public sealed class BackofficeGetAncillaryOffersQueryHandler : IRequestHandler<BackofficeGetAncillaryOffersQuery, BackofficeAncillaryOffersDto>
     {
-        private const string Surface = "Backoffice";
-
         private readonly IBackofficeSalesScopeResolver _salesScope;
         private readonly IGetAncillaryOffersService _service;
 
@@ -18,6 +16,6 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
         }
 
         public async Task<BackofficeAncillaryOffersDto> Handle(BackofficeGetAncillaryOffersQuery query, CancellationToken cancellationToken)
-            => BackofficeAncillaryOffersMapper.Map(await _service.ExecuteAsync(query, await _salesScope.ResolveAsync(null, cancellationToken), cancellationToken), Surface);
+            => BackofficeAncillaryOffersMapper.Map(await _service.ExecuteAsync(query, await _salesScope.ResolveAsync(null, cancellationToken), cancellationToken));
     }
 }
