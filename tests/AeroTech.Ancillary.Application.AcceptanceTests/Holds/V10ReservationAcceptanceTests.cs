@@ -6,6 +6,7 @@ using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.Hold
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldAncillaryServices.Service;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ReleaseAncillaryHold.Service;
 using AeroTech.Ancillary.Domain.AncillaryReservationAggregate;
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.RestApi.V1.AncillaryReservationAggregate.Requests;
 using AeroTech.Messages.Ancillary.Enums;
 using Xunit;
@@ -40,17 +41,17 @@ public class V10ReservationAcceptanceTests
         return (definition.Id, provision.Id, scope);
     }
 
-    private static long UnitOf(AncillaryHoldResult hold, long orderServiceId) => hold.Units.Single(unit => unit.OrderServiceId == orderServiceId).UnitId;
+    private static long UnitOf(AncillaryHoldReceipt hold, long orderServiceId) => hold.Units.Single(unit => unit.OrderServiceId == orderServiceId).UnitId;
 
     [Fact]
     public async Task V10_L02_L08_L10_L12_L14_E08_a_partial_release_confirm_and_partial_cancel_persist_and_read_back()
     {
-        var (definitionId, provisionId, scope) = await CatalogAsync();
+        var (_, provisionId, scope) = await CatalogAsync();
         await using var _ = scope;
         var orderId = NextOrderId;
         var (bag, meal, lounge) = (orderId * 10 + 1, orderId * 10 + 2, orderId * 10 + 3);
         var hold = await scope.HoldAncillaryServices.HoldAsync(M1Commands.Hold(
-            $"V10-{orderId}", orderId, definitionId, provisionId, _clock.Now.AddMinutes(30), (bag, 71, 301), (meal, 72, 301), (lounge, 73, 301)));
+            $"V10-{orderId}", orderId, provisionId, _clock.Now.AddMinutes(30), (bag, 71, 301), (meal, 72, 301), (lounge, 73, 301)));
 
         var released = await scope.ReleaseAncillaryHold.ReleaseAsync(new TestReleaseAncillaryHoldCommand(hold.HoldId, [UnitOf(hold, meal)]));
         var confirmed = await scope.ConfirmAncillaryHold.ConfirmAsync(new TestConfirmAncillaryHoldCommand(hold.HoldId));
@@ -66,12 +67,14 @@ public class V10ReservationAcceptanceTests
         Assert.Equal(AncillaryReservationStatus.Confirmed, cancelled.Status);
         Assert.Equal(
             new[] { (bag, AncillaryReservationUnitStatus.Cancelled, "CUSTOMER"), (meal, AncillaryReservationUnitStatus.Released, (string?)null), (lounge, AncillaryReservationUnitStatus.Confirmed, null) },
-            read.Units.OrderBy(unit => unit.OrderServiceId).Select(unit => (unit.OrderServiceId, unit.Status, unit.CancellationReasonCode)));
+            read.Units().OrderBy(unit => unit.OrderServiceId).Select(unit => (unit.OrderServiceId, unit.Status, unit.CancellationReasonCode)));
 
         var all = await scope.CancelAncillaryHold.CancelAsync(new TestCancelAncillaryHoldCommand(hold.HoldId, "SCHEDULE"));
 
         Assert.Equal(AncillaryReservationStatus.Cancelled, all.Status);
-        Assert.Equal(new[] { "CUSTOMER", null, "SCHEDULE" }, all.Units.OrderBy(unit => unit.OrderServiceId).Select(unit => unit.CancellationReasonCode));
+        Assert.Equal(
+            new[] { "CUSTOMER", null, "SCHEDULE" },
+            (await scope.GetHoldById.ExecuteAsync(hold.HoldId)).Units().OrderBy(unit => unit.OrderServiceId).Select(unit => unit.CancellationReasonCode));
     }
 
     [Fact]
@@ -87,7 +90,7 @@ public class V10ReservationAcceptanceTests
             $"ORD-{orderId}",
             _clock.Now.AddMinutes(30),
             [
-                new(orderId * 10 + 1, definitionId, provisionId, 71, ServiceCoverageScope.Sector, [301], 2,
+                new(orderId * 10 + 1, definitionId, provisionId, 71, ServiceCoverageScope.Sector, [301], 2, VariantCode: AncillaryVariant.Lounge, ServiceDefinitionRef: "LNG_IKA_CIP",
                     Allocations: [new(InventoryResourceKind.FlightCount, 41, 2m), new(InventoryResourceKind.FlightWeight, 42, 10.125m)])
             ],
             _database.Ids,
@@ -109,11 +112,11 @@ public class V10ReservationAcceptanceTests
     {
         const string valid = """
             {"idempotencyKey":"K","orderId":7001,"reference":"ORD","requestedExpiresAt":"2026-10-01T10:30:00Z",
-             "services":[{"orderServiceId":1,"serviceDefinitionId":2,"provisionId":3,"travellerId":4,"coverageScope":"Sector","coveredFlightIds":[301],"quantity":1,
-                          "inventoryFacts":{"timeWithOffset":"2026-11-01T16:00:00+03:30","guestCount":1}}]}
+             "airportServices":[{"variantCode":"A20","products":[{"provisionId":3,"units":[{"orderServiceId":1,"unit":{"travellerId":4},"coverage":{"flightIds":[301]},
+                          "selected":{"quantity":1,"options":{"airportService":{"timeWithOffset":"2026-11-01T16:00:00+03:30","guestCount":1}}}}]}]}]}
             """;
 
-        Assert.Equal(1, HostJson.Bind<HoldAncillaryServicesRequest>(valid).Services[0].InventoryFacts!.GuestCount);
+        Assert.Equal(1, HostJson.Bind<HoldAncillaryServicesRequest>(valid).AirportServices![0].Products[0].Units[0].Selected!.Options!.AirportService!.GuestCount);
         Assert.Throws<JsonException>(() => HostJson.Bind<HoldAncillaryServicesRequest>(valid.Replace("\"guestCount\":1", "\"guestCount\":1,\"acceptedWeightKgTotal\":16.5")));
         Assert.Throws<JsonException>(() => HostJson.Bind<HoldAncillaryServicesRequest>(valid.Replace("\"quantity\":1", "\"quantity\":1,\"seatNumber\":\"3A\"")));
         Assert.Throws<JsonException>(() => HostJson.Bind<HoldAncillaryServicesRequest>(valid.Replace("\"orderId\":7001", "\"orderId\":7001,\"currencyId\":70")));
@@ -121,10 +124,13 @@ public class V10ReservationAcceptanceTests
 
         var holds = new ServiceHoldAncillaryServicesCommandValidator();
         var request = HostJson.Bind<HoldAncillaryServicesRequest>(valid);
+        var command = new ServiceHoldAncillaryServicesCommand(
+            request.IdempotencyKey, request.OrderId, request.Reference, request.RequestedExpiresAt, null, null, null, request.AirportServices, null, null, null);
 
-        Assert.False(holds.Validate(new ServiceHoldAncillaryServicesCommand(request.IdempotencyKey, request.OrderId, request.Reference, default, request.Services)).IsValid);
-        Assert.False(holds.Validate(new ServiceHoldAncillaryServicesCommand(request.IdempotencyKey, request.OrderId, request.Reference, request.RequestedExpiresAt, [request.Services[0] with { InventoryFacts = new InventoryHoldFactsInput(null, 1) }])).IsValid);
-        Assert.True(holds.Validate(new ServiceHoldAncillaryServicesCommand(request.IdempotencyKey, request.OrderId, request.Reference, request.RequestedExpiresAt, request.Services)).IsValid);
+        Assert.False(holds.Validate(command with { RequestedExpiresAt = default }).IsValid);
+        Assert.False(holds.Validate(command with { AirportServices = [] }).IsValid);
+        Assert.False(holds.Validate(command with { AirportServices = [request.AirportServices![0] with { Products = [] }] }).IsValid);
+        Assert.True(holds.Validate(command).IsValid);
 
         var releases = new ServiceReleaseAncillaryHoldCommandValidator();
         var cancels = new ServiceCancelAncillaryHoldCommandValidator();

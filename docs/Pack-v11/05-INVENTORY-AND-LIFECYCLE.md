@@ -4,7 +4,7 @@
 1. Rest controller typed JSON، `idempotencyKey`, `orderId`, `reference`, expiry و گروه‌های Family را می‌خواند. **هیچ Ordering dependency/call وجود ندارد**.
 2. Validator نوع/ساختار: family موجود، variantCode وجود دارد، products/units nonempty، orderServiceId nonduplicated، `unit/coverage/selected` فقط fields مجاز، Qty معتبر. در DTO از `JsonUnmappedMemberHandling.Disallow` استفاده شود.
 3. `ReservationHoldMapper` (Application/REST adapter کوچک، نه سرویس/Engine تازه) **حفظ ساختار Nesting ولی flatten داخلی به UnitArgs**: برای هر `{family,variantCode,provisionId,orderServiceId,...}` یک UnitArgs. از `provisionId` Active Provision خوانده، Definition/Variant/Scope/Quantity/Policy را خودش استخراج می‌کند.
-4. انتخاب Type-specific به DTO پذیرفته‌شده: `selected.options.baggage|pet|assistedTravel|airportService|priority|connectivity`; اگر انتخاب شرطی نیست از Definition/Provision واقعی derive و در همان لحظه capture شود؛ اگر متغیر و Source ندارد **reject**. `selected.quantity` optional fixed=1 یا required انتخابی. Store immutable typed selection for GET؛ **no JSON blob**.
+4. The type-specific choice is taken from `selected.options.baggage|assistedTravel|airportService|priority|connectivity` (the `pet` key is refused while A13/A14 are GATED). One Application port, following the `ISeatSelectionVerifier` pattern and implemented in Query with the Price rules (`TypedSelectionForm.Fields`, `TypedSelectionForm.WithFixedChoices`), validates the options against the static Definition/Provision rules and returns the fixed choices to capture (Owner Q2). `selected.quantity` is optional (fixed 1) or required when chosen. The typed selection is stored immutable for the GET; **no JSON blob**.
 5. `AncillaryHoldChecks` موجود: Active Definition/Provision/Supplier، Quantity، Family/Variant، Source/Policy، coverage own rules؛ no Order membership checks. برای Local FlightCount/Weight/Slot از `coverage.flightIds` عددی یا appointment selected استفاده شود. `InventoryHoldFacts` DTO وجود ندارد.
 6. `AncillaryHoldAllocator` موجود demand هر Source را از Policy و Quantity/TypedSelection می‌سازد؛ semantic timeWithOffset/GuestCount را **از Selected AirportService** به دست بیاورد. flightIds فقط وقتی لازم است. Source ID را از DB بگیرد، نه Client.
 7. `InventoryLedger.OpenAsync` موجود: distinct source keys sort، SQL transaction + `sp_getapplock` (owner Transaction)، current capacity and ActiveUsage read under lock، sum demands all Units per Source. Shortage => 409 و rollback کل Request. `Unlimited`/Seat-only: zero allocations اما همان transaction مربوط Root.
@@ -30,7 +30,7 @@
 - `Retire` under same source lock must verify `ActiveUsage == 0`, otherwise 409 `16621` existing; otherwise Retire + re-Define can sidestep active allocation. Do it for Count, Weight, Slot, without new service.
 - Adjust capacity under lock checks `newCapacity >= ActiveUsage`, already v10; Close/Suspend forbid NEW Hold, old Release/Cancel remain allowed.
 - Connection Pool pressure measured/tested; don't build new Lock Manager or async background orchestrator for this change.
-- Legacy Reservation without trusted Allocation evidence must be audited before using Local live; no silent assumption of empty stock; never delete Order/History data without owner instruction.
+- All reservation rows on dev are deleted before the v11 migration (Owner Q5); no legacy reservation remains to audit. Never delete Order or other history data without an Owner instruction.
 
 ## 4. State matrix
 | Action | Root/Unit requirement | Effect on typed details | Effect on allocation |

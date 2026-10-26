@@ -23,6 +23,9 @@ public class V10ReservationLifecycleConformanceTests
     private static AncillaryReservationUnitArgs Seat(long orderServiceId, string seatNumber, string seatMapSelectionId)
         => Unit(orderServiceId, travellerId: 71) with { SeatMapSelectionId = seatMapSelectionId, SeatNumber = seatNumber, PricingId = 901 };
 
+    private static AncillaryReservationSelectionArgs Appointed(DateTimeOffset? appointment, int? guests)
+        => new(AirportService: new AirportServiceSelectionArgs(appointment, guests, 1));
+
     private static long IdOf(AncillaryReservation reservation, long orderServiceId)
         => reservation.Units.Single(unit => unit.OrderServiceId == orderServiceId).Id;
 
@@ -141,13 +144,13 @@ public class V10ReservationLifecycleConformanceTests
     public void V10_L19_L20_a_create_replay_compares_quantity_and_slot_facts_by_instant()
     {
         var appointment = new DateTimeOffset(2026, 11, 1, 16, 0, 0, TimeSpan.FromHours(3.5));
-        var lounge = Unit(quantity: 2) with { AppointmentTimeWithOffset = appointment, GuestCount = 1 };
+        var lounge = Unit(quantity: 2) with { Selection = Appointed(appointment, 1) };
         var reservation = Hold(lounge);
 
         reservation.EnsureSameContent(7001, "ORD-7001", ExpiresAt, [lounge]);
-        reservation.EnsureSameContent(7001, "ORD-7001", ExpiresAt, [lounge with { AppointmentTimeWithOffset = appointment.ToUniversalTime() }]);
-        BusinessAssert.Throws(16403, 409, () => reservation.EnsureSameContent(7001, "ORD-7001", ExpiresAt, [lounge with { GuestCount = 2 }]));
-        BusinessAssert.Throws(16403, 409, () => reservation.EnsureSameContent(7001, "ORD-7001", ExpiresAt, [lounge with { AppointmentTimeWithOffset = appointment.AddMinutes(30) }]));
+        reservation.EnsureSameContent(7001, "ORD-7001", ExpiresAt, [lounge with { Selection = Appointed(appointment.ToUniversalTime(), 1) }]);
+        BusinessAssert.Throws(16403, 409, () => reservation.EnsureSameContent(7001, "ORD-7001", ExpiresAt, [lounge with { Selection = Appointed(appointment, 2) }]));
+        BusinessAssert.Throws(16403, 409, () => reservation.EnsureSameContent(7001, "ORD-7001", ExpiresAt, [lounge with { Selection = Appointed(appointment.AddMinutes(30), 1) }]));
         BusinessAssert.Throws(16403, 409, () => reservation.EnsureSameContent(7001, "ORD-7001", ExpiresAt, [lounge with { Quantity = 1 }]));
     }
 
@@ -162,8 +165,8 @@ public class V10ReservationLifecycleConformanceTests
     [Fact]
     public void V10_I27_slot_facts_and_allocations_follow_the_unit_rules()
     {
-        BusinessAssert.Throws(16402, 422, () => Hold(Unit() with { GuestCount = 1 }));
-        BusinessAssert.Throws(16402, 422, () => Hold(Unit() with { AppointmentTimeWithOffset = ExpiresAt, GuestCount = -1 }));
+        BusinessAssert.Throws(16402, 422, () => Hold(Unit() with { Selection = Appointed(ExpiresAt, -1) }));
+        BusinessAssert.Throws(16402, 422, () => Hold(Unit() with { Selection = new(AirportService: new AirportServiceSelectionArgs(ExpiresAt, 1)) }));
         BusinessAssert.Throws(16402, 422, () => Hold(Unit() with { Allocations = [new(InventoryResourceKind.FlightCount, 41, 1.5m)] }));
         BusinessAssert.Throws(16402, 422, () => Hold(Unit() with { Allocations = [new(InventoryResourceKind.FlightWeight, 42, 2.0005m)] }));
         BusinessAssert.Throws(16402, 422, () => Hold(Unit() with { Allocations = [new(InventoryResourceKind.AirportSlot, 43, 0m)] }));
@@ -184,7 +187,7 @@ public class V10ReservationLifecycleConformanceTests
 
         BusinessAssert.Throws(16402, 422, () => Hold(seat with { Quantity = 2 }));
         BusinessAssert.Throws(16402, 422, () => Hold(seat with { CoverageScope = ServiceCoverageScope.Portion }));
-        BusinessAssert.Throws(16402, 422, () => Hold(seat with { AppointmentTimeWithOffset = ExpiresAt }));
+        BusinessAssert.Throws(16402, 422, () => Hold(seat with { Selection = Appointed(ExpiresAt, null) }));
         BusinessAssert.Throws(16402, 422, () => Hold(seat with { Allocations = [new(InventoryResourceKind.FlightCount, 41, 1m)] }));
         Assert.Empty(Assert.Single(Hold(seat).Units).Allocations);
     }

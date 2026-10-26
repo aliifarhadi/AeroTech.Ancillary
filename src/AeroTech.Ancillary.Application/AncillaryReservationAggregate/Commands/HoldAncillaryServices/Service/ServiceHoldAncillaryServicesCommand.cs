@@ -7,5 +7,11 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
         long OrderId,
         string Reference,
         DateTimeOffset RequestedExpiresAt,
-        IReadOnlyList<AncillaryHoldServiceInput> Services) : IRequest<AncillaryHoldResult>, IHoldAncillaryServicesCommand;
+        IReadOnlyList<AncillaryVariantHoldInput<SelectedUnitInput<BaggageHoldOptionsInput>>>? Baggages,
+        IReadOnlyList<AncillaryVariantHoldInput<SelectedUnitInput>>? Meals,
+        IReadOnlyList<AncillaryVariantHoldInput<SelectedUnitInput<AssistedTravelHoldOptionsInput>>>? AssistedTravel,
+        IReadOnlyList<AncillaryVariantHoldInput<SelectedUnitInput<AirportServiceHoldOptionsInput>>>? AirportServices,
+        IReadOnlyList<AncillaryVariantHoldInput<SelectedUnitInput<PriorityHoldOptionsInput>>>? PriorityServices,
+        IReadOnlyList<AncillaryVariantHoldInput<SelectedUnitInput<ConnectivityHoldOptionsInput>>>? Connectivity,
+        IReadOnlyList<AncillaryVariantHoldInput<SelectedUnitInput>>? Upgrades) : IRequest<AncillaryHoldReceipt>, IHoldAncillaryServicesCommand;
 }

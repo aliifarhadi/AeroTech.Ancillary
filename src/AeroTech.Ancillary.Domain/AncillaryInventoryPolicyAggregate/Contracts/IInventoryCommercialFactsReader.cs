@@ -8,7 +8,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.Contracts
         string ServiceDefinitionRef,
         AncillaryProfile? Profile,
         PricingUnit? PricingUnit,
-        string? ActiveExternalSupplierProviderKey);
+        string? ActiveExternalSupplierProviderKey,
+        bool? RequiresSpecificAppointment);
 
     public interface IInventoryCommercialFactsReader
     {

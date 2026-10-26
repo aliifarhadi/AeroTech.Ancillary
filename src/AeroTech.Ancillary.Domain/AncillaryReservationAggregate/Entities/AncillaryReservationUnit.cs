@@ -1,4 +1,6 @@
 using AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Arguments;
+using AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Selections;
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Framework.Core.Domain.Entities;
 using AeroTech.Framework.Core.ServiceContracts;
@@ -11,9 +13,12 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities
         private const int SeatMapSelectionIdMaxLength = 256;
         private const int SeatNumberMaxLength = 16;
         private const int AppendIdempotencyKeyMaxLength = 128;
+        private const int VariantCodeMaxLength = 8;
+        private const int ServiceDefinitionRefMaxLength = 30;
+        private const string SelectionField = "Selection";
 
         private readonly List<AncillaryReservationUnitAllocation> _allocations = new();
-        private List<long> _coveredFlightIds = new();
+        private readonly List<AncillaryReservationUnitFlight> _flights = new();
 
         private AncillaryReservationUnit()
         {
@@ -27,6 +32,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities
             IIdGenerator idGenerator)
         {
             var allocations = args.Allocations ?? [];
+            var families = FamiliesOf(args.Selection);
 
             Require(args.OrderServiceId > 0, nameof(OrderServiceId));
             Require(args.ServiceDefinitionId > 0, nameof(ServiceDefinitionId));
@@ -38,8 +44,9 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities
             Require(args.SeatNumber is null or { Length: >= 1 and <= SeatNumberMaxLength }, nameof(SeatNumber));
             Require((args.SeatMapSelectionId is null) == (args.SeatNumber is null) && (args.SeatNumber is null) == (args.PricingId is null), nameof(SeatMapSelectionId));
             Require(args.PricingId is null or > 0, nameof(PricingId));
-            Require(args.GuestCount is null or >= 0, nameof(GuestCount));
-            Require(args.GuestCount is null || args.AppointmentTimeWithOffset is not null, nameof(GuestCount));
+            Require(args.VariantCode is { Length: >= 1 and <= VariantCodeMaxLength } && AncillaryVariant.Find(args.VariantCode) is not null, nameof(VariantCode));
+            Require(args.ServiceDefinitionRef is { Length: >= 1 and <= ServiceDefinitionRefMaxLength }, nameof(ServiceDefinitionRef));
+            Require(families.Count <= 1 && families.All(family => family == AncillaryVariant.Find(args.VariantCode)!.Profile), SelectionField);
             Require(appendIdempotencyKey is null or { Length: >= 1 and <= AppendIdempotencyKeyMaxLength }, nameof(AppendIdempotencyKey));
             Require(allocations.Select(allocation => (allocation.ResourceKind, allocation.InventorySourceId)).Distinct().Count() == allocations.Count, nameof(Allocations));
 
@@ -60,7 +67,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities
             {
                 Require(args.Quantity == 1, nameof(Quantity));
                 Require(args.CoverageScope == ServiceCoverageScope.Sector, nameof(CoverageScope));
-                Require(args.AppointmentTimeWithOffset is null, nameof(AppointmentTimeWithOffset));
+                Require(families.Count == 0, SelectionField);
                 Require(allocations.Count == 0, nameof(Allocations));
             }
             else
@@ -75,13 +82,19 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities
             ProvisionId = args.ProvisionId;
             TravellerId = args.TravellerId;
             CoverageScope = args.CoverageScope;
-            _coveredFlightIds = args.CoveredFlightIds.Order().ToList();
+            VariantCode = args.VariantCode!;
+            ServiceDefinitionRef = args.ServiceDefinitionRef!;
+            _flights.AddRange(args.CoveredFlightIds.Order().Select(flightId => new AncillaryReservationUnitFlight(flightId)));
             Quantity = args.Quantity;
             SeatMapSelectionId = args.SeatMapSelectionId;
             SeatNumber = Normalize(args.SeatNumber);
             PricingId = args.PricingId;
-            AppointmentTimeWithOffset = args.AppointmentTimeWithOffset;
-            GuestCount = args.GuestCount;
+            Baggage = args.Selection?.Baggage is { } baggage ? BaggageSelection.Create(baggage) : null;
+            Meal = args.Selection?.Meal is { } meal ? MealSelection.Create(meal) : null;
+            AssistedTravel = args.Selection?.AssistedTravel is { } assistedTravel ? AssistedTravelSelection.Create(assistedTravel) : null;
+            AirportService = args.Selection?.AirportService is { } airportService ? AirportServiceSelection.Create(airportService) : null;
+            Connectivity = args.Selection?.Connectivity is { } connectivity ? ConnectivitySelection.Create(connectivity) : null;
+            Upgrade = args.Selection?.Upgrade is { } upgrade ? UpgradeSelection.Create(upgrade) : null;
             AppendIdempotencyKey = appendIdempotencyKey;
             Status = AncillaryReservationUnitStatus.Held;
             _allocations.AddRange(allocations.Select(allocation => new AncillaryReservationUnitAllocation(idGenerator.NewId(), id, allocation)));
@@ -99,7 +112,13 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities
 
         public ServiceCoverageScope CoverageScope { get; private set; }
 
-        public IReadOnlyList<long> CoveredFlightIds => _coveredFlightIds.AsReadOnly();
+        public string VariantCode { get; private set; } = default!;
+
+        public string ServiceDefinitionRef { get; private set; } = default!;
+
+        public IReadOnlyCollection<AncillaryReservationUnitFlight> Flights => _flights.AsReadOnly();
+
+        public IReadOnlyList<long> CoveredFlightIds => _flights.Select(flight => flight.FlightId).Order().ToList();
 
         public int Quantity { get; private set; }
 
@@ -109,9 +128,17 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities
 
         public long? PricingId { get; private set; }
 
-        public DateTimeOffset? AppointmentTimeWithOffset { get; private set; }
+        public BaggageSelection? Baggage { get; private set; }
 
-        public int? GuestCount { get; private set; }
+        public MealSelection? Meal { get; private set; }
+
+        public AssistedTravelSelection? AssistedTravel { get; private set; }
+
+        public AirportServiceSelection? AirportService { get; private set; }
+
+        public ConnectivitySelection? Connectivity { get; private set; }
+
+        public UpgradeSelection? Upgrade { get; private set; }
 
         public string? AppendIdempotencyKey { get; private set; }
 
@@ -125,7 +152,7 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities
 
         public IReadOnlyCollection<AncillaryReservationUnitAllocation> Allocations => _allocations.AsReadOnly();
 
-        internal string? SeatKey => SeatNumber is null ? null : $"{string.Join(',', _coveredFlightIds)}|{SeatNumber}";
+        internal string? SeatKey => SeatNumber is null ? null : $"{string.Join(',', CoveredFlightIds)}|{SeatNumber}";
 
         internal static string? SeatKeyOf(AncillaryReservationUnitArgs args)
             => args.SeatNumber is null ? null : $"{string.Join(',', args.CoveredFlightIds.Order())}|{Normalize(args.SeatNumber)}";
@@ -136,18 +163,34 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities
                && ProvisionId == args.ProvisionId
                && TravellerId == args.TravellerId
                && CoverageScope == args.CoverageScope
-               && _coveredFlightIds.SequenceEqual(args.CoveredFlightIds.Order())
+               && CoveredFlightIds.SequenceEqual(args.CoveredFlightIds.Order())
                && Quantity == args.Quantity
                && string.Equals(SeatMapSelectionId, args.SeatMapSelectionId, StringComparison.Ordinal)
                && string.Equals(SeatNumber, Normalize(args.SeatNumber), StringComparison.Ordinal)
                && PricingId == args.PricingId
-               && AppointmentTimeWithOffset == args.AppointmentTimeWithOffset
-               && GuestCount == args.GuestCount;
+               && Baggage?.ToArgs() == args.Selection?.Baggage
+               && Meal?.ToArgs() == args.Selection?.Meal
+               && AssistedTravel?.ToArgs() == args.Selection?.AssistedTravel
+               && AirportService?.ToArgs() == args.Selection?.AirportService
+               && Connectivity?.ToArgs() == args.Selection?.Connectivity
+               && Upgrade?.ToArgs() == args.Selection?.Upgrade;
 
         internal bool IsSelectedBy(AncillaryReservationSeatSelectionArgs seat)
             => OrderServiceId == seat.OrderServiceId
                && TravellerId == seat.TravellerId
                && string.Equals(SeatMapSelectionId, seat.SeatMapSelectionId, StringComparison.Ordinal);
+
+        internal bool IsSelectedBy(AncillaryReservationServiceSelectionArgs service)
+            => SeatNumber is null
+               && OrderServiceId == service.OrderServiceId
+               && ProvisionId == service.ProvisionId
+               && TravellerId == service.TravellerId
+               && CoveredFlightIds.SequenceEqual(service.CoveredFlightIds.Order())
+               && Quantity == (service.Quantity ?? Quantity)
+               && (Baggage?.IsChosenBy(service.Options?.Baggage) ?? service.Options?.Baggage is null)
+               && (AssistedTravel?.IsChosenBy(service.Options?.AssistedTravel) ?? service.Options?.AssistedTravel is null)
+               && (AirportService?.IsChosenBy(service.Options?.AirportService) ?? service.Options?.AirportService is null)
+               && (Connectivity?.IsChosenBy(service.Options?.Connectivity) ?? service.Options?.Connectivity is null);
 
         internal void Confirm() => Status = AncillaryReservationUnitStatus.Confirmed;
 
@@ -162,6 +205,22 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities
         }
 
         private static string? Normalize(string? seatNumber) => seatNumber?.Trim().ToUpperInvariant();
+
+        private static IReadOnlyList<AncillaryProfile> FamiliesOf(AncillaryReservationSelectionArgs? selection)
+            => selection is null
+                ? []
+                : new (AncillaryProfile Family, object? Part)[]
+                    {
+                        (AncillaryProfile.Baggage, selection.Baggage),
+                        (AncillaryProfile.Meal, selection.Meal),
+                        (AncillaryProfile.AssistedTravel, selection.AssistedTravel),
+                        (AncillaryProfile.AirportService, selection.AirportService),
+                        (AncillaryProfile.Connectivity, selection.Connectivity),
+                        (AncillaryProfile.Upgrade, selection.Upgrade)
+                    }
+                    .Where(part => part.Part is not null)
+                    .Select(part => part.Family)
+                    .ToList();
 
         private static void Require(bool condition, string field)
         {

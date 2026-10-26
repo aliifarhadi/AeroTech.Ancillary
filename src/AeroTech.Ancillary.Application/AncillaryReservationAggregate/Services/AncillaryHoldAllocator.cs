@@ -62,14 +62,16 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Services
 
             AncillaryHoldChecks.Accept(unit, definition, provision, supplier);
 
-            if (unit.SeatNumber is not null)
-                return unit;
+            var described = unit with { VariantCode = definition!.VariantCode, ServiceDefinitionRef = definition.ServiceDefinitionRef };
 
-            var policy = await _policies.FindActiveAsync(definition!.OwnerAirlineId, definition.ServiceDefinitionRef, cancellationToken);
+            if (unit.SeatNumber is not null)
+                return described;
+
+            var policy = await _policies.FindActiveAsync(definition.OwnerAirlineId, definition.ServiceDefinitionRef, cancellationToken);
 
             AncillaryHoldChecks.EnsureReservable(unit, definition, policy);
 
-            return unit with { Allocations = await AllocationsAsync(unit, definition, policy!, cancellationToken) };
+            return described with { Allocations = await AllocationsAsync(unit, definition, policy!, cancellationToken) };
         }
 
         private async Task<IReadOnlyList<AncillaryReservationAllocationArgs>> AllocationsAsync(
@@ -99,10 +101,11 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Services
 
             if (policy.SlotConsumption is { } slot)
             {
-                var start = unit.AppointmentTimeWithOffset!.Value;
+                var appointment = unit.Selection!.AirportService!;
+                var start = appointment.TimeWithOffset!.Value;
                 var end = start.AddMinutes(slot.OccupancyMinutes);
                 var slots = await _slots.ListCurrentAsync(definition.OwnerAirlineId, definition.AirportService!.AirportId, slot.FacilityId, start, end, cancellationToken);
-                var persons = slot.RequiredPersons(unit.Quantity, unit.GuestCount ?? 0);
+                var persons = slot.RequiredPersons(unit.Quantity, appointment.GuestCount ?? 0);
 
                 AncillaryHoldChecks.EnsureCovered(slots, start, end);
                 allocations.AddRange(slots.Select(covering => new AncillaryReservationAllocationArgs(InventoryResourceKind.AirportSlot, covering.Id, persons)));

@@ -4,6 +4,6 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
 {
     public interface IHoldSeatSelectionsService
     {
-        Task<AncillaryHoldResult> HoldAsync(IHoldSeatSelectionsCommand command, CancellationToken cancellationToken = default);
+        Task<AncillaryHoldReceipt> HoldAsync(IHoldSeatSelectionsCommand command, CancellationToken cancellationToken = default);
     }
 }

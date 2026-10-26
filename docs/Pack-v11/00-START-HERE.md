@@ -2,6 +2,8 @@
 
 **مرجع واحد اجرای اصلاح v10:** همین بسته، مبنای کد `aliifarhadi/AeroTech.Ancillary`، `feat/ancillary-offers-v9@7a74055c774b2466fe239b8307ec93b15264e50c` (2026-10-26). **وضعیت:** قرارداد هدف؛ پیاده‌سازی نشده؛ هیچ ادعای موفقیت E2E وجود ندارد.
 
+**Gate 0 (2026-10-26):** the source audit (`reports/V11-GATE0-SOURCE-AND-CONTRACT-AUDIT.md`) and the Owner's answers Q1–Q6 are merged into this pack (01–08, 10–15; summary in 01 §I). This pack is the only authority; `reports/V11-GATE0-QUESTIONS-AND-CONFLICTS.md` is history.
+
 ## ترتیب مرجع
 1. `01-MASTER-AND-OWNER-DECISIONS-FA.md` تصمیم‌های مصوب و جریان عملیاتی.
 2. `02-EXACT-RESERVATION-API-AND-DTOS.md` **تنها مرجع ورودی/خروجی بیرونی**؛ `03-VARIANT-BY-VARIANT.md` انتخاب‌های A01–A24؛ `04-AGGREGATE-AND-RELATIONAL-STORAGE.md` Domain؛ `05-INVENTORY-AND-LIFECYCLE.md` عملیات.
@@ -17,7 +19,7 @@
 - یک Reservation Aggregate و Entityهای Unit/Allocation موجود حفظ شوند. Typed Selectionها کم‌شمار، رابطه‌ای و immutable؛ **نه ۲۴ Aggregate، نه طراحی generic JSON، نه موتور جدید Stock**.
 - SeatMap Endpoint اختصاصی فعلی؛ Seat commercial فقط. رزرو اشغال فیزیکی و آزادسازی SeatNumber متعلق به Ordering/FlightFlow است؛ Ancillary به آن سرویس‌ها Call نمی‌کند.
 - **بدون تطبیق با Price سابق:** Ancillary آنچه در Hold می‌گیرد را با قواعد خودش validate و نگهداری می‌کند؛ نمی‌تواند ادعا کند دقیقاً همان مشتری و همان Price قبلی بوده است. این محدودیت آگاهانه و مصوب است.
-- Gate 0 بر اساس Source واقعی دقیق DTOهای `AncillaryOffers`/`Resolve`/`SeatHoldFlightInput` را کنترل کند. هیچ عدد Enum یا فیلد غیرموجود از نمونه‌های نمایشی نتیجه‌گیری نشود. موارد فاقد پشتیبانی **GATED**، نه دورزده.
+- Gate 0 checked the real source DTOs of `AncillaryOffers`/`Resolve`/`SeatHoldFlightInput` (done 2026-10-26, see the Gate 0 line above). No enum number or missing field is inferred from illustrative samples. Unsupported cases are **GATED**, never bypassed.
 
 ## محتویات الزامی
 `00-START-HERE.md`, `01-MASTER-AND-OWNER-DECISIONS-FA.md`, `02-EXACT-RESERVATION-API-AND-DTOS.md`, `03-VARIANT-BY-VARIANT.md`, `04-AGGREGATE-AND-RELATIONAL-STORAGE.md`, `05-INVENTORY-AND-LIFECYCLE.md`, `06-V10-REFORM-AND-MIGRATION.md`, `07-ACCEPTANCE-MATRIX.md`, `08-SOURCE-AND-BENCHMARK-FA.md`, `10-AGENT-GATE0-SOURCE-AUDIT.md`, `11-AGENT-GATE1-WIRE-CONTRACT.md`, `12-AGENT-GATE2-TYPED-DOMAIN.md`, `13-AGENT-GATE3-INVENTORY-HOLD.md`, `14-AGENT-GATE4-SEAT-AND-LIFECYCLE.md`, `15-AGENT-GATE5-E2E-CLOSURE.md`, `SHA256SUMS.txt`, `VERIFY-PACK.py`.

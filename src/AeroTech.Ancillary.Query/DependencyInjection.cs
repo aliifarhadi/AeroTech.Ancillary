@@ -9,6 +9,7 @@ using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Services;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetPricedAncillaryOffers;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveAncillarySelection;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.VerifyHoldSelections;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.VerifySelections;
 using AeroTech.Ancillary.Query.Shopping.Common;
 using AeroTech.Ancillary.Query.Shopping.Common.FlightOffers;
@@ -78,6 +79,7 @@ namespace AeroTech.Ancillary.Query
             services.AddScoped<ISelectionVerifier, SelectionVerifier>();
             services.AddScoped<IResolveAncillarySelectionService, ResolveAncillarySelectionService>();
             services.AddScoped<ISeatSelectionVerifier, SeatSelectionVerifier>();
+            services.AddScoped<IHoldSelectionVerifier, HoldSelectionVerifier>();
             services.AddScoped<IPointOfSaleEligibilityReference, PointOfSaleEligibilityService>();
             services.AddScoped<IAgencySalesScopeService, AgencySalesScopeService>();
             services.AddScoped<IBackofficeSalesScopeResolver, BackofficeSalesScopeResolver>();

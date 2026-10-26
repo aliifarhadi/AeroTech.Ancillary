@@ -9,7 +9,10 @@
 - `Query/Shopping/AncillaryOffers/Dto/Service/ServiceResolvedSelectionDto.cs`: `OfferItemId,VariantCode,SelectionScope,Unit,Coverage,SourceBinding,Definition,Provision,Pricing,Details,Selected`، با `SelectedUnitDto(Quantity, Options)`.
 - `Query/Shopping/AncillaryOffers/Dto/Service/ServiceResolvedProvisionDto.cs`: `ProvisionId, CoverageScope` و مشخصات Booking/Document را دارد. پس Scope و Definition را می‌توان از Provision در Hold خواند.
 - `Query/.../AncillaryOffers/Dto/OfferCoverageDto.cs`: `travellerRefs`, `portionRefs`, `flightRefs` **string arrays**؛ Stock Source در Inventory با FlightId numeric شناخته می‌شود. بنابراین `coverage.flightIds` عددی در Hold یک ترجمه ضروری Caller است، نه new coverage business concept.
-- `Domain/.../CustomerSelectionContract.cs`: A02 PackageProductRef، A06 EquipmentKind، A12 MenuItemRef، A24 PlanCode را نشان می‌دهد، اما `Price/Selected` فعلی فقط ۶ مجموعه Options دارد. هیچ Field بی‌سند به Hold اضافه نکنید؛ اگر fixed unique نیست، GATED.
+- `Domain/.../CustomerSelectionContract.cs` lists A02 PackageProductRef, A06 EquipmentKind, A12 MenuItemRef and A24 PlanCode, which are not in `Price/Selected`. Gate 0: `Shopping/Options/TypedSelectionForm.cs:55-70` (`WithFixedChoices`) fixes each of them, plus A10 ToCabinId, A11 MealCode and A20–A22 AirportId/FacilityRef, uniquely from the Definition, and `Shopping/Offers/CustomerInputs.cs:10-18` hides a product whose fixed choice is missing. They are captured at Hold with the same rule (Owner Q1, Q2).
+- Gate 0: a Pet Definition must be `SubjectToConfirmation` (`AncillaryServiceDefinition.Profile.cs:130`), Price sells only `Immediate` (`SellableCandidate.cs:18`) and the v10 Hold refuses `SubjectToConfirmation` (`AncillaryHoldChecks.cs:37`), so A13/A14 are GATED (Owner Q1).
+- Gate 0: `CoveredFlightIds` is a `PrimitiveCollection` stored as JSON in `nvarchar(max)` (`AncillaryReservationUnitConfiguration.cs:21-24`); it moves to a child table (Owner Q5).
+- Gate 0: the server writes enums by name and every `long` as a JSON string (`PresentationExtensions.cs:68-70`); see 02 §0.
 - `reports/V10-RESERVATION-FINAL-CLOSURE.md`: 287 Domain/254 SQL acceptance و 24 HTTP steps **گزارش‌شده**؛ `Ordering` Integration و Live Local HTTP هنوز NOT VERIFIED/GATED؛ این سند تست‌ها را مستقل اجرا نکرده است.
 
 ## ب. مرجع مسیر فایل‌های واقعی

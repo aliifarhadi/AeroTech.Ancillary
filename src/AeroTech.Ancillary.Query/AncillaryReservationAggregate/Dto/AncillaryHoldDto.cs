@@ -1,28 +1,20 @@
+using System.Text.Json.Serialization;
 using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Query.AncillaryReservationAggregate.Dto
 {
     public sealed record AncillaryHoldDto(
         long HoldId,
-        string IdempotencyKey,
         long OrderId,
         string Reference,
         AncillaryReservationStatus Status,
         DateTimeOffset? ExpiresAt,
-        IReadOnlyList<AncillaryHoldUnitDto> Units);
-
-    public sealed record AncillaryHoldUnitDto(
-        long UnitId,
-        long OrderServiceId,
-        long ServiceDefinitionId,
-        long ProvisionId,
-        long? TravellerId,
-        ServiceCoverageScope CoverageScope,
-        IReadOnlyList<long> CoveredFlightIds,
-        int Quantity,
-        string? SeatMapSelectionId,
-        string? SeatNumber,
-        long? PricingId,
-        AncillaryReservationUnitStatus Status,
-        string? CancellationReasonCode);
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<AncillaryVariantHoldDto<HeldBaggageDetailsDto, AncillaryUnitHoldDto<HeldBaggageOptionsDto>>>? Baggages,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<AncillaryVariantHoldDto<HeldMealDetailsDto, AncillaryUnitHoldDto>>? Meals,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<AncillaryVariantHoldDto<AncillaryUnitHoldDto<HeldAssistedTravelOptionsDto>>>? AssistedTravel,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<AncillaryVariantHoldDto<HeldAirportServiceDetailsDto, AncillaryUnitHoldDto<HeldAirportServiceOptionsDto>>>? AirportServices,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<AncillaryVariantHoldDto<AncillaryUnitHoldDto<HeldPriorityOptionsDto>>>? PriorityServices,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<AncillaryVariantHoldDto<AncillaryUnitHoldDto<HeldConnectivityOptionsDto>>>? Connectivity,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<AncillaryVariantHoldDto<HeldUpgradeDetailsDto, AncillaryUnitHoldDto>>? Upgrades,
+        [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<AncillaryVariantHoldDto<SeatUnitHoldDto>>? Seats);
 }

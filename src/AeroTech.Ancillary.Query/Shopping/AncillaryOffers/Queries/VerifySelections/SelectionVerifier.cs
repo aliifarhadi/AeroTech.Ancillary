@@ -1,4 +1,3 @@
-using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.PriceAncillaryOffers;
 using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Services;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Ancillary.Query.Shopping.Common;
@@ -6,7 +5,6 @@ using AeroTech.Ancillary.Query.Shopping.Common.FlightOffers;
 using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
 using AeroTech.Ancillary.Shopping.Context;
 using AeroTech.Ancillary.Shopping.Options;
-using AeroTech.Ancillary.Shopping.Selection;
 using AeroTech.Ancillary.Shopping.Selections;
 using AeroTech.Messages.Shared.Enums;
 
@@ -67,7 +65,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.VerifySelect
         {
             var proof = selection switch
             {
-                TypedSelection typed => await _proofs.ProveTypedAsync(signed, typed.Family, Selection(typed.Options), contexts, cancellationToken),
+                TypedSelection typed => await _proofs.ProveTypedAsync(signed, typed.Family, TypedSelectionMapper.ToSelection(typed.Options), contexts, cancellationToken),
                 DirectSelection direct => await _proofs.ProveDirectAsync(signed, direct.Quantity, contexts, cancellationToken),
                 _ => throw new ArgumentOutOfRangeException(nameof(selection), selection, null)
             };
@@ -100,31 +98,5 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.VerifySelect
                 proof.SalesBinding,
                 proof.Quantity,
                 proof.ExpiresAtUtc);
-
-        private static AncillarySelection Selection(ISelectionOptions options)
-            => new()
-            {
-                BagRef = options.BagRef,
-                MeasuredWeightKg = options.MeasuredWeightKg,
-                Dimensions = Dimensions(options.Dimensions),
-                WeightKg = options.WeightKg,
-                AnimalType = options.AnimalType,
-                OtherAnimalCode = options.OtherAnimalCode,
-                AnimalAgeWeeks = options.AnimalAgeWeeks,
-                CombinedWeightKg = options.CombinedWeightKg,
-                CarrierDimensions = Dimensions(options.CarrierDimensions),
-                DocumentAcknowledgements = options.DocumentAcknowledgements,
-                SizeBracket = options.SizeBracket,
-                AssistanceSsrCode = options.AssistanceSsrCode,
-                InfantRef = options.InfantRef,
-                GuardianRef = options.GuardianRef,
-                TimeWithOffset = options.TimeWithOffset,
-                GuestCount = options.GuestCount,
-                OptIn = options.OptIn,
-                DeviceCount = options.DeviceCount
-            };
-
-        private static SelectedDimensions? Dimensions(SelectedDimensionsInput? dimensions)
-            => dimensions is null ? null : new SelectedDimensions(dimensions.LengthCm, dimensions.WidthCm, dimensions.HeightCm);
     }
 }

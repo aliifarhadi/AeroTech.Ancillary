@@ -57,9 +57,11 @@ using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.GetAn
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.GetAncillaryServiceDefinitionForm;
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.GetAncillaryServiceDefinitionsPaginated;
 using AeroTech.Ancillary.Query.AncillaryServiceDefinitionAggregate.Queries.GetAncillaryVariants;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.VerifyHoldSelections;
 using AeroTech.Ancillary.Query.SupplierAggregate.Queries.GetSupplierById;
 using AeroTech.Ancillary.Query.SupplierAggregate.Queries.GetSuppliersPaginated;
 using AeroTech.Ancillary.Query._Shared.DbContexts;
+using AeroTech.Ancillary.Shopping.Reading.Sql;
 using AeroTech.Ancillary.Synchronizer.AncillaryPricingAggregate;
 using AeroTech.Ancillary.Synchronizer.AncillaryProvisionAggregate;
 using AeroTech.Ancillary.Synchronizer.AncillaryServiceDefinitionAggregate;
@@ -146,7 +148,8 @@ public sealed class AncillaryScope : IAsyncDisposable
             new FlightCountInventoryRepository(Command),
             new FlightWeightInventoryRepository(Command),
             new AirportSlotInventoryRepository(Command));
-        HoldAncillaryServices = new HoldAncillaryServicesService(Reservations, allocator, new InventoryLedger(Command), HoldLock, UnitOfWork, ids, clock);
+        var holdSelections = new HoldSelectionVerifier(new SqlActiveAncillaryProvisionReader(Command), new SqlActiveAncillaryDefinitionReader(Command));
+        HoldAncillaryServices = new HoldAncillaryServicesService(Reservations, holdSelections, allocator, new InventoryLedger(Command), HoldLock, UnitOfWork, ids, clock);
         HoldSeatSelections = new HoldSeatSelectionsService(SeatSelections, HoldAncillaryServices);
         ConfirmAncillaryHold = new ConfirmAncillaryHoldService(Reservations, HoldLock, UnitOfWork, clock);
         ReleaseAncillaryHold = new ReleaseAncillaryHoldService(Reservations, HoldLock, UnitOfWork, clock);

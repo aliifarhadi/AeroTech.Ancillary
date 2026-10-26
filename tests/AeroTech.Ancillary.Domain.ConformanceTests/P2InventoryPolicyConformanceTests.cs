@@ -208,10 +208,11 @@ public class P2InventoryPolicyConformanceTests
         BusinessAssert.Throws(16602, 422, () => AirportSlotConsumption.Create(Lounge, 0, 1));
         BusinessAssert.Throws(16602, 422, () => AirportSlotConsumption.Create(Lounge, 90, 0));
         BusinessAssert.Throws(16602, 422, () => Policy(Args(InventoryAuthority.Local, LocalInventoryPattern.AirportSlot, count: Count())));
-        BusinessAssert.Throws(16608, 409, () => policy.Activate(Evidence(PricingUnit.PerPassenger, slotFacility: Ok), 1, Now));
+        BusinessAssert.Throws(16608, 409, () => policy.Activate(Evidence(PricingUnit.PerPassenger, slotFacility: Ok) with { RequiresSpecificAppointment = true }, 1, Now));
         BusinessAssert.Throws(16608, 409, () => policy.Activate(Evidence(PricingUnit.PerPassenger, families: ("LOUNGE", Ok)), 1, Now));
+        BusinessAssert.Throws(16606, 409, () => policy.Activate(Evidence(PricingUnit.PerPassenger, slotFacility: Ok, families: ("LOUNGE", Ok)), 1, Now));
 
-        policy.Activate(Evidence(PricingUnit.PerPassenger, slotFacility: Ok, families: ("LOUNGE", Ok)), 1, Now);
+        policy.Activate(Evidence(PricingUnit.PerPassenger, slotFacility: Ok, families: ("LOUNGE", Ok)) with { RequiresSpecificAppointment = true }, 1, Now);
 
         Assert.Equal(InventoryRecordStatus.Active, policy.Status);
     }

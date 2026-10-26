@@ -1,5 +1,7 @@
 # Reservation v11 — Gate 0: Questions and conflicts
 
+> **Status: history.** All six answers are merged into `docs/Pack-v11` (summary in 01 §I; file-by-file in 01 §I "Merged into"). The pack is the only executable authority; this file is not.
+
 **Base:** `7a74055` · **Full evidence:** `reports/V11-GATE0-SOURCE-AND-CONTRACT-AUDIT.md`.
 Only points that change the contract shape or the domain are listed. No code is written until they are answered.
 

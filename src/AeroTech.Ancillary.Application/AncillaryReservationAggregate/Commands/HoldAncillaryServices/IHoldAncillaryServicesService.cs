@@ -4,20 +4,20 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
 {
     public interface IHoldAncillaryServicesService
     {
-        Task<AncillaryHoldResult> HoldAsync(IHoldAncillaryServicesCommand command, CancellationToken cancellationToken = default);
+        Task<AncillaryHoldReceipt> HoldAsync(IHoldAncillaryServicesCommand command, CancellationToken cancellationToken = default);
 
-        Task<AncillaryHoldResult> HoldAsync(
+        Task<AncillaryHoldReceipt> HoldAsync(
             AncillaryHoldHeader header,
             IReadOnlyList<AncillaryReservationUnitArgs> units,
             CancellationToken cancellationToken = default);
 
-        Task<AncillaryHoldResult> AppendSeatsAsync(
+        Task<AncillaryHoldReceipt> AppendSeatsAsync(
             long holdId,
             AncillaryHoldHeader header,
             IReadOnlyList<AncillaryReservationUnitArgs> seats,
             CancellationToken cancellationToken = default);
 
-        Task<AncillaryHoldResult?> FindHeldSeatsAsync(
+        Task<AncillaryHoldReceipt?> FindHeldSeatsAsync(
             long? holdId,
             AncillaryHoldHeader header,
             IReadOnlyList<AncillaryReservationSeatSelectionArgs> seats,

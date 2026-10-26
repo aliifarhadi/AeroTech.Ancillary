@@ -99,10 +99,14 @@ namespace AeroTech.Ancillary.Domain.FlightCountInventoryAggregate
             Touch(now);
         }
 
-        public void Retire(long expectedVersion, DateTimeOffset now)
+        public void Retire(long expectedVersion, decimal activeUsage, DateTimeOffset now)
         {
             EnsureLive();
             EnsureVersion(expectedVersion);
+
+            if (activeUsage > 0)
+                throw ExceptionFactory.InventoryCapacityBelowActiveUsage(0, activeUsage);
+
             Status = InventoryRecordStatus.Retired;
             Touch(now);
         }

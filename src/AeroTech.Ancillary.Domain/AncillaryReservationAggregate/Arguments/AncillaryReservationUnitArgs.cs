@@ -13,7 +13,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Arguments
         string? SeatMapSelectionId = null,
         string? SeatNumber = null,
         long? PricingId = null,
-        DateTimeOffset? AppointmentTimeWithOffset = null,
-        int? GuestCount = null,
+        AncillaryReservationSelectionArgs? Selection = null,
+        string? VariantCode = null,
+        string? ServiceDefinitionRef = null,
         IReadOnlyList<AncillaryReservationAllocationArgs>? Allocations = null);
 }

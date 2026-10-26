@@ -155,13 +155,13 @@ public class P2CapacitySourceConformanceTests
         Assert.Equal((0, false, InventoryRecordStatus.Suspended), (source.TotalCapacity, source.ClosedForSale, source.Status));
 
         source.Activate(Verified(InventoryCountUnit.Item), 6, Now.AddMinutes(5));
-        source.Retire(7, Now.AddMinutes(6));
+        source.Retire(7, 0, Now.AddMinutes(6));
 
         Assert.Equal((InventoryRecordStatus.Retired, 8L, 0, 1), (source.Status, source.Version, source.TotalCapacity, source.Adjustments.Count));
         BusinessAssert.Throws(16613, 409, () => source.AdjustTo(3, 0, "CORRECTION", Actor, "corr-late", 8, ids, Now));
         BusinessAssert.Throws(16613, 409, () => source.Activate(Verified(), 8, Now));
         BusinessAssert.Throws(16613, 409, () => source.CloseForSale(8, Now));
-        BusinessAssert.Throws(16613, 409, () => source.Retire(8, Now));
+        BusinessAssert.Throws(16613, 409, () => source.Retire(8, 0, Now));
     }
 
     [Fact]
@@ -247,7 +247,7 @@ public class P2CapacitySourceConformanceTests
         Assert.False(slot.Overlaps(Airline, Lounge + 1, At(10), At(11)));
         Assert.False(slot.Overlaps(Airline + 1, Lounge, At(10), At(11)));
 
-        slot.Retire(1, Now);
+        slot.Retire(1, 0, Now);
 
         Assert.False(slot.Overlaps(Airline, Lounge, At(10), At(11)));
     }

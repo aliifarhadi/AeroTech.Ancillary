@@ -1,4 +1,5 @@
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Services;
+using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.PriceAncillaryOffers;
 using AeroTech.Ancillary.Domain.AncillaryReservationAggregate;
 using AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Arguments;
 using AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Contracts;
@@ -12,6 +13,7 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
     public sealed class HoldAncillaryServicesService : IHoldAncillaryServicesService
     {
         private readonly IAncillaryReservationRepository _reservations;
+        private readonly IHoldSelectionVerifier _verifier;
         private readonly IAncillaryHoldAllocator _allocator;
         private readonly IInventoryLedger _ledger;
         private readonly IAncillaryHoldLock _holdLock;
@@ -21,6 +23,7 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
 
         public HoldAncillaryServicesService(
             IAncillaryReservationRepository reservations,
+            IHoldSelectionVerifier verifier,
             IAncillaryHoldAllocator allocator,
             IInventoryLedger ledger,
             IAncillaryHoldLock holdLock,
@@ -29,6 +32,7 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
             IClock clock)
         {
             _reservations = reservations;
+            _verifier = verifier;
             _allocator = allocator;
             _ledger = ledger;
             _holdLock = holdLock;
@@ -37,24 +41,25 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
             _clock = clock;
         }
 
-        public Task<AncillaryHoldResult> HoldAsync(IHoldAncillaryServicesCommand command, CancellationToken cancellationToken = default)
-            => HoldAsync(
-                new AncillaryHoldHeader(command.IdempotencyKey, command.OrderId, command.Reference, command.RequestedExpiresAt),
-                command.Services
-                    .Select(service => new AncillaryReservationUnitArgs(
-                        service.OrderServiceId,
-                        service.ServiceDefinitionId,
-                        service.ProvisionId,
-                        service.TravellerId,
-                        service.CoverageScope,
-                        service.CoveredFlightIds,
-                        service.Quantity,
-                        AppointmentTimeWithOffset: service.InventoryFacts?.TimeWithOffset,
-                        GuestCount: service.InventoryFacts?.GuestCount))
-                    .ToList(),
-                cancellationToken);
+        public async Task<AncillaryHoldReceipt> HoldAsync(IHoldAncillaryServicesCommand command, CancellationToken cancellationToken = default)
+        {
+            var header = new AncillaryHoldHeader(command.IdempotencyKey, command.OrderId, command.Reference, command.RequestedExpiresAt);
+            var selections = AncillaryHoldFamilies.Selections(command);
+            var stored = await _reservations.FindByIdempotencyKeyAsync(header.IdempotencyKey, cancellationToken);
 
-        public async Task<AncillaryHoldResult> HoldAsync(
+            if (stored is not null)
+            {
+                stored.EnsureSameContent(header.OrderId, header.Reference, header.RequestedExpiresAt, selections.Select(SelectionArgs).ToList());
+
+                return stored.ToReceipt(_clock.GetDateTime());
+            }
+
+            var verified = await _verifier.VerifyAsync(new HoldSelectionVerification(selections), cancellationToken);
+
+            return await HoldAsync(header, selections.Zip(verified, UnitArgs).ToList(), cancellationToken);
+        }
+
+        public async Task<AncillaryHoldReceipt> HoldAsync(
             AncillaryHoldHeader header,
             IReadOnlyList<AncillaryReservationUnitArgs> units,
             CancellationToken cancellationToken = default)
@@ -72,7 +77,7 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
                 var allocated = await _allocator.AllocateAsync(units, cancellationToken);
                 var reservation = await HoldAsync(header, allocated, now, cancellationToken);
 
-                return reservation.ToResult(now);
+                return reservation.ToReceipt(now);
             }
             catch (Exception) when (!cancellationToken.IsCancellationRequested)
             {
@@ -85,7 +90,7 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
             }
         }
 
-        public async Task<AncillaryHoldResult> AppendSeatsAsync(
+        public async Task<AncillaryHoldReceipt> AppendSeatsAsync(
             long holdId,
             AncillaryHoldHeader header,
             IReadOnlyList<AncillaryReservationUnitArgs> seats,
@@ -98,9 +103,10 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
 
             var reservation = await _reservations.GetAsync(holdId, cancellationToken)
                               ?? throw ExceptionFactory.AncillaryHoldNotFound();
+            var described = await _allocator.AllocateAsync(seats, cancellationToken);
             var now = _clock.GetDateTime();
 
-            if (reservation.AppendSeats(header.IdempotencyKey, header.OrderId, header.Reference, header.RequestedExpiresAt, seats, _idGenerator, now))
+            if (reservation.AppendSeats(header.IdempotencyKey, header.OrderId, header.Reference, header.RequestedExpiresAt, described, _idGenerator, now))
             {
                 var reserved = await _reservations.ReservedOrderServiceIdsAsync(
                     seats.Select(seat => seat.OrderServiceId).ToList(),
@@ -113,10 +119,10 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
             }
 
-            return reservation.ToResult(now);
+            return reservation.ToReceipt(now);
         }
 
-        public async Task<AncillaryHoldResult?> FindHeldSeatsAsync(
+        public async Task<AncillaryHoldReceipt?> FindHeldSeatsAsync(
             long? holdId,
             AncillaryHoldHeader header,
             IReadOnlyList<AncillaryReservationSeatSelectionArgs> seats,
@@ -128,7 +134,7 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
             var appendIdempotencyKey = holdId is null ? null : header.IdempotencyKey;
 
             return stored is not null && stored.HoldsSeats(appendIdempotencyKey, header.OrderId, header.Reference, header.RequestedExpiresAt, seats)
-                ? stored.ToResult(_clock.GetDateTime())
+                ? stored.ToReceipt(_clock.GetDateTime())
                 : null;
         }
 
@@ -172,7 +178,42 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
             return reservation;
         }
 
-        private static AncillaryHoldResult Replayed(
+        private static AncillaryReservationServiceSelectionArgs SelectionArgs(HoldSelection selection)
+            => new(
+                selection.OrderServiceId,
+                selection.ProvisionId,
+                selection.TravellerId,
+                selection.FlightIds,
+                selection.Quantity,
+                Chosen(selection.Options));
+
+        private static AncillaryReservationUnitArgs UnitArgs(HoldSelection selection, VerifiedHoldSelection verified)
+            => new(
+                selection.OrderServiceId,
+                verified.ServiceDefinitionId,
+                selection.ProvisionId,
+                selection.TravellerId,
+                verified.CoverageScope,
+                selection.FlightIds,
+                verified.Quantity,
+                Selection: verified.Selection);
+
+        private static AncillaryReservationSelectionArgs? Chosen(ISelectionOptions? options)
+            => options switch
+            {
+                BaggageSelectionOptions baggage when baggage is not { BagRef: null, MeasuredWeightKg: null, Dimensions: null, WeightKg: null } =>
+                    new AncillaryReservationSelectionArgs(Baggage: new BaggageSelectionArgs(
+                        baggage.BagRef,
+                        baggage.MeasuredWeightKg,
+                        baggage.Dimensions is { } size ? new SelectedDimensionsArgs(size.LengthCm, size.WidthCm, size.HeightCm) : null,
+                        baggage.WeightKg)),
+                AssistedTravelHoldSelectionOptions assistedTravel => new AncillaryReservationSelectionArgs(AssistedTravel: new AssistedTravelSelectionArgs(assistedTravel.AssistanceSsrCode)),
+                AirportServiceSelectionOptions airportService => new AncillaryReservationSelectionArgs(AirportService: new AirportServiceSelectionArgs(airportService.TimeWithOffset, airportService.GuestCount)),
+                ConnectivitySelectionOptions { DeviceCount: { } deviceCount } => new AncillaryReservationSelectionArgs(Connectivity: new ConnectivitySelectionArgs(deviceCount)),
+                _ => null
+            };
+
+        private static AncillaryHoldReceipt Replayed(
             AncillaryReservation stored,
             AncillaryHoldHeader header,
             IReadOnlyList<AncillaryReservationUnitArgs> units,
@@ -180,7 +221,7 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
         {
             stored.EnsureSameContent(header.OrderId, header.Reference, header.RequestedExpiresAt, units);
 
-            return stored.ToResult(now);
+            return stored.ToReceipt(now);
         }
     }
 }

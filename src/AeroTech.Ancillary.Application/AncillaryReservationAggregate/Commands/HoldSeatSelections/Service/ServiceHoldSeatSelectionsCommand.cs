@@ -13,5 +13,5 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
         int CurrencyId,
         DateTimeOffset? TicketedAtUtc,
         IReadOnlyList<SeatHoldSelectionInput> Seats,
-        long? HoldId) : IRequest<AncillaryHoldResult>, IHoldSeatSelectionsCommand;
+        long? HoldId) : IRequest<AncillaryHoldReceipt>, IHoldSeatSelectionsCommand;
 }

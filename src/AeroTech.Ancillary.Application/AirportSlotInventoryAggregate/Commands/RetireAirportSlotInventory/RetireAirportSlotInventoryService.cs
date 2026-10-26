@@ -44,7 +44,9 @@ namespace AeroTech.Ancillary.Application.AirportSlotInventoryAggregate.Commands.
             if (inventory is null || inventory.OwnerAirlineId != ownerAirlineId)
                 throw ExceptionFactory.InventorySourceNotFound();
 
-            inventory.Retire(command.ExpectedVersion, _clock.GetDateTime());
+            var activeUsage = (await ledger.BalancesAsync(_clock.GetDateTime(), cancellationToken))[source].ActiveUsage;
+
+            inventory.Retire(command.ExpectedVersion, activeUsage, _clock.GetDateTime());
 
             await _synchronizer.ProjectAsync(inventory.ToReadModelSnapshot(), cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

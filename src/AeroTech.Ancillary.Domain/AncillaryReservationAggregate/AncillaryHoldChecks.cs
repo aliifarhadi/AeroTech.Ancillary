@@ -2,7 +2,7 @@ using AeroTech.Ancillary.Domain.AirportSlotInventoryAggregate;
 using AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate;
 using AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Arguments;
-using AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities;
+using AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Selections;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.Domain.SupplierAggregate;
 using AeroTech.Ancillary.Domain._Shared.Contracts;
@@ -13,6 +13,13 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate
 {
     public static class AncillaryHoldChecks
     {
+        private static readonly IReadOnlySet<string> GatedVariants = new HashSet<string>(StringComparer.Ordinal)
+        {
+            AncillaryVariant.MedicalEquipment,
+            AncillaryVariant.Bassinet,
+            AncillaryVariant.UnaccompaniedMinor
+        };
+
         public static void Accept(
             AncillaryReservationUnitArgs unit,
             AncillaryServiceDefinition? definition,
@@ -34,14 +41,25 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate
             if (definition.Status != ServiceDefinitionStatus.Active || provision.Status != ProvisionStatus.Active)
                 throw ExceptionFactory.AncillaryHoldNotReservable($"service {definition.Id} or its provision {provision.Id} is not active");
 
-            if (definition.Booking.ConfirmationRequirement == ConfirmationRequirement.SubjectToConfirmation)
-                throw ExceptionFactory.AncillaryHoldNotReservable($"service {definition.Id} needs a supplier confirmation that cannot be obtained");
+            EnsureHoldable(definition, provision);
 
             if (unit.Quantity < provision.Quantity.MinQuantity || unit.Quantity > provision.Quantity.MaxQuantity)
                 throw ExceptionFactory.AncillaryHoldQuantityNotAllowed();
 
             if (unit.CoverageScope != provision.CoverageScope)
                 throw ExceptionFactory.AncillaryHoldCoverageMismatch();
+        }
+
+        public static void EnsureHoldable(AncillaryServiceDefinition definition, AncillaryProvision provision)
+        {
+            if (definition.Booking.ConfirmationRequirement == ConfirmationRequirement.SubjectToConfirmation)
+                throw ExceptionFactory.AncillaryHoldNotReservable($"service {definition.Id} needs a supplier confirmation that cannot be obtained");
+
+            if (definition.VariantCode is { } variantCode && GatedVariants.Contains(variantCode))
+                throw ExceptionFactory.AncillaryHoldNotReservable($"variant {variantCode} of service {definition.Id} cannot be held");
+
+            if (provision.PriceOrigin == PriceOrigin.ExternalQuote)
+                throw ExceptionFactory.AncillaryHoldNotReservable($"service {definition.Id} is priced by an external quote");
         }
 
         public static void EnsureReservable(
@@ -64,11 +82,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate
             if (policy.WeightConsumption is { ConsumptionMode: FlightWeightConsumptionMode.AcceptedWeightKg })
                 throw ExceptionFactory.AncillaryHoldNotReservable($"accepted-weight consumption of service {definition.Id} is not supported");
 
-            if (policy.SlotConsumption is null && (unit.AppointmentTimeWithOffset is not null || unit.GuestCount is not null))
-                throw ExceptionFactory.AncillaryHoldRequestIsInvalid(nameof(AncillaryReservationUnit.AppointmentTimeWithOffset));
-
-            if (policy.SlotConsumption is not null && unit.AppointmentTimeWithOffset is null)
-                throw ExceptionFactory.AncillaryHoldRequestIsInvalid(nameof(AncillaryReservationUnit.AppointmentTimeWithOffset));
+            if (policy.SlotConsumption is not null && unit.Selection?.AirportService?.TimeWithOffset is null)
+                throw ExceptionFactory.AncillaryHoldRequestIsInvalid(nameof(AirportServiceSelection.TimeWithOffset));
 
             if (policy.SlotConsumption is not null && definition.AirportService is null)
                 throw ExceptionFactory.AncillaryHoldNotReservable($"the airport of service {definition.Id} is not stated");

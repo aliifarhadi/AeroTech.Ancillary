@@ -61,7 +61,8 @@ namespace AeroTech.Ancillary.Application.AncillaryInventoryPolicyAggregate.Servi
                     ? (await _facilities.CheckAsync(owner, slot.FacilityId, cancellationToken)).Result
                     : InventoryReferenceCheck.SourceUnavailable,
                 families,
-                familyUnits);
+                familyUnits,
+                facts?.RequiresSpecificAppointment);
         }
     }
 }

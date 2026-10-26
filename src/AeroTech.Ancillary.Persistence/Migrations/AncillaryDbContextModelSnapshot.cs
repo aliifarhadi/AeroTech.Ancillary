@@ -1806,21 +1806,11 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
-                    b.Property<DateTimeOffset?>("AppointmentTimeWithOffset")
-                        .HasColumnType("datetimeoffset");
-
                     b.Property<string>("CancellationReasonCode")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("CoverageScope")
-                        .HasColumnType("int");
-
-                    b.PrimitiveCollection<string>("CoveredFlightIds")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("GuestCount")
                         .HasColumnType("int");
 
                     b.Property<DateTimeOffset>("LastUpdateTime")
@@ -1856,6 +1846,11 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.Property<long>("ServiceDefinitionId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("ServiceDefinitionRef")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -1864,6 +1859,11 @@ namespace AeroTech.Ancillary.Persistence.Migrations
 
                     b.Property<long?>("TravellerId")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("VariantCode")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
 
                     b.HasKey("Id");
 
@@ -3260,6 +3260,191 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                         .HasForeignKey("AncillaryReservationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.OwnsMany("AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities.AncillaryReservationUnitFlight", "Flights", b1 =>
+                        {
+                            b1.Property<long>("AncillaryReservationUnitId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<long>("FlightId")
+                                .HasColumnType("bigint");
+
+                            b1.HasKey("AncillaryReservationUnitId", "FlightId");
+
+                            b1.ToTable("AncillaryReservationUnitFlights", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryReservationUnitId");
+                        });
+
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Selections.AirportServiceSelection", "AirportService", b1 =>
+                        {
+                            b1.Property<long>("AncillaryReservationUnitId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<int>("AirportId")
+                                .HasColumnType("int");
+
+                            b1.Property<long?>("FacilityId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<int?>("GuestCount")
+                                .HasColumnType("int");
+
+                            b1.Property<DateTimeOffset?>("TimeWithOffset")
+                                .HasColumnType("datetimeoffset");
+
+                            b1.HasKey("AncillaryReservationUnitId");
+
+                            b1.ToTable("AncillaryReservationUnitAirportServiceSelections", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryReservationUnitId");
+                        });
+
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Selections.AssistedTravelSelection", "AssistedTravel", b1 =>
+                        {
+                            b1.Property<long>("AncillaryReservationUnitId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<string>("AssistanceSsrCode")
+                                .IsRequired()
+                                .HasMaxLength(4)
+                                .HasColumnType("nvarchar(4)");
+
+                            b1.HasKey("AncillaryReservationUnitId");
+
+                            b1.ToTable("AncillaryReservationUnitAssistedTravelSelections", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryReservationUnitId");
+                        });
+
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Selections.BaggageSelection", "Baggage", b1 =>
+                        {
+                            b1.Property<long>("AncillaryReservationUnitId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<string>("BagRef")
+                                .HasMaxLength(64)
+                                .HasColumnType("nvarchar(64)");
+
+                            b1.Property<string>("EquipmentKind")
+                                .HasMaxLength(20)
+                                .HasColumnType("nvarchar(20)");
+
+                            b1.Property<decimal?>("MeasuredWeightKg")
+                                .HasPrecision(18, 3)
+                                .HasColumnType("decimal(18,3)");
+
+                            b1.Property<decimal?>("WeightKg")
+                                .HasPrecision(18, 3)
+                                .HasColumnType("decimal(18,3)");
+
+                            b1.HasKey("AncillaryReservationUnitId");
+
+                            b1.ToTable("AncillaryReservationUnitBaggageSelections", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryReservationUnitId");
+
+                            b1.OwnsOne("AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Selections.SelectedDimensions", "Dimensions", b2 =>
+                                {
+                                    b2.Property<long>("BaggageSelectionAncillaryReservationUnitId")
+                                        .HasColumnType("bigint");
+
+                                    b2.Property<decimal>("HeightCm")
+                                        .HasPrecision(18, 3)
+                                        .HasColumnType("decimal(18,3)")
+                                        .HasColumnName("HeightCm");
+
+                                    b2.Property<decimal>("LengthCm")
+                                        .HasPrecision(18, 3)
+                                        .HasColumnType("decimal(18,3)")
+                                        .HasColumnName("LengthCm");
+
+                                    b2.Property<decimal>("WidthCm")
+                                        .HasPrecision(18, 3)
+                                        .HasColumnType("decimal(18,3)")
+                                        .HasColumnName("WidthCm");
+
+                                    b2.HasKey("BaggageSelectionAncillaryReservationUnitId");
+
+                                    b2.ToTable("AncillaryReservationUnitBaggageSelections", "Ancillary");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("BaggageSelectionAncillaryReservationUnitId");
+                                });
+
+                            b1.Navigation("Dimensions");
+                        });
+
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Selections.ConnectivitySelection", "Connectivity", b1 =>
+                        {
+                            b1.Property<long>("AncillaryReservationUnitId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<int?>("DeviceCount")
+                                .HasColumnType("int");
+
+                            b1.HasKey("AncillaryReservationUnitId");
+
+                            b1.ToTable("AncillaryReservationUnitConnectivitySelections", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryReservationUnitId");
+                        });
+
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Selections.MealSelection", "Meal", b1 =>
+                        {
+                            b1.Property<long>("AncillaryReservationUnitId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<string>("MealCode")
+                                .HasMaxLength(4)
+                                .HasColumnType("nvarchar(4)");
+
+                            b1.Property<string>("MenuItemRef")
+                                .HasMaxLength(40)
+                                .HasColumnType("nvarchar(40)");
+
+                            b1.HasKey("AncillaryReservationUnitId");
+
+                            b1.ToTable("AncillaryReservationUnitMealSelections", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryReservationUnitId");
+                        });
+
+                    b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Selections.UpgradeSelection", "Upgrade", b1 =>
+                        {
+                            b1.Property<long>("AncillaryReservationUnitId")
+                                .HasColumnType("bigint");
+
+                            b1.Property<int>("ToCabinId")
+                                .HasColumnType("int");
+
+                            b1.HasKey("AncillaryReservationUnitId");
+
+                            b1.ToTable("AncillaryReservationUnitUpgradeSelections", "Ancillary");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AncillaryReservationUnitId");
+                        });
+
+                    b.Navigation("AirportService");
+
+                    b.Navigation("AssistedTravel");
+
+                    b.Navigation("Baggage");
+
+                    b.Navigation("Connectivity");
+
+                    b.Navigation("Flights");
+
+                    b.Navigation("Meal");
+
+                    b.Navigation("Upgrade");
                 });
 
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities.AncillaryReservationUnitAllocation", b =>

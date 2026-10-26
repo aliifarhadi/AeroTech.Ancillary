@@ -254,6 +254,9 @@ namespace AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate
             if (needsSlot)
                 InventoryRules.EnsureVerified(evidence.SlotFacility, $"Airport facility {SlotConsumption!.FacilityId}");
 
+            if (needsSlot && evidence.RequiresSpecificAppointment != true)
+                throw ExceptionFactory.InventoryPolicyActivationRefused($"pattern {pattern} needs a service that asks for a specific appointment");
+
             EnsureUnitsAlign(evidence, needsCount, needsWeight);
         }
 

@@ -1,33 +1,33 @@
 # 03 — دیکشنری کامل A01–A24؛ چه چیزی از AncillaryOffers/Resolve به Hold منتقل شود؟
 
-**Source of field names:** `AncillaryVariant.cs`, `CustomerSelectionContract.cs`, `SelectionOptionsInput`/six `*SelectionOptions.cs`, `ServiceResolvedSelectionDto<T>`, `*DetailsDto`. Status ثابتِ unsupported توسط Pack v10 و Source v9 به‌عنوان Gate ثبت شده است؛ هیچ Field invented برای «پرکردن جدول» ایجاد نشود. Options در Hold *فقط* همان `selected.options.{key}` موجود در Resolve است؛ همه نام‌ها camelCase.
+**Source of field names:** `AncillaryVariant.cs`, `CustomerSelectionContract.cs`, the six `*SelectionOptions.cs` records (the Hold types them per family, not through the `SelectionOptionsInput` union, Owner R1), `ServiceResolvedSelectionDto<T>`, `*DetailsDto`. Status ثابتِ unsupported توسط Pack v10 و Source v9 به‌عنوان Gate ثبت شده است؛ هیچ Field invented برای «پرکردن جدول» ایجاد نشود. Options در Hold *فقط* همان `selected.options.{key}` موجود در Resolve است؛ همه نام‌ها camelCase.
 
 | Variant | Family در Request | حداقل `unit` / `coverage` | `selected` کمینه / snapshot تخصصی | Inventory / وضعیت |
 |---|---|---|---|---|
 | **A01 ExtraCheckedBag** | `baggages` | `unit.travellerId`, `coverage.flightIds` بسته به Provision | `quantity` تعداد انتخابی؛ allowance/MaxKg ثابت از Definition در Hold snapshot اگر برای fulfillment لازم است | Count/FixedKg/Unlimited با Policy فعال |
-| **A02 ExtraWeightPackage** | `baggages` | Traveller + FlightIds | `quantity`؛ `packageProductRef` در CustomerSelectionContract هست ولی در `BaggageSelectionOptions` موجود **نیست**؛ فقط وقتی Package یکتا از Definition استخراج شود | selection متغیر نامشخص → **GATED**؛ Fixed Source قابل اثبات → مجاز |
+| **A02 ExtraWeightPackage** | `baggages` | Traveller + FlightIds | `quantity`; the package is the Definition's `serviceDefinitionRef` (`TypedSelectionForm.WithFixedChoices`), snapshotted at Hold | Supported (Owner Q1) |
 | **A03 Overweight** | `baggages` | Traveller + FlightIds | `options.baggage.{bagRef,measuredWeightKg}`؛ اندازه پذیرفته‌شده immutable | `AcceptedWeightKg/PerKilogram` در v10 پشتیبانی نمی‌شود؛ برای چنین Policy **GATED** |
 | **A04 Oversize** | `baggages` | Traveller + FlightIds | `options.baggage.dimensions` با `{lengthCm,widthCm,heightCm}`؛ no `dimensionsCm` wire جدید | Local Count/Unlimited با Rules موجود |
 | **A05 CabinBag** | `baggages` | Traveller + FlightIds | Qty در صورت انتخابی؛ سایر Facts از Definition | Count/Unlimited یا FixedKg بسته به Policy |
-| **A06 SpecialEquipment** | `baggages` | Traveller + FlightIds | `options.baggage.dimensions?`, `weightKg?`; `equipmentKind` در Contract هست اما در `BaggageSelectionOptions` موجود نیست؛ از Definition فقط اگر یکتا | تجهیزات با گزینه متغیر فاقد Source → **GATED** |
+| **A06 SpecialEquipment** | `baggages` | Traveller + FlightIds | `options.baggage.dimensions?`, `weightKg?`; `equipmentKind` fixed by `Definition.Baggage.EquipmentKind`, snapshotted in product `details` | Supported (Owner Q1) |
 | **A07 StandardSeat** | `SeatMaps/Holds` اختصاصی | Seat verifier موجود | `seatMapSelectionId`, SeatNumber و PricingId **از همان Verifier** | تجاری بدون Inventory allocation؛ فیزیکی در FlightFlow |
 | **A08 PreferredSeat** | `SeatMaps/Holds` | مثل A07 | مثل A07 | تجاری، ۰ FlightFlow calls |
 | **A09 ExtraSeat** | فعلاً generic ندارد | — | `purpose` واقعی و قرارداد ExtraSeat موجود نیست | **GATED**؛ نه Fake Seat Hold |
-| **A10 CabinUpgrade** | `upgrades` | Traveller + FlightId | `targetCabinId/quoteRef` در `Resolve/Details` و Contract نیازمند Quote واقعی | **GATED** برای ExternalQuote/Approval بدون ACL؛ هیچ Quote فرضی |
-| **A11 FreeSpecialMeal** | `meals` | Traveller + FlightId | `mealCode` **فقط اگر یکتا و در Definition/Details حاضر** در زمان Hold snapshot؛ Selected omitted اگر fixed | Unlimited/Local طبق Policy |
-| **A12 PaidPreorderMeal** | `meals` | Traveller + FlightId | `quantity` اگر انتخابی؛ `menuItemRef` اگر fixed در Definition/Details به‌طور یکتا snapshot؛ در `SelectionOptionsInput` فعلی Family Meal ندارد | اگر Menu متغیر در یک Provision و Resolve آن را حمل نمی‌کند **GATED** |
-| **A13 PetInCabin** | `pets` | Traveller + FlightIds | `options.pet.animalType`, `combinedWeightKg`, `carrierDimensions`, `otherAnimalCode?`,`animalAgeWeeks?`,`documentAcknowledgements?` | طبق Policy؛ Supplier/SubjectToConfirmation فاقد Adapter **GATED** |
-| **A14 PetInHold** | `pets` | Traveller + FlightIds | مثل A13 + `sizeBracket?` وقتی Rule لازم می‌داند | Local/Unlimited supported; Provider unsupported |
+| **A10 CabinUpgrade** | `upgrades` | Traveller + FlightId | `FixedAncillary`: no selected options; `toCabinId` fixed by `Definition.Upgrade.ToCabinId`, snapshotted in product `details` | Supported for `FixedAncillary` only; a quote (`quoteRef`, external quote) is **GATED** (Owner Q1) |
+| **A11 FreeSpecialMeal** | `meals` | Traveller + FlightId | `selected` omitted; `mealCode` fixed by `Definition.Meal.MealCode`, snapshotted in product `details` | Unlimited/Local per Policy; supported |
+| **A12 PaidPreorderMeal** | `meals` | Traveller + FlightId | `quantity` when chosen; `menuItemRef` fixed by `Definition.Meal.MenuItemRef`, snapshotted in product `details` | Supported (Owner Q1) |
+| **A13 PetInCabin** | `pets` | — | — | **GATED** (Owner Q1): the Definition forces `SubjectToConfirmation`; the `pets` array is not a Hold member (Owner R1 Q3), so a request with pets fails binding (400) before any write |
+| **A14 PetInHold** | `pets` | — | — | **GATED** (Owner Q1), as A13 |
 | **A15 Wheelchair** | `assistedTravel` | Traveller + FlightId | `options.assistedTravel.assistanceSsrCode`؛ WCHR/WCHS با انتخاب واقعی | Unlimited/Local مطابق Policy |
 | **A16 DisabilityAssistance** | `assistedTravel` | Traveller + FlightId | همان `assistanceSsrCode` | مثل A15 |
 | **A17 MedicalEquipment** | `assistedTravel` | Traveller + FlightId | Evidence/Oxygen/FREMEC در `CustomerSelectionContract` اما `AssistedTravelSelectionOptions` فعلی کامل نیست | **GATED** تا قرارداد و حفاظت داده at-rest تأیید شود |
-| **A18 Bassinet** | `assistedTravel` | ارائه `unit.travellerId` طبق Scope واقعی + FlightId | `options.assistedTravel.infantRef`, `guardianRef`؛ بدون استعلام Order؛ قواعد محلی | اگر Facts و Rule کافی نیست **GATED** |
+| **A18 Bassinet** | `assistedTravel` | — | `infantRef`/`guardianRef` are traveller refs scoped to the offer | **GATED** (Owner Q1); `infantRef`/`guardianRef` are not Hold members (Owner R1 Q3) |
 | **A19 UnaccompaniedMinor** | `assistedTravel` | Traveller + Coverage واقعی | guardian contacts در Price Selection موجود نیست؛ ناسازگاری bool/text قبلی | **GATED**؛ نه placeholder contacts |
-| **A20 Lounge** | `airportServices` | Traveller اگر Pax-scoped؛ FlightIds فقط اگر Provision/Source لازم | `options.airportService.timeWithOffset?`, `guestCount?`؛ airport/facility ثابت از Definition/Policy | AirportSlot نیازمند appointment دقیق و available slices؛ یا Unlimited |
+| **A20 Lounge** | `airportServices` | Traveller if Pax-scoped; FlightIds only if the Provision or the Source needs them | `options.airportService.timeWithOffset?`, `guestCount?`; `airportId` from the Definition and `facilityId` from the Provision rule or the Definition, snapshotted in product `details` | AirportSlot needs an exact appointment and available slices; or Unlimited |
 | **A21 FastTrack** | `airportServices` | مثل A20 | همان optionهای AirportService | طبق Policy |
-| **A22 CIP MeetAssist** | `airportServices` | مثل A20 | همان؛ service component codes fixed از Definition snapshot اگر fulfillment لازم | طبق Policy |
+| **A22 CIP MeetAssist** | `airportServices` | as A20 | as A20 | per Policy |
 | **A23 PriorityBoardingCheckin** | `priorityServices` | Traveller + FlightId | `options.priority.optIn=true` اگر selected typed؛ می‌توان false را عدم خرید دانست، نه Hold | طبق Policy، no separate toggle service |
-| **A24 OnboardWifi** | `connectivity` | Traveller + FlightId (یا Scope واقعی) | `options.connectivity.deviceCount?`; `planCode` اگر یکتا و fixed در Definition snapshot | چند Plan selectable بدون تمایز Source → **GATED** |
+| **A24 OnboardWifi** | `connectivity` | Traveller + FlightId (or the real scope) | `options.connectivity.deviceCount?`; the plan is the Definition's `serviceDefinitionRef` | Supported (Owner Q1) |
 
 ## الف. قرارداد `selected.options` در پرواز واقعی (بدون Generic Nullable Giant)
 
@@ -36,11 +36,10 @@
 {"variantCode":"A15","products":[{"provisionId":703,"units":[{"orderServiceId":503,"unit":{"travellerId":1001},"coverage":{"flightIds":[801]},"selected":{"options":{"assistedTravel":{"assistanceSsrCode":"WCHR"}}}}]}]}
 ```
 
-نمونه `A13` (به‌صورت Family `pets[]` و enum AnimalType **نمایشی**):
+Sample `A04` (dimensions use `SelectedDimensionsInput`):
 ```json
-{"variantCode":"A13","products":[{"provisionId":705,"units":[{"orderServiceId":505,"unit":{"travellerId":1001},"coverage":{"flightIds":[801]},"selected":{"options":{"pet":{"animalType":1,"combinedWeightKg":7.5,"carrierDimensions":{"lengthCm":45,"widthCm":30,"heightCm":25}}}}}]}]}
+{"variantCode":"A04","products":[{"provisionId":706,"units":[{"orderServiceId":506,"unit":{"travellerId":1001},"coverage":{"flightIds":[801]},"selected":{"options":{"baggage":{"dimensions":{"lengthCm":120,"widthCm":80,"heightCm":60}}}}}]}]}
 ```
-`animalType:1` فقط جایگزین نمونه است؛ مقدار enum واقعی باید از `PetAnimalType`/serializer سورس به‌دست آید، نه اینکه در Client Hardcode شود.
 
 نمونه `A20`:
 ```json
@@ -49,11 +48,11 @@
 
 ## ب. snapshot چه چیزهایی را باید نگه دارد؟
 - **Selected values**: همه مقادیر متغیر و تأثیرگذار در اجرای خدمت (SSR، Pet، BagRef، Dimensions، Time/GuestCount، DeviceCount). حفظ decimals و DateTimeOffset.
-- **Fixed fulfillment facts**: فقط Fact ثابت مؤثر بر انجام خدمت (MealCode/MenuItemRef، PlanCode، AirportId/FacilityId، Pet transport mode، service components) اگر Source واقعی فعال مقدار آن را نشان می‌دهد. *نه* عکس Definition کامل یا Object pricing.
+- **Fixed fulfillment facts** (Owner Q4): only `serviceDefinitionRef` (every unit), `equipmentKind` (A06), `mealCode` (A11), `menuItemRef` (A12), `toCabinId` (A10 fixed), `airportId` and `facilityId` (A20–A22), captured with the Price rule. *Not* a picture of the Definition or of the pricing.
 - **Commercial boundaries**: `VariantCode`, `ProvisionId`, derived `CoverageScope`, `Quantity`, `TravellerId`, `CoveredFlightIds` و status/refs.
 - Unit نه قیمت/مالیات/EMD و نه Outcome مالی را کپی کند. آن‌ها متعلق Order هستند.
 
-## ج. اگر Source فاقد داده است
-- اگر `Resolve.details` یا `Definition` یک مقدار انتخابی را **یکتا** تعیین نمی‌کند و Selected.Options هم آن را حمل نمی‌کند: **Hold رد شود**؛ هیچ `XxxRef` جدید در Hold برای پرکردن نقص Price خلق نشود.
-- اگر Source و قواعد مربوط Variant قابل‌اثبات است، فقط همان Variant و Pattern را فعال کنید؛ گیت دیگر Variantها مانع عبور A01/Seat/A15/A20 واقعی نشود.
-- *Supported* = `Hold→SQL→GET` مقادیر کامل و Stock سالم؛ صرف داشتن Record/Variant در Registry نشانه پیاده‌شدن نیست.
+## ج. Missing source
+- Gate 0 found a unique source for every fixed choice of A02, A06, A10 (fixed), A11, A12, A20–A22 and A24 (`TypedSelectionForm.WithFixedChoices`); these variants are supported.
+- A13/A14 (forced confirmation), A18 (offer-scoped refs), A09, A10 with a quote, A17 and A19 stay **GATED**; the Hold refuses them with an explicit error and no `XxxRef` field is invented. Pets and the A18 refs are not members of the Hold request at all (Owner R1 Q3).
+- *Supported* = `Hold → SQL → GET` returns the complete values and the stock stays correct; a record in the registry alone does not mean a variant is implemented.

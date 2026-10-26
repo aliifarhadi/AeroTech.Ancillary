@@ -5,14 +5,19 @@ using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.DefineAn
 using AeroTech.Ancillary.Application.AncillaryProvisionAggregate.Commands.DefineAncillaryProvision;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldAncillaryServices;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Services;
+using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.DefineAncillaryServiceDefinition;
+using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.PriceAncillaryOffers;
 using AeroTech.Ancillary.Persistence;
 using AeroTech.Ancillary.Persistence.AirportSlotInventoryAggregate;
 using AeroTech.Ancillary.Persistence.AncillaryInventoryPolicyAggregate;
 using AeroTech.Ancillary.Persistence.AncillaryReservationAggregate;
 using AeroTech.Ancillary.Persistence.FlightCountInventoryAggregate;
 using AeroTech.Ancillary.Persistence.FlightWeightInventoryAggregate;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.VerifyHoldSelections;
+using AeroTech.Ancillary.Shopping.Reading.Sql;
 using AeroTech.Framework.Core.Domain.Repository;
 using AeroTech.Messages.Ancillary.Enums;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 using static AeroTech.Ancillary.Application.AcceptanceTests.Fixtures.P1Commands;
 using static AeroTech.Ancillary.Application.AcceptanceTests.Fixtures.P2Commands;
@@ -91,9 +96,15 @@ public class V10InventoryAllocationAcceptanceTests
     private async Task<Product> LoungeSlotProductAsync(InventoryFixture fixture, int airlineId, long supplierId)
     {
         var variant = V122Catalog.Case("A20");
-        var definition = await _harness.Proof.DefinitionAsync(V122Catalog.Define(variant, airlineId, supplierId));
+        var definition = await _harness.Proof.DefinitionAsync(V122Catalog.Define(variant, airlineId, supplierId) with
+        {
+            TypedSpecification = new ServiceSpecificationInput(AirportService: variant.Specification.AirportService! with { MaxGuestsPerPrimary = 2, RequiresSpecificAppointment = true })
+        });
         var rule = await _harness.Proof.RuleAsync(
-            V122Catalog.Rule(variant, definition.Id),
+            V122Catalog.Rule(variant, definition.Id) with
+            {
+                AirportServiceRule = new ProvisionAirportServiceRuleInput("T1", AirportServiceDirection.Departure, new TimeOnly(6, 0), new TimeOnly(20, 0), null, 2)
+            },
             provisionId => new TestDefinePricingRatesCommand(provisionId, [new(null, null, null, new MoneyInput(25m, Eur), null)]));
 
         await _harness.ActivePolicyAsync(fixture, Local(airlineId, variant.Reference, definition.Id, LocalInventoryPattern.AirportSlot, slot: SlotUse()));
@@ -125,19 +136,18 @@ public class V10InventoryAllocationAcceptanceTests
         return (await _harness.RequestAsync(fixture, scope => scope.ActivateAirportSlotInventory.ActivateAsync(new TestAirportSlotLifecycleCommand(source.Id, 1)))).Id;
     }
 
-    private TestHoldAncillaryServicesCommand Hold(long orderId, params AncillaryHoldServiceInput[] services)
-        => new($"G2-{orderId}", orderId, $"ORD-{orderId}", _clock.Now.AddMinutes(30), services);
+    private TestHoldAncillaryServicesCommand Hold(long orderId, params HoldSelection[] services)
+        => M1Commands.Hold($"G2-{orderId}", orderId, _clock.Now.AddMinutes(30), services);
 
-    private static AncillaryHoldServiceInput Service(
+    private static HoldSelection Service(
         Product product,
         long orderId,
         int quantity = 1,
         IReadOnlyList<long>? flights = null,
-        ServiceCoverageScope coverageScope = ServiceCoverageScope.Sector,
-        InventoryHoldFactsInput? facts = null)
-        => new(orderId * 10 + 1, product.DefinitionId, product.ProvisionId, 71, coverageScope, flights ?? [Flight], quantity, facts);
+        AirportServiceSelectionOptions? appointment = null)
+        => M1Commands.Lounge(product.ProvisionId, orderId * 10 + 1, 71, flights ?? [Flight], quantity, appointment);
 
-    private async Task<AncillaryHoldResult> HoldAsync(TestHoldAncillaryServicesCommand command)
+    private async Task<AncillaryHoldReceipt> HoldAsync(TestHoldAncillaryServicesCommand command)
     {
         await using var scope = new AncillaryScope(_database, _clock);
 
@@ -147,7 +157,7 @@ public class V10InventoryAllocationAcceptanceTests
     private Task RefusedAsync(int code, int httpStatus, TestHoldAncillaryServicesCommand command)
         => BusinessAssert.ThrowsAsync(code, httpStatus, () => HoldAsync(command));
 
-    private async Task<AncillaryHoldResult> LifecycleAsync(Func<AncillaryScope, Task<AncillaryHoldResult>> change)
+    private async Task<AncillaryHoldReceipt> LifecycleAsync(Func<AncillaryScope, Task<AncillaryHoldReceipt>> change)
     {
         await using var scope = new AncillaryScope(_database, _clock);
 
@@ -214,10 +224,20 @@ public class V10InventoryAllocationAcceptanceTests
         await RefusedAsync(16419, 409, Hold(refused[1], Service(suspended, refused[1])));
         await RefusedAsync(16419, 409, Hold(refused[2], Service(daily, refused[2])));
         await RefusedAsync(16104, 422, Hold(refused[3], Service(external, refused[3])));
-        await RefusedAsync(16419, 409, Hold(refused[4], Service(new Product(kilo.Id, kiloRule.Provision.Id), refused[4])));
+        await RefusedAsync(16419, 409, Hold(refused[4], new HoldSelection(
+            AncillaryProfile.Baggage,
+            V122Catalog.VariantFor(PricingUnit.PerKilogram, ServiceDateBasis.FlightDeparture),
+            kiloRule.Provision.Id,
+            refused[4] * 10 + 1,
+            71,
+            [Flight],
+            1,
+            new BaggageSelectionOptions("B-1", 27m, null, null))));
 
-        Assert.Equal((AncillaryReservationStatus.Held, 2), (held.Status, Assert.Single(held.Units).Quantity));
-        Assert.Empty(await _harness.AllocationsAsync(held.OrderId));
+        await using var reader = new AncillaryScope(_database, _clock);
+
+        Assert.Equal((AncillaryReservationStatus.Held, 2), (held.Status, Assert.Single((await reader.Reservations.GetAsync(held.HoldId))!.Units).Quantity));
+        Assert.Empty(await _harness.AllocationsAsync(heldOrder));
         Assert.Equal("0|0", await ReservationsAsync(refused));
         Assert.Equal("0.000", await _harness.UsageAsync(FlightWeight, weightSource));
     }
@@ -315,7 +335,7 @@ public class V10InventoryAllocationAcceptanceTests
         var outbound = await CountSourceAsync(fixture, airlineId, MealResource, 5);
         var foreign = await CountSourceAsync(otherFixture, otherAirlineId, MealResource, 5, NextFlight);
         var orderId = NextOrderId;
-        var command = Hold(orderId, Service(portion, orderId, flights: [Flight, NextFlight], coverageScope: ServiceCoverageScope.Portion));
+        var command = Hold(orderId, Service(portion, orderId, flights: [Flight, NextFlight]));
 
         await RefusedAsync(16419, 409, command);
 
@@ -341,20 +361,20 @@ public class V10InventoryAllocationAcceptanceTests
         await SlotSourceAsync(fixture, airlineId, Utc(13), Utc(14), 4);
         var (first, gap, crowd, closed) = (NextOrderId, NextOrderId, NextOrderId, NextOrderId);
         var tehran = TimeSpan.FromHours(3.5);
-        var command = Hold(first, Service(lounge, first, facts: new InventoryHoldFactsInput(Utc(10).ToOffset(tehran), 2)));
+        var command = Hold(first, Service(lounge, first, appointment: new AirportServiceSelectionOptions(Utc(10).ToOffset(tehran), 2)));
 
         var hold = await HoldAsync(command);
         var replay = await HoldAsync(command);
 
         Assert.Equal(hold.HoldId, replay.HoldId);
         Assert.Equal(new[] { Uses(AirportSlot, morning, "3.000"), Uses(AirportSlot, noon, "3.000") }.Order(), (await _harness.AllocationsAsync(first)).Order());
-        await RefusedAsync(16403, 409, Hold(first, Service(lounge, first, facts: new InventoryHoldFactsInput(Utc(10).ToOffset(tehran), 1))));
-        await RefusedAsync(16419, 409, Hold(gap, Service(lounge, gap, facts: new InventoryHoldFactsInput(Utc(11, 30), 0))));
-        await RefusedAsync(16417, 409, Hold(crowd, Service(lounge, crowd, facts: new InventoryHoldFactsInput(Utc(10), 1))));
+        await RefusedAsync(16403, 409, Hold(first, Service(lounge, first, appointment: new AirportServiceSelectionOptions(Utc(10).ToOffset(tehran), 1))));
+        await RefusedAsync(16419, 409, Hold(gap, Service(lounge, gap, appointment: new AirportServiceSelectionOptions(Utc(11, 30), 0))));
+        await RefusedAsync(16417, 409, Hold(crowd, Service(lounge, crowd, appointment: new AirportServiceSelectionOptions(Utc(10), 1))));
         await RefusedAsync(16402, 422, Hold(crowd, Service(lounge, crowd)));
 
         await _harness.RequestAsync(fixture, scope => scope.CloseAirportSlotInventoryForSale.CloseAsync(new TestAirportSlotLifecycleCommand(morning, 2)));
-        await RefusedAsync(16419, 409, Hold(closed, Service(lounge, closed, facts: new InventoryHoldFactsInput(Utc(10), 0))));
+        await RefusedAsync(16419, 409, Hold(closed, Service(lounge, closed, appointment: new AirportServiceSelectionOptions(Utc(10), 0))));
         await LifecycleAsync(scope => scope.ReleaseAncillaryHold.ReleaseAsync(new TestReleaseAncillaryHoldCommand(hold.HoldId)));
 
         Assert.Equal(
@@ -376,11 +396,11 @@ public class V10InventoryAllocationAcceptanceTests
         var weight = await WeightSourceAsync(fixture, airlineId, 12.5m);
         var slot = await SlotSourceAsync(fixture, airlineId, Utc(10), Utc(12), 1);
 
-        var races = new (Func<long, AncillaryHoldServiceInput> Service, InventoryResourceKind Kind, long Source, string Capacity)[]
+        var races = new (Func<long, HoldSelection> Service, InventoryResourceKind Kind, long Source, string Capacity)[]
         {
             (orderId => Service(meal, orderId), FlightCount, count, "1.000"),
             (orderId => Service(bag, orderId), FlightWeight, weight, "12.500"),
-            (orderId => Service(lounge, orderId, facts: new InventoryHoldFactsInput(Utc(10), 0)), AirportSlot, slot, "1.000")
+            (orderId => Service(lounge, orderId, appointment: new AirportServiceSelectionOptions(Utc(10), 0)), AirportSlot, slot, "1.000")
         };
 
         foreach (var race in races)
@@ -445,7 +465,7 @@ public class V10InventoryAllocationAcceptanceTests
     }
 
     [Fact]
-    public async Task V10_I19_close_suspend_and_retire_serialize_with_a_racing_hold_and_admit_no_hold_after_them()
+    public async Task V10_I19_close_and_suspend_serialize_with_a_racing_hold_and_admit_no_hold_after_them()
     {
         var (fixture, airlineId, supplierId) = await OperatorAsync();
         var meal = await ProductAsync(fixture, airlineId, supplierId, "G2_SALEABLE",
@@ -459,12 +479,134 @@ public class V10InventoryAllocationAcceptanceTests
         await _harness.RequestAsync(fixture, scope => scope.OpenFlightCountInventoryForSale.OpenAsync(new TestFlightCountLifecycleCommand(source, 3)));
         admitted += await RaceAgainstHoldAsync(fixture, meal, scope => scope.SuspendFlightCountInventory.SuspendAsync(new TestFlightCountLifecycleCommand(source, 4)));
 
-        Assert.Equal("3|0", await StateAsync(source));
+        Assert.Equal(("3|0", $"{admitted}.000"), (await StateAsync(source), await _harness.UsageAsync(FlightCount, source)));
+    }
 
-        await _harness.RequestAsync(fixture, scope => scope.ActivateFlightCountInventory.ActivateAsync(new TestFlightCountLifecycleCommand(source, 5)));
-        admitted += await RaceAgainstHoldAsync(fixture, meal, scope => scope.RetireFlightCountInventory.RetireAsync(new TestFlightCountLifecycleCommand(source, 6)));
+    [Fact]
+    public async Task V11_I15_I23_a_source_is_retired_only_without_live_usage_and_a_racing_hold_or_retire_wins_alone()
+    {
+        var (fixture, airlineId, supplierId) = await OperatorAsync();
+        var meal = await ProductAsync(fixture, airlineId, supplierId, "V11_RETIRE",
+            id => Local(airlineId, "V11_RETIRE", id, LocalInventoryPattern.FlightCount, count: Count(MealResource, 1, InventoryCountUnit.Item)));
+        var source = await CountSourceAsync(fixture, airlineId, MealResource, 10);
+        var first = NextOrderId;
+        var held = await HoldAsync(Hold(first, Service(meal, first)));
 
-        Assert.Equal(("4|0", $"{admitted}.000"), (await StateAsync(source), await _harness.UsageAsync(FlightCount, source)));
+        await _harness.RefusedAsync(16621, 409, fixture, scope => scope.RetireFlightCountInventory.RetireAsync(new TestFlightCountLifecycleCommand(source, 2)));
+        await LifecycleAsync(scope => scope.ReleaseAncillaryHold.ReleaseAsync(new TestReleaseAncillaryHoldCommand(held.HoldId)));
+
+        var racing = NextOrderId;
+        var raced = await _harness.RaceAsync(
+        [
+            () => HoldAsync(Hold(racing, Service(meal, racing))),
+            () => _harness.RequestAsync(fixture, scope => scope.RetireFlightCountInventory.RetireAsync(new TestFlightCountLifecycleCommand(source, 2)))
+        ]);
+        var lost = Assert.Single(raced.Codes);
+
+        Assert.Equal(1, raced.Succeeded);
+        Assert.Contains(lost, new[] { 16419, 16621 });
+        Assert.Equal(
+            lost == 16621 ? ("2|0", "1.000") : ("4|0", "0.000"),
+            (await StateAsync(source), await _harness.UsageAsync(FlightCount, source)));
+    }
+
+    [Fact]
+    public async Task V11_I15_a_weight_or_slot_source_with_a_live_hold_is_retired_only_after_the_hold_is_released()
+    {
+        var (fixture, airlineId, supplierId) = await OperatorAsync();
+        var bag = await ProductAsync(fixture, airlineId, supplierId, "V11_RETIRE_BAG",
+            id => Local(airlineId, "V11_RETIRE_BAG", id, LocalInventoryPattern.FlightWeight, weight: FixedKg(12.5m)));
+        var lounge = await LoungeSlotProductAsync(fixture, airlineId, supplierId);
+        var weight = await WeightSourceAsync(fixture, airlineId, 30m);
+        var slot = await SlotSourceAsync(fixture, airlineId, Utc(10), Utc(12), 4);
+        var (bagged, appointed) = (NextOrderId, NextOrderId);
+        var bagHold = await HoldAsync(Hold(bagged, Service(bag, bagged)));
+        var loungeHold = await HoldAsync(Hold(appointed, Service(lounge, appointed, appointment: new AirportServiceSelectionOptions(Utc(10), 0))));
+
+        await _harness.RefusedAsync(16621, 409, fixture, scope => scope.RetireFlightWeightInventory.RetireAsync(new TestFlightWeightLifecycleCommand(weight, 2)));
+        await _harness.RefusedAsync(16621, 409, fixture, scope => scope.RetireAirportSlotInventory.RetireAsync(new TestAirportSlotLifecycleCommand(slot, 2)));
+
+        Assert.Equal(("12.500", "1.000"), (await _harness.UsageAsync(FlightWeight, weight), await _harness.UsageAsync(AirportSlot, slot)));
+
+        await LifecycleAsync(scope => scope.ReleaseAncillaryHold.ReleaseAsync(new TestReleaseAncillaryHoldCommand(bagHold.HoldId)));
+        await LifecycleAsync(scope => scope.ReleaseAncillaryHold.ReleaseAsync(new TestReleaseAncillaryHoldCommand(loungeHold.HoldId)));
+        await _harness.RequestAsync(fixture, scope => scope.RetireFlightWeightInventory.RetireAsync(new TestFlightWeightLifecycleCommand(weight, 2)));
+        await _harness.RequestAsync(fixture, scope => scope.RetireAirportSlotInventory.RetireAsync(new TestAirportSlotLifecycleCommand(slot, 2)));
+
+        Assert.Equal(
+            new[] { $"{(int)InventoryRecordStatus.Retired}|3", $"{(int)InventoryRecordStatus.Retired}|3" },
+            await _harness.RowsAsync($"""
+                SELECT CONCAT(Status, '|', Version) AS Value FROM Ancillary.FlightWeightInventories WHERE Id = {weight}
+                UNION ALL
+                SELECT CONCAT(Status, '|', Version) FROM Ancillary.AirportSlotInventories WHERE Id = {slot}
+                """));
+    }
+
+    [Fact]
+    public async Task V11_I17_a_confirmed_unit_keeps_its_stock_after_the_hold_deadline()
+    {
+        var (fixture, airlineId, supplierId) = await OperatorAsync();
+        var meal = await ProductAsync(fixture, airlineId, supplierId, "V11_CONFIRMED",
+            id => Local(airlineId, "V11_CONFIRMED", id, LocalInventoryPattern.FlightCount, count: Count(MealResource, 1, InventoryCountUnit.Item)));
+        var source = await CountSourceAsync(fixture, airlineId, MealResource, 1);
+        var (confirmed, later) = (NextOrderId, NextOrderId);
+        var hold = await HoldAsync(Hold(confirmed, Service(meal, confirmed)));
+
+        await LifecycleAsync(scope => scope.ConfirmAncillaryHold.ConfirmAsync(new TestConfirmAncillaryHoldCommand(hold.HoldId)));
+        _clock.Now = _clock.Now.AddMinutes(31);
+
+        await RefusedAsync(16417, 409, Hold(later, Service(meal, later)));
+
+        Assert.Equal(("1.000", "0|0"), (await _harness.UsageAsync(FlightCount, source), await ReservationsAsync(later)));
+    }
+
+    [Fact]
+    public async Task V11_I22_two_products_on_one_source_in_one_hold_are_summed_before_the_shortage_check()
+    {
+        var (fixture, airlineId, supplierId) = await OperatorAsync();
+        var vegetarian = await ProductAsync(fixture, airlineId, supplierId, "V11_VGML",
+            id => Local(airlineId, "V11_VGML", id, LocalInventoryPattern.FlightCount, count: Count(MealResource, 1, InventoryCountUnit.Item)));
+        var child = await ProductAsync(fixture, airlineId, supplierId, "V11_CHML",
+            id => Local(airlineId, "V11_CHML", id, LocalInventoryPattern.FlightCount, count: Count(MealResource, 1, InventoryCountUnit.Item)));
+        var source = await CountSourceAsync(fixture, airlineId, MealResource, 2);
+        var (refused, held) = (NextOrderId, NextOrderId);
+
+        await RefusedAsync(16417, 409, Hold(refused, Service(vegetarian, refused, quantity: 2), M1Commands.Lounge(child.ProvisionId, refused * 10 + 2, 72, [Flight], 1)));
+
+        Assert.Equal(("0|0", "0.000"), (await ReservationsAsync(refused), await _harness.UsageAsync(FlightCount, source)));
+
+        await HoldAsync(Hold(held, Service(vegetarian, held), M1Commands.Lounge(child.ProvisionId, held * 10 + 2, 72, [Flight], 1)));
+
+        Assert.Equal(new[] { Uses(FlightCount, source, "1.000"), Uses(FlightCount, source, "1.000") }, await _harness.AllocationsAsync(held));
+        Assert.Equal(("1|2", "2.000"), (await ReservationsAsync(held), await _harness.UsageAsync(FlightCount, source)));
+    }
+
+    [Fact]
+    public async Task V11_I23_a_real_sql_lock_timeout_refuses_the_hold_without_a_write_and_the_same_request_then_holds_once()
+    {
+        var (fixture, airlineId, supplierId) = await OperatorAsync();
+        var meal = await ProductAsync(fixture, airlineId, supplierId, "V11_LOCKED",
+            id => Local(airlineId, "V11_LOCKED", id, LocalInventoryPattern.FlightCount, count: Count(MealResource, 1, InventoryCountUnit.Item)));
+        var source = await CountSourceAsync(fixture, airlineId, MealResource, 1);
+        var orderId = NextOrderId;
+        var command = Hold(orderId, Service(meal, orderId));
+        var resource = $"Ancillary.Inventory.{FlightCount}.{source}";
+
+        await using (var blocker = _database.NewContext(_clock))
+        {
+            await using var transaction = await blocker.Database.BeginTransactionAsync();
+            await blocker.Database.ExecuteSqlAsync($"EXEC sp_getapplock @Resource = {resource}, @LockMode = 'Exclusive', @LockOwner = 'Transaction'");
+
+            await RefusedAsync(16622, 409, command);
+
+            Assert.Equal(("0|0", "0.000"), (await ReservationsAsync(orderId), await _harness.UsageAsync(FlightCount, source)));
+        }
+
+        var held = await HoldAsync(command);
+        var replay = await HoldAsync(command);
+
+        Assert.Equal(held.HoldId, replay.HoldId);
+        Assert.Equal(("1|1", "1.000"), (await ReservationsAsync(orderId), await _harness.UsageAsync(FlightCount, source)));
     }
 
     [Fact]
@@ -481,6 +623,7 @@ public class V10InventoryAllocationAcceptanceTests
         {
             var service = new HoldAncillaryServicesService(
                 scope.Reservations,
+                new HoldSelectionVerifier(new SqlActiveAncillaryProvisionReader(scope.Command), new SqlActiveAncillaryDefinitionReader(scope.Command)),
                 new AncillaryHoldAllocator(
                     scope.Definitions,
                     scope.Provisions,

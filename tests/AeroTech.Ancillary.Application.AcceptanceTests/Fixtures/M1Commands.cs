@@ -6,9 +6,12 @@ using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.Conf
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldAncillaryServices;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldSeatSelections;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ReleaseAncillaryHold;
+using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Services;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ActivateAncillaryServiceDefinition;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.DefineAncillaryServiceDefinition;
+using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.PriceAncillaryOffers;
 using AeroTech.Ancillary.Application.SupplierAggregate.Commands.RegisterSupplier;
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Application.AcceptanceTests.Fixtures;
@@ -102,7 +105,13 @@ public sealed record TestHoldAncillaryServicesCommand(
     long OrderId,
     string Reference,
     DateTimeOffset RequestedExpiresAt,
-    IReadOnlyList<AncillaryHoldServiceInput> Services) : IHoldAncillaryServicesCommand;
+    IReadOnlyList<AncillaryVariantHoldInput<SelectedUnitInput<BaggageHoldOptionsInput>>>? Baggages = null,
+    IReadOnlyList<AncillaryVariantHoldInput<SelectedUnitInput>>? Meals = null,
+    IReadOnlyList<AncillaryVariantHoldInput<SelectedUnitInput<AssistedTravelHoldOptionsInput>>>? AssistedTravel = null,
+    IReadOnlyList<AncillaryVariantHoldInput<SelectedUnitInput<AirportServiceHoldOptionsInput>>>? AirportServices = null,
+    IReadOnlyList<AncillaryVariantHoldInput<SelectedUnitInput<PriorityHoldOptionsInput>>>? PriorityServices = null,
+    IReadOnlyList<AncillaryVariantHoldInput<SelectedUnitInput<ConnectivityHoldOptionsInput>>>? Connectivity = null,
+    IReadOnlyList<AncillaryVariantHoldInput<SelectedUnitInput>>? Upgrades = null) : IHoldAncillaryServicesCommand;
 
 public sealed record TestConfirmAncillaryHoldCommand(long HoldId) : IConfirmAncillaryHoldCommand;
 
@@ -183,23 +192,76 @@ public static class M1Commands
     public static TestHoldAncillaryServicesCommand Hold(
         string idempotencyKey,
         long orderId,
-        long serviceDefinitionId,
         long provisionId,
         DateTimeOffset requestedExpiresAt,
         params (long OrderServiceId, long TravellerId, long FlightId)[] units)
+        => Hold(
+            idempotencyKey,
+            orderId,
+            requestedExpiresAt,
+            units.Select(unit => Lounge(provisionId, unit.OrderServiceId, unit.TravellerId, [unit.FlightId])).ToArray());
+
+    public static TestHoldAncillaryServicesCommand Hold(
+        string idempotencyKey,
+        long orderId,
+        DateTimeOffset requestedExpiresAt,
+        params HoldSelection[] selections)
         => new(
             idempotencyKey,
             orderId,
             $"ORD-{orderId}",
             requestedExpiresAt,
-            units
-                .Select(unit => new AncillaryHoldServiceInput(
-                    unit.OrderServiceId,
-                    serviceDefinitionId,
-                    provisionId,
-                    unit.TravellerId,
-                    ServiceCoverageScope.Sector,
-                    [unit.FlightId],
-                    1))
-                .ToList());
+            OptionFamily(selections, AncillaryProfile.Baggage, options => new BaggageHoldOptionsInput((BaggageSelectionOptions)options)),
+            QuantityFamily(selections, AncillaryProfile.Meal),
+            OptionFamily(selections, AncillaryProfile.AssistedTravel, options => new AssistedTravelHoldOptionsInput((AssistedTravelHoldSelectionOptions)options)),
+            OptionFamily(selections, AncillaryProfile.AirportService, options => new AirportServiceHoldOptionsInput((AirportServiceSelectionOptions)options)),
+            OptionFamily(selections, AncillaryProfile.Priority, options => new PriorityHoldOptionsInput((PrioritySelectionOptions)options)),
+            OptionFamily(selections, AncillaryProfile.Connectivity, options => new ConnectivityHoldOptionsInput((ConnectivitySelectionOptions)options)),
+            QuantityFamily(selections, AncillaryProfile.Upgrade));
+
+    public static HoldSelection Lounge(
+        long provisionId,
+        long orderServiceId,
+        long travellerId,
+        IReadOnlyList<long> flightIds,
+        int? quantity = null,
+        AirportServiceSelectionOptions? airportService = null)
+        => new(AncillaryProfile.AirportService, AncillaryVariant.Lounge, provisionId, orderServiceId, travellerId, flightIds, quantity, airportService);
+
+    private static IReadOnlyList<AncillaryVariantHoldInput<SelectedUnitInput<TOptions>>>? OptionFamily<TOptions>(
+        IReadOnlyList<HoldSelection> selections,
+        AncillaryProfile family,
+        Func<ISelectionOptions, TOptions> options)
+        where TOptions : class
+        => Units(selections, family, selection => selection.Quantity is null && selection.Options is null
+            ? null
+            : new SelectedUnitInput<TOptions>(selection.Quantity, selection.Options is { } chosen ? options(chosen) : null));
+
+    private static IReadOnlyList<AncillaryVariantHoldInput<SelectedUnitInput>>? QuantityFamily(IReadOnlyList<HoldSelection> selections, AncillaryProfile family)
+        => Units(selections, family, selection => selection.Quantity is { } quantity ? new SelectedUnitInput(quantity) : null);
+
+    private static IReadOnlyList<AncillaryVariantHoldInput<TSelected>>? Units<TSelected>(
+        IReadOnlyList<HoldSelection> selections,
+        AncillaryProfile family,
+        Func<HoldSelection, TSelected?> selected)
+        where TSelected : class
+        => selections.Where(selection => selection.Family == family).ToList() is { Count: > 0 } held
+            ? held
+                .GroupBy(selection => selection.VariantCode)
+                .Select(variant => new AncillaryVariantHoldInput<TSelected>(
+                    variant.Key,
+                    variant
+                        .GroupBy(selection => selection.ProvisionId)
+                        .Select(product => new AncillaryProductHoldInput<TSelected>(
+                            product.Key,
+                            product
+                                .Select(selection => new AncillaryUnitHoldInput<TSelected>(
+                                    selection.OrderServiceId,
+                                    selection.TravellerId is { } travellerId ? new HoldUnitInput(travellerId) : null,
+                                    selection.FlightIds.Count > 0 ? new HoldCoverageInput(selection.FlightIds) : null,
+                                    selected(selection)))
+                                .ToList()))
+                        .ToList()))
+                .ToList()
+            : null;
 }

@@ -17,7 +17,7 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
             _holds = holds;
         }
 
-        public async Task<AncillaryHoldResult> HoldAsync(IHoldSeatSelectionsCommand command, CancellationToken cancellationToken = default)
+        public async Task<AncillaryHoldReceipt> HoldAsync(IHoldSeatSelectionsCommand command, CancellationToken cancellationToken = default)
         {
             if (command.Seats.Select(seat => seat.SeatMapSelectionId).Distinct(StringComparer.Ordinal).Count() != command.Seats.Count)
                 throw ExceptionFactory.AncillaryHoldRequestIsInvalid(nameof(SeatHoldSelectionInput.SeatMapSelectionId));

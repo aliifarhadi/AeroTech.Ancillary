@@ -33,7 +33,7 @@ public class V10InventoryAllocationConformanceTests
     private static AncillaryInventoryPolicy SlotPolicy()
         => Active(
             Args(InventoryAuthority.Local, LocalInventoryPattern.AirportSlot, slot: AirportSlotConsumption.Create(Lounge, 90, 1)),
-            Evidence(PricingUnit.PerPassenger, slotFacility: Ok));
+            Evidence(PricingUnit.PerPassenger, slotFacility: Ok) with { RequiresSpecificAppointment = true });
 
     private static AncillaryReservationUnitArgs Unit(long orderServiceId = 9001, int quantity = 1, params AncillaryReservationAllocationArgs[] allocations)
         => M1Fixtures.Unit(orderServiceId, quantity: quantity) with { Allocations = allocations };
@@ -79,9 +79,12 @@ public class V10InventoryAllocationConformanceTests
         var limited = Active(
             Args(InventoryAuthority.Unlimited, limits: new PassengerUsageLimitArgs(PassengerUsageLimitScope.PerOrder, 1, "LOUNGE")),
             Evidence(families: ("LOUNGE", Ok)));
+        var retired = Active(Args(InventoryAuthority.Unlimited), Evidence());
+        retired.Retire(retired.Version, Now);
 
         BusinessAssert.Throws(16419, 409, () => AncillaryHoldChecks.EnsureReservable(M1Fixtures.Unit(), definition, null));
         BusinessAssert.Throws(16419, 409, () => AncillaryHoldChecks.EnsureReservable(M1Fixtures.Unit(), definition, draft));
+        BusinessAssert.Throws(16419, 409, () => AncillaryHoldChecks.EnsureReservable(M1Fixtures.Unit(), definition, retired));
         BusinessAssert.Throws(16419, 409, () => AncillaryHoldChecks.EnsureReservable(M1Fixtures.Unit(), definition, supplier));
         BusinessAssert.Throws(16419, 409, () => AncillaryHoldChecks.EnsureReservable(M1Fixtures.Unit(), definition, limited));
 
@@ -100,22 +103,26 @@ public class V10InventoryAllocationConformanceTests
     }
 
     [Fact]
-    public void V10_G2_D02_inventory_facts_belong_only_to_a_slot_policy_and_flight_stock_needs_the_covered_flights()
+    public void V10_G2_D02_a_slot_policy_needs_the_appointment_and_flight_stock_needs_the_covered_flights()
     {
         var definition = M1Fixtures.ActiveLoungeDefinition();
+        var lounge = M1Fixtures.Unit() with { Selection = Appointed(Appointment, 2) };
 
-        BusinessAssert.Throws(16402, 422, () => AncillaryHoldChecks.EnsureReservable(M1Fixtures.Unit() with { AppointmentTimeWithOffset = Appointment }, definition, CountPolicy()));
-        BusinessAssert.Throws(16402, 422, () => AncillaryHoldChecks.EnsureReservable(M1Fixtures.Unit() with { GuestCount = 1 }, definition, CountPolicy()));
+        AncillaryHoldChecks.EnsureReservable(lounge, definition, CountPolicy());
         BusinessAssert.Throws(16402, 422, () => AncillaryHoldChecks.EnsureReservable(M1Fixtures.Unit(), definition, SlotPolicy()));
-        BusinessAssert.Throws(16419, 409, () => AncillaryHoldChecks.EnsureReservable(M1Fixtures.Unit() with { AppointmentTimeWithOffset = Appointment }, P1Fixtures.CarrierDefinition(), SlotPolicy()));
+        BusinessAssert.Throws(16402, 422, () => AncillaryHoldChecks.EnsureReservable(M1Fixtures.Unit() with { Selection = Appointed(null, 1) }, definition, SlotPolicy()));
+        BusinessAssert.Throws(16419, 409, () => AncillaryHoldChecks.EnsureReservable(lounge, P1Fixtures.CarrierDefinition(), SlotPolicy()));
         BusinessAssert.Throws(16419, 409, () => AncillaryHoldChecks.EnsureReservable(
             M1Fixtures.Unit(coverageScope: ServiceCoverageScope.Order, coveredFlightIds: []),
             definition,
             CountPolicy()));
 
         Assert.NotNull(definition.AirportService);
-        AncillaryHoldChecks.EnsureReservable(M1Fixtures.Unit() with { AppointmentTimeWithOffset = Appointment, GuestCount = 2 }, definition, SlotPolicy());
+        AncillaryHoldChecks.EnsureReservable(lounge, definition, SlotPolicy());
     }
+
+    private static AncillaryReservationSelectionArgs Appointed(DateTimeOffset? appointment, int? guests)
+        => new(AirportService: new AirportServiceSelectionArgs(appointment, guests, 1));
 
     [Fact]
     public void V10_I06_I11_I20_demand_is_quantity_times_the_binding_and_guests_count_as_persons()

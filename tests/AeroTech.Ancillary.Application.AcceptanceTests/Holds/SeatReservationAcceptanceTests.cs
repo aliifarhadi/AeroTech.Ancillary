@@ -59,13 +59,13 @@ public class SeatReservationAcceptanceTests
 
         var hold = await scope.HoldSeatSelections.HoldAsync(command);
         var replay = await scope.HoldSeatSelections.HoldAsync(command);
-        var read = await scope.GetHoldById.ExecuteAsync(hold.HoldId);
+        var stored = await scope.Reservations.GetAsync(hold.HoldId);
 
         Assert.Equal((AncillaryReservationStatus.Held, _clock.Now.AddMinutes(30), 2), (hold.Status, hold.ExpiresAt, hold.Units.Count));
         Assert.Equal(hold.HoldId, replay.HoldId);
         Assert.Equal(
             new[] { (adult, "3A", PricingId, 101L, FlightId), (child, "3B", PricingId, 102L, FlightId) },
-            read.Units.OrderBy(unit => unit.TravellerId).Select(unit => (unit.SeatMapSelectionId!, unit.SeatNumber!, unit.PricingId!.Value, unit.TravellerId!.Value, unit.CoveredFlightIds.Single())));
+            stored!.Units.OrderBy(unit => unit.TravellerId).Select(unit => (unit.SeatMapSelectionId!, unit.SeatNumber!, unit.PricingId!.Value, unit.TravellerId!.Value, unit.CoveredFlightIds.Single())));
         Assert.Equal((orderId, 1L, M1Commands.Currency), (scope.SeatSelections.Verified[0].OrderId, scope.SeatSelections.Verified[0].PointOfSaleId, scope.SeatSelections.Verified[0].CurrencyId));
         await BusinessAssert.ThrowsAsync(16403, 409, () => scope.HoldSeatSelections.HoldAsync(command with { Seats = [Seat(orderId * 10 + 1, 101, SeatId("ADT-1", "3C")), command.Seats[1]] }));
     }
@@ -97,7 +97,7 @@ public class SeatReservationAcceptanceTests
         var read = await scope.GetHoldById.ExecuteAsync(hold.HoldId);
 
         Assert.Equal((AncillaryReservationStatus.Released, AncillaryReservationStatus.Released, AncillaryReservationStatus.Released), (released.Status, replay.Status, read.Status));
-        Assert.All(read.Units, unit => Assert.Equal(AncillaryReservationUnitStatus.Released, unit.Status));
+        Assert.All(read.Units(), unit => Assert.Equal(AncillaryReservationUnitStatus.Released, unit.Status));
         await BusinessAssert.ThrowsAsync(16412, 409, () => scope.ConfirmAncillaryHold.ConfirmAsync(new TestConfirmAncillaryHoldCommand(hold.HoldId)));
 
         var again = await scope.HoldSeatSelections.HoldAsync(Command(orderId, $"SEAT-{orderId}-2", Seat(orderId * 10 + 1, 101, SeatId("ADT-1", "3A"))));
@@ -122,7 +122,7 @@ public class SeatReservationAcceptanceTests
         var read = await scope.GetHoldById.ExecuteAsync(hold.HoldId);
 
         Assert.Equal((AncillaryReservationStatus.Cancelled, AncillaryReservationStatus.Cancelled), (cancelled.Status, replay.Status));
-        Assert.All(read.Units, unit => Assert.Equal((AncillaryReservationUnitStatus.Cancelled, "CHANGE"), (unit.Status, unit.CancellationReasonCode)));
+        Assert.All(read.Units(), unit => Assert.Equal((AncillaryReservationUnitStatus.Cancelled, "CHANGE"), (unit.Status, unit.CancellationReasonCode)));
         await BusinessAssert.ThrowsAsync(16413, 409, () => scope.ConfirmAncillaryHold.ConfirmAsync(new TestConfirmAncillaryHoldCommand(hold.HoldId)));
     }
 
@@ -147,7 +147,7 @@ public class SeatReservationAcceptanceTests
 
         Assert.Equal(1, expired);
         Assert.Equal((AncillaryReservationStatus.Expired, AncillaryReservationStatus.Held), (earlyRead.Status, lateRead.Status));
-        Assert.All(earlyRead.Units, unit => Assert.Equal(AncillaryReservationUnitStatus.Expired, unit.Status));
+        Assert.All(earlyRead.Units(), unit => Assert.Equal(AncillaryReservationUnitStatus.Expired, unit.Status));
         Assert.Equal(AncillaryReservationStatus.Expired, (await scope.GetHoldById.ExecuteAsync(early.HoldId)).Status);
         await BusinessAssert.ThrowsAsync(16407, 409, () => scope.ConfirmAncillaryHold.ConfirmAsync(new TestConfirmAncillaryHoldCommand(early.HoldId)));
         await BusinessAssert.ThrowsAsync(16407, 409, () => scope.ReleaseAncillaryHold.ReleaseAsync(new TestReleaseAncillaryHoldCommand(early.HoldId)));
@@ -188,7 +188,7 @@ public class SeatReservationAcceptanceTests
     [Fact]
     public void SEAT_A07_the_hold_request_shapes_carry_no_money_member()
     {
-        var names = typeof(SeatHoldSelectionInput).GetProperties().Concat(typeof(SeatHoldFlightInput).GetProperties()).Concat(typeof(SeatHoldFareInput).GetProperties()).Concat(typeof(AncillaryHoldServiceInput).GetProperties())
+        var names = typeof(SeatHoldSelectionInput).GetProperties().Concat(typeof(SeatHoldFlightInput).GetProperties()).Concat(typeof(SeatHoldFareInput).GetProperties()).Concat(typeof(AncillaryUnitHoldInput<>).GetProperties()).Concat(typeof(SelectedUnitInput).GetProperties())
             .Select(property => property.Name);
 
         Assert.DoesNotContain(names, name => name.Contains("Amount", StringComparison.Ordinal) || name.Contains("Price", StringComparison.Ordinal) && name != "PricingId" || name.Contains("Fee", StringComparison.Ordinal));

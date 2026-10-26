@@ -10,9 +10,12 @@ using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.Hold
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ReleaseAncillaryHold;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Services;
 using AeroTech.Ancillary.Application.FlightOffers;
+using AeroTech.Ancillary.Application.Orders;
 using AeroTech.Ancillary.Persistence.AncillaryReservationAggregate;
 using AeroTech.Ancillary.Providers.AirInfo.Services;
 using AeroTech.Ancillary.Providers.FlightFlow.Services;
+using AeroTech.Ancillary.Query.AncillaryReservationAggregate.Queries.GetAncillaryHoldById;
+using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.VerifyHoldSelections;
 using AeroTech.Ancillary.Query.Shopping.SeatMaps;
 using AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.VerifySeatSelections;
 using AeroTech.Ancillary.Shopping.Engine;
@@ -103,15 +106,15 @@ public class V10SeatAndLifecycleAcceptanceTests
     private static TestHoldSeatSelectionsCommand SeatHold(long orderId, string key, DateTimeOffset expiresAt, long? holdId, params SeatHoldSelectionInput[] seats)
         => new(key, orderId, 1, $"ORD-{orderId}", expiresAt, 1, M1Commands.Currency, null, seats, holdId);
 
-    private static TestHoldAncillaryServicesCommand Hold(long orderId, DateTimeOffset expiresAt, params AncillaryHoldServiceInput[] services)
-        => new($"G3-{orderId}", orderId, $"ORD-{orderId}", expiresAt, services);
+    private static TestHoldAncillaryServicesCommand Hold(long orderId, DateTimeOffset expiresAt, params HoldSelection[] services)
+        => M1Commands.Hold($"G3-{orderId}", orderId, expiresAt, services);
 
-    private static AncillaryHoldServiceInput Service(Product product, long orderServiceId, long travellerId)
-        => new(orderServiceId, product.DefinitionId, product.ProvisionId, travellerId, ServiceCoverageScope.Sector, [Flight], 1);
+    private static HoldSelection Service(Product product, long orderServiceId, long travellerId)
+        => M1Commands.Lounge(product.ProvisionId, orderServiceId, travellerId, [Flight]);
 
-    private static long UnitOf(AncillaryHoldResult hold, long orderServiceId) => hold.Units.Single(unit => unit.OrderServiceId == orderServiceId).UnitId;
+    private static long UnitOf(AncillaryHoldReceipt hold, long orderServiceId) => hold.Units.Single(unit => unit.OrderServiceId == orderServiceId).UnitId;
 
-    private static IEnumerable<(long, AncillaryReservationUnitStatus)> Statuses(AncillaryHoldResult hold)
+    private static IEnumerable<(long, AncillaryReservationUnitStatus)> Statuses(AncillaryHoldReceipt hold)
         => hold.Units.OrderBy(unit => unit.OrderServiceId).Select(unit => (unit.OrderServiceId, unit.Status));
 
     [Fact]
@@ -179,7 +182,7 @@ public class V10SeatAndLifecycleAcceptanceTests
                 (seat, AncillaryReservationUnitStatus.Confirmed)
             },
             Statuses(cancelled));
-        Assert.Equal(Statuses(cancelled), read.Units.OrderBy(unit => unit.OrderServiceId).Select(unit => (unit.OrderServiceId, unit.Status)));
+        Assert.Equal(Statuses(cancelled), read.Units().OrderBy(unit => unit.OrderServiceId).Select(unit => (unit.OrderServiceId, unit.Status)));
         Assert.Equal("1.000", await _harness.UsageAsync(InventoryResourceKind.FlightCount, catalog.BagSource));
         Assert.Equal("5|2", (await _harness.RowsAsync($"SELECT CONCAT(TotalCapacity, '|', Version) AS Value FROM Ancillary.FlightCountInventories WHERE Id = {catalog.BagSource}")).Single());
     }
@@ -202,7 +205,7 @@ public class V10SeatAndLifecycleAcceptanceTests
 
         var untouched = await scope.GetHoldById.ExecuteAsync(hold.HoldId);
 
-        Assert.Equal((AncillaryReservationStatus.Held, 1, expiresAt), (untouched.Status, untouched.Units.Count, untouched.ExpiresAt!.Value));
+        Assert.Equal((AncillaryReservationStatus.Held, 1, expiresAt), (untouched.Status, untouched.Units().Count, untouched.ExpiresAt!.Value));
 
         var confirmedOrder = NextOrderId;
         var confirmed = await scope.HoldAncillaryServices.HoldAsync(Hold(confirmedOrder, expiresAt, Service(catalog.Meal, confirmedOrder * 10 + 1, 71)));
@@ -285,7 +288,7 @@ public class V10SeatAndLifecycleAcceptanceTests
                 SeatHold(orderId, $"G3-SEAT-{orderId}", expiresAt, hold.HoldId, Seat(orderId * 10 + 2, 71, SeatId("ADT-1", "3A")))));
         }
 
-        Assert.Equal((AncillaryReservationStatus.Held, 1), ((await scope.GetHoldById.ExecuteAsync(hold.HoldId)).Status, (await scope.GetHoldById.ExecuteAsync(hold.HoldId)).Units.Count));
+        Assert.Equal((AncillaryReservationStatus.Held, 1), ((await scope.GetHoldById.ExecuteAsync(hold.HoldId)).Status, (await scope.GetHoldById.ExecuteAsync(hold.HoldId)).Units().Count));
 
         _clock.Now = expiresAt;
 
@@ -305,7 +308,7 @@ public class V10SeatAndLifecycleAcceptanceTests
         var catalog = await CatalogAsync();
         var orderId = NextOrderId;
         var expiresAt = _clock.Now.AddMinutes(30);
-        AncillaryHoldResult hold;
+        AncillaryHoldReceipt hold;
 
         await using (var scope = Scope(catalog))
             hold = await scope.HoldAncillaryServices.HoldAsync(Hold(orderId, expiresAt, Service(catalog.Meal, orderId * 10 + 1, 71)));
@@ -335,7 +338,7 @@ public class V10SeatAndLifecycleAcceptanceTests
     }
 
     [Fact]
-    public void V10_S10_S11_no_type_reachable_from_the_seat_hold_or_the_lifecycle_can_reach_flightflow()
+    public void V10_S10_S11_V11_L15_L17_L18_no_type_reachable_from_a_reservation_operation_can_reach_flightflow_or_ordering()
     {
         Assembly[] solution =
         [
@@ -353,7 +356,8 @@ public class V10SeatAndLifecycleAcceptanceTests
         var pending = new Queue<Type>(
         [
             typeof(HoldSeatSelectionsService), typeof(ConfirmAncillaryHoldService), typeof(ReleaseAncillaryHoldService),
-            typeof(CancelAncillaryHoldService), typeof(ExpireAncillaryHoldsService), typeof(ISeatSelectionVerifier)
+            typeof(CancelAncillaryHoldService), typeof(ExpireAncillaryHoldsService), typeof(ISeatSelectionVerifier),
+            typeof(HoldAncillaryServicesService), typeof(GetAncillaryHoldByIdService)
         ]);
 
         while (pending.TryDequeue(out var type))
@@ -373,8 +377,11 @@ public class V10SeatAndLifecycleAcceptanceTests
         Assert.Contains(typeof(AirInfoAircraftSeatMapProvider), reached);
         Assert.Contains(typeof(HoldAncillaryServicesService), reached);
         Assert.Contains(typeof(InventoryLedger), reached);
+        Assert.Contains(typeof(HoldSelectionVerifier), reached);
         Assert.DoesNotContain(typeof(IOccupiedSeatProvider), reached);
         Assert.DoesNotContain(reached, type => type.Namespace!.Contains(".FlightFlow", StringComparison.Ordinal));
+        Assert.DoesNotContain(typeof(IOrderCommercialContextReader), reached);
+        Assert.DoesNotContain(reached, type => type.Namespace!.Contains(".Orders", StringComparison.Ordinal));
     }
 
     [Fact]

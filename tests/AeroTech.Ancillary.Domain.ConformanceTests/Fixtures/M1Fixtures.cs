@@ -129,5 +129,7 @@ public static class M1Fixtures
             travellerId,
             coverageScope,
             coveredFlightIds ?? [301],
-            quantity);
+            quantity,
+            VariantCode: AncillaryVariant.Lounge,
+            ServiceDefinitionRef: "LNG_IKA_CIP");
 }

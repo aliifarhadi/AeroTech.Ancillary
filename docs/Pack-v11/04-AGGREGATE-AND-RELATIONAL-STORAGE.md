@@ -24,9 +24,10 @@
 | `ServiceDefinitionId` | long | `Provision.ServiceDefinitionId` | **فقط internal**؛ از Caller دریافت نشود |
 | `ProvisionId` | long | `products[].provisionId` | >0؛ Active |
 | `VariantCode` | string(3) | `Definition.VariantCode` | immutable، مورد تأیید Family |
+| `ServiceDefinitionRef` | string | `Definition.ServiceDefinitionRef` | snapshot at Hold (Owner Q4); GET `products[].serviceDefinitionRef`; also the A02 package and the A24 plan |
 | `CoverageScope` | existing enum | `Provision.CoverageScope` | internal derived، never wire input |
 | `TravellerId` | long? | `units[].unit.travellerId` | required only Pax-scoped؛ no membership check |
-| `CoveredFlightIds` | collection<long> | `units[].coverage.flightIds` | positive/distinct؛ numeric Stock/Fulfillment coverage؛ Sector exactly 1 |
+| `CoveredFlightIds` | collection<long> | `units[].coverage.flightIds` | positive/distinct; Sector exactly 1; stored in the child table `AncillaryReservationUnitFlights` (Owner Q5), not in a JSON column |
 | `Quantity` | int | `selected.quantity` یا fixed 1 | immutable after Hold; check Provision.Quantity |
 | `Status` | existing enum | Root operation | released/expired/cancelled historical retained |
 | `CancellationReasonCode` | string? <=50 | Cancel operation | فقط Cancelled |
@@ -42,14 +43,14 @@
 
 | Family selection type | Persisted selected fields (CLR) | Fixed details captured at Hold if needed | Forbidden |
 |---|---|---|---|
-| BaggageSelection | `BagRef:string?`, `MeasuredWeightKg:decimal?`, `Dimensions:SelectedDimensions?`, `WeightKg:decimal?` | `EquipmentKind:string?`, `PackageWeightKg:decimal?` فقط اگر Source یکتا | پرکردن Optionهای A02/A06 با string فرضی |
-| MealSelection | — (اگر A11/A12 ثابت از Definition) | `MealCode:string?`, `MenuItemRef:string?`, `DietaryCode:string?` در صورت معلوم‌بودن قطعی | Meal متغیر بدون Source و بدون stored value |
-| PetSelection | `AnimalType:PetAnimalType`, `OtherAnimalCode:string?`, `AnimalAgeWeeks:int?`, `CombinedWeightKg:decimal`, `CarrierDimensions:SelectedDimensions`, `DocumentAcknowledgements:string[]?`, `SizeBracket:string?` | `TransportMode` از Definition در صورت نیاز | حساسیت اطلاعات واقعی بیش از Required |
-| AssistedTravelSelection | `AssistanceSsrCode:string?`, `InfantRef:string?`, `GuardianRef:string?` | `AssistanceKind` اگر برای Fulfillment لازم | A17/A19 medical/guardian data until gate |
-| AirportServiceSelection | `TimeWithOffset:DateTimeOffset?`, `GuestCount:int?` | `AirportId:int`, `FacilityId:long?`, `IncludedComponentCodes:string[]?` اگر لازم | `inventoryFacts` عمومی یا SourceId از Caller |
+| BaggageSelection | `BagRef:string?`, `MeasuredWeightKg:decimal?`, `Dimensions:SelectedDimensions?`, `WeightKg:decimal?` | `EquipmentKind:string?` (A06) | inventing a package or equipment value |
+| MealSelection | — | `MealCode:string?` (A11), `MenuItemRef:string?` (A12) | any meal value not taken from the Definition |
+| PetSelection | not built while A13/A14 are GATED (Owner Q1) | — | storing pet data without an approved confirmation flow |
+| AssistedTravelSelection | `AssistanceSsrCode:string` (A15/A16) | — | A17/A18/A19 data while GATED |
+| AirportServiceSelection | `TimeWithOffset:DateTimeOffset?`, `GuestCount:int?` | `AirportId:int`, `FacilityId:long?` | a general `inventoryFacts` or a source id from the caller |
 | PrioritySelection | `OptIn:bool` | هیچ مگر Fixed Service Code برای Fulfillment | false unit held |
-| ConnectivitySelection | `DeviceCount:int?` | `PlanCode:string?` اگر Definition یکتا | PlanCode حدسی |
-| UpgradeSelection | `TargetCabinId/QuoteRef` فقط مطابق **Quote Contract واقعی** | — | فعال‌کردن A10 با Quote جعلی |
+| ConnectivitySelection | `DeviceCount:int?` | — (the plan is the unit's `ServiceDefinitionRef`) | a guessed plan code |
+| UpgradeSelection | — | `ToCabinId:int` (A10 `FixedAncillary` only) | enabling a quote without a real quote contract |
 | SeatSelection | `SeatMapSelectionId:string`, `SeatNumber:string`, `PricingId:long` existing | — | Physical FlightFlow SeatHeld flag |
 
 **نکته Storage:** هر Family فعال در صورت داشتن داده Typed، یک **Owned child/table** کم‌فیلد (1:0..1) برای Unit. List مثل `DocumentAcknowledgements[]`, `IncludedComponentCodes[]`, `CoveredFlightIds[]` طبق قانون `CLAUDE.md` در child table relational؛ **نه JSON nvarchar(max)**. اگر یک Family فعلاً هیچ داده Selected ندارد، جدول خالی برای آن نسازید. تعداد جدول‌های نهایی از Variantهای واقعی قابل رزرو نتیجه شود؛ **هیچ اجباری به ۹ جدول از روز اول نیست**.
@@ -73,7 +74,7 @@ Active usage = Confirmed + Held nonexpired؛ Released/Cancelled/Expired ignore. 
 - `Confirmed` یک Unit هیچ‌وقت با `Release` به Held/Released برنگردد؛ فقط Cancel و مطابق قواعد.
 - Partial operation atomic؛ replay idempotent؛ انقضا lazy حتی بدون Poller، poller status persist می‌کند.
 - GET historical از Reservation + child data؛ حتی اگر Definition Retired شد، `SelectedDetails` نباید regenerate شود.
-- Restore و Migration تست database بدون wipe و بدون drop original data؛ migration additive با unique FK/indices کافی؛ بازسازی SQL مدل EF باید اثبات شود.
+- Dev reservation data is test data (Owner Q5): all reservation rows on dev are deleted before the v11 migration; the migration is plain (no backfill); the generated EF migration SQL is checked and Down/Up is proven on a test database.
 
 ## 6. فیچرهایی که عمداً نمی‌سازیم
 No `AncillaryReservationSeat`, `AncillaryReservationBaggage`, ... به‌عنوان ۲۴ Aggregate/Entity دارای Lifecycle مستقل؛ no event bus, no generic adapter framework, no supplier saga, no new Stock engine, no Order reader, no active pricing requote. Domain/SQL پیچیده موجود فقط به‌قدر لازم تغییر کند.

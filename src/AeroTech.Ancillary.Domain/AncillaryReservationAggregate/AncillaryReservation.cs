@@ -146,6 +146,22 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate
             EnsureSameUnits(_units.Where(unit => unit.AppendIdempotencyKey is null).ToList(), units);
         }
 
+        public void EnsureSameContent(
+            long orderId,
+            string reference,
+            DateTimeOffset requestedExpiresAt,
+            IReadOnlyList<AncillaryReservationServiceSelectionArgs> services)
+        {
+            var stored = _units.Where(unit => unit.AppendIdempotencyKey is null).ToList();
+
+            if (orderId != OrderId
+                || reference != Reference
+                || requestedExpiresAt != RequestedExpiresAt
+                || services.Count != stored.Count
+                || !stored.All(unit => services.Count(unit.IsSelectedBy) == 1))
+                throw ExceptionFactory.AncillaryHoldIdempotencyKeyReused();
+        }
+
         public AncillaryReservationUnitStatus StatusOf(AncillaryReservationUnit unit, DateTimeOffset now)
             => unit.Status == AncillaryReservationUnitStatus.Held && ExpiresAt is { } expiresAt && now >= expiresAt
                 ? AncillaryReservationUnitStatus.Expired

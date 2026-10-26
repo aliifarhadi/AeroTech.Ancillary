@@ -4,13 +4,13 @@ using MediatR;
 namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ConfirmAncillaryHold.Service
 {
     public sealed class ServiceConfirmAncillaryHoldCommandHandler
-        : IRequestHandler<ServiceConfirmAncillaryHoldCommand, AncillaryHoldResult>
+        : IRequestHandler<ServiceConfirmAncillaryHoldCommand, AncillaryHoldReceipt>
     {
         private readonly IConfirmAncillaryHoldService _service;
 
         public ServiceConfirmAncillaryHoldCommandHandler(IConfirmAncillaryHoldService service) => _service = service;
 
-        public Task<AncillaryHoldResult> Handle(ServiceConfirmAncillaryHoldCommand command, CancellationToken cancellationToken)
+        public Task<AncillaryHoldReceipt> Handle(ServiceConfirmAncillaryHoldCommand command, CancellationToken cancellationToken)
             => _service.ConfirmAsync(command, cancellationToken);
     }
 }

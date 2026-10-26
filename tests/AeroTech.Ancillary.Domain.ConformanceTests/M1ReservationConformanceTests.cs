@@ -190,7 +190,7 @@ public class M1ReservationConformanceTests
 
         Assert.Contains("ServiceDefinitionId", names);
         Assert.Contains("ProvisionId", names);
-        Assert.DoesNotContain(names, name => name.Contains("Ref", StringComparison.Ordinal) && name != "ProviderUnitRef");
+        Assert.DoesNotContain(names, name => name.Contains("Ref", StringComparison.Ordinal) && name is not ("ProviderUnitRef" or "ServiceDefinitionRef"));
         Assert.DoesNotContain("ServiceDefinitionVersion", names);
     }
 

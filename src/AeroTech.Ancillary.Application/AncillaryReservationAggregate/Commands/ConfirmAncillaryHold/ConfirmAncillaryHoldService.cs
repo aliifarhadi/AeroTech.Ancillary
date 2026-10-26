@@ -26,7 +26,7 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
             _clock = clock;
         }
 
-        public async Task<AncillaryHoldResult> ConfirmAsync(IConfirmAncillaryHoldCommand command, CancellationToken cancellationToken = default)
+        public async Task<AncillaryHoldReceipt> ConfirmAsync(IConfirmAncillaryHoldCommand command, CancellationToken cancellationToken = default)
         {
             var orderId = await _reservations.FindOrderIdAsync(command.HoldId, cancellationToken)
                           ?? throw ExceptionFactory.AncillaryHoldNotFound();
@@ -44,7 +44,7 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
             }
 
-            return reservation.ToResult(now);
+            return reservation.ToReceipt(now);
         }
     }
 }

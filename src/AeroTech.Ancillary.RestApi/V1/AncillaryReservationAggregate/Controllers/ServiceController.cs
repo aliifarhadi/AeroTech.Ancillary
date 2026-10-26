@@ -28,7 +28,13 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryReservationAggregate.Controller
                 request.OrderId,
                 request.Reference,
                 request.RequestedExpiresAt,
-                request.Services), cancellationToken));
+                request.Baggages,
+                request.Meals,
+                request.AssistedTravel,
+                request.AirportServices,
+                request.PriorityServices,
+                request.Connectivity,
+                request.Upgrades), cancellationToken));
 
         [HttpGet("Service-Holds/{holdId:long}")]
         public async Task<IActionResult> GetById(long holdId, CancellationToken cancellationToken)

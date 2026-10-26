@@ -11,7 +11,7 @@ namespace AeroTech.Ancillary.Application.AcceptanceTests.Boundary;
 public class P2BoundaryAcceptanceTests
 {
     private const string FrozenAggregate = "AncillaryReservationAggregate";
-    private const string FrozenSourceHash = "758010CE0F03CA960ACECEF62843BED3B7F7FCA52929066C6C963396CB8EABDD";
+    private const string FrozenSourceHash = "3E998D046B404D8BA7794F390B1CED88FC638B75CB22700694E152389CCB1E90";
     private const string CommandMigration = "20261008212718_V121Phase2StockCapacity.cs";
     private const string QueryMigration = "20261008212728_V121Phase2StockCapacityQuery.cs";
 
@@ -68,7 +68,7 @@ public class P2BoundaryAcceptanceTests
             .OrderBy(file => file.Path, StringComparer.Ordinal)
             .ToList();
 
-        Assert.Equal(82, frozen.Count);
+        Assert.Equal(133, frozen.Count);
         Assert.Equal(
             FrozenSourceHash,
             Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join('\n', frozen.Select(file => $"{file.Path}:{file.Hash}"))))));

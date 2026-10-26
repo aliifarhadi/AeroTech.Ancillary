@@ -15,7 +15,16 @@ namespace AeroTech.Ancillary.Persistence.AncillaryInventoryPolicyAggregate
             var definition = await _dbContext.AncillaryServiceDefinitions
                 .AsNoTracking()
                 .Where(row => row.Id == serviceDefinitionId)
-                .Select(row => new { row.Id, row.OwnerAirlineId, row.ServiceDefinitionRef, row.Profile, row.PricingUnit, row.SupplierId })
+                .Select(row => new
+                {
+                    row.Id,
+                    row.OwnerAirlineId,
+                    row.ServiceDefinitionRef,
+                    row.Profile,
+                    row.PricingUnit,
+                    row.SupplierId,
+                    RequiresSpecificAppointment = row.AirportService == null ? (bool?)null : row.AirportService.RequiresSpecificAppointment
+                })
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (definition is null)
@@ -35,7 +44,8 @@ namespace AeroTech.Ancillary.Persistence.AncillaryInventoryPolicyAggregate
                 definition.ServiceDefinitionRef,
                 definition.Profile,
                 definition.PricingUnit,
-                providerKey);
+                providerKey,
+                definition.RequiresSpecificAppointment);
         }
 
         public async Task<InventoryCommercialFacts?> FindCurrentAsync(int ownerAirlineId, string serviceDefinitionRef, CancellationToken cancellationToken = default)

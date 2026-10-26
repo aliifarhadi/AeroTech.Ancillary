@@ -1,5 +1,7 @@
 # Reservation v11 — Gate 0: Source and contract audit (report only)
 
+> **Status: history.** The Owner answered Q1–Q6 on 2026-10-26 and the answers are merged into `docs/Pack-v11` (summary in 01 §I). Where this report differs from the pack (for example the backfill proposed in D-9 and D-10), the pack wins.
+
 **Date:** 2026-10-26 · **Pack:** `docs/Pack-v11` (`VERIFY-PACK.py`: PASS, 15 Markdown files, 98 unique tests)
 **HEAD:** `7a74055` "V10 Code", exactly the pinned SHA. The working tree is clean apart from the pack itself (untracked).
 **Code, migration or commit:** none. Open questions are in `reports/V11-GATE0-QUESTIONS-AND-CONFLICTS.md`.

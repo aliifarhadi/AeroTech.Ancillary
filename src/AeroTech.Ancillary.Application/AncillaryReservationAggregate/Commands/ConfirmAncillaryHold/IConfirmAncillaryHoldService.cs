@@ -4,6 +4,6 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
 {
     public interface IConfirmAncillaryHoldService
     {
-        Task<AncillaryHoldResult> ConfirmAsync(IConfirmAncillaryHoldCommand command, CancellationToken cancellationToken = default);
+        Task<AncillaryHoldReceipt> ConfirmAsync(IConfirmAncillaryHoldCommand command, CancellationToken cancellationToken = default);
     }
 }

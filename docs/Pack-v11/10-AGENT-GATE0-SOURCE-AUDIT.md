@@ -1,5 +1,7 @@
 # Coding Agent — Gate 0 — Read-only source verification
 
+**Status:** done 2026-10-26 (`reports/V11-GATE0-SOURCE-AND-CONTRACT-AUDIT.md`); the Owner's answers are merged into 01–08 and 10–15 (01 §I).
+
 **ONLY REPORT. NO CODE EDIT, NO MIGRATION, NO COMMIT/PUSH/MERGE.** Owner must approve Gate 0 before Gate 1. Read `00`–`08` entirely first. Commit pinned `7a74055c774b2466fe239b8307ec93b15264e50c`; when working HEAD differs, record exact SHA and diff.
 
 1. Read `CLAUDE.md`, Reservation Root/Unit/Allocations/UnitConfiguration, REST Hold/GET/SeatMaps requests, Application Hold/Allocator, InventoryLedger, actual `AncillaryOffersDto`/`AncillaryVariantGroupDto`/`AncillaryProductGroupDto`/`AncillaryUnitOfferDto`, `SelectionOptionsInput`, six `*SelectionOptions`, Resolve DTOs and mapper, `CustomerSelectionContract`, `AncillaryVariant` registry.

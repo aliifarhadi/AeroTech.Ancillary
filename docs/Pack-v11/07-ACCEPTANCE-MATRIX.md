@@ -15,14 +15,14 @@
 | W07 | Product با variantCode دیگر | 422؛ بدون write |
 | W08 | Product با Family غلط | 422؛ بدون write |
 | W09 | یک `orderServiceId` تکراری بین Familyها | reject all |
-| W10 | selected options با کلید Family اشتباه | reject all |
+| W10 | selected options با کلید Family اشتباه | 400 at binding: the key is not a member of that family's `selected` (Owner R1 Q1) |
 | W11 | unknown JSON field در nested selected | 400 |
 | W12 | fixed Qty=1 و selected omitted | Unit.Quantity=1 |
 | W13 | انتخاب QuantityChoice بدون selected.quantity | 422 |
 | W14 | Qty خارج Min/Max | 422 |
 | W15 | نبود کل Unitها در Familyها | 400/422 و بدون write |
 | W16 | Receipt فقط holdId/reference/status/expiresAt/units minimal | exact shape |
-| W17 | GET رزرو typed grouping و fields | API contract exact |
+| W17 | GET typed grouping and fields, including the `seats` family and the product `serviceDefinitionRef`/`details` | API contract exact (02 §3) |
 | W18 | GET تاریخچه Released/Cancelled/Expired با selected immutable | same values |
 | W19 | `unit.travellerRef` Offer scoped در Hold | strict reject |
 | W20 | `coverage.flightRefs` string در Hold به جای `flightIds` numeric | strict reject |
@@ -30,6 +30,11 @@
 | W22 | PerOrder بدون Traveller/Flights در Variant مجاز | accepted when Policy allows |
 | W23 | Sector با 0/2 flightIds | reject |
 | W24 | Portion دو flightIds distinct | one Unit, both stock sources |
+| W25 | GET `seats` family: variant → product → unit with `seatNumber` and `seatMapSelectionId` | exact shape; no `pricingId` (Owner Q3) |
+| W26 | GET product `details` per family | only `equipmentKind` / `mealCode`, `menuItemRef` / `toCabinId` / `airportId`, `facilityId`; omitted when the family has none (Owner Q4) |
+| W27 | Wire representation | every `long` written as a JSON string, enums by name; numeric ids accepted on input (02 §0) |
+| W28 | `pets` array, `assistedTravel.infantRef`/`guardianRef`, `unit:{}` | 400: the first two are not members; `unit:{}` fails the shape rule (Owner R1 Q3, Q4) |
+| W29 | GET `selected` typed per family; `seatNumber`/`seatMapSelectionId` only on seat units | exact shape, null members omitted (Owner R1 Q2) |
 
 ## D — Domain انتخاب و تاریخچه
 
@@ -37,14 +42,14 @@
 |---|---|---|
 | D01 | A01 Qty2 → SQL → GET | same quantity and covered flights |
 | D02 | A04 dimensions → SQL → GET | exact length/width/height |
-| D03 | A13 pet dimensions/weight/type → SQL → GET | exact decimals/type |
+| D03 | A13/A14 pet Hold | explicit refusal before any write; the Definition forces `SubjectToConfirmation` (Owner Q1, GATED) |
 | D04 | A15 WCHR vs WCHS در دو Unit | distinct immutable choice |
 | D05 | A20 timeWithOffset/guestCount → SQL → GET | offset semantically stable; instant equal |
-| D06 | A24 deviceCount → SQL → GET | exactly selected |
+| D06 | A24 deviceCount → SQL → GET | exactly selected; the plan is the product `serviceDefinitionRef` |
 | D07 | A11 fixed MealCode snapshot before retirement | GET same MealCode without DB live |
-| D08 | A12 two menu values if not distinguishable by source | explicitly GATED, no fake record |
-| D09 | A02 PackageProductRef not in Price options | variable selection GATED |
-| D10 | A06 equipmentKind variable with no source | GATED |
+| D08 | A12 `menuItemRef` fixed by the Definition → SQL → GET | same value after the Definition is retired |
+| D09 | A02 package = `serviceDefinitionRef` → SQL → GET | same value after the Definition is retired |
+| D10 | A06 `equipmentKind` fixed by the Definition → SQL → GET | same value in product `details` |
 | D11 | A17 medical fields without security | GATED, no PII persisted |
 | D12 | A19 guardian proof missing | GATED |
 | D13 | A09 ExtraSeat unsupported | no false success |
@@ -55,6 +60,9 @@
 | D18 | duplicate orderServiceId | rejected before write |
 | D19 | Unit VariantCode derived Definition, cannot spoof | 422 mismatch |
 | D20 | Owner invariants: Unit only one family selection | no cross-family detail |
+| D21 | A10 `FixedAncillary` → SQL → GET | `toCabinId` snapshotted; same after the Definition is retired |
+| D22 | A18 bassinet Hold | explicit refusal before any write (offer-scoped refs, Owner Q1) |
+| D23 | Option value outside the Definition/Provision rules (SSR not allowed, weight or dimensions out of range, too many guests or devices) | 422 before any write; static depth only (Owner Q2) |
 
 ## I — Inventory و همزمانی SQL واقعی
 
@@ -114,11 +122,11 @@
 
 | ID | Test setup / Input | Expected |
 |---|---|---|
-| R01 | EF migration with existing historical reservations | no drop/data loss |
+| R01 | v11 migration on dev after all reservation rows are deleted (Owner Q5) | plain migration applies; Down/Up proven on a test database |
 | R02 | relational Selected details and lists | no JSON list column introduced |
 | R03 | Build + discovered and executed tests | counts match |
 | R04 | SQL concurrent tests are real | no fake in-memory proof |
-| R05 | HTTP with at least 3 Families using supported real Policies | real DB evidence |
+| R05 | HTTP with at least 3 families using supported real policies | real DB evidence; dev dataset per Owner Q6: A01, one A15 with `Immediate` confirmation, one A20 with a local Supplier and an Unlimited policy, and a seat append |
 | R06 | Live Local HTTP without source connections | GATED not PASS |
 | R07 | Ordering actual consumer end-to-end | NOT VERIFIED until tested independently |
 | R08 | API schema snapshot DTOs only named source fields | file-level evidence |
