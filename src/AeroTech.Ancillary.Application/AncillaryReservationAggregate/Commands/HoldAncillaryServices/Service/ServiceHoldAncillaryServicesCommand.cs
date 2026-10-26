@@ -6,6 +6,6 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
         string IdempotencyKey,
         long OrderId,
         string Reference,
-        DateTimeOffset? RequestedExpiresAt,
+        DateTimeOffset RequestedExpiresAt,
         IReadOnlyList<AncillaryHoldServiceInput> Services) : IRequest<AncillaryHoldResult>, IHoldAncillaryServicesCommand;
 }

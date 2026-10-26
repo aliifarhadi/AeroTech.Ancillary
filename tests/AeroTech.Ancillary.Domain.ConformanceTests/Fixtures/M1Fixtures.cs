@@ -26,7 +26,11 @@ public static class M1Fixtures
     public static Supplier ExternalSupplier(long id = 2002, string providerKey = "LoungePartnerA")
         => Supplier.Register(id, Airline, "Partner Lounge", SupplierFulfillmentKind.External, providerKey, Now);
 
-    public static AncillaryServiceDefinition LoungeDefinition(long id = 1001, long supplierId = 2001, string reference = "LNG_IKA_CIP")
+    public static AncillaryServiceDefinition LoungeDefinition(
+        long id = 1001,
+        long supplierId = 2001,
+        string reference = "LNG_IKA_CIP",
+        ConfirmationRequirement confirmation = ConfirmationRequirement.Immediate)
         => AncillaryServiceDefinition.Define(
             id,
             Airline,
@@ -42,10 +46,28 @@ public static class M1Fixtures
             "Lounge access",
             null,
             DocumentDefinition.Create(AncillaryDocumentType.EmdStandalone, "E", "0BX"),
-            BookingDefinition.Create(BookingMethod.NoBookingProcessRequired, null, null),
+            BookingDefinition.Create(BookingMethod.NoBookingProcessRequired, null, null, confirmation),
             null,
             null,
             Now);
+
+    public static AncillaryServiceDefinition ActiveLoungeDefinition(
+        long id = 1001,
+        long supplierId = 2001,
+        string reference = "LNG_IKA_CIP",
+        ConfirmationRequirement confirmation = ConfirmationRequirement.Immediate)
+    {
+        var definition = LoungeDefinition(id, supplierId, reference, confirmation);
+        definition.Activate(LocalSupplier(supplierId), Now);
+        return definition;
+    }
+
+    public static AncillaryProvision ActiveLoungeProvision(long serviceDefinitionId = 1001, int minQuantity = 1, int maxQuantity = 1)
+    {
+        var provision = LoungeProvision(serviceDefinitionId: serviceDefinitionId, minQuantity: minQuantity, maxQuantity: maxQuantity);
+        provision.Activate(LoungeDefinition(serviceDefinitionId), null, Now);
+        return provision;
+    }
 
     public static AncillaryProvision LoungeProvision(
         long id = 501,

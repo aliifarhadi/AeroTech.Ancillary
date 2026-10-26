@@ -16,6 +16,7 @@ namespace AeroTech.Ancillary.Shopping.Selections
             => candidate.Profile != AncillaryProfile.Seat
                && !GatedVariants.Contains(candidate.VariantCode)
                && candidate.Confirmation.ConfirmationRequirement == ConfirmationRequirement.Immediate
+               && candidate.Availability.InventoryAuthority != InventoryAuthority.Supplier
                && IsSingleUnit(candidate)
                && candidate.Price is
                {

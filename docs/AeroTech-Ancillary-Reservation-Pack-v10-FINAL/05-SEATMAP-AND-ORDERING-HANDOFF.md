@@ -52,7 +52,6 @@
 | `OrderFlight.Id` / verified flight physical ids | `coveredFlightIds[]` | Ordering mapping از `Resolve.Coverage.FlightRefs/PortionRefs`؛ Portion می‌تواند چند Flight داشته باشد |
 | `Resolved.Provision.CoverageScope` | `coverageScope` | `ServiceCoverageScope` enum موجود، نه `SelectionScope` REST |
 | `Resolved.Selected.Quantity` | `quantity` | Ordering accepted quantity؛ recheck against Provision |
-| Accepted Baggage measured weight total | `inventoryFacts.acceptedWeightKgTotal` | فقط Local AcceptedWeight؛ semantic وزن کل باید با accepted options مطابق باشد |
 | Accepted Airport Service appointment | `inventoryFacts.timeWithOffset` | فقط Slot؛ UTC equivalent برای allocation |
 | Accepted Airport Service guest count | `inventoryFacts.guestCount` | فقط Slot؛ صفر یا positive per selected |
 | `SeatMap.Resolve` + seat info in Ordering | SeatMap `seats[]` fields | Verifier اختصاصی، همان نوع DTO فعلی |
@@ -71,7 +70,7 @@
 - `OrderId=12001`، `SeatMapSelectionId=...`, `seatNumber=12A`, `flightId=801`، `orderServiceId=503`.
 - FlightFlow از Ordering seat `12A` را Hold کرده است. Ancillary `SeatMaps/Holds {holdId:9001,...}` را دریافت و Unit `9103` Commercial Held می‌سازد؛ هیچ call به FlightFlow.
 - پس از Confirm، Unit `9103` Confirmed و سایر Unitها نیز Confirmed می‌شوند.
-- Cancel Unit `9103`: commercial Cancelled و بدون Local allocation؛ درخواست واقعی آزادسازی SeatNumber اگر لازم باشد توسط Ordering به FlightFlow ارسال می‌شود.
+- Cancel Unit `9103` با `POST Service-Holds/9001/Cancellations {"reasonCode":"CUSTOMER_REQUEST","unitIds":[9103]}`: commercial Cancelled و بدون Local allocation؛ درخواست واقعی آزادسازی SeatNumber اگر لازم باشد توسط Ordering به FlightFlow ارسال می‌شود. آزادسازی Held همان Seat با `DELETE Service-Holds/9001?unitIds=9103` است.
 
 ## 7. تست‌های مرز SeatMap
 - Mock/Spy روی Ancillary outgoing HTTP: **صفر** فراخوانی `Flights/OccupiedSeats`, `Flights/Seat-Holds`, `Seat-Holds/{id}/...` از SeatMap Reservation.

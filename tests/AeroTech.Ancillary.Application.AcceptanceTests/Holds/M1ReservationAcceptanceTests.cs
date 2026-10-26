@@ -22,6 +22,9 @@ public class M1ReservationAcceptanceTests
         await scope.ActivateServiceDefinition.ActivateAsync(new TestActivateServiceDefinitionCommand(definition.Id));
         var provision = await scope.DefineProvision.DefineAsync(M1Commands.LoungeProvision(definition.Id));
         await scope.ActivateProvision.ActivateAsync(new TestActivateProvisionCommand(provision.Id));
+        await new InventoryHarness(_database, _clock).ActivePolicyAsync(
+            new InventoryFixture(airlineId),
+            new TestDefineInventoryPolicyCommand(airlineId, definition.ServiceDefinitionRef, definition.Id, InventoryAuthority.Unlimited));
 
         return (definition.Id, provision.Id, scope);
     }
@@ -65,10 +68,10 @@ public class M1ReservationAcceptanceTests
         var orderId = NextOrderId;
 
         await BusinessAssert.ThrowsAsync(16404, 422, () => scope.HoldAncillaryServices.HoldAsync(M1Commands.Hold(
-            $"IDEMP-{orderId}-A", orderId, 999_999_999, provisionId, null, (orderId * 10 + 1, 71, 301))));
+            $"IDEMP-{orderId}-A", orderId, 999_999_999, provisionId, _clock.Now.AddMinutes(30), (orderId * 10 + 1, 71, 301))));
 
         await BusinessAssert.ThrowsAsync(16405, 422, () => scope.HoldAncillaryServices.HoldAsync(M1Commands.Hold(
-            $"IDEMP-{orderId}-B", orderId, definitionId, 999_999_999, null, (orderId * 10 + 1, 71, 301))));
+            $"IDEMP-{orderId}-B", orderId, definitionId, 999_999_999, _clock.Now.AddMinutes(30), (orderId * 10 + 1, 71, 301))));
     }
 
     [Fact]
@@ -185,7 +188,7 @@ public class M1ReservationAcceptanceTests
         var orderId = NextOrderId;
 
         await BusinessAssert.ThrowsAsync(16104, 422, () => scope.HoldAncillaryServices.HoldAsync(M1Commands.Hold(
-            $"IDEMP-{orderId}", orderId, definition.Id, provision.Id, null, (orderId * 10 + 1, 71, 301))));
+            $"IDEMP-{orderId}", orderId, definition.Id, provision.Id, _clock.Now.AddMinutes(30), (orderId * 10 + 1, 71, 301))));
     }
 
     [Fact]

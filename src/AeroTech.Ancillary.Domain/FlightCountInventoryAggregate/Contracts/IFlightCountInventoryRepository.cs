@@ -8,6 +8,8 @@ namespace AeroTech.Ancillary.Domain.FlightCountInventoryAggregate.Contracts
 
         Task<FlightCountInventory?> GetAsync(long id, CancellationToken cancellationToken = default);
 
+        Task<long?> FindCurrentIdAsync(int ownerAirlineId, long flightId, long resourceId, CancellationToken cancellationToken = default);
+
         Task<InventoryCountUnit?> FindCountUnitOfLiveSourcesAsync(
             int ownerAirlineId,
             long resourceId,

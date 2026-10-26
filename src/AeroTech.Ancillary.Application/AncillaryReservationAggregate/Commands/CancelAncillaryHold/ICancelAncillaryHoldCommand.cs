@@ -5,5 +5,7 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
         long HoldId { get; }
 
         string ReasonCode { get; }
+
+        IReadOnlyList<long>? UnitIds { get; }
     }
 }

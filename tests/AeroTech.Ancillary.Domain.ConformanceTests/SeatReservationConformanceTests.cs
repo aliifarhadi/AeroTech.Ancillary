@@ -44,18 +44,18 @@ public class SeatReservationConformanceTests
     {
         var held = Hold();
 
-        Assert.True(held.Release(Now));
-        Assert.False(held.Release(Now));
+        Assert.True(held.Release(null, Now));
+        Assert.False(held.Release(null, Now));
         Assert.Equal(AncillaryReservationStatus.Released, held.Status);
         Assert.All(held.Units, unit => Assert.Equal(AncillaryReservationUnitStatus.Released, unit.Status));
         BusinessAssert.Throws(16412, 409, () => held.Confirm(Now));
-        BusinessAssert.Throws(16412, 409, () => held.Cancel("CHANGE", Now));
+        BusinessAssert.Throws(16412, 409, () => held.Cancel("CHANGE", null, Now));
 
         var confirmed = Hold();
 
         confirmed.Confirm(Now);
-        BusinessAssert.Throws(16411, 409, () => confirmed.Release(Now));
-        BusinessAssert.Throws(16407, 409, () => Hold().Release(Now.AddMinutes(31)));
+        BusinessAssert.Throws(16411, 409, () => confirmed.Release(null, Now));
+        BusinessAssert.Throws(16407, 409, () => Hold().Release(null, Now.AddMinutes(31)));
     }
 
     [Fact]
@@ -63,15 +63,15 @@ public class SeatReservationConformanceTests
     {
         var reservation = Hold();
 
-        BusinessAssert.Throws(16414, 409, () => reservation.Cancel("CHANGE", Now));
+        BusinessAssert.Throws(16414, 409, () => reservation.Cancel("CHANGE", null, Now));
         reservation.Confirm(Now);
-        BusinessAssert.Throws(16402, 422, () => reservation.Cancel("", Now));
-        Assert.True(reservation.Cancel("CHANGE", Now.AddMinutes(5)));
-        Assert.False(reservation.Cancel("CHANGE", Now.AddMinutes(6)));
+        BusinessAssert.Throws(16402, 422, () => reservation.Cancel("", null, Now));
+        Assert.True(reservation.Cancel("CHANGE", null, Now.AddMinutes(5)));
+        Assert.False(reservation.Cancel("CHANGE", null, Now.AddMinutes(6)));
         Assert.Equal(AncillaryReservationStatus.Cancelled, reservation.Status);
         Assert.All(reservation.Units, unit => Assert.Equal((AncillaryReservationUnitStatus.Cancelled, "CHANGE"), (unit.Status, unit.CancellationReasonCode)));
         BusinessAssert.Throws(16413, 409, () => reservation.Confirm(Now.AddMinutes(7)));
-        BusinessAssert.Throws(16413, 409, () => reservation.Release(Now.AddMinutes(7)));
+        BusinessAssert.Throws(16413, 409, () => reservation.Release(null, Now.AddMinutes(7)));
     }
 
     [Fact]

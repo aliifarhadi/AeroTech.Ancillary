@@ -8,7 +8,8 @@
 3. Run Domain conformance, Shopping (including current V9), Application Acceptance, Reservation+Inventory SQL tests. Report discovered/pass/fail counts for each; not omit slow tests.
 4. `dotnet ef migrations has-pending-model-changes` on `AncillaryDbContext` and validate new schema precision/indexes.
 5. SQL concurrency tests from I21/I22/I23 twice with independent OrderIDs/connections; capture lock and availability outcomes.
-6. HTTP live with test authorization on `Service` endpoints (no invented production creds). Test Create mixed NonSeat, GET, SeatAppend same holdId, unit Release, Confirm, unit Cancel, all Cancel/Release, expiry, retry, conflict.
+6. HTTP live on `Service` endpoints (anonymous S2S per the Owner's standing ruling; no invented production creds) for **Unlimited + Seat**: Create mixed NonSeat, GET, SeatAppend same holdId, partial Release (`?unitIds=`), Confirm, partial Cancel (`unitIds`), all Cancel/Release, expiry, retry, conflict. Local patterns are proven on real SQL; Local live HTTP = GATED until a real reference source exists, never PASS.
+6a. If a product is proven to pass Price but always fails Hold for Supplier without adapter, close it with one small guard in the offer/Price path plus a negative test (documented exception); no new engine or DTO.
 7. Confirm SeatMap HTTP path requires no physical availability or FlightFlow calls; existing `SeatMaps/Resolve` behavior unchanged.
 8. Prove `No write on invalid request`, no legacy virtual-hold fake success, no Supplier fake response. Unsupported patterns intentionally gated.
 9. Evaluate and report Ordering adapter mapping contract `05`: if Ordering repo isn't accessible, **mark consumer integration unverified**, not PASS. No changes in Ordering or FlightFlow.
@@ -25,7 +26,7 @@ Create `reports/V10-RESERVATION-FINAL-CLOSURE.md` including:
 - Unit status table for mixed Hold before and after Partial Release/Confirm/Partial Cancel.
 - SeatMap commercial-only proof and FlightFlow zero calls.
 - All old regression suites, no deleted/disabled tests.
-- Unverified/gated Supplier and Ordering integration separately, no success claim.
+- Unverified/gated Supplier, Local live HTTP and Ordering integration (E01–E03 NOT VERIFIED E2E) separately, no success claim.
 - Exact remaining risks, if any, and no background work promises.
 
 **Release gate:** all P0 Local inventory safety tests PASS and no new SeatMap/Price/Resolve regression. If any of these fail, do not close or merge to release branch. Coding Agent must not claim EMD/Ordering end-to-end functionality from Ancillary-only tests.

@@ -28,18 +28,20 @@ Repo `aliifarhadi/Aerotech.FlightFlow@k8s-stg:962f4188`:
 | Decision | Origin | چرا؟ |
 |---|---|---|
 | `AncillaryReservation` Root + Unit generic | Domain موجود در Ancillary + تصمیم مالک | بدون 24 Aggregates جداگانه، partial Unit release آسان |
-| Allocation immutable زیر Unit | طراحی داخلی لازم برای بستن P0 oversell | TotalCapacity موجود را تبدیل به Remaining نمی‌کنیم؛ نگهداری تخصیص اتمیک ساده می‌ماند |
-| Lock منبع در SQL + محاسبه ledger | SQL Server + موجودی محلی + تصمیم مهندسی | Hold دو Order روی یک stock نباید با order-lock تنها oversell شود |
+| Allocation immutable زیر Unit (Ledger، نه Counter) | طراحی داخلی + تصمیم مالک Gate 0 (Q1) | Counterهای `FlightCapacity` در FlightFlow کپی نمی‌شوند؛ Counter دوم منبع حقیقت و هماهنگی پیچیده با Expiry می‌سازد؛ TotalCapacity موجود را تبدیل به Remaining نمی‌کنیم |
+| Lock منبع در SQL (`sp_getapplock` Transaction) + محاسبه ledger | SQL Server + تصمیم مالک Gate 0 (Q2) | Hold دو Order روی یک stock نباید با order-lock تنها oversell شود؛ RedLock چندکلیدی FlightFlow کپی نمی‌شود |
 | `SeatMaps/Holds` append با holdId | تصمیم پروژه برای mixed Hold | همان Reservation برای Seat commercial و Baggage/Meal؛ هیچ physical seat inventory Ancillary |
 | Supplier fail closed | نبود Provider adapter واقعی در سورس | موفقیت رزرو خیالی خطرناک‌تر از گیت صریح است |
 | All-or-nothing در هر local batch | baseline Hold فعلی و اولویت «Flow ساده» مالک | اضافه‌کردن Pending/Partial/Async Saga بدون Supplier واقعی غیرضروری است |
-| Cancel Unit با status/unit reference | نیاز مالک + lifecycle شبیه FlightFlow | حذف یکی از چند خدمت، بدون حذف Hold |
+| Release/Cancel انتخابی با `unitIds` روی مسیر گروهی | تصمیم مالک Gate 0 (Q3) | Unit بخشی از Aggregate است و چند Unit در یک درخواست تغییر می‌کنند؛ حذف یکی از چند خدمت بدون حذف Hold؛ مسیر جدا برای Entity فرزند ساخته نمی‌شود |
+| `AcceptedWeightKg` Unsupported | تصمیم مالک Gate 0 (Q5) | Price محصول PerKilogram را نمی‌فروشد، پس وزن پذیرفته‌شده قابل اثبات نیست |
+| بدون Domain Event/Outbox/Projection | تصمیم مالک Gate 0 (Q6) | GET از CommandDb می‌خواند و مصرف‌کننده‌ای وجود ندارد |
 
 ## 4. تفاوت‌های واقعی نسبت به v13.2 تاریخی
 اسناد قدیمی v13.2 برای Supplier/Recovery و Multi-provider صفحاتی درباره `Pending`, `Mixed`, `ProviderOperationAttempt`, `Outcome` نوشته‌اند. در این Pack آن‌ها **برای پیاده‌سازی فعلی اختیار ندارند**؛ زیرا Supplier API/response فعلی در دست نیست و مالک صریحاً پیچیدگی غیرضروری را رد کرده است. این حذف به معنی ادعای حل Supplier نیست؛ هر Supplier-managed Hold باید با خطای روشن **گیت** شود.
 
 ## 5. مواردی که Benchmark اثبات نمی‌کند
-- Travelport هیچ لزومی برای Endpoint دقیق `/Service-Holds/{id}/Units/{unitId}` یا نام فیلد `AcceptedWeightKgTotal` ایجاد نمی‌کند؛ این‌ها قرارداد داخلی.
+- Travelport هیچ لزومی برای شکل دقیق Endpoint یا پارامتر `unitIds` ایجاد نمی‌کند؛ این‌ها قرارداد داخلی‌اند.
 - FlightFlow Side نمی‌تواند به Ancillary مجوز دست‌کاری Inventory Seat بدهد؛ Owner فعلی صریحاً آن را ممنوع کرده است.
 - بنچ‌مارک EMD نمی‌گوید `Confirm` حتماً به معنی Issue است؛ برخلاف آن، این دو ممکن است جدا باشند.
 - Scheme دقیق SQL `sp_getapplock Transaction` یک روش اجرایی برای ظرفیت خودمان است؛ رفتار PSS تجاری محسوب نمی‌شود.

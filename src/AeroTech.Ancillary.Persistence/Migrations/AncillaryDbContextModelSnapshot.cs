@@ -1802,6 +1802,13 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.Property<long>("AncillaryReservationId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("AppendIdempotencyKey")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<DateTimeOffset?>("AppointmentTimeWithOffset")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<string>("CancellationReasonCode")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -1812,6 +1819,9 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.PrimitiveCollection<string>("CoveredFlightIds")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("GuestCount")
+                        .HasColumnType("int");
 
                     b.Property<DateTimeOffset>("LastUpdateTime")
                         .HasColumnType("datetimeoffset");
@@ -1862,6 +1872,40 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.HasIndex("OrderServiceId");
 
                     b.ToTable("AncillaryReservationUnits", "Ancillary");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities.AncillaryReservationUnitAllocation", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(19, 3)
+                        .HasColumnType("decimal(19,3)");
+
+                    b.Property<long>("AncillaryReservationUnitId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("InventorySourceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("LastUpdateTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("LastUpdatedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("ResourceKind")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ResourceKind", "InventorySourceId");
+
+                    b.HasIndex("AncillaryReservationUnitId", "ResourceKind", "InventorySourceId")
+                        .IsUnique();
+
+                    b.ToTable("AncillaryReservationUnitAllocations", "Ancillary");
                 });
 
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.AncillaryServiceDefinition", b =>
@@ -3218,6 +3262,15 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities.AncillaryReservationUnitAllocation", b =>
+                {
+                    b.HasOne("AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities.AncillaryReservationUnit", null)
+                        .WithMany("Allocations")
+                        .HasForeignKey("AncillaryReservationUnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.AncillaryServiceDefinition", b =>
                 {
                     b.OwnsOne("AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Specifications.AirportServiceSpecification", "AirportService", b1 =>
@@ -4206,6 +4259,11 @@ namespace AeroTech.Ancillary.Persistence.Migrations
             modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryReservationAggregate.AncillaryReservation", b =>
                 {
                     b.Navigation("Units");
+                });
+
+            modelBuilder.Entity("AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities.AncillaryReservationUnit", b =>
+                {
+                    b.Navigation("Allocations");
                 });
 
             modelBuilder.Entity("AeroTech.Ancillary.Domain.FlightCountInventoryAggregate.FlightCountInventory", b =>

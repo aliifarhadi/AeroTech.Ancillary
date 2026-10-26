@@ -13,10 +13,13 @@ public sealed class TestOnlyHoldLock : IAncillaryHoldLock
 
     public Task<IAsyncDisposable> AcquireAsync(long orderId, CancellationToken cancellationToken = default)
     {
-        if (Busy || !_held.Add(orderId))
-            throw ExceptionFactory.AncillaryHoldOrderIsBusy(orderId);
+        lock (_held)
+        {
+            if (Busy || !_held.Add(orderId))
+                throw ExceptionFactory.AncillaryHoldOrderIsBusy(orderId);
 
-        Acquired.Add(orderId);
+            Acquired.Add(orderId);
+        }
 
         return Task.FromResult<IAsyncDisposable>(new Release(this, orderId));
     }
@@ -25,7 +28,8 @@ public sealed class TestOnlyHoldLock : IAncillaryHoldLock
     {
         public ValueTask DisposeAsync()
         {
-            owner._held.Remove(orderId);
+            lock (owner._held)
+                owner._held.Remove(orderId);
 
             return ValueTask.CompletedTask;
         }

@@ -6,6 +6,7 @@ using AeroTech.Ancillary.Application.FlightCountInventoryAggregate.Commands.Defi
 using AeroTech.Ancillary.Application.FlightCountInventoryAggregate.Projection;
 using AeroTech.Ancillary.Application.FlightWeightInventoryAggregate.Commands.DefineFlightWeightInventory;
 using AeroTech.Ancillary.Application._Shared.Authorization;
+using AeroTech.Ancillary.Persistence.AncillaryReservationAggregate;
 using AeroTech.Ancillary.Query.FlightCountInventoryAggregate.Queries.GetFlightCountInventoriesPaginated.Backoffice;
 using AeroTech.Ancillary.Synchronizer.FlightCountInventoryAggregate;
 using AeroTech.Framework.Core.Domain.Repository;
@@ -283,7 +284,7 @@ public class P2FlightCapacityAcceptanceTests
     }
 
     [Fact]
-    public async Task P2_X01_a_lost_projection_is_healed_by_replaying_the_same_correlation_without_a_second_adjustment()
+    public async Task P2_X01_a_save_that_fails_after_the_command_write_rolls_back_under_the_source_lock_and_the_replay_adjusts_once()
     {
         var (fixture, airlineId, _) = await ConnectedAsync();
         var source = await CountAsync(fixture, airlineId, Flight, PetResource, InventoryCountUnit.AnimalCarrier, 8);
@@ -293,6 +294,7 @@ public class P2FlightCapacityAcceptanceTests
         {
             var service = new AdjustFlightCountInventoryService(
                 scope.FlightCountInventories,
+                new InventoryLedger(scope.Command),
                 new FlightCountInventoryQueryDbSynchronizer(scope.Query, _clock),
                 new CommandOnlyUnitOfWork(scope.Command),
                 new InventoryCallerScope(fixture, fixture),
@@ -303,9 +305,9 @@ public class P2FlightCapacityAcceptanceTests
         }
 
         Assert.Equal(
-            new[] { "5|2|1|8|1|0" },
+            new[] { "8|1|0|8|1|0" },
             await _harness.RowsAsync($"SELECT CONCAT(command.TotalCapacity, '|', command.Version, '|', (SELECT COUNT(*) FROM Ancillary.FlightCountAdjustments WHERE FlightCountInventoryId = command.Id), '|', model.TotalCapacity, '|', model.Version, '|', (SELECT COUNT(*) FROM ReadModel.FlightCountAdjustments WHERE FlightCountInventoryId = command.Id)) AS Value FROM Ancillary.FlightCountInventories AS command JOIN ReadModel.FlightCountInventories AS model ON model.Id = command.Id WHERE command.Id = {source.Id}"));
-        Assert.NotEmpty(await _harness.SourceDifferencesAsync(airlineId));
+        Assert.Empty(await _harness.SourceDifferencesAsync(airlineId));
 
         var replayed = await _harness.RequestAsync(fixture, scope => scope.AdjustFlightCountInventory.AdjustAsync(command));
 

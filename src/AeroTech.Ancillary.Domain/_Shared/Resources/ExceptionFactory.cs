@@ -196,6 +196,15 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public static BusinessException AncillaryHoldOrderIsBusy(params object?[] args) =>
             new(16416, ExceptionMessages.AncillaryHoldOrderIsBusy, args) { HttpStatus = 409 };
 
+        public static BusinessException AncillaryHoldStockShortage(params object?[] args) =>
+            new(16417, ExceptionMessages.AncillaryHoldStockShortage, args) { HttpStatus = 409 };
+
+        public static BusinessException AncillaryHoldUnitNotFound(params object?[] args) =>
+            new(16418, ExceptionMessages.AncillaryHoldUnitNotFound, args) { HttpStatus = 404 };
+
+        public static BusinessException AncillaryHoldNotReservable(params object?[] args) =>
+            new(16419, ExceptionMessages.AncillaryHoldNotReservable, args) { HttpStatus = 409 };
+
         public static BusinessException PricingNotFound(params object?[] args) =>
             new(16501, ExceptionMessages.PricingNotFound, args) { HttpStatus = 404 };
 
@@ -309,6 +318,12 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
 
         public static BusinessException InventoryPolicyNotApplicable(params object?[] args) =>
             new(16620, ExceptionMessages.InventoryPolicyNotApplicable, args) { HttpStatus = 422 };
+
+        public static BusinessException InventoryCapacityBelowActiveUsage(params object?[] args) =>
+            new(16621, ExceptionMessages.InventoryCapacityBelowActiveUsage, args) { HttpStatus = 409 };
+
+        public static BusinessException InventorySourceBusy(params object?[] args) =>
+            new(16622, ExceptionMessages.InventorySourceBusy, args) { HttpStatus = 409 };
 
         public static BusinessException ShoppingContextIsInvalid(params object?[] args) =>
             new(16801, ExceptionMessages.ShoppingContextIsInvalid, args) { HttpStatus = 422 };

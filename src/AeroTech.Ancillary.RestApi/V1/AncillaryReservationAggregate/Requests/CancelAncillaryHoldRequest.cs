@@ -1,4 +1,7 @@
+using System.Text.Json.Serialization;
+
 namespace AeroTech.Ancillary.RestApi.V1.AncillaryReservationAggregate.Requests
 {
-    public sealed record CancelAncillaryHoldRequest(string ReasonCode);
+    [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+    public sealed record CancelAncillaryHoldRequest(string ReasonCode, IReadOnlyList<long>? UnitIds);
 }

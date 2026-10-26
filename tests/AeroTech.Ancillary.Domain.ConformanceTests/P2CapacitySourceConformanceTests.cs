@@ -62,7 +62,7 @@ public class P2CapacitySourceConformanceTests
         var ids = new SequentialIdGenerator();
         var source = CountSource(8);
 
-        var adjustment = source.AdjustTo(5, "AIRCRAFT_CHANGE", Actor, "corr-1", 1, ids, Now.AddMinutes(5));
+        var adjustment = source.AdjustTo(5, 0, "AIRCRAFT_CHANGE", Actor, "corr-1", 1, ids, Now.AddMinutes(5));
 
         Assert.Equal((5, 2L, Now.AddMinutes(5)), (source.TotalCapacity, source.Version, source.UpdatedAt));
         Assert.Equal(
@@ -75,7 +75,7 @@ public class P2CapacitySourceConformanceTests
         Assert.DoesNotContain(typeof(FlightCountAdjustment).GetMethods().Where(method => method.DeclaringType == typeof(FlightCountAdjustment)), method => method.IsPublic && !method.IsSpecialName);
         Assert.DoesNotContain(typeof(FlightCountInventory).GetMethods(), method => method.IsPublic && method.Name is "Change" or "SetTotal" or "Update");
 
-        source.AdjustTo(9, "CORRECTION", Actor, "corr-2", 2, ids, Now.AddMinutes(6));
+        source.AdjustTo(9, 0, "CORRECTION", Actor, "corr-2", 2, ids, Now.AddMinutes(6));
 
         Assert.Equal(new[] { (8, 5), (5, 9) }, source.Adjustments.Select(line => (line.PreviousTotal, line.NewTotal)));
         Assert.Equal(2, source.Adjustments.Select(line => line.Id).Distinct().Count());
@@ -87,10 +87,10 @@ public class P2CapacitySourceConformanceTests
         var ids = new SequentialIdGenerator();
         var source = CountSource(8);
 
-        source.AdjustTo(5, "AIRCRAFT_CHANGE", Actor, "corr-1", 1, ids, Now);
+        source.AdjustTo(5, 0, "AIRCRAFT_CHANGE", Actor, "corr-1", 1, ids, Now);
 
-        BusinessAssert.Throws(16605, 409, () => source.AdjustTo(7, "CORRECTION", Actor, "corr-2", 1, ids, Now));
-        BusinessAssert.Throws(16605, 409, () => source.AdjustTo(7, "CORRECTION", Actor, "corr-2", 3, ids, Now));
+        BusinessAssert.Throws(16605, 409, () => source.AdjustTo(7, 0, "CORRECTION", Actor, "corr-2", 1, ids, Now));
+        BusinessAssert.Throws(16605, 409, () => source.AdjustTo(7, 0, "CORRECTION", Actor, "corr-2", 3, ids, Now));
         BusinessAssert.Throws(16605, 409, () => source.CloseForSale(1, Now));
         BusinessAssert.Throws(16605, 409, () => source.Activate(Verified(), 1, Now));
         Assert.Equal((5, 2L, 1), (source.TotalCapacity, source.Version, source.Adjustments.Count));
@@ -101,16 +101,16 @@ public class P2CapacitySourceConformanceTests
     {
         var ids = new SequentialIdGenerator();
         var source = CountSource(8);
-        var first = source.AdjustTo(5, "AIRCRAFT_CHANGE", Actor, "corr-1", 1, ids, Now);
+        var first = source.AdjustTo(5, 0, "AIRCRAFT_CHANGE", Actor, "corr-1", 1, ids, Now);
 
-        var replay = source.AdjustTo(5, "AIRCRAFT_CHANGE", Actor, "corr-1", 1, ids, Now.AddMinutes(9));
+        var replay = source.AdjustTo(5, 0, "AIRCRAFT_CHANGE", Actor, "corr-1", 1, ids, Now.AddMinutes(9));
 
         Assert.Same(first, replay);
         Assert.Equal((5, 2L, 1, Now), (source.TotalCapacity, source.Version, source.Adjustments.Count, source.UpdatedAt));
-        BusinessAssert.Throws(16616, 409, () => source.AdjustTo(6, "AIRCRAFT_CHANGE", Actor, "corr-1", 1, ids, Now));
-        BusinessAssert.Throws(16616, 409, () => source.AdjustTo(5, "OTHER_REASON", Actor, "corr-1", 1, ids, Now));
-        BusinessAssert.Throws(16616, 409, () => source.AdjustTo(5, "AIRCRAFT_CHANGE", Actor, "corr-1", 2, ids, Now));
-        BusinessAssert.Throws(16616, 409, () => source.AdjustTo(5, "AIRCRAFT_CHANGE", Actor + 1, "corr-1", 1, ids, Now));
+        BusinessAssert.Throws(16616, 409, () => source.AdjustTo(6, 0, "AIRCRAFT_CHANGE", Actor, "corr-1", 1, ids, Now));
+        BusinessAssert.Throws(16616, 409, () => source.AdjustTo(5, 0, "OTHER_REASON", Actor, "corr-1", 1, ids, Now));
+        BusinessAssert.Throws(16616, 409, () => source.AdjustTo(5, 0, "AIRCRAFT_CHANGE", Actor, "corr-1", 2, ids, Now));
+        BusinessAssert.Throws(16616, 409, () => source.AdjustTo(5, 0, "AIRCRAFT_CHANGE", Actor + 1, "corr-1", 1, ids, Now));
         Assert.Single(source.Adjustments);
     }
 
@@ -120,13 +120,13 @@ public class P2CapacitySourceConformanceTests
         var ids = new SequentialIdGenerator();
         var source = CountSource(8);
 
-        BusinessAssert.Throws(16612, 422, () => source.AdjustTo(-1, "CORRECTION", Actor, "corr-1", 1, ids, Now));
-        BusinessAssert.Throws(16612, 422, () => source.AdjustTo(8, "CORRECTION", Actor, "corr-1", 1, ids, Now));
-        BusinessAssert.Throws(16612, 422, () => source.AdjustTo(5, " ", Actor, "corr-1", 1, ids, Now));
-        BusinessAssert.Throws(16612, 422, () => source.AdjustTo(5, new string('R', 51), Actor, "corr-1", 1, ids, Now));
-        BusinessAssert.Throws(16612, 422, () => source.AdjustTo(5, "CORRECTION", 0, "corr-1", 1, ids, Now));
-        BusinessAssert.Throws(16612, 422, () => source.AdjustTo(5, "CORRECTION", Actor, "", 1, ids, Now));
-        BusinessAssert.Throws(16612, 422, () => source.AdjustTo(5, "CORRECTION", Actor, new string('c', 65), 1, ids, Now));
+        BusinessAssert.Throws(16612, 422, () => source.AdjustTo(-1, 0, "CORRECTION", Actor, "corr-1", 1, ids, Now));
+        BusinessAssert.Throws(16612, 422, () => source.AdjustTo(8, 0, "CORRECTION", Actor, "corr-1", 1, ids, Now));
+        BusinessAssert.Throws(16612, 422, () => source.AdjustTo(5, 0, " ", Actor, "corr-1", 1, ids, Now));
+        BusinessAssert.Throws(16612, 422, () => source.AdjustTo(5, 0, new string('R', 51), Actor, "corr-1", 1, ids, Now));
+        BusinessAssert.Throws(16612, 422, () => source.AdjustTo(5, 0, "CORRECTION", 0, "corr-1", 1, ids, Now));
+        BusinessAssert.Throws(16612, 422, () => source.AdjustTo(5, 0, "CORRECTION", Actor, "", 1, ids, Now));
+        BusinessAssert.Throws(16612, 422, () => source.AdjustTo(5, 0, "CORRECTION", Actor, new string('c', 65), 1, ids, Now));
         Assert.Equal((8, 1L), (source.TotalCapacity, source.Version));
         Assert.Empty(source.Adjustments);
     }
@@ -150,7 +150,7 @@ public class P2CapacitySourceConformanceTests
         BusinessAssert.Throws(16613, 409, () => source.Suspend(5, Now));
         BusinessAssert.Throws(16613, 409, () => source.OpenForSale(5, Now));
 
-        source.AdjustTo(0, "CATERING_CANCELLED", Actor, "corr-zero", 5, ids, Now.AddMinutes(4));
+        source.AdjustTo(0, 0, "CATERING_CANCELLED", Actor, "corr-zero", 5, ids, Now.AddMinutes(4));
 
         Assert.Equal((0, false, InventoryRecordStatus.Suspended), (source.TotalCapacity, source.ClosedForSale, source.Status));
 
@@ -158,7 +158,7 @@ public class P2CapacitySourceConformanceTests
         source.Retire(7, Now.AddMinutes(6));
 
         Assert.Equal((InventoryRecordStatus.Retired, 8L, 0, 1), (source.Status, source.Version, source.TotalCapacity, source.Adjustments.Count));
-        BusinessAssert.Throws(16613, 409, () => source.AdjustTo(3, "CORRECTION", Actor, "corr-late", 8, ids, Now));
+        BusinessAssert.Throws(16613, 409, () => source.AdjustTo(3, 0, "CORRECTION", Actor, "corr-late", 8, ids, Now));
         BusinessAssert.Throws(16613, 409, () => source.Activate(Verified(), 8, Now));
         BusinessAssert.Throws(16613, 409, () => source.CloseForSale(8, Now));
         BusinessAssert.Throws(16613, 409, () => source.Retire(8, Now));
@@ -193,14 +193,14 @@ public class P2CapacitySourceConformanceTests
             P1Fixtures.PropertiesOf<FlightWeightInventory>());
         Assert.Equal(typeof(decimal), typeof(FlightWeightInventory).GetProperty(nameof(FlightWeightInventory.CapacityKg))!.PropertyType);
 
-        var adjustment = source.AdjustTo(87.125m, "COMMERCIAL_ALLOWANCE", Actor, "corr-1", 1, ids, Now);
+        var adjustment = source.AdjustTo(87.125m, 0, "COMMERCIAL_ALLOWANCE", Actor, "corr-1", 1, ids, Now);
 
         Assert.Equal((100m, 87.125m, 87.125m, 2L), (adjustment.PreviousKg, adjustment.NewKg, source.CapacityKg, source.Version));
         Assert.Equal(source.Id, adjustment.FlightWeightInventoryId);
-        BusinessAssert.Throws(16612, 422, () => source.AdjustTo(87.1255m, "CORRECTION", Actor, "corr-2", 2, ids, Now));
-        BusinessAssert.Throws(16612, 422, () => source.AdjustTo(-1m, "CORRECTION", Actor, "corr-2", 2, ids, Now));
-        BusinessAssert.Throws(16612, 422, () => source.AdjustTo(87.125m, "CORRECTION", Actor, "corr-2", 2, ids, Now));
-        BusinessAssert.Throws(16605, 409, () => source.AdjustTo(50m, "CORRECTION", Actor, "corr-2", 1, ids, Now));
+        BusinessAssert.Throws(16612, 422, () => source.AdjustTo(87.1255m, 0, "CORRECTION", Actor, "corr-2", 2, ids, Now));
+        BusinessAssert.Throws(16612, 422, () => source.AdjustTo(-1m, 0, "CORRECTION", Actor, "corr-2", 2, ids, Now));
+        BusinessAssert.Throws(16612, 422, () => source.AdjustTo(87.125m, 0, "CORRECTION", Actor, "corr-2", 2, ids, Now));
+        BusinessAssert.Throws(16605, 409, () => source.AdjustTo(50m, 0, "CORRECTION", Actor, "corr-2", 1, ids, Now));
 
         source.Activate(Verified(), 2, Now);
 
@@ -311,11 +311,11 @@ public class P2CapacitySourceConformanceTests
         var slot = Slot(10, 11, 20);
         var neighbour = Slot(10, 11, 15, Lounge + 1, 7202);
 
-        var adjustment = slot.AdjustTo(0, "MAINTENANCE", Actor, "corr-1", 1, ids, Now);
+        var adjustment = slot.AdjustTo(0, 0, "MAINTENANCE", Actor, "corr-1", 1, ids, Now);
 
         Assert.Equal((slot.Id, 20, 0, 2L), (adjustment.AirportSlotInventoryId, adjustment.PreviousTotal, adjustment.NewTotal, adjustment.ResultingVersion));
         Assert.Equal((15, false, 1L), (neighbour.CapacityPersons, neighbour.ClosedForSale, neighbour.Version));
-        Assert.Same(adjustment, slot.AdjustTo(0, "MAINTENANCE", Actor, "corr-1", 1, ids, Now));
+        Assert.Same(adjustment, slot.AdjustTo(0, 0, "MAINTENANCE", Actor, "corr-1", 1, ids, Now));
 
         slot.Activate(SlotVerified(), 2, Now);
         slot.CloseForSale(3, Now);

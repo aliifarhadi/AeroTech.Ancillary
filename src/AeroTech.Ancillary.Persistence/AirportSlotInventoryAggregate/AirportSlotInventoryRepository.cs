@@ -40,6 +40,24 @@ namespace AeroTech.Ancillary.Persistence.AirportSlotInventoryAggregate
             return new FacilityLock(_dbContext, resource);
         }
 
+        public async Task<IReadOnlyList<AirportSlotInventory>> ListCurrentAsync(
+            int ownerAirlineId,
+            int airportId,
+            long facilityId,
+            DateTimeOffset fromUtc,
+            DateTimeOffset toUtc,
+            CancellationToken cancellationToken = default)
+            => await _dbContext.AirportSlotInventories
+                .AsNoTracking()
+                .Where(inventory => inventory.OwnerAirlineId == ownerAirlineId
+                                    && inventory.AirportId == airportId
+                                    && inventory.FacilityId == facilityId
+                                    && inventory.Status != InventoryRecordStatus.Retired
+                                    && inventory.StartUtc < toUtc
+                                    && fromUtc < inventory.EndUtc)
+                .OrderBy(inventory => inventory.StartUtc)
+                .ToListAsync(cancellationToken);
+
         public Task<bool> HasOverlapAsync(
             int ownerAirlineId,
             long facilityId,

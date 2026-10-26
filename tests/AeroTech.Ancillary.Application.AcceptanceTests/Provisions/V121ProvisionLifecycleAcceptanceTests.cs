@@ -122,6 +122,7 @@ public class V121ProvisionLifecycleAcceptanceTests
             new[]
             {
                 "Ancillary.AncillaryPriceComponents.Amount decimal(19,6)",
+                "Ancillary.AncillaryReservationUnitAllocations.Amount decimal(19,3)",
                 "Ancillary.ProvisionBaggageApplicationRules.Weight decimal(9,2)",
                 "ReadModel.AncillaryPriceComponents.Amount decimal(19,6)",
                 "ReadModel.AncillaryProvisions.BaggageWeight decimal(9,2)"

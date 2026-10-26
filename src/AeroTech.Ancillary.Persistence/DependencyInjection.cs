@@ -10,6 +10,7 @@ using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Contracts;
 using AeroTech.Ancillary.Domain.FlightCountInventoryAggregate.Contracts;
 using AeroTech.Ancillary.Domain.FlightWeightInventoryAggregate.Contracts;
 using AeroTech.Ancillary.Domain.SelectionSnapshotAggregate.Contracts;
+using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Domain.SupplierAggregate.Contracts;
 using AeroTech.Ancillary.Persistence.AirportSlotInventoryAggregate;
 using AeroTech.Ancillary.Persistence.AncillaryInventoryPolicyAggregate;
@@ -50,6 +51,7 @@ namespace AeroTech.Ancillary.Persistence
             services.AddScoped<IAncillaryProvisionRepository, AncillaryProvisionRepository>();
             services.AddScoped<IAncillaryPricingRepository, AncillaryPricingRepository>();
             services.AddScoped<IAncillaryReservationRepository, AncillaryReservationRepository>();
+            services.AddScoped<IInventoryLedger, InventoryLedger>();
             services.AddScoped<ISelectionSnapshotRepository, SelectionSnapshotRepository>();
             services.Configure<IntegrationEventOptions>(configuration.GetSection("IntegrationEvents"));
             services.AddScoped<IOutboxWriter, OutboxWriter>();

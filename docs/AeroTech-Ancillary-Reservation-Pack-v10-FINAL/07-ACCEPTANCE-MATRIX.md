@@ -36,8 +36,8 @@
 | I09 | Existing confirmed counted | new hold may shortage |
 | I10 | Existing held logically expired before poller | not counted، stock immediately available |
 | I11 | FlightWeight fixedKg x quantity | accurate Kg total |
-| I12 | FlightWeight acceptedWeightKgTotal | exact selected accepted **total**، no second multiply |
-| I13 | Missing/invalid accepted weight | reject، no guessed weight |
+| I12 | Policy FlightWeight با `AcceptedWeightKg` | explicit Unsupported reject **before** any Allocation |
+| I13 | Payload carrying an accepted-weight field | rejected as unknown field؛ no column and no Allocation written |
 | I14 | FlightCountPlusWeight count enough / weight shortage | **neither** allocation committed |
 | I15 | FlightCountPlusWeight both enough | both allocated atomic |
 | I16 | Portion Flight801+802, one source missing | zero allocations from entire Unit / Create |
@@ -68,19 +68,19 @@
 | L05 | Confirm Released/Expired | reject |
 | L06 | Release whole Held | only active Held→Released؛ availability restored |
 | L07 | Release already Released | no-op without double increment |
-| L08 | Release one Unit out of three | one Released؛ other two Held؛ stock only that Unit available |
-| L09 | Release a Confirmed Unit via DELETE | reject؛ must Cancel |
+| L08 | `DELETE …?unitIds=` one Unit out of three | one Released؛ other two Held؛ stock only that Unit available |
+| L09 | `DELETE …?unitIds=` naming a Confirmed Unit | reject 409، nothing changed؛ must Cancel |
 | L10 | Confirm after one Unit Released | Released stays Released؛ other Held→Confirmed |
-| L11 | Cancel all Confirmed with reasonCode | remaining Confirmed→Cancelled؛ Released untouched |
-| L12 | Cancel one Confirmed of two | one Cancelled، other Confirmed، remaining capacity counted |
-| L13 | Cancel retry same reason | no-op، reason preserved |
-| L14 | Cancel retry different reason | conflict، audit unchanged |
-| L15 | Cancel a Held Unit | reject؛ requires Release |
+| L11 | Cancel all Confirmed with reasonCode (no `unitIds`) | remaining Confirmed→Cancelled؛ Released and earlier Cancelled untouched |
+| L12 | `Cancellations {unitIds:[one]}` of two Confirmed | one Cancelled، other Confirmed، remaining capacity counted |
+| L13 | Selective Cancel retry same reason | no-op، reason preserved |
+| L14 | Selective Cancel retry different reason | conflict، audit unchanged |
+| L15 | `Cancellations {unitIds}` naming a Held Unit | reject 409؛ requires Release |
 | L16 | Expire Held past deadline | effective Expired immediately + poller persists |
 | L17 | Expire job twice | unchanged twice، no double release |
 | L18 | Confirm at exactly ExpiresAt | reject |
 | L19 | Two requests same create key same body | identical HoldId and UnitIds؛ no new allocations |
-| L20 | Same create key different weight/appointment | 409 conflict |
+| L20 | Same create key different `timeWithOffset`/`guestCount`/`quantity` or business ids | 409 conflict |
 | L21 | Another hold for same live OrderServiceId | reject |
 | L22 | Status enum numeric values unchanged | 1..5 unchanged in DB/JSON |
 | L23 | RequestedExpiresAt stays immutable on append | no extension، equal parent |
@@ -114,7 +114,7 @@
 | E05 | Unknown SQL commit result then same key retry | read existing state؛ no second stock allocation |
 | E06 | Seat physical hold fails after Ancillary nonseat Hold | Ordering Release command compensates؛ Ancillary no FlightFlow call |
 | E07 | Seat append fails | previous nonseat Hold remains Held؛ no accidental Confirm |
-| E08 | Mixed Hold + unit release + confirm + cancel | state transitions legal، exact balances |
+| E08 | Mixed Hold + partial release (`unitIds`) + confirm + partial cancel (`unitIds`) | state transitions legal، exact balances |
 | E09 | HTTP 401 for unauthorized Service consumer if existing project policy requires | no write؛ no public reservation endpoint |
 | E10 | Expiry background job unavailable | availability computed from logical expiry immediately |
 | E11 | No Supplier adapter present | explicit error، not fake ProviderUnitRef |
@@ -129,10 +129,10 @@
 | R04 | Existing Domain inventory/Policy conformance tests | pass یا update pin فقط به‌دلیل scope تاییدشده |
 | R05 | Migration `has-pending-model-changes` | no pending |
 | R06 | SQL real concurrency & rollback tests run with no mocks | PASS evidence/log |
-| R07 | Live HTTP Hold/Read/Unit Release/Confirm/Cancel/Expire | PASS with actual DB |
+| R07 | (a) Live HTTP Hold/Read/partial Release/Confirm/partial Cancel/Expire for Unlimited + Seat؛ (b) real SQL for Local (concurrency Count/Weight/Slot، rollback، Admin Adjust) | (a) PASS with actual DB؛ (b) PASS on SQL؛ Local live HTTP = GATED until a real reference source exists، never counted as PASS |
 | R08 | Live HTTP SeatOnly + Mixed Seat Append | PASS; no FlightFlow calls |
 | R09 | Diff limited to Ancillary Reservation/Inventory + tests/docs/migrations | no unrelated changes |
 | R10 | No old v12/v13 conflicting authority used | report clean authority chain |
 
 ## Evidence table required at closure
-Agent report must have for **each** ID or grouped test: `ID | test method name | execution command | PASS/FAIL/GATED | evidence/log | commit`. GATED cannot be counted PASS. For consumer mappings E01-E03 which require Ordering repo not available to this agent: create contract tests in Ancillary for input validity and report external integration **NOT VERIFIED**, not fake E2E green.
+Agent report must have for **each** ID or grouped test: `ID | test method name | execution command | PASS/FAIL/GATED | evidence/log | commit`. GATED cannot be counted PASS. Partial operations are tested only through the group routes with `unitIds` (no per-unit route exists). For consumer mappings E01-E03 which require Ordering repo not available to this agent: create contract tests in Ancillary for input validity and report external integration **NOT VERIFIED**, not fake E2E green.

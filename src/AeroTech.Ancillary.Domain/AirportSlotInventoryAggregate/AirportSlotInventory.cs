@@ -149,6 +149,7 @@ namespace AeroTech.Ancillary.Domain.AirportSlotInventoryAggregate
 
         public AirportSlotAdjustment AdjustTo(
             int newTotal,
+            decimal activeUsage,
             string reasonCode,
             long actorId,
             string correlationId,
@@ -173,6 +174,9 @@ namespace AeroTech.Ancillary.Domain.AirportSlotInventoryAggregate
 
             EnsureVersion(expectedVersion);
             Require(newTotal != CapacityPersons, nameof(CapacityPersons));
+
+            if (newTotal < activeUsage)
+                throw ExceptionFactory.InventoryCapacityBelowActiveUsage(newTotal, activeUsage);
 
             var adjustment = new AirportSlotAdjustment(
                 idGenerator.NewId(),

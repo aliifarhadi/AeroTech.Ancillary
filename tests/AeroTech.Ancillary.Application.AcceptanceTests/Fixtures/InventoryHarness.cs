@@ -37,6 +37,13 @@ public sealed class InventoryHarness
             await request(scope);
         });
 
+    public async Task<long> ActivePolicyAsync(InventoryFixture fixture, TestDefineInventoryPolicyCommand command)
+    {
+        var draft = await RequestAsync(fixture, scope => scope.DefineInventoryPolicy.DefineAsync(command));
+
+        return (await RequestAsync(fixture, scope => scope.ActivateInventoryPolicy.ActivateAsync(new TestInventoryPolicyLifecycleCommand(draft.Id, 1)))).Id;
+    }
+
     public async Task<(InventoryFixture Fixture, int AirlineId, long SupplierId)> OperatorAsync(bool connected = true)
     {
         var airlineId = _database.NextAirlineId();
@@ -64,6 +71,28 @@ public sealed class InventoryHarness
 
         return await context.Database.SqlQuery<string>(sql).ToListAsync();
     }
+
+    public Task<List<string>> AllocationsAsync(long orderId)
+        => RowsAsync($"""
+            SELECT CONCAT(allocation.ResourceKind, ':', allocation.InventorySourceId, ':', allocation.Amount) AS Value
+            FROM Ancillary.AncillaryReservationUnitAllocations AS allocation
+            JOIN Ancillary.AncillaryReservationUnits AS unit ON unit.Id = allocation.AncillaryReservationUnitId
+            JOIN Ancillary.AncillaryReservations AS reservation ON reservation.Id = unit.AncillaryReservationId
+            WHERE reservation.OrderId = {orderId}
+            ORDER BY allocation.ResourceKind, allocation.InventorySourceId
+            """);
+
+    public async Task<string> UsageAsync(InventoryResourceKind kind, long sourceId)
+        => (await RowsAsync($"""
+            SELECT CONCAT(COALESCE(SUM(allocation.Amount), 0), '') AS Value
+            FROM Ancillary.AncillaryReservationUnitAllocations AS allocation
+            JOIN Ancillary.AncillaryReservationUnits AS unit ON unit.Id = allocation.AncillaryReservationUnitId
+            JOIN Ancillary.AncillaryReservations AS reservation ON reservation.Id = unit.AncillaryReservationId
+            WHERE allocation.ResourceKind = {(int)kind}
+              AND allocation.InventorySourceId = {sourceId}
+              AND (unit.Status = {(int)AncillaryReservationUnitStatus.Confirmed}
+                   OR (unit.Status = {(int)AncillaryReservationUnitStatus.Held} AND (reservation.ExpiresAt IS NULL OR reservation.ExpiresAt > {_clock.Now})))
+            """)).Single();
 
     public Task<List<string>> SourceDifferencesAsync(int airlineId)
         => RowsAsync($"""

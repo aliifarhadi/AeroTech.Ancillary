@@ -6,6 +6,10 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Contracts
 
         Task<AncillaryReservation?> GetAsync(long id, CancellationToken cancellationToken = default);
 
+        Task<AncillaryReservation?> FindAsync(long id, CancellationToken cancellationToken = default);
+
+        Task<long?> FindOrderIdAsync(long id, CancellationToken cancellationToken = default);
+
         Task<AncillaryReservation?> FindByIdempotencyKeyAsync(string idempotencyKey, CancellationToken cancellationToken = default);
 
         Task<IReadOnlyList<long>> ReservedOrderServiceIdsAsync(
@@ -13,7 +17,9 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Contracts
             DateTimeOffset now,
             CancellationToken cancellationToken = default);
 
-        Task<IReadOnlyList<AncillaryReservation>> ListExpiredHeldAsync(DateTimeOffset now, int batchSize, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<long>> ListOrderIdsWithExpiredHeldAsync(DateTimeOffset now, int batchSize, CancellationToken cancellationToken = default);
+
+        Task<IReadOnlyList<AncillaryReservation>> ListExpiredHeldAsync(long orderId, DateTimeOffset now, CancellationToken cancellationToken = default);
 
         void Update(AncillaryReservation reservation);
     }

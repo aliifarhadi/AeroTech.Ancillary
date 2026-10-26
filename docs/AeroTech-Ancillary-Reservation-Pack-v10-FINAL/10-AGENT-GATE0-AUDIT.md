@@ -1,5 +1,7 @@
 # Gate 0 — Coding Agent — ممیزی فقط خواندنی، بدون کد
 
+> **وضعیت: بسته (2026-10-26).** خروجی: `reports/V10-GATE0-SOURCE-AUDIT.md` و `reports/V10-GATE0-QUESTIONS-AND-CONFLICTS.md`. پاسخ شش سؤال: `AeroTech-Ancillary-v10-Gate0-Owner-Decisions-FA.md`، ادغام‌شده در `01` تا `14`. ممیزی دوباره لازم نیست.
+
 **Role:** شما Coding Agent پروژه `AeroTech.Ancillary` هستید. مالک تصمیم‌های Domain/بیزنس را تأیید کرده و Master این Pack مرجع شماست. در Gate 0 **هیچ کد، Migration، Config، تست یا Branchی را تغییر ندهید.** هدف Grounding و شناسایی دقیق تعارض قبل از تولید کد است.
 
 ## Read exactly in order
@@ -27,7 +29,7 @@
 1. Stock SQL source lookup exactly how? Existing Query/Read models vs CommandDb direct.
 2. Which `InventoryRules.IsKg` precision? Exact EF decimal needed.
 3. Does `AirportSlot` source partition across contiguous windows as assumed? Evidence from Source.
-4. Do actual accepted Order selections always yield `acceptedWeightKgTotal` for `AcceptedWeightKg` policy? If not, specify gating per variant, never infer.
+4. Do actual accepted Order selections always yield an accepted total weight for `AcceptedWeightKg` policy? If not, specify gating per variant, never infer. **Answered:** no sellable product yields it; `AcceptedWeightKg` is Unsupported and no field is built (Owner Q5).
 5. Any existing order mapping for `ServiceResolvedSelectionDto` to Hold? Report only.
 6. Do administrative Capacity Adjust operations need same transaction locks? Provide file list.
 7. Which `ExceptionFactory` codes can be reused for `shortage`, `wrong state`, `append conflict`? List; no arbitrary constants.

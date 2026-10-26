@@ -139,11 +139,13 @@ public class SeatReservationAcceptanceTests
 
         _clock.Now = _clock.Now.AddMinutes(11);
 
-        var expired = await scope.ExpireAncillaryHolds.ExpireAsync();
+        Assert.Contains(orderId, await scope.ExpireAncillaryHolds.ListDueOrderIdsAsync(1000));
+
+        var expired = await scope.ExpireAncillaryHolds.ExpireAsync(orderId);
         var earlyRead = await scope.GetHoldById.ExecuteAsync(early.HoldId);
         var lateRead = await scope.GetHoldById.ExecuteAsync(late.HoldId);
 
-        Assert.True(expired >= 1);
+        Assert.Equal(1, expired);
         Assert.Equal((AncillaryReservationStatus.Expired, AncillaryReservationStatus.Held), (earlyRead.Status, lateRead.Status));
         Assert.All(earlyRead.Units, unit => Assert.Equal(AncillaryReservationUnitStatus.Expired, unit.Status));
         Assert.Equal(AncillaryReservationStatus.Expired, (await scope.GetHoldById.ExecuteAsync(early.HoldId)).Status);
@@ -176,7 +178,7 @@ public class SeatReservationAcceptanceTests
         var validator = new ServiceHoldSeatSelectionsCommandValidator();
         var seat = Seat(1, 101, SeatId("ADT-1", "3A"));
         ServiceHoldSeatSelectionsCommand Command(DateTimeOffset? ticketedAtUtc, params SeatHoldSelectionInput[] seats)
-            => new("KEY-1", 7001, 1, "ORD-7001", _clock.Now.AddMinutes(30), 1, M1Commands.Currency, ticketedAtUtc, seats);
+            => new("KEY-1", 7001, 1, "ORD-7001", _clock.Now.AddMinutes(30), 1, M1Commands.Currency, ticketedAtUtc, seats, null);
 
         Assert.True(validator.Validate(Command(null, seat)).IsValid);
         Assert.False(validator.Validate(Command(_clock.Now, seat)).IsValid);

@@ -17,12 +17,27 @@ namespace AeroTech.Ancillary.Persistence.AncillaryReservationAggregate
         public Task<AncillaryReservation?> GetAsync(long id, CancellationToken cancellationToken = default)
             => _dbContext.AncillaryReservations
                 .Include(reservation => reservation.Units)
+                .ThenInclude(unit => unit.Allocations)
                 .FirstOrDefaultAsync(reservation => reservation.Id == id, cancellationToken);
+
+        public Task<AncillaryReservation?> FindAsync(long id, CancellationToken cancellationToken = default)
+            => _dbContext.AncillaryReservations
+                .AsNoTracking()
+                .Include(reservation => reservation.Units)
+                .ThenInclude(unit => unit.Allocations)
+                .FirstOrDefaultAsync(reservation => reservation.Id == id, cancellationToken);
+
+        public Task<long?> FindOrderIdAsync(long id, CancellationToken cancellationToken = default)
+            => _dbContext.AncillaryReservations
+                .Where(reservation => reservation.Id == id)
+                .Select(reservation => (long?)reservation.OrderId)
+                .FirstOrDefaultAsync(cancellationToken);
 
         public Task<AncillaryReservation?> FindByIdempotencyKeyAsync(string idempotencyKey, CancellationToken cancellationToken = default)
             => _dbContext.AncillaryReservations
                 .AsNoTracking()
                 .Include(reservation => reservation.Units)
+                .ThenInclude(unit => unit.Allocations)
                 .FirstOrDefaultAsync(reservation => reservation.IdempotencyKey == idempotencyKey, cancellationToken);
 
         public async Task<IReadOnlyList<long>> ReservedOrderServiceIdsAsync(
@@ -40,12 +55,23 @@ namespace AeroTech.Ancillary.Persistence.AncillaryReservationAggregate
                 .Distinct()
                 .ToListAsync(cancellationToken);
 
-        public async Task<IReadOnlyList<AncillaryReservation>> ListExpiredHeldAsync(DateTimeOffset now, int batchSize, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<long>> ListOrderIdsWithExpiredHeldAsync(DateTimeOffset now, int batchSize, CancellationToken cancellationToken = default)
+            => await _dbContext.AncillaryReservations
+                .Where(reservation => reservation.Status == AncillaryReservationStatus.Held && reservation.ExpiresAt != null && reservation.ExpiresAt <= now)
+                .GroupBy(reservation => reservation.OrderId)
+                .OrderBy(order => order.Min(reservation => reservation.ExpiresAt))
+                .Select(order => order.Key)
+                .Take(batchSize)
+                .ToListAsync(cancellationToken);
+
+        public async Task<IReadOnlyList<AncillaryReservation>> ListExpiredHeldAsync(long orderId, DateTimeOffset now, CancellationToken cancellationToken = default)
             => await _dbContext.AncillaryReservations
                 .Include(reservation => reservation.Units)
-                .Where(reservation => reservation.Status == AncillaryReservationStatus.Held && reservation.ExpiresAt != null && reservation.ExpiresAt <= now)
-                .OrderBy(reservation => reservation.ExpiresAt)
-                .Take(batchSize)
+                .ThenInclude(unit => unit.Allocations)
+                .Where(reservation => reservation.OrderId == orderId
+                                      && reservation.Status == AncillaryReservationStatus.Held
+                                      && reservation.ExpiresAt != null
+                                      && reservation.ExpiresAt <= now)
                 .ToListAsync(cancellationToken);
 
         public void Update(AncillaryReservation reservation) => _dbContext.AncillaryReservations.Update(reservation);

@@ -11,8 +11,10 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
             RuleFor(command => command.OrderId).GreaterThan(0);
             RuleFor(command => command.OrderCommercialVersion).GreaterThan(0);
             RuleFor(command => command.Reference).NotEmpty().MaximumLength(128);
+            RuleFor(command => command.RequestedExpiresAt).NotEmpty();
             RuleFor(command => command.PointOfSaleId).GreaterThan(0);
             RuleFor(command => command.CurrencyId).GreaterThan(0);
+            RuleFor(command => command.HoldId).GreaterThan(0).When(command => command.HoldId is not null);
             RuleFor(command => command.Seats).NotEmpty();
             RuleForEach(command => command.Seats).NotNull().SetValidator(new SeatHoldSelectionInputValidator());
             RuleForEach(command => command.Seats)

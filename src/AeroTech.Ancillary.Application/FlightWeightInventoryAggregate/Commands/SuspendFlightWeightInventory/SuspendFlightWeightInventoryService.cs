@@ -5,12 +5,14 @@ using AeroTech.Ancillary.Domain._Shared.Contracts;
 using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Framework.Core.Domain.Repository;
 using AeroTech.Framework.Core.ServiceContracts;
+using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Application.FlightWeightInventoryAggregate.Commands.SuspendFlightWeightInventory
 {
     public sealed class SuspendFlightWeightInventoryService : ISuspendFlightWeightInventoryService
     {
         private readonly IFlightWeightInventoryRepository _inventories;
+        private readonly IInventoryLedger _ledger;
         private readonly IFlightWeightInventoryQueryDbSynchronizer _synchronizer;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IInventoryCallerScope _scope;
@@ -18,12 +20,14 @@ namespace AeroTech.Ancillary.Application.FlightWeightInventoryAggregate.Commands
 
         public SuspendFlightWeightInventoryService(
             IFlightWeightInventoryRepository inventories,
+            IInventoryLedger ledger,
             IFlightWeightInventoryQueryDbSynchronizer synchronizer,
             IUnitOfWork unitOfWork,
             IInventoryCallerScope scope,
             IClock clock)
         {
             _inventories = inventories;
+            _ledger = ledger;
             _synchronizer = synchronizer;
             _unitOfWork = unitOfWork;
             _scope = scope;
@@ -33,6 +37,8 @@ namespace AeroTech.Ancillary.Application.FlightWeightInventoryAggregate.Commands
         public async Task<FlightWeightInventoryResult> SuspendAsync(ISuspendFlightWeightInventoryCommand command, CancellationToken cancellationToken = default)
         {
             var ownerAirlineId = await _scope.RequireOwnerAirlineIdAsync(cancellationToken);
+            var source = new InventorySourceKey(InventoryResourceKind.FlightWeight, command.InventoryId);
+            await using var ledger = await _ledger.OpenAsync([source], cancellationToken);
             var inventory = await _inventories.GetAsync(command.InventoryId, cancellationToken);
 
             if (inventory is null || inventory.OwnerAirlineId != ownerAirlineId)
@@ -42,6 +48,7 @@ namespace AeroTech.Ancillary.Application.FlightWeightInventoryAggregate.Commands
 
             await _synchronizer.ProjectAsync(inventory.ToReadModelSnapshot(), cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await ledger.CommitAsync(cancellationToken);
 
             return inventory.ToResult();
         }

@@ -12,7 +12,7 @@ namespace AeroTech.Ancillary.Domain.ConformanceTests;
 public class M1ReservationConformanceTests
 {
     private static AncillaryReservation Hold(
-        DateTimeOffset? requestedExpiresAt = null,
+        DateTimeOffset requestedExpiresAt,
         params AncillaryReservationUnitArgs[] units)
         => AncillaryReservation.Hold(
             8001,
@@ -62,17 +62,17 @@ public class M1ReservationConformanceTests
     [Fact]
     public void M1_N04_A12_the_supplier_comes_from_the_definition_and_routes_by_kind_only()
     {
-        var definition = LoungeDefinition();
-        var provision = LoungeProvision();
+        var definition = ActiveLoungeDefinition();
+        var provision = ActiveLoungeProvision();
 
         BusinessAssert.Throws(16101, 404, () => AncillaryHoldChecks.Accept(Unit(), definition, provision, null));
         BusinessAssert.Throws(16101, 404, () => AncillaryHoldChecks.Accept(Unit(), definition, provision, LocalSupplier(id: 2999)));
 
         AncillaryHoldChecks.Accept(Unit(), definition, provision, LocalSupplier());
 
-        var otherLocalId = LoungeDefinition(id: 1002, supplierId: 2777, reference: "LNG_IKA_2");
+        var otherLocalId = ActiveLoungeDefinition(id: 1002, supplierId: 2777, reference: "LNG_IKA_2");
 
-        AncillaryHoldChecks.Accept(Unit(serviceDefinitionId: 1002), otherLocalId, LoungeProvision(serviceDefinitionId: 1002), LocalSupplier(id: 2777));
+        AncillaryHoldChecks.Accept(Unit(serviceDefinitionId: 1002), otherLocalId, ActiveLoungeProvision(serviceDefinitionId: 1002), LocalSupplier(id: 2777));
     }
 
     [Fact]
@@ -87,45 +87,50 @@ public class M1ReservationConformanceTests
     [Fact]
     public void M1_N06_the_quantity_must_fit_the_provision_rule()
     {
-        var definition = LoungeDefinition();
+        var definition = ActiveLoungeDefinition();
         var supplier = LocalSupplier();
 
-        BusinessAssert.Throws(16409, 422, () => AncillaryHoldChecks.Accept(Unit(quantity: 2), definition, LoungeProvision(), supplier));
-        BusinessAssert.Throws(16409, 422, () => AncillaryHoldChecks.Accept(Unit(quantity: 1), definition, LoungeProvision(minQuantity: 2, maxQuantity: 3), supplier));
+        BusinessAssert.Throws(16409, 422, () => AncillaryHoldChecks.Accept(Unit(quantity: 2), definition, ActiveLoungeProvision(), supplier));
+        BusinessAssert.Throws(16409, 422, () => AncillaryHoldChecks.Accept(Unit(quantity: 1), definition, ActiveLoungeProvision(minQuantity: 2, maxQuantity: 3), supplier));
     }
 
     [Fact]
     public void M1_N06_the_coverage_identity_must_match_the_provision()
     {
-        var definition = LoungeDefinition();
+        var definition = ActiveLoungeDefinition();
         var supplier = LocalSupplier();
 
         BusinessAssert.Throws(16410, 422, () => AncillaryHoldChecks.Accept(
-            Unit(coverageScope: ServiceCoverageScope.Journey), definition, LoungeProvision(), supplier));
+            Unit(coverageScope: ServiceCoverageScope.Journey), definition, ActiveLoungeProvision(), supplier));
 
-        BusinessAssert.Throws(16402, 422, () => Hold(null, Unit(coveredFlightIds: [301, 302])));
-        BusinessAssert.Throws(16402, 422, () => Hold(null, Unit(coveredFlightIds: [])));
-        BusinessAssert.Throws(16402, 422, () => Hold(null, Unit(travellerId: null)));
-        BusinessAssert.Throws(16402, 422, () => Hold(null, Unit(coverageScope: ServiceCoverageScope.Order, travellerId: 71, coveredFlightIds: [])));
+        BusinessAssert.Throws(16402, 422, () => Hold(Now.AddMinutes(30), Unit(coveredFlightIds: [301, 302])));
+        BusinessAssert.Throws(16402, 422, () => Hold(Now.AddMinutes(30), Unit(coveredFlightIds: [])));
+        BusinessAssert.Throws(16402, 422, () => Hold(Now.AddMinutes(30), Unit(travellerId: null)));
+        BusinessAssert.Throws(16402, 422, () => Hold(Now.AddMinutes(30), Unit(coverageScope: ServiceCoverageScope.Order, travellerId: 71, coveredFlightIds: [])));
     }
 
     [Fact]
     public void M1_N01_the_hold_shape_is_validated()
     {
+        var expiresAt = Now.AddMinutes(30);
+
         BusinessAssert.Throws(16402, 422, () => AncillaryReservation.Hold(
-            8001, "", 7001, "ORD", null, [Unit()], new SequentialIdGenerator(), Now));
+            8001, "", 7001, "ORD", expiresAt, [Unit()], new SequentialIdGenerator(), Now));
         BusinessAssert.Throws(16402, 422, () => AncillaryReservation.Hold(
-            8001, "IDEMP", 0, "ORD", null, [Unit()], new SequentialIdGenerator(), Now));
+            8001, "IDEMP", 0, "ORD", expiresAt, [Unit()], new SequentialIdGenerator(), Now));
         BusinessAssert.Throws(16402, 422, () => AncillaryReservation.Hold(
             8001, "IDEMP", 7001, "ORD", Now, [Unit()], new SequentialIdGenerator(), Now));
         BusinessAssert.Throws(16402, 422, () => AncillaryReservation.Hold(
-            8001, "IDEMP", 7001, "ORD", null, [], new SequentialIdGenerator(), Now));
+            8001, "IDEMP", 7001, "ORD", expiresAt, [], new SequentialIdGenerator(), Now));
         BusinessAssert.Throws(16402, 422, () => AncillaryReservation.Hold(
-            8001, "IDEMP", 7001, "ORD", null, [Unit(), Unit()], new SequentialIdGenerator(), Now));
-        BusinessAssert.Throws(16402, 422, () => AncillaryReservation.Hold(
-            8001, "IDEMP", 7001, "ORD", null,
+            8001, "IDEMP", 7001, "ORD", expiresAt, [Unit(), Unit()], new SequentialIdGenerator(), Now));
+
+        var sameServiceTwice = AncillaryReservation.Hold(
+            8001, "IDEMP", 7001, "ORD", expiresAt,
             [Unit(), Unit(orderServiceId: 9002)],
-            new SequentialIdGenerator(), Now));
+            new SequentialIdGenerator(), Now);
+
+        Assert.Equal(2, sameServiceTwice.Units.Count);
     }
 
     [Fact]
@@ -137,7 +142,7 @@ public class M1ReservationConformanceTests
 
         BusinessAssert.Throws(16403, 409, () => reservation.EnsureSameContent(7001, "ORD-7001", Now.AddMinutes(30), [Unit(quantity: 1, coveredFlightIds: [302])]));
         BusinessAssert.Throws(16403, 409, () => reservation.EnsureSameContent(7002, "ORD-7001", Now.AddMinutes(30), [Unit()]));
-        BusinessAssert.Throws(16403, 409, () => reservation.EnsureSameContent(7001, "ORD-7001", null, [Unit()]));
+        BusinessAssert.Throws(16403, 409, () => reservation.EnsureSameContent(7001, "ORD-7001", Now.AddMinutes(31), [Unit()]));
     }
 
     [Fact]
@@ -162,10 +167,7 @@ public class M1ReservationConformanceTests
         Assert.Equal(AncillaryReservationUnitStatus.Expired, reservation.StatusOf(reservation.Units.First(), Now.AddMinutes(30)));
 
         BusinessAssert.Throws(16407, 409, () => reservation.Confirm(Now.AddMinutes(31)));
-
-        var open = Hold(null);
-
-        Assert.Equal(AncillaryReservationStatus.Held, open.EffectiveStatus(Now.AddYears(1)));
+        BusinessAssert.Throws(16402, 422, () => Hold(Now));
     }
 
     [Fact]

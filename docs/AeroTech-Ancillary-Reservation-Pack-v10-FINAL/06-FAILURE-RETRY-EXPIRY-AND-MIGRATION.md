@@ -4,7 +4,7 @@
 - **Create Local Hold:** ابتدا همه DTOها، policies، source ids و demandها بررسی شوند؛ در یک تراکنش با lock منابع، ظرفیت فعلی سنجیده، یک Reservation + Units + allocations نوشته شوند. Failure هر جزء ⇒ zero new row.
 - **Seat Append:** Root و Unitها با order lock و transaction خوانده شوند؛ existing Root changes و Seat verifier results با یک save ثبت شوند؛ failure append نباید Unit قبلی را حذف کند.
 - **Confirm:** فقط وقتی Root Held و تمام Unitهای فعال واقعاً Held و non-expired هستند؛ Released units untouched. درخواست Confirm اگر همه قبلاً Confirmed شده‌اند replay موفق است. **Replay یک عملیات قبلاً کامل‌شده قبل از new-operation state check ارزیابی می‌شود.**
-- **Release/Cancel Unit:** lock مربوط Reservation/Order، load child، status change و save یک‌جا. Capacity از لحظه Commit دیگر توسط ledger مصرف نمی‌شود.
+- **Release/Cancel انتخابی (`unitIds`):** lock سفارش، یک بار load Root، بررسی همه Unitهای فهرست، status change همه یا هیچ و save یک‌جا. Capacity از لحظه Commit دیگر توسط ledger مصرف نمی‌شود؛ قفل منبع لازم نیست.
 - **Expire:** Read به‌صورت lazy با UTC اکنون Hold را منقضی نشان دهد؛ Background Poller فعلی صرفاً وضعیت را persisted می‌کند؛ عدم اجرای Poller نباید منجر به oversell/under-availability شود.
 - **Unknown failure در Save:** از key idempotent، state واقعی ذخیره‌شده read شود؛ اگر ذخیره شده، همان Hold و Unit refs پاسخ داده شود؛ اگر نشده، failure و retry؛ از ساخت Hold مجدد بدون بررسی جلوگیری شود.
 
@@ -27,11 +27,11 @@
 | Create Hold | `Reservation.IdempotencyKey` (unique) | same HoldId, Units, Expiry | 409 |
 | Seat append | `(HoldId, AppendIdempotencyKey)` با Unitهای موجود | same parent, no new Units | 409 |
 | Confirm | `holdId` + current state | no-op if already confirmed | invalid transition 409 |
-| Release all/unit | holdId (+unitId) | no-op if already released | wrong/confirmed state 409 |
-| Cancel all/unit | holdId (+unitId) + original reasonCode | no-op when already cancelled with same reason | 409 when reason changes (do not overwrite audit) |
+| Release all / selected | holdId (+ optional `unitIds`) | no-op if the targeted units are already released | wrong/confirmed state 409 |
+| Cancel all / selected | holdId (+ optional `unitIds`) + original reasonCode | no-op when the targeted units are already cancelled with the same reason; whole cancel skips earlier Released/Cancelled units | selective: 409 when reason changes (do not overwrite audit) |
 | Expire | holdId + cutoff | no-op after persisted expiration | no double resource effect |
 
-Canonical payload comparisons include ALL capacity-relevant facts (`acceptedWeightKgTotal`, `timeWithOffset`, `guestCount`) and SeatMap ID/SeatNumber. Current `EnsureSameContent` in Domain compares existing base fields only; it must be extended accordingly. Do not introduce `RequestFingerprint` table solely for this.
+Canonical payload comparisons include ALL capacity-relevant facts (`timeWithOffset`, `guestCount`, `quantity`) and SeatMap ID/SeatNumber. Current `EnsureSameContent` in Domain compares existing base fields only; it must be extended accordingly. Do not introduce `RequestFingerprint` table solely for this. Accepted weight is not part of the contract in this phase.
 
 ## 4. Live competition / lock order
 - Hold OrderA/OrderB competes for same stock → both order locks are different؛ ensure inventory source-level locks inside SQL transaction and source key ordering prevents double assignment.
@@ -57,12 +57,12 @@ Canonical payload comparisons include ALL capacity-relevant facts (`acceptedWeig
 ## 6. Storage/Migrations
 **CommandDb only** (`AncillaryDbContext`, schema `Ancillary`):
 1. Add `AncillaryReservationUnitAllocations` table with `Id`, `AncillaryReservationUnitId`, `ResourceKind`, `InventorySourceId`, `Amount decimal(19,3)`.
-2. Add three nullable facts + `AppendIdempotencyKey` to ReservationUnit. No renaming/deleting existing tables.
+2. Add two nullable facts (`AppointmentTimeWithOffset`, `GuestCount`) + `AppendIdempotencyKey` to ReservationUnit. No accepted-weight column. No renaming/deleting existing tables.
 3. Indexes as `03-DOMAIN...`; no unnecessary shadow FK or duplicate provider reference.
 4. `Down` migration reverses only these additive changes and is demonstrably reversible **in a test database**; never drop active historical data on deployed DB.
 5. No QueryDb projection unless a concrete existing consumer requires it; Hold GET reads CommandDb via current pattern.
 6. Run EF `has-pending-model-changes` and inspect actual migration SQL. No private production/dev data reset or deletion without explicit owner authorization.
-7. Legacy held/confirmed records created before allocation feature: enumerate and report affected rows. **If a legacy live reservation lacks allocation evidence for a Local stock source, block new reservations on that source until verified reconciliation; never assume zero historical consumption.** Do not silently mark them guaranteed; decide migration/expiry safely with owner. Avoid hidden backfill synthetic allocations.
+7. Legacy held/confirmed records created before allocation feature: before the migration runs on any environment, one read-only query enumerates and reports live holds on Local policies without allocation. **If any exists, that environment stays fail-closed for the affected sources until an approved decision; never assume zero historical consumption.** No runtime reconciliation system, no synthetic allocations, no deletion of history without the Owner. (Dev on 2026-10-26: 0 Local policies, 0 sources; old holds deleted on the Owner's order.)
 
 ## 7. Instrumentation حداقلی
 - Log non-sensitive `holdId`, `orderId`, `unitId`, `resourceKind`, `sourceId`, outcome `Held/Shortage/Released/Confirmed`, trace/correlation. Never log DOB, FREMEC/medical details, tokens or raw `SeatMapSelectionId`.

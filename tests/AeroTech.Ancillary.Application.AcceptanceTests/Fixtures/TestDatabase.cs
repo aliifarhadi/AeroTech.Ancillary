@@ -22,7 +22,8 @@ public sealed class TestDatabase : IAsyncLifetime
 
     private readonly string _connectionString = new SqlConnectionStringBuilder(ServerConnectionString())
     {
-        InitialCatalog = $"DotAirAncillary_Tests_{Guid.NewGuid():N}"
+        InitialCatalog = $"DotAirAncillary_Tests_{Guid.NewGuid():N}",
+        MaxPoolSize = 250
     }.ConnectionString;
 
     private int _lastAirlineId = 1_000;

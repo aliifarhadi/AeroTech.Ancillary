@@ -19,5 +19,7 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
         DateTimeOffset? TicketedAtUtc { get; }
 
         IReadOnlyList<SeatHoldSelectionInput> Seats { get; }
+
+        long? HoldId { get; }
     }
 }

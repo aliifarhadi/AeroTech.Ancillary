@@ -1,7 +1,9 @@
+using System.Text.Json.Serialization;
 using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldAncillaryServices
 {
+    [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
     public sealed record AncillaryHoldServiceInput(
         long OrderServiceId,
         long ServiceDefinitionId,
@@ -10,7 +12,5 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
         ServiceCoverageScope CoverageScope,
         IReadOnlyList<long> CoveredFlightIds,
         int Quantity,
-        string? SeatMapSelectionId = null,
-        string? SeatNumber = null,
-        long? PricingId = null);
+        InventoryHoldFactsInput? InventoryFacts = null);
 }

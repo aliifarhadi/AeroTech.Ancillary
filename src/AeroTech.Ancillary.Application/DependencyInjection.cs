@@ -147,6 +147,7 @@ namespace AeroTech.Ancillary.Application
 
             services.Configure<AncillaryHoldOptions>(configuration.GetSection(AncillaryHoldOptions.SectionName));
             services.AddScoped<IAncillaryHoldLock, AncillaryHoldLock>();
+            services.AddScoped<IAncillaryHoldAllocator, AncillaryHoldAllocator>();
             services.AddScoped<IHoldAncillaryServicesService, HoldAncillaryServicesService>();
             services.AddScoped<IHoldSeatSelectionsService, HoldSeatSelectionsService>();
             services.AddScoped<IPriceAncillaryOffersService, PriceAncillaryOffersService>();

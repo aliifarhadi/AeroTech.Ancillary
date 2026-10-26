@@ -101,14 +101,14 @@ public sealed record TestHoldAncillaryServicesCommand(
     string IdempotencyKey,
     long OrderId,
     string Reference,
-    DateTimeOffset? RequestedExpiresAt,
+    DateTimeOffset RequestedExpiresAt,
     IReadOnlyList<AncillaryHoldServiceInput> Services) : IHoldAncillaryServicesCommand;
 
 public sealed record TestConfirmAncillaryHoldCommand(long HoldId) : IConfirmAncillaryHoldCommand;
 
-public sealed record TestReleaseAncillaryHoldCommand(long HoldId) : IReleaseAncillaryHoldCommand;
+public sealed record TestReleaseAncillaryHoldCommand(long HoldId, IReadOnlyList<long>? UnitIds = null) : IReleaseAncillaryHoldCommand;
 
-public sealed record TestCancelAncillaryHoldCommand(long HoldId, string ReasonCode) : ICancelAncillaryHoldCommand;
+public sealed record TestCancelAncillaryHoldCommand(long HoldId, string ReasonCode, IReadOnlyList<long>? UnitIds = null) : ICancelAncillaryHoldCommand;
 
 public sealed record TestHoldSeatSelectionsCommand(
     string IdempotencyKey,
@@ -119,7 +119,8 @@ public sealed record TestHoldSeatSelectionsCommand(
     long PointOfSaleId,
     int CurrencyId,
     DateTimeOffset? TicketedAtUtc,
-    IReadOnlyList<SeatHoldSelectionInput> Seats) : IHoldSeatSelectionsCommand;
+    IReadOnlyList<SeatHoldSelectionInput> Seats,
+    long? HoldId = null) : IHoldSeatSelectionsCommand;
 
 public static class M1Commands
 {
@@ -184,7 +185,7 @@ public static class M1Commands
         long orderId,
         long serviceDefinitionId,
         long provisionId,
-        DateTimeOffset? requestedExpiresAt,
+        DateTimeOffset requestedExpiresAt,
         params (long OrderServiceId, long TravellerId, long FlightId)[] units)
         => new(
             idempotencyKey,

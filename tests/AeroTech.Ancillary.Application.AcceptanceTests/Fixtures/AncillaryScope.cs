@@ -21,7 +21,6 @@ using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.Hold
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.HoldSeatSelections;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.ReleaseAncillaryHold;
 using AeroTech.Ancillary.Application.AncillaryReservationAggregate.Services;
-using Microsoft.Extensions.Options;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.ActivateAncillaryServiceDefinition;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.AssignAncillaryServiceDefinitionPricingUnit;
 using AeroTech.Ancillary.Application.AncillaryServiceDefinitionAggregate.Commands.AssignAncillaryServiceDefinitionServiceDateBasis;
@@ -39,10 +38,14 @@ using AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Contracts;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate.Contracts;
 using AeroTech.Ancillary.Domain.SupplierAggregate.Contracts;
 using AeroTech.Ancillary.Persistence;
+using AeroTech.Ancillary.Persistence.AirportSlotInventoryAggregate;
+using AeroTech.Ancillary.Persistence.AncillaryInventoryPolicyAggregate;
 using AeroTech.Ancillary.Persistence.AncillaryPricingAggregate;
 using AeroTech.Ancillary.Persistence.AncillaryProvisionAggregate;
 using AeroTech.Ancillary.Persistence.AncillaryReservationAggregate;
 using AeroTech.Ancillary.Persistence.AncillaryServiceDefinitionAggregate;
+using AeroTech.Ancillary.Persistence.FlightCountInventoryAggregate;
+using AeroTech.Ancillary.Persistence.FlightWeightInventoryAggregate;
 using AeroTech.Ancillary.Persistence.SupplierAggregate;
 using AeroTech.Ancillary.Query.AncillaryPricingAggregate.Queries.GetAncillaryPricingById;
 using AeroTech.Ancillary.Query.AncillaryPricingAggregate.Queries.GetAncillaryPricingsPaginated;
@@ -69,7 +72,7 @@ namespace AeroTech.Ancillary.Application.AcceptanceTests.Fixtures;
 
 public sealed class AncillaryScope : IAsyncDisposable
 {
-    public AncillaryScope(TestDatabase database, IClock clock)
+    public AncillaryScope(TestDatabase database, IClock clock, TestOnlyHoldLock? holdLock = null)
     {
         var ids = database.Ids;
 
@@ -133,16 +136,22 @@ public sealed class AncillaryScope : IAsyncDisposable
         RevisePricing = new ReviseAncillaryPricingService(Pricings, pricingSynchronizer, UnitOfWork, ids, clock);
         SwitchActivePricing = new SwitchActiveAncillaryPricingService(Pricings, Provisions, Definitions, currencies, pricingSynchronizer, UnitOfWork, clock);
 
-        var holdOptions = Options.Create(new AncillaryHoldOptions { LockExpirySeconds = 30, ExpiryPollIntervalSeconds = 60, ExpiryBatchSize = 100 });
-
-        HoldLock = new TestOnlyHoldLock();
+        HoldLock = holdLock ?? new TestOnlyHoldLock();
         SeatSelections = new TestOnlySeatSelectionVerifier();
-        HoldAncillaryServices = new HoldAncillaryServicesService(Reservations, Definitions, Provisions, Suppliers, HoldLock, UnitOfWork, ids, clock);
+        var allocator = new AncillaryHoldAllocator(
+            Definitions,
+            Provisions,
+            Suppliers,
+            new InventoryPolicyRepository(Command),
+            new FlightCountInventoryRepository(Command),
+            new FlightWeightInventoryRepository(Command),
+            new AirportSlotInventoryRepository(Command));
+        HoldAncillaryServices = new HoldAncillaryServicesService(Reservations, allocator, new InventoryLedger(Command), HoldLock, UnitOfWork, ids, clock);
         HoldSeatSelections = new HoldSeatSelectionsService(SeatSelections, HoldAncillaryServices);
-        ConfirmAncillaryHold = new ConfirmAncillaryHoldService(Reservations, UnitOfWork, clock);
-        ReleaseAncillaryHold = new ReleaseAncillaryHoldService(Reservations, UnitOfWork, clock);
-        CancelAncillaryHold = new CancelAncillaryHoldService(Reservations, UnitOfWork, clock);
-        ExpireAncillaryHolds = new ExpireAncillaryHoldsService(Reservations, UnitOfWork, clock, holdOptions);
+        ConfirmAncillaryHold = new ConfirmAncillaryHoldService(Reservations, HoldLock, UnitOfWork, clock);
+        ReleaseAncillaryHold = new ReleaseAncillaryHoldService(Reservations, HoldLock, UnitOfWork, clock);
+        CancelAncillaryHold = new CancelAncillaryHoldService(Reservations, HoldLock, UnitOfWork, clock);
+        ExpireAncillaryHolds = new ExpireAncillaryHoldsService(Reservations, HoldLock, UnitOfWork, clock);
 
         GetSupplierById = new GetSupplierByIdService(Query);
         GetSuppliersPaginated = new GetSuppliersPaginatedService(Query);

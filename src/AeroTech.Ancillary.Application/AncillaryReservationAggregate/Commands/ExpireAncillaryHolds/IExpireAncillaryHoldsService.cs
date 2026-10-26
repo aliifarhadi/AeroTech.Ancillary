@@ -2,6 +2,8 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
 {
     public interface IExpireAncillaryHoldsService
     {
-        Task<int> ExpireAsync(CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<long>> ListDueOrderIdsAsync(int batchSize, CancellationToken cancellationToken = default);
+
+        Task<int> ExpireAsync(long orderId, CancellationToken cancellationToken = default);
     }
 }

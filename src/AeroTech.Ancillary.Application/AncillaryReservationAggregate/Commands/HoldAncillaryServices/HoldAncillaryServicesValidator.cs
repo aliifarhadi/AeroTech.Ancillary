@@ -10,6 +10,7 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
             RuleFor(command => command.IdempotencyKey).NotEmpty().MaximumLength(128);
             RuleFor(command => command.OrderId).GreaterThan(0);
             RuleFor(command => command.Reference).NotEmpty().MaximumLength(128);
+            RuleFor(command => command.RequestedExpiresAt).NotEmpty();
             RuleFor(command => command.Services).NotEmpty();
             RuleForEach(command => command.Services).NotNull().SetValidator(new AncillaryHoldServiceInputValidator());
         }

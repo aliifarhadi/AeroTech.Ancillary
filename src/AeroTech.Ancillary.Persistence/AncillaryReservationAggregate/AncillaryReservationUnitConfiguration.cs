@@ -14,6 +14,7 @@ namespace AeroTech.Ancillary.Persistence.AncillaryReservationAggregate
 
             builder.Property(unit => unit.SeatMapSelectionId).HasMaxLength(256);
             builder.Property(unit => unit.SeatNumber).HasMaxLength(16);
+            builder.Property(unit => unit.AppendIdempotencyKey).HasMaxLength(128);
             builder.Property(unit => unit.ProviderUnitRef).HasMaxLength(100);
             builder.Property(unit => unit.CancellationReasonCode).HasMaxLength(50);
 
@@ -21,6 +22,13 @@ namespace AeroTech.Ancillary.Persistence.AncillaryReservationAggregate
                 .HasField("_coveredFlightIds")
                 .UsePropertyAccessMode(PropertyAccessMode.Field)
                 .IsRequired();
+
+            builder.HasMany(unit => unit.Allocations)
+                .WithOne()
+                .HasForeignKey(allocation => allocation.AncillaryReservationUnitId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Navigation(unit => unit.Allocations).UsePropertyAccessMode(PropertyAccessMode.Field);
 
             builder.HasIndex(unit => unit.AncillaryReservationId);
             builder.HasIndex(unit => unit.OrderServiceId);

@@ -3,5 +3,5 @@ using MediatR;
 
 namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.CancelAncillaryHold.Service
 {
-    public sealed record ServiceCancelAncillaryHoldCommand(long HoldId, string ReasonCode) : IRequest<AncillaryHoldResult>, ICancelAncillaryHoldCommand;
+    public sealed record ServiceCancelAncillaryHoldCommand(long HoldId, string ReasonCode, IReadOnlyList<long>? UnitIds) : IRequest<AncillaryHoldResult>, ICancelAncillaryHoldCommand;
 }

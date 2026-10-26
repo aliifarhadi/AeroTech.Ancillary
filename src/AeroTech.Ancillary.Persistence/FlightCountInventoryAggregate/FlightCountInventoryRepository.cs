@@ -19,6 +19,15 @@ namespace AeroTech.Ancillary.Persistence.FlightCountInventoryAggregate
                 .Include(inventory => inventory.Adjustments)
                 .FirstOrDefaultAsync(inventory => inventory.Id == id, cancellationToken);
 
+        public Task<long?> FindCurrentIdAsync(int ownerAirlineId, long flightId, long resourceId, CancellationToken cancellationToken = default)
+            => _dbContext.FlightCountInventories
+                .Where(inventory => inventory.OwnerAirlineId == ownerAirlineId
+                                    && inventory.FlightId == flightId
+                                    && inventory.ResourceId == resourceId
+                                    && inventory.Status != InventoryRecordStatus.Retired)
+                .Select(inventory => (long?)inventory.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+
         public async Task<InventoryCountUnit?> FindCountUnitOfLiveSourcesAsync(
             int ownerAirlineId,
             long resourceId,

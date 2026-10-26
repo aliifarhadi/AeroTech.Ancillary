@@ -33,6 +33,7 @@ namespace AeroTech.Ancillary.RestApi.V1.SeatMaps.Controllers
                 request.PointOfSaleId,
                 request.CurrencyId,
                 request.TicketedAtUtc,
-                request.Seats), cancellationToken));
+                request.Seats,
+                request.HoldId), cancellationToken));
     }
 }

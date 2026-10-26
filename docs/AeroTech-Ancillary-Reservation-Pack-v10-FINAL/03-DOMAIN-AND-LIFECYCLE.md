@@ -7,7 +7,7 @@
 - `AncillaryReservationUnitAllocation`: **جدید** و صرفاً child از Unit؛ نه Aggregate/Repository مستقل تجاری.
 - `InventoryResourceKind`: **موجود** `FlightCount=1, FlightWeight=2, AirportSlot=3`.
 - `AncillaryReservationStatus` و `AncillaryReservationUnitStatus`: **موجود** `Held=1, Confirmed=2, Released=3, Expired=4, Cancelled=5`؛ renumber و enum proliferation ممنوع.
-- `InventoryHoldFacts` DTO/Value-Object حداقلی برای weight و slot: **جدید**؛ داده‌ای که واقعاً در تخصیص نیاز است، نه کپی کل Selection.
+- `InventoryHoldFacts` DTO حداقلی فقط برای slot (`timeWithOffset`, `guestCount`): **جدید**؛ داده‌ای که واقعاً در تخصیص نیاز است، نه کپی کل Selection. وزن پذیرفته‌شده در این فاز Unsupported است و فیلدی ندارد.
 
 ## 2. Root موجود ـ جدول کامل
 | Field | CLR Type | وضعیت | معنی/Invariant |
@@ -46,11 +46,10 @@
 | `CancellationReasonCode` | string? max50 | موجود | فقط Cancelled، علّت از Ordering؛ بدون overwrite در retry |
 | `Allocations` | IReadOnlyCollection<AncillaryReservationUnitAllocation> | **جدید** | 0..N؛ فقط منابع `InventoryAuthority.Local` |
 | `AppendIdempotencyKey` | string? max128 | **جدید فقط Seat append** | برای Unitهای همان درخواست append مشترک؛ فقط برای replay به parent؛ null در Create عمومی/seat-only |
-| `AcceptedWeightKgTotal` | decimal? | **جدید conditional** | برای Hold با local accepted-weight؛ immutable، precision InventoryRules |
 | `AppointmentTimeWithOffset` | DateTimeOffset? | **جدید conditional** | Slot، زمان سفارش تأییدشده و قابل‌مقایسه به UTC |
 | `GuestCount` | int? | **جدید conditional** | Slot، 0..Policy Max؛ در محاسبه persons لازم |
 
-**دلیل ذخیره فقط سه Fact:** برای مقایسه صحیح درخواست idempotent و توضیح تخصیص در آینده لازم‌اند؛ برای هر Variant جدول/JSON مستقل ایجاد نمی‌شود. اطلاعات پزشکی، SSR، Meal details، Passenger documents و پرایس مجدداً اینجا ذخیره نشوند.
+**دلیل ذخیره فقط دو Fact:** برای مقایسه صحیح درخواست idempotent و توضیح تخصیص در آینده لازم‌اند؛ وزن پذیرفته‌شده ستونی ندارد چون در این فاز Unsupported است؛ برای هر Variant جدول/JSON مستقل ایجاد نمی‌شود. اطلاعات پزشکی، SSR، Meal details، Passenger documents و پرایس مجدداً اینجا ذخیره نشوند.
 
 ## 4. Allocation جدید — دقیق و کوچک
 `AncillaryReservationUnitAllocation` child ساده‌ای از Unit است. یک Unit ممکن است 0 یا چند Allocation داشته باشد. Domain methodهای تغییر وضعیت Allocation لازم نیست چون effective allocation از وضعیت Unit و زمان Root محاسبه می‌شود.
@@ -81,12 +80,14 @@
 | Create Hold | new valid input, expiry future | create Held | allocation atomic; no fake success |
 | Append SeatMap | existing Held unexpired, same Order/Reference/ExpiresAt | add seat Held | NO seat allocation; same HoldId |
 | Confirm All | Root Held not expired | فقط Held→Confirmed | Allocation باقی می‌ماند؛ Released ثابت |
-| Release All | Root Held not expired | فقط Held→Released | Available افزایش می‌یابد |
-| Release Unit | Root Held not expired, owned Unit Held | یک Held→Released | فقط allocations همین Unit از مصرف خارج می‌شوند |
+| Release All (`unitIds` نیست) | Root Held not expired | فقط Held→Released | Available افزایش می‌یابد |
+| Release selected (`unitIds`) | Root Held not expired، همه Unitهای فهرست متعلق به Root و Held (یا قبلاً Released) | فقط همان Held→Released، همه یا هیچ | فقط allocations همان Unitها از مصرف خارج می‌شوند |
 | Expire | Root Held and now>=expires | فقط Held→Expired | بعد از deadline حتی قبل poller قابل فروش مجدد |
-| Cancel All | Root Confirmed | فقط Confirmed→Cancelled | فقط allocations Cancelled آزاد می‌شوند؛ Refund وظیفه Ordering |
-| Cancel Unit | Root Confirmed, owned Unit Confirmed | فقط یک Confirmed→Cancelled | سایر Confirmed باقی می‌مانند |
+| Cancel All (`unitIds` نیست) | Root Confirmed | فقط Confirmed→Cancelled؛ Unitهای قبلاً Released/Cancelled کنار گذاشته می‌شوند | فقط allocations Cancelled آزاد می‌شوند؛ Refund وظیفه Ordering |
+| Cancel selected (`unitIds`) | Root Confirmed، همه Unitهای فهرست متعلق به Root و Confirmed (یا قبلاً Cancelled با همان دلیل) | فقط همان Confirmed→Cancelled، همه یا هیچ | سایر Confirmed باقی می‌مانند |
 | Read | هر status | بدون mutation | lazy expiry در response؛ Units truth |
+
+**متدهای Domain:** Release و Cancel یک فهرست اختیاری `UnitId` می‌گیرند؛ نبودن فهرست = عملیات کلی. فهرست صریح خالی، تکراری یا ناشناخته نامعتبر است.
 
 **قاعده ترتیب بررسی:** ابتدا اگر همان Unit یا همان Hold قبلاً دقیقاً به نتیجه مطلوب رسیده است، پاسخ replay/no-op بده، حتی اگر والد بعداً terminal/expired شده باشد؛ پس از آن precondition عملیات تازه بررسی شود.
 
@@ -115,6 +116,6 @@
 - Product/Options بیزنسی را بعد از Confirm تغییر ندهید؛ تغییر Seat Number به Release/Cancel + Hold جدید با OrderService جدید و orchestrator Ordering نیاز دارد.
 
 ## 8. Migration و compatibility
-- EF CommandDb: ایجاد جدول Allocation؛ افزودن ستون‌های conditional Fact و AppendKey روی Unit؛ FK + indexes؛ Default برای داده‌های قدیمی **NULL و empty allocation**؛ هیچ داده تاریخی را به Held With Stock تبدیل نکنید.
-- Reservationهای قدیمی که فقط status Held و بدون allocation دارند **تضمین واقعی Local ندارند**؛ نباید آن‌ها را در production معتبر جلوه دهید. **تا زمانی که اثر Stock یک Hold/Confirmed legacy فاقد Allocation روی Source موردنظر قابل اثبات/تعیین‌تکلیف نیست، Hold جدید روی همان Source باید fail-closed شود**؛ در غیر این صورت sum ledger آن مصرف تاریخی را صفر فرض کرده و ممکن است oversell رخ دهد. Gate migration باید pre-existing Held/Confirmed را گزارش و ایمن reconcile کند؛ و بدون اجازه مالک داده‌ها حذف نشوند.
+- EF CommandDb: ایجاد جدول Allocation؛ افزودن ستون‌های `AppointmentTimeWithOffset`، `GuestCount` و `AppendIdempotencyKey` روی Unit؛ FK + indexes؛ Default برای داده‌های قدیمی **NULL و empty allocation**؛ هیچ داده تاریخی را به Held With Stock تبدیل نکنید.
+- Reservationهای قدیمی که فقط status Held و بدون allocation دارند **تضمین واقعی Local ندارند**؛ نباید آن‌ها را در production معتبر جلوه دهید. پیش از اجرای Migration روی هر محیط، یک Query فقط‌خواندنی بررسی کند آیا Hold/Confirmed قدیمی روی Policy محلی بدون Allocation وجود دارد؛ اگر دارد، **همان محیط تا تعیین تکلیف تأییدشده برای منابع متأثر Fail Closed** می‌ماند. سیستم Runtime Reconciliation ساخته نمی‌شود، Allocation ساختگی ساخته نمی‌شود و بدون اجازه مالک داده‌ها حذف نمی‌شوند.
 - Status enum integer موجود ثابت؛ Snapshot/Shopping/SeatMap status خارج scope.

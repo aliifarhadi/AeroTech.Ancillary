@@ -31,6 +31,18 @@ namespace AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.ValueObjec
             return new AirportSlotConsumption(facilityId, occupancyMinutes, peoplePerAcceptedUnit);
         }
 
+        public int RequiredPersons(int acceptedQuantity, int guestCount)
+        {
+            Require(acceptedQuantity > 0, nameof(acceptedQuantity));
+            Require(guestCount >= 0, nameof(guestCount));
+
+            var required = (long)PeoplePerAcceptedUnit * ((long)acceptedQuantity + guestCount);
+
+            Require(required <= int.MaxValue, nameof(acceptedQuantity));
+
+            return (int)required;
+        }
+
         internal AirportSlotConsumption Copy() => new(FacilityId, OccupancyMinutes, PeoplePerAcceptedUnit);
 
         protected override IEnumerable<object?> GetEqualityComponents()

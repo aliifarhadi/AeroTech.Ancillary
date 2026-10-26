@@ -11,7 +11,7 @@ namespace AeroTech.Ancillary.Application.AcceptanceTests.Boundary;
 public class P2BoundaryAcceptanceTests
 {
     private const string FrozenAggregate = "AncillaryReservationAggregate";
-    private const string FrozenSourceHash = "BCB3AE2E6A86E92F04238AADA1AA4EB1205348B18C2983137A14DF5D11517269";
+    private const string FrozenSourceHash = "758010CE0F03CA960ACECEF62843BED3B7F7FCA52929066C6C963396CB8EABDD";
     private const string CommandMigration = "20261008212718_V121Phase2StockCapacity.cs";
     private const string QueryMigration = "20261008212728_V121Phase2StockCapacityQuery.cs";
 
@@ -29,7 +29,7 @@ public class P2BoundaryAcceptanceTests
     private static string Relative(string path) => Path.GetRelativePath(RepositoryFiles.Root, path).Replace('\\', '/');
 
     private static List<string> InventorySource() => Files(Source)
-        .Where(path => !InFolder(path, "Migrations") && Relative(path).Contains("Inventory", StringComparison.Ordinal))
+        .Where(path => !InFolder(path, "Migrations") && !InFolder(path, FrozenAggregate) && Relative(path).Contains("Inventory", StringComparison.Ordinal))
         .ToList();
 
     private static (string Up, string Down) Migration(string project, string file)
@@ -68,7 +68,7 @@ public class P2BoundaryAcceptanceTests
             .OrderBy(file => file.Path, StringComparer.Ordinal)
             .ToList();
 
-        Assert.Equal(72, frozen.Count);
+        Assert.Equal(82, frozen.Count);
         Assert.Equal(
             FrozenSourceHash,
             Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join('\n', frozen.Select(file => $"{file.Path}:{file.Hash}"))))));

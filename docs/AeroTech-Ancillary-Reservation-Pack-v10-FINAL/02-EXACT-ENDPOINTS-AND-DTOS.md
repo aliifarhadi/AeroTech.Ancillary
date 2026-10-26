@@ -8,13 +8,11 @@
 | Create general hold | POST | `/Service/v1/Ancillaries/Service-Holds` | موجود؛ behavior تکمیل شود |
 | Read hold | GET | `/Service/v1/Ancillaries/Service-Holds/{holdId:long}` | موجود؛ Unitهای جزئی پشتیبانی شوند |
 | Confirm active hold | POST | `/Service/v1/Ancillaries/Service-Holds/{holdId:long}/Confirmations` | موجود؛ حفظ Released Units |
-| Release remaining held | DELETE | `/Service/v1/Ancillaries/Service-Holds/{holdId:long}` | موجود؛ آزادسازی Inventory |
-| Cancel confirmed | POST | `/Service/v1/Ancillaries/Service-Holds/{holdId:long}/Cancellations` | موجود؛ آزادسازی Local در Cancellation مجاز |
-| Release one held unit | DELETE | `/Service/v1/Ancillaries/Service-Holds/{holdId:long}/Units/{unitId:long}` | **جدید** |
-| Cancel one confirmed unit | POST | `/Service/v1/Ancillaries/Service-Holds/{holdId:long}/Units/{unitId:long}/Cancellations` | **جدید** |
+| Release held (all or selected) | DELETE | `/Service/v1/Ancillaries/Service-Holds/{holdId:long}` + query اختیاری `unitIds` | موجود؛ `unitIds` اضافه شود؛ آزادسازی Inventory |
+| Cancel confirmed (all or selected) | POST | `/Service/v1/Ancillaries/Service-Holds/{holdId:long}/Cancellations` + بدنه اختیاری `unitIds` | موجود؛ `unitIds` اضافه شود؛ آزادسازی Local در Cancellation مجاز |
 | SeatMap commercial hold | POST | `/Service/v1/Ancillaries/SeatMaps/Holds` | موجود؛ `holdId?` برای append اضافه شود |
 
-**عمداً نداریم:** `POST /Ancillaries/Hold` دوم، `POST /SeatMaps/Confirm` موازی، `POST /Options`، reservation-specific Price، `POST /Provider-Holds`، endpoint جدید عمومی Appendix/Append یا generic EMD.
+**عمداً نداریم:** `POST /Ancillaries/Hold` دوم، `POST /SeatMaps/Confirm` موازی، `POST /Options`، reservation-specific Price، `POST /Provider-Holds`، endpoint جدید عمومی Appendix/Append، مسیر جدا برای یک Unit، یا generic EMD.
 
 ## 2. POST Service-Holds — Request
 ```json
@@ -64,17 +62,11 @@
 | `coverageScope` | `ServiceCoverageScope` | yes | `Sector=1, Portion=2, Journey=3, Order=4`؛ مطابق Provision و Order |
 | `coveredFlightIds` | long[] | yes | distinct، positive، canonical sorted در persistence؛ Sector=یک؛ Portion/Journey=تمام پروازهای مربوط؛ Order ممکن است [] |
 | `quantity` | int | yes | >=1 و در Min/Max Provision؛ عدد نهایی قبول‌شده در Ordering |
-| `inventoryFacts` | `InventoryHoldFacts?` | conditional | فقط وقتی `Local FlightWeight AcceptedWeight` یا `Local AirportSlot` واقعاً استفاده می‌شود؛ روی بقیه **نباید مقدار اضافی** فرستاده شود |
+| `inventoryFacts` | `InventoryHoldFacts?` | conditional | فقط وقتی `Local AirportSlot` واقعاً استفاده می‌شود؛ روی بقیه **نباید مقدار اضافی** فرستاده شود |
 
 **عدم افزودن fields:** `offerId`, `selectionId`, `unitPrice`, `currencyId`, `taxes`, `PCC`, `seatNumber`, `pricingId`, `stockPoolId`, `providerKey` برای این Generic DTO نداریم. Ordering قبلاً Offer/Price را پذیرفته و ذخیره کرده است. Seat fields فقط از Facade اختصاصی SeatMap می‌آیند.
 
-### `InventoryHoldFacts` — تنها داده جدید و کمینه
-```json
-{
-  "acceptedWeightKgTotal": 16.5
-}
-```
-یا برای Slot:
+### `InventoryHoldFacts` — تنها داده جدید و کمینه (فقط Slot)
 ```json
 {
   "timeWithOffset": "2026-10-26T16:00:00+03:30",
@@ -83,9 +75,10 @@
 ```
 | Field | Type | When required | Meaning |
 |---|---|---|---|
-| `acceptedWeightKgTotal` | decimal? | فقط `FlightWeightConsumptionMode.AcceptedWeightKg` | **وزن کل پذیرفته‌شده برای همین Unit و Quantity، نه وزن هر قطعه**. precision طبق `InventoryRules.IsKg`، مثبت، با Order accepted selection reconcile شود |
 | `timeWithOffset` | DateTimeOffset? | فقط `Local AirportSlot` | زمان appointment واقعی با timezone offset؛ ذخیره و مقایسه در UTC؛ از selection `timeWithOffset` معتبر سفارش |
 | `guestCount` | int? | فقط `AirportSlot` | تعداد همراه، صفر یا بیشتر؛ base persons از Policy محاسبه می‌شود، نه از Front |
+
+**وزن پذیرفته‌شده:** در این فاز فیلدی برای وزن کل پذیرفته‌شده وجود ندارد. مصرف وزن فقط `FixedKgPerAcceptedUnit × Quantity` از Policy فعال است. Policy با `AcceptedWeightKg` پیش از هر نوشتن با خطای صریح Unsupported رد می‌شود؛ هر فیلد وزن در Payload، فیلد ناشناخته است و رد می‌شود.
 
 هیچ `JsonObject`، `SelectionOptions` بزرگ یا Nullable DTO ترکیبی 24 Variant به Hold اضافه نشود؛ Details کامل متعلق به Ordering هستند. API باید body field ناشناخته یا ناسازگار با pattern را رد کند؛ با راهکار serializer موجود، نه ساخت Framework جدید.
 
@@ -227,23 +220,30 @@ Response: همان `AncillaryHoldResult` با **همان holdId**؛ شامل Uni
 
 **منبع دقیق:** `HoldSeatSelectionsRequest`, `SeatHoldSelectionInput`, `SeatHoldFlightInput`, `SeatHoldFareInput` و Validatorهای آن‌ها در شاخه Pin‌شده؛ داده‌های نمونه بالا شناسه‌های تستی هستند. SeatMap فروش تجاری را verify می‌کند، نه occupied physical seat را.
 
-## 5. Unit release و Cancel
+## 5. Release و Cancel انتخابی — روی همان مسیرهای گروهی
 ```http
-DELETE /Service/v1/Ancillaries/Service-Holds/9001/Units/9102
-POST /Service/v1/Ancillaries/Service-Holds/9001/Units/9103/Cancellations
+DELETE /Service/v1/Ancillaries/Service-Holds/9001?unitIds=9102&unitIds=9104
+POST /Service/v1/Ancillaries/Service-Holds/9001/Cancellations
 Content-Type: application/json
-{"reasonCode":"CUSTOMER_REQUEST"}
+{"reasonCode":"CUSTOMER_REQUEST","unitIds":[9102,9104]}
 ```
-- Release یک Unit: فقط `Held` زنده → `Released`؛ retry همان Unit released بدون اثر؛ `Confirmed` باید 409 بدهد.
-- Cancel یک Unit: فقط `Confirmed` → `Cancelled`؛ retry Cancelled بدون اثر؛ `Held` باید 409 بدهد؛ reasonCode طول 1..50 مانند Aggregate موجود.
-- هر دو response: همان `AncillaryHoldResult` کامل (بدون DTO تازه)، Status Unitها صریح؛ status والد طبق Master.
-- اگر `unitId` متعلق به holdId نیست: `404`، نه اینکه از Reservation دیگری Unit را حذف کنیم.
+| Field | محل | Type | Rules |
+|---|---|---|---|
+| `unitIds` | query در `DELETE` | `long[]?` | اختیاری؛ نبودن = همه Unitهای Held قابل‌آزادسازی؛ بودن = فقط همان Unitها؛ از JSON body در DELETE خوانده نمی‌شود |
+| `reasonCode` | body در `Cancellations` | `string` | اجباری؛ طول 1..50 مانند Aggregate موجود؛ دلیل قبلی overwrite نمی‌شود |
+| `unitIds` | body در `Cancellations` | `long[]?` | اختیاری؛ missing/null = همه Unitهای Confirmed واجد شرایط؛ present = فقط همان Unitها |
 
-## 6. Confirm/Release/Cancel whole
+- فهرست `unitIds` صریح باید غیرخالی، یکتا، مثبت و متعلق به همان Hold باشد؛ فهرست خالی، تکراری یا صفر نامعتبر است و هیچ‌وقت به‌صورت ضمنی به عملیات کلی تبدیل نمی‌شود. Unit متعلق به Hold دیگر: `404`.
+- Aggregate یک بار Load می‌شود؛ همه Unitهای انتخاب‌شده ابتدا از نظر تعلق، تکراری نبودن و وضعیت بررسی و سپس **همه یا هیچ** تغییر می‌کنند.
+- Release فقط `Held` زنده → `Released`؛ Cancel فقط `Confirmed` → `Cancelled`. Release روی `Confirmed`، Cancel روی `Held` و هر عمل روی `Expired`: `409`.
+- Replay انتخابی روی Unitهای قبلاً Released یا Cancelled بدون Write پاسخ می‌دهد؛ Cancel انتخابی تکراری با `reasonCode` متفاوت روی Unit قبلاً Cancelled: `409` و دلیل قبلی حفظ می‌شود.
+- هر دو response: همان `AncillaryHoldResult` کامل (بدون DTO تازه)، Status Unitها صریح؛ status والد طبق Master.
+
+## 6. Confirm/Release/Cancel کلی
 - `POST .../Confirmations` body ندارد؛ فقط Unitهای Held فعال Confirm می‌شوند؛ Released قبلی untouched.
-- `DELETE .../Service-Holds/{id}` body ندارد؛ فقط Heldهای فعال Released می‌شوند؛ Confirmed ممنوع. اگر هیچ Held و همه قبلاً Released هستند replay no-op.
-- `POST .../Cancellations` `{ "reasonCode":"CUSTOMER_REQUEST" }`؛ فقط Confirmedهای فعال Cancelled؛ Released قبلی untouched. `Cancelled` replay no-op.
-- Confirm/Release/Cancel و Unit commands باید تحت کنترل concurrency واحد Reservation+Inventory اجرا شوند، نه تنها `Load → Save` آزاد.
+- `DELETE .../Service-Holds/{id}` بدون `unitIds`؛ فقط Heldهای فعال Released می‌شوند؛ Confirmed ممنوع. اگر هیچ Held نمانده و همه قبلاً Released هستند replay no-op.
+- `POST .../Cancellations` `{ "reasonCode":"CUSTOMER_REQUEST" }` بدون `unitIds`؛ فقط Confirmedهای فعال Cancelled؛ Unitهای قبلاً Released/Cancelled کنار گذاشته می‌شوند و دلیل قدیمی‌شان مانع لغو بقیه نیست. اگر هیچ Unit واجد شرایط نمانده، replay no-op.
+- Confirm/Release/Cancel باید تحت قفل سفارش و تراکنش فعلی اجرا شوند، نه تنها `Load → Save` آزاد؛ قفل منبع برای Release/Cancel/Expire لازم نیست چون فقط مصرف را کم می‌کنند.
 
 ## 7. خطاها و Retry؛ بدون ساخت Error Framework تازه
 | Failure | HTTP | Required behavior |
@@ -259,6 +259,6 @@ Content-Type: application/json
 **ایجنت مجاز نیست کد خطای عددی حدسی بسازد.** Gate 0 `ExceptionFactory`/REST mapping را ممیزی می‌کند؛ تنها خطای جدید واقعاً لازم در همان pattern پروژه تعریف و در ماتریس تثبیت شود.
 
 ## 8. Compatibility/No scope creep
-- مسیرهای 8گانه فوق canonical هستند؛ مسیر قدیمی با body قدیمی تنها در صورتی حفظ می‌شود که Validator جدید هنوز روی آن سازگار است؛ mandatory ExpiresAt برای ایجاد Hold این فاز یک تغییر رفتار عمدی است و باید در گزارش breaking-change ثبت شود.
+- مسیرهای 6گانه فوق canonical هستند؛ مسیر قدیمی با body قدیمی تنها در صورتی حفظ می‌شود که Validator جدید هنوز روی آن سازگار است؛ mandatory ExpiresAt برای ایجاد Hold این فاز یک تغییر رفتار عمدی است و باید در گزارش breaking-change ثبت شود.
 - `Service-Holds` / `SeatMaps/Holds` پاسخ یکسان دارند؛ APIهای Shopping/Price/Resolve و SeatMap pricing خارج Scope.
 - API عمومی Front/Backoffice رزرو جدید نسازید؛ فقط Service-only.

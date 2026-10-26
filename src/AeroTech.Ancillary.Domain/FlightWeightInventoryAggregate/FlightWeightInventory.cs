@@ -124,6 +124,7 @@ namespace AeroTech.Ancillary.Domain.FlightWeightInventoryAggregate
 
         public FlightWeightAdjustment AdjustTo(
             decimal newKg,
+            decimal activeUsage,
             string reasonCode,
             long actorId,
             string correlationId,
@@ -148,6 +149,9 @@ namespace AeroTech.Ancillary.Domain.FlightWeightInventoryAggregate
 
             EnsureVersion(expectedVersion);
             Require(newKg != CapacityKg, nameof(CapacityKg));
+
+            if (newKg < activeUsage)
+                throw ExceptionFactory.InventoryCapacityBelowActiveUsage(newKg, activeUsage);
 
             var adjustment = new FlightWeightAdjustment(
                 idGenerator.NewId(),

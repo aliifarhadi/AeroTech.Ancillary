@@ -3,5 +3,7 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
     public interface IReleaseAncillaryHoldCommand
     {
         long HoldId { get; }
+
+        IReadOnlyList<long>? UnitIds { get; }
     }
 }

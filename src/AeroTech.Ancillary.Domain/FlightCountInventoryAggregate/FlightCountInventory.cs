@@ -133,6 +133,7 @@ namespace AeroTech.Ancillary.Domain.FlightCountInventoryAggregate
 
         public FlightCountAdjustment AdjustTo(
             int newTotal,
+            decimal activeUsage,
             string reasonCode,
             long actorId,
             string correlationId,
@@ -157,6 +158,9 @@ namespace AeroTech.Ancillary.Domain.FlightCountInventoryAggregate
 
             EnsureVersion(expectedVersion);
             Require(newTotal != TotalCapacity, nameof(TotalCapacity));
+
+            if (newTotal < activeUsage)
+                throw ExceptionFactory.InventoryCapacityBelowActiveUsage(newTotal, activeUsage);
 
             var adjustment = new FlightCountAdjustment(
                 idGenerator.NewId(),

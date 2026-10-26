@@ -3,7 +3,7 @@
 > **این سند Overview و مرجع واحد تصمیم‌های بیزنسی است.** توضیحات فیلدبه‌فیلد، الگوریتم، تست و پرامپت در فایل‌های بعدی همان Pack آمده‌اند؛ هیچ‌کدام جایگزین این سند نیستند.
 
 ## 1. هدف
-پس از خرید/انتخاب Ancillary در جریان `AncillaryOffers → Price → Resolve → Create Order`، Ordering از Ancillary درخواست Hold می‌کند. یک Hold می‌تواند چند خدمت با Scope و نوع متفاوت (Baggage، Meal، CIP، Wi-Fi، Seat Selection و ...) داشته باشد. هر خدمت یک `UnitId` مستقل دارد. Hold مرجع اصلی، زمان انقضا و عملیات Confirm/Release/Cancel سراسری دارد؛ یک Unit را نیز می‌توان بدون از بین بردن بقیه آزاد یا لغو کرد.
+پس از خرید/انتخاب Ancillary در جریان `AncillaryOffers → Price → Resolve → Create Order`، Ordering از Ancillary درخواست Hold می‌کند. یک Hold می‌تواند چند خدمت با Scope و نوع متفاوت (Baggage، Meal، CIP، Wi-Fi، Seat Selection و ...) داشته باشد. هر خدمت یک `UnitId` مستقل دارد. Hold مرجع اصلی، زمان انقضا و عملیات Confirm/Release/Cancel سراسری دارد؛ یک یا چند Unit را نیز می‌توان بدون از بین بردن بقیه آزاد یا لغو کرد، با فهرست `unitIds` روی **همان مسیرهای گروهی** (مسیر جدا برای هر Unit وجود ندارد).
 
 **حکم قطعی مالک درباره SeatMap:** رزرو واقعی FlightSeat و OccupiedSeat در اختیار **Ordering/FlightFlow** است. Ancillary فقط حق/خدمت تجاری Seat Selection را Hold/Confirm/Release/Cancel می‌کند. نه درخواست FlightFlow می‌فرستد، نه صندلی فیزیکی را Block/Release می‌کند، نه وضعیت اشغال صندلی را کنترل می‌کند. این مرز در تمام مراحل حفظ شود؛ شاید بعداً جداگانه عوض شود، نه در این Pack.
 
@@ -34,8 +34,8 @@ Frontend / Channel                   Ordering                         Ancillary
 1. **Reuse:** `AncillaryReservation` و `AncillaryReservationUnit` موجود حفظ می‌شوند؛ Aggregate جایگزین یا `ReservationPreparation` ایجاد نمی‌شود.
 2. **Unit نه Variant-Aggregate:** هر خرید یک Unit با OrderServiceId مستقل است؛ برای Baggage/Meal/CIP یک Aggregate جداگانه نمی‌سازیم. داده تخصصی Hold محدود به نیاز **مصرف موجودی** است. بقیه اطلاعات در Order و Resolve حفظ می‌شوند.
 3. **Inventory Authority:** `Unlimited` = بدون ظرفیت محدود محلی؛ `Local` = تخصیص واقعی از Inventory موجود؛ `Supplier` = تا اتصال Provider واقعی **گیت‌شده**، نه Fake Held؛ محصولی که بدون Provider confirmation نمی‌توان فوراً رزرو کرد نیز نباید با برچسب Unlimited به دروغ Held شود.
-4. **عدم oversell:** برای Local، مصرف و ثبت Unit در **یک تراکنش SQL و با قفل منبع مشترک** انجام می‌شود. قفل per Order موجود به‌تنهایی کافی نیست.
-5. **فقط یک Reservation:** یک Hold اصلی، Unitهای مستقل، حذف/لغو جزء بدون شکستن بقیه؛ Confirm/Release/Cancel کلی روی همان Aggregate. صدور EMD/Ticket/Refund متعلق به Ordering است.
+4. **عدم oversell:** برای Local، مصرف و ثبت Unit در **یک تراکنش SQL و با قفل منبع مشترک** (`sp_getapplock` با `@LockOwner='Transaction'`) انجام می‌شود. قفل per Order موجود به‌تنهایی کافی نیست. ظرفیت با Ledger تخصیص سنجیده می‌شود، نه با Counter.
+5. **فقط یک Reservation:** یک Hold اصلی، Unitهای مستقل، آزادسازی/لغو یک یا چند جزء با `unitIds` بدون شکستن بقیه؛ Confirm/Release/Cancel کلی روی همان Aggregate. صدور EMD/Ticket/Refund متعلق به Ordering است.
 6. **Seat commercial only:** SeatMap با Endpoint اختصاصی، داخل همان Aggregate؛ صفر Local Seat inventory allocation؛ هیچ تغییر در SeatMap shopping/Resolve و FlightFlow.
 
 ## 4. توصیف Aggregate به زبان کسب‌وکار
@@ -63,7 +63,7 @@ Frontend / Channel                   Ordering                         Ancillary
 
 `Available = ConfiguredCapacity - SUM(active Held allocations not logically expired + Confirmed allocations)`
 
-برای پرواز اتصالی (Portion) می‌توان یک Unit با چند Allocation برای چند پرواز داشت. برای `FlightCountPlusWeight` باید Count و Weight **هر دو با هم** موفق شوند. برای `AirportSlot` هر بازه زمانی همپوشانِ لازم باید به صورت اتمیک تخصیص یابد. اگر یکی کم باشد، **هیچ** تخصیصی ثبت نمی‌شود.
+برای پرواز اتصالی (Portion) می‌توان یک Unit با چند Allocation برای چند پرواز داشت. مصرف وزن در این فاز فقط `FixedKgPerAcceptedUnit × Quantity` است؛ Policy با `AcceptedWeightKg` پیش از هر نوشتن با خطای صریح Unsupported رد می‌شود، چون هیچ محصول قابل‌فروشی وزن کل پذیرفته‌شده را نمی‌آورد. برای `FlightCountPlusWeight` باید Count و Weight **هر دو با هم** موفق شوند. برای `AirportSlot` هر بازه زمانی همپوشانِ لازم باید به صورت اتمیک تخصیص یابد. اگر یکی کم باشد، **هیچ** تخصیصی ثبت نمی‌شود.
 
 ظرفیت `Unlimited` هیچ Allocation محلی ندارد؛ برای `Supplier` یا هر Provision با تأیید اجباری تأمین‌کننده که Adapter واقعی ندارد، نه تخصیص محلی ساخته می‌شود و نه موفقیت جعلی برمی‌گردد. برای Seat نیز تخصیص فیزیکی Ancillary صفر است.
 
@@ -74,7 +74,7 @@ Frontend / Channel                   Ordering                         Ancillary
 2. اگر Seat وجود دارد، Ordering طبق جریان فعلی FlightFlow، شماره صندلی درخواست‌شده را در Flight Hold فیزیکی ارسال می‌کند؛ Ancillary هیچ کاری با اشغال فیزیکی نمی‌کند.
 3. `POST /Service/v1/Ancillaries/Service-Holds` با Baggage و Meal انجام می‌شود. پاسخ `holdId=9001` و UnitIds `9101,9102` است؛ Inventory count/weight با هم تخصیص یافته‌اند.
 4. `POST /Service/v1/Ancillaries/SeatMaps/Holds` با `holdId=9001`، همان Order و Seat Selection انجام می‌شود. پاسخ **همان holdId** و Unit سوم `9103` را می‌دهد. هیچ Seat allocation محلی وجود ندارد.
-5. اگر مشتری Meal را حذف کند: `DELETE Service-Holds/9001/Units/9102` → Meal آزاد می‌شود، Baggage/Seat همچنان Held می‌مانند.
+5. اگر مشتری Meal را حذف کند: `DELETE Service-Holds/9001?unitIds=9102` → Meal آزاد می‌شود، Baggage/Seat همچنان Held می‌مانند.
 6. `POST Service-Holds/9001/Confirmations` → فقط Unitهای Held به Confirmed تغییر می‌کنند. Unit آزادشده Released می‌ماند. نتیجه Hold واحد با Unit statusهای صریح است.
 7. Issue / EMD اگر لازم باشد در Ordering انجام می‌شود.
 
@@ -85,13 +85,11 @@ Frontend / Channel                   Ordering                         Ancillary
 POST   /Service/v1/Ancillaries/Service-Holds                        # Create non-seat hold
 GET    /Service/v1/Ancillaries/Service-Holds/{holdId}               # Read
 POST   /Service/v1/Ancillaries/Service-Holds/{holdId}/Confirmations # Confirm all remaining Held
-DELETE /Service/v1/Ancillaries/Service-Holds/{holdId}               # Release all remaining Held
-POST   /Service/v1/Ancillaries/Service-Holds/{holdId}/Cancellations # Cancel all remaining Confirmed
-DELETE /Service/v1/Ancillaries/Service-Holds/{holdId}/Units/{unitId} # Release one Held Unit [new]
-POST   /Service/v1/Ancillaries/Service-Holds/{holdId}/Units/{unitId}/Cancellations # Cancel one Confirmed [new]
+DELETE /Service/v1/Ancillaries/Service-Holds/{holdId}               # Release all remaining Held, or ?unitIds=..&unitIds=.. only those
+POST   /Service/v1/Ancillaries/Service-Holds/{holdId}/Cancellations # Cancel all remaining Confirmed, or body unitIds only those
 POST   /Service/v1/Ancillaries/SeatMaps/Holds                        # Seat-only create or append to holdId [extend existing]
 ```
-هیچ Endpoint عمومی `Append` برای non-Seat در این مرحله لازم نیست. SeatMap Shopping و Resolve اختصاصی خود را حفظ می‌کنند.
+هیچ Endpoint عمومی `Append` برای non-Seat و هیچ مسیر جدا برای یک Unit در این مرحله وجود ندارد؛ عملیات جزئی تغییر هم‌زمان چند Unit در یک Aggregate است. SeatMap Shopping و Resolve اختصاصی خود را حفظ می‌کنند.
 
 ## 9. سیاست ساده وضعیت‌ها
 Enumهای فعلی `Held=1`, `Confirmed=2`, `Released=3`, `Expired=4`, `Cancelled=5` برای Reservation و Unit حفظ می‌شوند؛ State ساختگی `PartiallyConfirmed`, `Pending`, `Mixed` اضافه نمی‌کنیم. Header وضعیت جریان **Reservation** را می‌گوید، Unitها وضعیت واقعی هر جزء را. Confirm فقط Heldهای فعال را Confirm می‌کند و Releasedها را دست نمی‌زند؛ Cancel فقط Confirmedهای فعال را Cancel می‌کند.
@@ -105,10 +103,11 @@ Enumهای فعلی `Held=1`, `Confirmed=2`, `Released=3`, `Expired=4`, `Cancell
 - حذف فیزیکی Unit و حذف تاریخچه ممنوع است.
 
 ## 10. محدوده و ممنوعیت‌ها
-- **داخل Scope:** Local Count، Weight، Count+Weight، Slot، Unlimited، Seat commercial facade، mixed hold، unit-level Release/Cancel، idempotency/retry، lazy و persisted Expire، concurrency و SQL acceptance.
-- **خارج Scope اما با failure صریح:** Supplier واقعی بدون Provider contract؛ `DailyCount`, `RoomNight`, `AssignedAsset` در کد هنوز unsupported؛ `A09 ExtraSeat` و نیازمند Quote/Approval؛ Seat physical assignment؛ Issue/EMD/Refund؛ تغییر Pricing/Shopping/SeatMap Resolve؛ SAGA عمومی یا Queue/Outbox جدید.
+- **داخل Scope:** Local Count، Weight (فقط FixedKg)، Count+Weight، Slot، Unlimited، Seat commercial facade، mixed hold، Release/Cancel انتخابی با `unitIds` روی مسیرهای گروهی، idempotency/retry، lazy و persisted Expire، concurrency و SQL acceptance.
+- **خارج Scope اما با failure صریح:** Supplier واقعی بدون Provider contract؛ `FlightWeightConsumptionMode.AcceptedWeightKg`؛ `DailyCount`, `RoomNight`, `AssignedAsset` در کد هنوز unsupported؛ `A09 ExtraSeat` و نیازمند Quote/Approval؛ Seat physical assignment؛ Issue/EMD/Refund؛ تغییر Pricing/Shopping/SeatMap Resolve؛ SAGA عمومی، Queue/Outbox، Domain Event یا Projection جدید.
+- **استثنای محدود Shopping/Price:** اگر محصولی در Price پذیرفته شود ولی به‌علت Supplier بدون Adapter در Hold همیشه رد شود، با یک Guard کوچک در همان مسیر عرضه/Price و تست منفی کنار گذاشته می‌شود؛ Engine یا DTO جدید ساخته نمی‌شود.
 - اگر درخواست نیازمند Supplier یا الگوی unsupported است، کد باید **قبل از ثبت Hold** fail-closed کند و دلیل مشخص بدهد؛ نه اینکه به Unlimited تبدیل کند.
 - همه عملیات عمومی فقط Service-to-Service است؛ Policy احراز هویت موجود پروژه بررسی و حفاظت شود. تغییر DB یا migration فقط additive و با گزارش Impact.
 
 ## 11. معیار بسته‌شدن
-رزرو مخلوط واقعی، عدم Oversell تحت هم‌زمانی دو Order، مصرف Count+Weight و Slot، حذف یک Unit بدون از بین رفتن دیگران، SeatMap commercial در همان Hold بدون FlightFlow call، Retry، Expire و Confirm/Cancel، و سازگاری کامل API و Regression SeatMap/Shopping باید **با SQL واقعی + HTTP** ثابت شود. Gate بدون شواهد Pass نیست.
+رزرو مخلوط واقعی، عدم Oversell تحت هم‌زمانی دو Order، مصرف Count+Weight و Slot، آزادسازی/لغو یک یا چند Unit بدون از بین رفتن دیگران، SeatMap commercial در همان Hold بدون FlightFlow call، Retry، Expire و Confirm/Cancel، و سازگاری کامل API و Regression SeatMap/Shopping باید ثابت شود: Local با **SQL واقعی**، و Unlimited/Seat/Lifecycle با **HTTP واقعی**. HTTP زنده Local تا اتصال Reference واقعی GATED است و PASS شمرده نمی‌شود. Gate بدون شواهد Pass نیست.

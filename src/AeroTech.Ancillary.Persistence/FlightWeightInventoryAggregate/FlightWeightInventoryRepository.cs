@@ -1,5 +1,6 @@
 using AeroTech.Ancillary.Domain.FlightWeightInventoryAggregate;
 using AeroTech.Ancillary.Domain.FlightWeightInventoryAggregate.Contracts;
+using AeroTech.Messages.Ancillary.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace AeroTech.Ancillary.Persistence.FlightWeightInventoryAggregate
@@ -17,5 +18,14 @@ namespace AeroTech.Ancillary.Persistence.FlightWeightInventoryAggregate
             => _dbContext.FlightWeightInventories
                 .Include(inventory => inventory.Adjustments)
                 .FirstOrDefaultAsync(inventory => inventory.Id == id, cancellationToken);
+
+        public Task<long?> FindCurrentIdAsync(int ownerAirlineId, long flightId, long weightResourceId, CancellationToken cancellationToken = default)
+            => _dbContext.FlightWeightInventories
+                .Where(inventory => inventory.OwnerAirlineId == ownerAirlineId
+                                    && inventory.FlightId == flightId
+                                    && inventory.WeightResourceId == weightResourceId
+                                    && inventory.Status != InventoryRecordStatus.Retired)
+                .Select(inventory => (long?)inventory.Id)
+                .FirstOrDefaultAsync(cancellationToken);
     }
 }

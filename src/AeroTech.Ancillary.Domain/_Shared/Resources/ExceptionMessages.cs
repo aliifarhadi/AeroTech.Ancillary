@@ -59,6 +59,9 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public const string AncillaryHoldIsNotConfirmed = "The ancillary hold is not confirmed.";
         public const string AncillaryHoldSeatNotSellable = "Seat {0} cannot be held: {1}.";
         public const string AncillaryHoldOrderIsBusy = "Another hold operation is running for order {0}.";
+        public const string AncillaryHoldStockShortage = "Inventory {0} {1} has not enough capacity left for this hold.";
+        public const string AncillaryHoldUnitNotFound = "Unit {0} does not belong to the ancillary hold.";
+        public const string AncillaryHoldNotReservable = "The ancillary hold cannot be made: {0}.";
         public const string PricingNotFound = "The pricing was not found.";
         public const string PricingIsInvalid = "Pricing field {0} is invalid.";
         public const string PricingStatusChangeNotAllowed = "The pricing status does not allow this change.";
@@ -104,6 +107,8 @@ namespace AeroTech.Ancillary.Domain._Shared.Resources
         public const string InventoryUnitMismatch = "The inventory unit does not match: {0}.";
         public const string InventoryFacilityBusy = "Another slot of this facility is being written; try again.";
         public const string InventoryPolicyNotApplicable = "Service {0} is a seat product; its capacity is owned by the flight seat map, not by an inventory policy.";
+        public const string InventoryCapacityBelowActiveUsage = "The new capacity {0} is below the active usage {1} of this source.";
+        public const string InventorySourceBusy = "Inventory {0} {1} is being written by another operation; try again.";
         public const string ShoppingContextIsInvalid = "The ancillary shopping context is not valid: {0}.";
         public const string ShoppingCandidateNotFound = "The ancillary shopping candidate does not exist in this context.";
         public const string FlightOfferIdIsRequired = "A priced flight offer id is required.";

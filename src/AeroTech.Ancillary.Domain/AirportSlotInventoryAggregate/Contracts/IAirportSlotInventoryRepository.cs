@@ -8,6 +8,14 @@ namespace AeroTech.Ancillary.Domain.AirportSlotInventoryAggregate.Contracts
 
         Task<IAsyncDisposable> LockFacilityAsync(int ownerAirlineId, long facilityId, CancellationToken cancellationToken = default);
 
+        Task<IReadOnlyList<AirportSlotInventory>> ListCurrentAsync(
+            int ownerAirlineId,
+            int airportId,
+            long facilityId,
+            DateTimeOffset fromUtc,
+            DateTimeOffset toUtc,
+            CancellationToken cancellationToken = default);
+
         Task<bool> HasOverlapAsync(
             int ownerAirlineId,
             long facilityId,

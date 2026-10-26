@@ -11,6 +11,7 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
             RuleFor(service => service.ProvisionId).GreaterThan(0);
             RuleFor(service => service.CoverageScope).IsInEnum();
             RuleFor(service => service.CoveredFlightIds).NotNull();
+            RuleFor(service => service.InventoryFacts!).SetValidator(new InventoryHoldFactsInputValidator()).When(service => service.InventoryFacts is not null);
         }
     }
 }

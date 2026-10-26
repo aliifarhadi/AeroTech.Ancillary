@@ -10,6 +10,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryInventoryPolicyAggregate.Contracts
 
         Task<bool> HasCurrentAsync(int ownerAirlineId, string serviceDefinitionRef, CancellationToken cancellationToken = default);
 
+        Task<AncillaryInventoryPolicy?> FindActiveAsync(int ownerAirlineId, string serviceDefinitionRef, CancellationToken cancellationToken = default);
+
         Task<IReadOnlyList<UsageConsumptionUnit>> FindFamilyConsumptionUnitsAsync(
             int ownerAirlineId,
             string countingFamilyCode,

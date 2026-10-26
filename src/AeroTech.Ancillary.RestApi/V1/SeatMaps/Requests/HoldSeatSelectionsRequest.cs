@@ -11,5 +11,6 @@ namespace AeroTech.Ancillary.RestApi.V1.SeatMaps.Requests
         long PointOfSaleId,
         int CurrencyId,
         DateTimeOffset? TicketedAtUtc,
-        IReadOnlyList<SeatHoldSelectionInput> Seats);
+        IReadOnlyList<SeatHoldSelectionInput> Seats,
+        long? HoldId);
 }

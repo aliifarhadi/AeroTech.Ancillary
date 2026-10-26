@@ -26,6 +26,16 @@ namespace AeroTech.Ancillary.Persistence.AncillaryInventoryPolicyAggregate
                           && policy.Status != InventoryRecordStatus.Retired,
                 cancellationToken);
 
+        public Task<AncillaryInventoryPolicy?> FindActiveAsync(int ownerAirlineId, string serviceDefinitionRef, CancellationToken cancellationToken = default)
+            => _dbContext.AncillaryInventoryPolicies
+                .AsNoTracking()
+                .Include(policy => policy.PassengerUsageLimits)
+                .FirstOrDefaultAsync(
+                    policy => policy.OwnerAirlineId == ownerAirlineId
+                              && policy.ServiceDefinitionRef == serviceDefinitionRef
+                              && policy.Status == InventoryRecordStatus.Active,
+                    cancellationToken);
+
         public async Task<IReadOnlyList<UsageConsumptionUnit>> FindFamilyConsumptionUnitsAsync(
             int ownerAirlineId,
             string countingFamilyCode,

@@ -39,11 +39,11 @@ namespace AeroTech.Ancillary.RestApi.V1.AncillaryReservationAggregate.Controller
             => Ok(await _mediator.Send(new ServiceConfirmAncillaryHoldCommand(holdId), cancellationToken));
 
         [HttpDelete("Service-Holds/{holdId:long}")]
-        public async Task<IActionResult> Release(long holdId, CancellationToken cancellationToken)
-            => Ok(await _mediator.Send(new ServiceReleaseAncillaryHoldCommand(holdId), cancellationToken));
+        public async Task<IActionResult> Release(long holdId, [FromQuery] long[]? unitIds, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(new ServiceReleaseAncillaryHoldCommand(holdId, unitIds is { Length: > 0 } ? unitIds : null), cancellationToken));
 
         [HttpPost("Service-Holds/{holdId:long}/Cancellations")]
         public async Task<IActionResult> Cancel(long holdId, [FromBody] CancelAncillaryHoldRequest request, CancellationToken cancellationToken)
-            => Ok(await _mediator.Send(new ServiceCancelAncillaryHoldCommand(holdId, request.ReasonCode), cancellationToken));
+            => Ok(await _mediator.Send(new ServiceCancelAncillaryHoldCommand(holdId, request.ReasonCode, request.UnitIds), cancellationToken));
     }
 }

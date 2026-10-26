@@ -8,7 +8,7 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
 
         string Reference { get; }
 
-        DateTimeOffset? RequestedExpiresAt { get; }
+        DateTimeOffset RequestedExpiresAt { get; }
 
         IReadOnlyList<AncillaryHoldServiceInput> Services { get; }
     }
