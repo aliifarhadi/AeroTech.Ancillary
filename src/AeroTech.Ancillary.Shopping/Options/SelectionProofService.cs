@@ -123,7 +123,7 @@ namespace AeroTech.Ancillary.Shopping.Options
                 selection.CoverageScope,
                 selection.TravellerRef,
                 selection.CoverageRef,
-                selection.OfferBinding,
+                selection.SourceBinding,
                 selection.SalesBinding,
                 quantity,
                 expiresAtUtc,
@@ -139,9 +139,8 @@ namespace AeroTech.Ancillary.Shopping.Options
             var context = contexts.FirstOrDefault(candidate => SelectionBindings.Sales(candidate) == selection.SalesBinding)
                           ?? throw ExceptionFactory.SelectionBindingMismatch();
 
-            if (context.SourceIdentity is not { TrustedSourceReference: { } offerId, TrustedSourceVersion: { } version }
-                || SelectionBindings.Offer(offerId, version) != selection.OfferBinding)
-                throw ExceptionFactory.SelectionIsNotSellable("the flight offer does not match the selection; ask for the ancillary offers again");
+            if (SelectionBindings.Source(context.SourceIdentity) is not { } binding || binding != selection.SourceBinding)
+                throw ExceptionFactory.SelectionIsNotSellable("the offer or order does not match the selection; ask for the ancillary offers again");
 
             var pricing = (await _pricings.FindActiveByRateIdsAsync([selection.PricingRateId], cancellationToken)).SingleOrDefault()
                           ?? throw ExceptionFactory.SelectionIsNotSellable("the price is no longer active");

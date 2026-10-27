@@ -36,20 +36,13 @@ namespace AeroTech.Ancillary.Shopping.Resolution
             _clock = clock;
         }
 
-        public async Task<SelectionSnapshot> OpenAsync(string selectionId, CancellationToken cancellationToken = default)
+        public Task<SelectionSnapshot> OpenAsync(string selectionId, ShoppingSourceKind source, CancellationToken cancellationToken = default)
+            => FindOpenAsync(selectionId, source, cancellationToken);
+
+        public async Task<ResolvedSelections> ResolveAsync(string selectionId, CancellationToken cancellationToken = default)
         {
-            var snapshot = await _snapshots.FindAsync(selectionId, cancellationToken)
-                           ?? throw ExceptionFactory.SelectionWasNotFound($"selection {selectionId} does not exist");
-
-            if (snapshot.HasExpired(_clock.GetDateTime()))
-                throw ExceptionFactory.SelectionHasExpired();
-
-            return snapshot;
-        }
-
-        public async Task<IReadOnlyList<ResolvedSelection>> ResolveAsync(string selectionId, CancellationToken cancellationToken = default)
-        {
-            var lines = (await OpenAsync(selectionId, cancellationToken)).Lines.OrderBy(line => line.Sequence).ToList();
+            var snapshot = await FindOpenAsync(selectionId, null, cancellationToken);
+            var lines = snapshot.Lines.OrderBy(line => line.Sequence).ToList();
             var rates = (await _pricings.FindActiveByRateIdsAsync(lines.Select(line => line.PricingRateId).Distinct().ToList(), cancellationToken))
                 .SelectMany(pricing => pricing.Rates.Select(rate => (Pricing: pricing, Rate: rate)))
                 .ToDictionary(owner => owner.Rate.Id);
@@ -69,7 +62,20 @@ namespace AeroTech.Ancillary.Shopping.Resolution
                 selections.Add(selection);
             }
 
-            return selections;
+            return new ResolvedSelections(snapshot, selections);
+        }
+
+        private async Task<SelectionSnapshot> FindOpenAsync(string selectionId, ShoppingSourceKind? source, CancellationToken cancellationToken)
+        {
+            var snapshot = await _snapshots.FindAsync(selectionId, cancellationToken);
+
+            if (snapshot is null || (source is { } kind && snapshot.SourceKind != kind))
+                throw ExceptionFactory.SelectionWasNotFound($"selection {selectionId} does not exist");
+
+            if (snapshot.HasExpired(_clock.GetDateTime()))
+                throw ExceptionFactory.SelectionHasExpired();
+
+            return snapshot;
         }
 
         private static SelectionBasketLine BasketLine(ResolvedSelection selection)
@@ -106,7 +112,7 @@ namespace AeroTech.Ancillary.Shopping.Resolution
                 line.CoverageScope,
                 line.TravellerRef ?? string.Empty,
                 line.CoverageRef,
-                line.OfferBinding,
+                line.SourceBinding,
                 line.SalesBinding,
                 definition,
                 provision,

@@ -1,13 +1,7 @@
-using AeroTech.Messages.Shared.Enums;
-
 namespace AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.PriceAncillaryOffers
 {
-    public interface IPriceAncillaryOffersCommand
+    public interface IPriceAncillaryOffersCommand : IPriceSelectionsCommand
     {
-        AuthorizationSurface Surface { get; }
-
         string? OfferId { get; }
-
-        IReadOnlyList<AncillarySelectionLine> Selections { get; }
     }
 }

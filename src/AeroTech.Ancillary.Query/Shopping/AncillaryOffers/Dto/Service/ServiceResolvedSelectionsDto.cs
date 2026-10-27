@@ -1,6 +1,8 @@
 namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Service
 {
     public sealed record ServiceResolvedSelectionsDto(
+        long? OrderId,
+        int? OrderCommercialVersion,
         IReadOnlyList<ServiceResolvedSelectionDto<BaggageDetailsDto>> Baggages,
         IReadOnlyList<ServiceResolvedSelectionDto<MealDetailsDto>> Meals,
         IReadOnlyList<ServiceResolvedSelectionDto<PetDetailsDto>> Pets,

@@ -17,7 +17,7 @@ namespace AeroTech.Ancillary.Persistence.SelectionSnapshotAggregate
             builder.Property(line => line.CoverageScope).HasConversion<short>().HasColumnType("smallint");
             builder.Property(line => line.TravellerRef).HasMaxLength(100);
             builder.Property(line => line.CoverageRef).HasMaxLength(100).IsRequired();
-            builder.Property(line => line.OfferBinding).HasColumnType("char(43)").IsRequired();
+            builder.Property(line => line.SourceBinding).HasColumnType("char(43)").IsRequired();
             builder.Property(line => line.SalesBinding).HasColumnType("char(43)").IsRequired();
             builder.Property(line => line.SelectedJson).HasColumnType("nvarchar(max)");
         }

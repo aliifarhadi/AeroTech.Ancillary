@@ -20,7 +20,7 @@ public class V121FinalCrossPhaseAcceptanceTests
 {
     private const long Flight = 81234;
     private const string NoSources = "0|0|0|0|0|0";
-    private const string FrozenSourceHash = "BB7E5038C5CDE87014A85FEFC94801D779241782DD242F31875E4AD4EA9890B7";
+    private const string FrozenSourceHash = "295971EE1093046651DB395298CFA005BA4199862D978A704CA4F70F8F9D1A7E";
 
     private readonly TestDatabase _database;
     private readonly FixedClock _clock = new();

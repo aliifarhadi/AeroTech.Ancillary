@@ -97,7 +97,7 @@ public sealed class V8Lab
     {
         var scopes = new LabSalesScopes();
 
-        return new SelectionVerifier(scopes, scopes, scopes, source, Proofs);
+        return new SelectionVerifier(scopes, scopes, scopes, source, source, Proofs);
     }
 
     public GetPricedAncillaryOffersService Selected(LabShoppingSource source) => new(Resolver, new GetAncillaryOffersService(source, Listing));

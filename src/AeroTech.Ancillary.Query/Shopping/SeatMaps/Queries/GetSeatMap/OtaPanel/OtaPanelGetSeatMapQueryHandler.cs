@@ -16,10 +16,6 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap.OtaPanel
         }
 
         public async Task<SeatMapsDto> Handle(OtaPanelGetSeatMapQuery query, CancellationToken cancellationToken)
-        {
-            var snapshot = await _service.ExecuteAsync(query, await _salesScope.ResolveAsync(cancellationToken), cancellationToken);
-
-            return SeatMapMapper.Map(snapshot, travellerRef => travellerRef, flight => flight.FlightRef);
-        }
+            => OtaPanelSeatMapMapper.Map(await _service.ExecuteAsync(query, await _salesScope.ResolveAsync(cancellationToken), cancellationToken));
     }
 }

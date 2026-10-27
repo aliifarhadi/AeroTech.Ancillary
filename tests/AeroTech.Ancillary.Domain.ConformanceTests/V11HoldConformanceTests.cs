@@ -83,7 +83,7 @@ public class V11HoldConformanceTests
     public void V11_L02_a_replay_compares_the_chosen_options_and_not_the_fixed_ones()
     {
         var reservation = Hold(Overweight(new BaggageSelectionArgs("B1", 27.5m, EquipmentKind: "BIKE")));
-        var request = new AncillaryReservationServiceSelectionArgs(9001, 501, 71, [301], 1, new AncillaryReservationSelectionArgs(Baggage: new BaggageSelectionArgs("B1", 27.5m)));
+        var request = new AncillaryReservationServiceSelectionArgs(AncillaryProfile.Baggage, AncillaryVariant.Overweight, 9001, 501, 71, [301], 1, new AncillaryReservationSelectionArgs(Baggage: new BaggageSelectionArgs("B1", 27.5m)));
 
         reservation.EnsureSameContent(12001, "ORD-12001", ExpiresAt, [request]);
 
@@ -109,7 +109,7 @@ public class V11HoldConformanceTests
     }
 
     [Fact]
-    public void V11_L01_L02_L03_a_replay_is_compared_on_the_requested_facts_in_any_order()
+    public void V11_L01_L02_L03_V12_Q1_a_replay_is_compared_on_the_requested_facts_family_and_variant_in_any_order()
     {
         var reservation = AncillaryReservation.Hold(
             9001,
@@ -120,14 +120,16 @@ public class V11HoldConformanceTests
             [M1Fixtures.Unit(9101), M1Fixtures.Unit(9102, travellerId: 72)],
             new SequentialIdGenerator(),
             M1Fixtures.Now);
-        var first = new AncillaryReservationServiceSelectionArgs(9101, 501, 71, [301], 1, null);
-        var second = new AncillaryReservationServiceSelectionArgs(9102, 501, 72, [301], null, null);
+        var first = new AncillaryReservationServiceSelectionArgs(AncillaryProfile.AirportService, AncillaryVariant.Lounge, 9101, 501, 71, [301], 1, null);
+        var second = new AncillaryReservationServiceSelectionArgs(AncillaryProfile.AirportService, AncillaryVariant.Lounge, 9102, 501, 72, [301], null, null);
 
         reservation.EnsureSameContent(12001, "ORD-12001", ExpiresAt, [second, first]);
 
         BusinessAssert.Throws(16403, 409, () => reservation.EnsureSameContent(12001, "ORD-12001", ExpiresAt, [second, first with { TravellerId = 73 }]));
         BusinessAssert.Throws(16403, 409, () => reservation.EnsureSameContent(12001, "ORD-12001", ExpiresAt, [second, first with { Quantity = 2 }]));
         BusinessAssert.Throws(16403, 409, () => reservation.EnsureSameContent(12001, "ORD-12001", ExpiresAt, [second, first with { ProvisionId = 502 }]));
+        BusinessAssert.Throws(16403, 409, () => reservation.EnsureSameContent(12001, "ORD-12001", ExpiresAt, [second, first with { VariantCode = AncillaryVariant.FastTrack }]));
+        BusinessAssert.Throws(16403, 409, () => reservation.EnsureSameContent(12001, "ORD-12001", ExpiresAt, [second, first with { Family = AncillaryProfile.Meal }]));
         BusinessAssert.Throws(16403, 409, () => reservation.EnsureSameContent(12001, "ORD-12001", ExpiresAt, [first]));
         BusinessAssert.Throws(16403, 409, () => reservation.EnsureSameContent(12001, "ORD-OTHER", ExpiresAt, [second, first]));
     }

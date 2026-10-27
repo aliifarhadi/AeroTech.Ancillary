@@ -12,7 +12,7 @@ namespace AeroTech.Ancillary.Application.AcceptanceTests.Boundary;
 public class V12BoundaryAcceptanceTests
 {
     private const string FrozenAggregate = "AncillaryReservationAggregate";
-    private const string FrozenSourceHash = "BB7E5038C5CDE87014A85FEFC94801D779241782DD242F31875E4AD4EA9890B7";
+    private const string FrozenSourceHash = "295971EE1093046651DB395298CFA005BA4199862D978A704CA4F70F8F9D1A7E";
     private const string CommandMigration = "20261008103942_V12Phase1NormalizedProvisionAndPricing.cs";
     private const string QueryMigration = "20261008103947_V12Phase1NormalizedProvisionAndPricingQuery.cs";
     private const string RuleGroupCommandMigration = "20261008135403_V121Phase1RuleGroups.cs";
@@ -102,11 +102,11 @@ public class V12BoundaryAcceptanceTests
                 "FlightFlowOccupiedSeatProvider.cs", "FlightFlowOccupiedSeats.cs",
                 "FlightOfferDetailResponse.cs", "FlightOfferProvider.cs", "FlightOfferResponseMapper.cs",
                 "NotConnectedAirportFacilityReference.cs", "NotConnectedCountingFamilyReference.cs", "NotConnectedInventoryResourceReference.cs",
-                "NotConnectedOrderCommercialContextReader.cs",
                 "OfferAirTransport.cs", "OfferCoupon.cs", "OfferEnvelope.cs", "OfferFareComponent.cs", "OfferFlight.cs", "OfferFlightLeg.cs",
                 "OfferJson.cs",
                 "OfferPricingLine.cs", "OfferPricingUnit.cs", "OfferRateOfExchange.cs", "OfferResultError.cs", "OfferTicket.cs",
-                "PricedOfferCommercial.cs", "PricedOfferId.cs"
+                "OrderingAncillaryContext.cs", "OrderingAncillaryContextMapper.cs", "OrderingCommercialContextReader.cs", "OrderingEnvelope.cs", "OrderingJson.cs",
+                "PricedOfferCommercial.cs", "PricedOfferId.cs", "WireEnum.cs"
             },
             Files(Path.Combine(Source, "AeroTech.Ancillary.Providers")).Select(Path.GetFileName).OrderBy(name => name, StringComparer.Ordinal));
     }
@@ -177,7 +177,8 @@ public class V12BoundaryAcceptanceTests
                 "src/AeroTech.Ancillary.Providers/DependencyInjection.cs: HttpClient",
                 "src/AeroTech.Ancillary.Providers/FlightFlow/Services/FlightFlowFlightOccurrenceReference.cs: HttpClient",
                 "src/AeroTech.Ancillary.Providers/FlightFlow/Services/FlightFlowOccupiedSeatProvider.cs: HttpClient",
-                "src/AeroTech.Ancillary.Providers/Offer/Services/FlightOfferProvider.cs: HttpClient"
+                "src/AeroTech.Ancillary.Providers/Offer/Services/FlightOfferProvider.cs: HttpClient",
+                "src/AeroTech.Ancillary.Providers/Ordering/Services/OrderingCommercialContextReader.cs: HttpClient"
             },
             Offending(external, ["HttpClient"]).OrderBy(offending => offending, StringComparer.Ordinal));
         Assert.All(
@@ -247,17 +248,29 @@ public class V12BoundaryAcceptanceTests
             "POST Backoffice/AncillaryProvisions/{provisionId:long}/Publish",
             "POST Backoffice/AncillaryProvisions/{provisionId:long}/SwitchActivePricing",
             "POST Backoffice/AncillaryOffers",
+            "POST Backoffice/AncillaryOffers/Orders",
+            "POST Backoffice/AncillaryOffers/Orders/Price",
+            "GET Backoffice/AncillaryOffers/Orders/Price/{selectionId}",
             "GET Backoffice/AncillaryOffers/Price/{selectionId}",
             "POST Backoffice/AncillaryOffers/Price",
             "POST Backoffice/SeatMaps",
+            "POST Backoffice/SeatMaps/Orders",
             "POST Api/AncillaryOffers",
+            "POST Api/AncillaryOffers/Orders",
+            "POST Api/AncillaryOffers/Orders/Price",
+            "GET Api/AncillaryOffers/Orders/Price/{selectionId}",
             "GET Api/AncillaryOffers/Price/{selectionId}",
             "POST Api/AncillaryOffers/Price",
             "POST Api/SeatMaps",
+            "POST Api/SeatMaps/Orders",
             "POST OtaPanel/AncillaryOffers",
+            "POST OtaPanel/AncillaryOffers/Orders",
+            "POST OtaPanel/AncillaryOffers/Orders/Price",
+            "GET OtaPanel/AncillaryOffers/Orders/Price/{selectionId}",
             "GET OtaPanel/AncillaryOffers/Price/{selectionId}",
             "POST OtaPanel/AncillaryOffers/Price",
             "POST OtaPanel/SeatMaps",
+            "POST OtaPanel/SeatMaps/Orders",
             "POST Service/Ancillaries/SeatMaps/Resolve",
             "POST Service/AncillaryOffers/Resolve",
             "POST Backoffice/AncillaryPricings",
@@ -362,7 +375,7 @@ public class V12BoundaryAcceptanceTests
         Assert.Equal(
             preserved.Concat(added).Concat(typed).Concat(forms).Concat(inventory).OrderBy(route => route, StringComparer.Ordinal),
             routes.OrderBy(route => route, StringComparer.Ordinal));
-        Assert.Equal(155, routes.Count);
+        Assert.Equal(167, routes.Count);
         Assert.Equal(36, inventory.Length);
         Assert.DoesNotContain(routes, route => new[] { "Sell", "Reserve", "Release", "Expire" }.Any(term => route.Contains(term, StringComparison.Ordinal)));
         Assert.Equal(

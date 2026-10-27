@@ -1,3 +1,4 @@
+using AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetOrderSeatMap.Api;
 using AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap.Api;
 using AeroTech.Ancillary.RestApi.V1._Shared;
 using Asp.Versioning;
@@ -21,6 +22,10 @@ namespace AeroTech.Ancillary.RestApi.V1.SeatMaps.Controllers
 
         [HttpPost]
         public async Task<IActionResult> GetByOfferId([FromBody] ApiGetSeatMapQuery query, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(query, cancellationToken));
+
+        [HttpPost("Orders")]
+        public async Task<IActionResult> GetByOrderId([FromBody] ApiGetOrderSeatMapQuery query, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(query, cancellationToken));
     }
 }

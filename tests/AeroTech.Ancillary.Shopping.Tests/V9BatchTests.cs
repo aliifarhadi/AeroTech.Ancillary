@@ -285,7 +285,7 @@ public sealed class V9BatchTests
                     unit.OfferItemId!,
                     new AssistedTravelSelectionOptions(unit.Options!.AssistedTravel!["assistanceSsrCode"].Choices![0].Value, null, null)))
             ]));
-        var resolved = await lab.Resolver.ResolveAsync(submitted.SelectionId);
+        var resolved = (await lab.Resolver.ResolveAsync(submitted.SelectionId)).Lines;
 
         Assert.Equal(3, resolved.Count);
         Assert.Single(lab.Shop.Catalog.Snapshots);
@@ -347,8 +347,8 @@ public sealed class V9BatchTests
         var minimum = await lab.SubmitAsync([V8Lab.Direct(selectionId)], context);
 
         Assert.StartsWith("selections[0]: ", outside.Message);
-        Assert.Equal(2, Assert.Single(await lab.Resolver.ResolveAsync(two.SelectionId)).Quantity);
-        Assert.Equal(1, Assert.Single(await lab.Resolver.ResolveAsync(minimum.SelectionId)).Quantity);
+        Assert.Equal(2, Assert.Single((await lab.Resolver.ResolveAsync(two.SelectionId)).Lines).Quantity);
+        Assert.Equal(1, Assert.Single((await lab.Resolver.ResolveAsync(minimum.SelectionId)).Lines).Quantity);
     }
 
     [Fact]

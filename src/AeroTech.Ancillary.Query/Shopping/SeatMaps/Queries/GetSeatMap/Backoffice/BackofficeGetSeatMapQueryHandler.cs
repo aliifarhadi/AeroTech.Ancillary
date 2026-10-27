@@ -1,4 +1,3 @@
-using System.Globalization;
 using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
 using AeroTech.Ancillary.Query.Shopping.SeatMaps.Dto;
 using MediatR;
@@ -17,10 +16,6 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap.Backoffi
         }
 
         public async Task<SeatMapsDto> Handle(BackofficeGetSeatMapQuery query, CancellationToken cancellationToken)
-        {
-            var snapshot = await _service.ExecuteAsync(query, await _salesScope.ResolveAsync(query.Options, cancellationToken), cancellationToken);
-
-            return SeatMapMapper.Map(snapshot, travellerRef => travellerRef, flight => flight.Flight.FlightId.ToString(CultureInfo.InvariantCulture));
-        }
+            => BackofficeSeatMapMapper.Map(await _service.ExecuteAsync(query, await _salesScope.ResolveAsync(query.Options, cancellationToken), cancellationToken));
     }
 }

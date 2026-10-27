@@ -26,6 +26,27 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap
                     Merge(snapshot.Flights.Select(flight => flight.Map.SeatCharacteristics))));
         }
 
+        public static OrderSeatMapsDto ForOrder(long orderId, SeatMapsDto seatMaps)
+            => new(
+                seatMaps.Meta,
+                seatMaps.Data
+                    .Select(map => new OrderSeatMapDto(
+                        map.Type,
+                        orderId,
+                        map.SegmentId,
+                        map.Departure,
+                        map.Arrival,
+                        map.CarrierCode,
+                        map.Number,
+                        map.Operating,
+                        map.AircraftId,
+                        map.Class,
+                        map.CabinClassId,
+                        map.Decks,
+                        map.AvailableSeatsCounters))
+                    .ToList(),
+                seatMaps.Dictionaries);
+
         private static SeatMapDto SeatMap(
             SeatMapSnapshot snapshot,
             FlightSeatMap flight,

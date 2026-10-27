@@ -21,7 +21,7 @@ namespace AeroTech.Ancillary.Shopping.Selections
         private const string CoverageClaim = "cv";
         private const string MinQuantityClaim = "qn";
         private const string MaxQuantityClaim = "qx";
-        private const string OfferBindingClaim = "ob";
+        private const string SourceBindingClaim = "so";
         private const string SalesBindingClaim = "sb";
 
         private static readonly IReadOnlyDictionary<SelectionIdKind, string> Prefixes = new Dictionary<SelectionIdKind, string>
@@ -58,7 +58,7 @@ namespace AeroTech.Ancillary.Shopping.Selections
                 new(ScopeClaim, Number((int)selection.CoverageScope), ClaimValueTypes.Integer32),
                 new(TravellerClaim, selection.TravellerRef),
                 new(CoverageClaim, selection.CoverageRef),
-                new(OfferBindingClaim, selection.OfferBinding),
+                new(SourceBindingClaim, selection.SourceBinding),
                 new(SalesBindingClaim, selection.SalesBinding)
             };
 
@@ -113,7 +113,7 @@ namespace AeroTech.Ancillary.Shopping.Selections
                 || !token.TryGetPayloadValue<int>(ScopeClaim, out var scope)
                 || !token.TryGetPayloadValue<string>(TravellerClaim, out var traveller)
                 || !token.TryGetPayloadValue<string>(CoverageClaim, out var coverage)
-                || !token.TryGetPayloadValue<string>(OfferBindingClaim, out var offerBinding)
+                || !token.TryGetPayloadValue<string>(SourceBindingClaim, out var sourceBinding)
                 || !token.TryGetPayloadValue<string>(SalesBindingClaim, out var salesBinding))
                 return null;
 
@@ -127,7 +127,7 @@ namespace AeroTech.Ancillary.Shopping.Selections
                 coverage,
                 minimum,
                 maximum,
-                offerBinding,
+                sourceBinding,
                 salesBinding,
                 new DateTimeOffset(token.ValidTo, TimeSpan.Zero));
 
@@ -138,7 +138,7 @@ namespace AeroTech.Ancillary.Shopping.Selections
             => selection.PricingRateId > 0
                && Enum.IsDefined(selection.CoverageScope)
                && IsUnit(selection.CoverageScope, selection.TravellerRef, selection.CoverageRef)
-               && selection.OfferBinding is { Length: SelectionBindings.Length }
+               && selection.SourceBinding is { Length: SelectionBindings.Length }
                && selection.SalesBinding is { Length: SelectionBindings.Length }
                && selection.Kind switch
                {

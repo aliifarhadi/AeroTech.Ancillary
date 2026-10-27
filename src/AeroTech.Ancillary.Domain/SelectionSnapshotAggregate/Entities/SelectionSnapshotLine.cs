@@ -23,7 +23,7 @@ namespace AeroTech.Ancillary.Domain.SelectionSnapshotAggregate.Entities
             CoverageScope = args.CoverageScope;
             TravellerRef = args.TravellerRef;
             CoverageRef = args.CoverageRef;
-            OfferBinding = args.OfferBinding;
+            SourceBinding = args.SourceBinding;
             SalesBinding = args.SalesBinding;
             Quantity = args.Quantity;
             SelectedJson = args.SelectedJson;
@@ -43,7 +43,7 @@ namespace AeroTech.Ancillary.Domain.SelectionSnapshotAggregate.Entities
 
         public string CoverageRef { get; private set; } = default!;
 
-        public string OfferBinding { get; private set; } = default!;
+        public string SourceBinding { get; private set; } = default!;
 
         public string SalesBinding { get; private set; } = default!;
 
@@ -60,7 +60,7 @@ namespace AeroTech.Ancillary.Domain.SelectionSnapshotAggregate.Entities
                 args.CoverageScope == ServiceCoverageScope.Order ? args.TravellerRef is null : args.TravellerRef is { Length: >= 1 and <= RefMaxLength },
                 nameof(TravellerRef));
             Require(args.CoverageRef is { Length: >= 1 and <= RefMaxLength }, nameof(CoverageRef));
-            Require(args.OfferBinding is { Length: BindingLength }, nameof(OfferBinding));
+            Require(args.SourceBinding is { Length: BindingLength }, nameof(SourceBinding));
             Require(args.SalesBinding is { Length: BindingLength }, nameof(SalesBinding));
             Require(args.Quantity >= 1, nameof(Quantity));
             Require(args.SelectedJson is null || !string.IsNullOrWhiteSpace(args.SelectedJson), nameof(SelectedJson));

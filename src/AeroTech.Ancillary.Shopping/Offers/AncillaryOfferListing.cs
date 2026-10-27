@@ -87,9 +87,8 @@ namespace AeroTech.Ancillary.Shopping.Offers
                 var context = contexts.FirstOrDefault(candidate => SelectionBindings.Sales(candidate) == line.SalesBinding)
                               ?? throw ExceptionFactory.SelectionBindingMismatch();
 
-                if (context.SourceIdentity is not { TrustedSourceReference: { } offerId, TrustedSourceVersion: { } version }
-                    || SelectionBindings.Offer(offerId, version) != line.OfferBinding)
-                    throw ExceptionFactory.SelectionIsNotSellable("the flight offer changed; ask for the ancillary offers again");
+                if (SelectionBindings.Source(context.SourceIdentity) is not { } binding || binding != line.SourceBinding)
+                    throw ExceptionFactory.SelectionIsNotSellable("the offer or order changed; ask for the ancillary offers again");
             }
         }
 

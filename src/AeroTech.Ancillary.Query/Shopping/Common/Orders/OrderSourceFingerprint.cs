@@ -1,7 +1,4 @@
-using System.Buffers.Text;
 using System.Globalization;
-using System.Security.Cryptography;
-using System.Text;
 using AeroTech.Ancillary.Application.Orders;
 using AeroTech.Ancillary.Query.Shopping.Common.FlightOffers;
 
@@ -9,17 +6,17 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.Orders
 {
     public static class OrderSourceFingerprint
     {
-        private const char Separator = '\n';
-
         public static string Of(OrderCommercialContext order)
         {
-            var parts = new List<string>
-            {
-                FlightOfferFingerprint.Of(order.Air),
+            var parts = FlightOfferFingerprint.Parts(order.Air, includePrices: false);
+
+            parts.AddRange(
+            [
                 order.OrderId.ToString(CultureInfo.InvariantCulture),
                 order.CommercialVersion.ToString(CultureInfo.InvariantCulture),
-                order.TicketedAtUtc?.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture) ?? string.Empty
-            };
+                order.TicketedAtUtc?.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture) ?? string.Empty,
+                order.TravelAgencyId?.ToString(CultureInfo.InvariantCulture) ?? string.Empty
+            ]);
 
             parts.AddRange(order.Travellers
                 .OrderBy(traveller => traveller.TravellerRef, StringComparer.Ordinal)
@@ -41,7 +38,7 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.Orders
                     service.Quantity.ToString(CultureInfo.InvariantCulture),
                     service.CommercialState.ToString())));
 
-            return Base64Url.EncodeToString(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join(Separator, parts))));
+            return FlightOfferFingerprint.Hash(parts);
         }
     }
 }

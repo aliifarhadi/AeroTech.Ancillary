@@ -2268,11 +2268,6 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.Property<short>("CoverageScope")
                         .HasColumnType("smallint");
 
-                    b.Property<string>("OfferBinding")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("char(43)");
-
                     b.Property<string>("OfferItemId")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -2292,6 +2287,11 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                     b.Property<string>("SelectedJson")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SourceBinding")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("char(43)");
 
                     b.Property<string>("TravellerRef")
                         .HasMaxLength(100)
@@ -2315,9 +2315,14 @@ namespace AeroTech.Ancillary.Persistence.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("OfferId")
-                        .IsRequired()
                         .HasMaxLength(512)
                         .HasColumnType("nvarchar(512)");
+
+                    b.Property<int?>("OrderCommercialVersion")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("OrderId")
+                        .HasColumnType("bigint");
 
                     b.Property<short>("Version")
                         .HasColumnType("smallint");

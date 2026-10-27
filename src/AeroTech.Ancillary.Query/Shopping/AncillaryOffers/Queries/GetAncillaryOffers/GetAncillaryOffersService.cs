@@ -1,6 +1,5 @@
 using AeroTech.Ancillary.Domain.SelectionSnapshotAggregate;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Snapshots;
-using AeroTech.Ancillary.Query.Shopping.Common;
 using AeroTech.Ancillary.Query.Shopping.Common.FlightOffers;
 using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
 using AeroTech.Ancillary.Shopping.Offers;
@@ -34,10 +33,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
 
             PricedOfferScopeGuard.EnsureSellable(shopping.Offer, scope);
 
-            return new AncillaryOffersSnapshot(
-                shopping.Offer.OfferId,
-                shopping.CurrencyId,
-                await _offers.ListAsync(shopping.PointsOfSale.Select(pointOfSale => pointOfSale.Context).ToList(), OfferFamilyFilters.Services, selection, cancellationToken));
+            return await _offers.ListServicesAsync(shopping, selection, cancellationToken);
         }
     }
 }

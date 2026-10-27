@@ -12,7 +12,7 @@ namespace AeroTech.Ancillary.Shopping.Resolution
         ServiceCoverageScope CoverageScope,
         string TravellerRef,
         string CoverageRef,
-        string OfferBinding,
+        string SourceBinding,
         string SalesBinding,
         AncillaryServiceDefinition Definition,
         AncillaryProvision Provision,

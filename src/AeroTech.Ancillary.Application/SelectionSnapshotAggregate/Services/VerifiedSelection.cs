@@ -7,7 +7,7 @@ namespace AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Services
         ServiceCoverageScope CoverageScope,
         string TravellerRef,
         string CoverageRef,
-        string OfferBinding,
+        string SourceBinding,
         string SalesBinding,
         int Quantity,
         DateTimeOffset ExpiresAtUtc);

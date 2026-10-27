@@ -9,8 +9,13 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveAncil
 {
     public static class ServiceResolvedSelectionsMapper
     {
-        public static ServiceResolvedSelectionsDto Map(IReadOnlyList<ResolvedSelection> selections)
-            => new(
+        public static ServiceResolvedSelectionsDto Map(ResolvedSelections resolved)
+        {
+            var selections = resolved.Lines;
+
+            return new ServiceResolvedSelectionsDto(
+                resolved.Selection.OrderId,
+                resolved.Selection.OrderCommercialVersion,
                 Family(selections, AncillaryProfile.Baggage, selection => AncillaryOffersMapper.Baggage(selection.Definition)),
                 Family(selections, AncillaryProfile.Meal, selection => AncillaryOffersMapper.Meal(selection.Definition)),
                 Family(selections, AncillaryProfile.Pet, selection => AncillaryOffersMapper.Pet(selection.Definition)),
@@ -21,6 +26,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveAncil
                 Family(selections, AncillaryProfile.Upgrade, selection => AncillaryOffersMapper.Upgrade(selection.Definition)),
                 [],
                 []);
+        }
 
         private static IReadOnlyList<ServiceResolvedSelectionDto<TDetails>> Family<TDetails>(
             IReadOnlyList<ResolvedSelection> selections,
@@ -34,7 +40,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveAncil
                     selection.SelectionScope,
                     AncillaryOffersMapper.Unit(selection.SelectionScope, selection.TravellerRef, selection.CoverageRef),
                     Coverage(selection),
-                    new ServiceSourceBindingDto(selection.OfferBinding, selection.SalesBinding),
+                    new ServiceSourceBindingDto(selection.SourceBinding, selection.SalesBinding),
                     Definition(selection),
                     Provision(selection),
                     Pricing(selection),

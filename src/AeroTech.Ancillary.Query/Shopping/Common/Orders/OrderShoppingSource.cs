@@ -16,24 +16,25 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.Orders
             _flightOffers = flightOffers;
         }
 
-        public async Task<FlightOfferShopping> LoadAsync(long orderId, AncillarySalesScope scope, CancellationToken cancellationToken = default)
+        public async Task<OrderShopping> LoadAsync(long? orderId, AncillarySalesScope scope, CancellationToken cancellationToken = default)
         {
-            var order = await _orders.FindAsync(orderId, cancellationToken) ?? throw ExceptionFactory.ShoppingCallerNotAuthorized();
+            if (orderId is not > 0)
+                throw ExceptionFactory.ShoppingContextIsInvalid("orderId is required");
 
-            if (!order.AcceptsChanges)
-                throw ExceptionFactory.ShoppingContextIsInvalid($"order {orderId} does not accept new services");
+            var order = await _orders.FindAsync(orderId.Value, cancellationToken) ?? throw ExceptionFactory.ShoppingCallerNotAuthorized();
 
-            if (string.IsNullOrWhiteSpace(order.Air.OfferId))
-                throw ExceptionFactory.ShoppingContextIsInvalid($"order {orderId} carries no source offer id");
+            OrderScopeGuard.EnsureSellable(order, scope);
 
             var shopping = await _flightOffers.ContextualizeAsync(order.Air, scope, OrderSourceFingerprint.Of(order), cancellationToken);
 
-            return shopping with
-            {
-                PointsOfSale = shopping.PointsOfSale
-                    .Select(pointOfSale => pointOfSale with { Context = OrderShoppingContextMapper.Map(pointOfSale.Context, order) })
-                    .ToList()
-            };
+            return new OrderShopping(
+                order,
+                shopping with
+                {
+                    PointsOfSale = shopping.PointsOfSale
+                        .Select(pointOfSale => pointOfSale with { Context = OrderShoppingContextMapper.Map(pointOfSale.Context, order) })
+                        .ToList()
+                });
         }
     }
 }

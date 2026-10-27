@@ -78,7 +78,7 @@ public class V11LifecycleAcceptanceTests
     private static long UnitOf(AncillaryHoldReceipt hold, long orderServiceId) => hold.Units.Single(unit => unit.OrderServiceId == orderServiceId).UnitId;
 
     [Fact]
-    public async Task V11_L02_L03_V12_W02_W03_a_replay_in_another_order_returns_the_same_hold_and_a_changed_option_or_quantity_conflicts_without_a_write()
+    public async Task V11_L02_L03_V12_W02_W03_Q1_a_replay_in_another_order_returns_the_same_hold_and_a_changed_option_quantity_family_or_variant_conflicts_without_a_write()
     {
         var catalog = await CatalogAsync("A03", "A11", "A15");
         var orderId = NextOrderId;
@@ -103,11 +103,15 @@ public class V11LifecycleAcceptanceTests
         var bagRef = selections.ToArray();
         var ssr = selections.ToArray();
         var quantity = selections.ToArray();
+        var variant = selections.ToArray();
+        var family = selections.ToArray();
         bagRef[3] = bagRef[3] with { Options = new BaggageSelectionOptions("B-33", 27.5m, null, null) };
         ssr[2] = ssr[2] with { Options = new AssistedTravelHoldSelectionOptions("BLND") };
         quantity[3] = quantity[3] with { Quantity = 2 };
+        variant[1] = variant[1] with { VariantCode = "A12" };
+        family[1] = family[1] with { Family = AncillaryProfile.Upgrade };
 
-        foreach (var changed in new[] { bagRef, ssr, quantity })
+        foreach (var changed in new[] { bagRef, ssr, quantity, variant, family })
             await BusinessAssert.ThrowsAsync(16403, 409, () => scope.HoldAncillaryServices.HoldAsync(Hold(orderId, "SET", changed)));
 
         Assert.Equal(

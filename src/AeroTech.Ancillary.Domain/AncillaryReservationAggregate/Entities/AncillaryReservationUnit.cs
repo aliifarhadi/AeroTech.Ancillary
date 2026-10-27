@@ -182,6 +182,8 @@ namespace AeroTech.Ancillary.Domain.AncillaryReservationAggregate.Entities
 
         internal bool IsSelectedBy(AncillaryReservationServiceSelectionArgs service)
             => SeatNumber is null
+               && VariantCode == service.VariantCode
+               && AncillaryVariant.Find(VariantCode)?.Profile == service.Family
                && OrderServiceId == service.OrderServiceId
                && ProvisionId == service.ProvisionId
                && TravellerId == service.TravellerId

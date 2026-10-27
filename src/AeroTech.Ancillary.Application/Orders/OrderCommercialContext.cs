@@ -5,8 +5,8 @@ namespace AeroTech.Ancillary.Application.Orders
     public sealed record OrderCommercialContext(
         long OrderId,
         int CommercialVersion,
-        bool AcceptsChanges,
         DateTimeOffset? TicketedAtUtc,
+        long? TravelAgencyId,
         FlightOffer Air,
         IReadOnlyList<OrderTravellerFacts> Travellers,
         IReadOnlyList<OrderServiceFacts> Services);

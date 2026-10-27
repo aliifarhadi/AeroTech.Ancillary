@@ -2,6 +2,7 @@ using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffe
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Snapshots;
 using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
 using AeroTech.Ancillary.Shopping.Resolution;
+using AeroTech.Messages.Ancillary.Enums;
 
 namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetPricedAncillaryOffers
 {
@@ -17,6 +18,6 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetPricedAnc
         }
 
         public async Task<AncillaryOffersSnapshot> ExecuteAsync(string selectionId, AncillarySalesScope scope, CancellationToken cancellationToken = default)
-            => await _offers.ExecuteAsync(await _selections.OpenAsync(selectionId, cancellationToken), scope, cancellationToken);
+            => await _offers.ExecuteAsync(await _selections.OpenAsync(selectionId, ShoppingSourceKind.Offer, cancellationToken), scope, cancellationToken);
     }
 }

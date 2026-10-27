@@ -196,7 +196,24 @@ Options:
 
 Recommendation: **(b).** Idempotency practice (for example Stripe: "can only be used with the same parameters") treats a different product identity under the same key as a conflict. Case (i) is a different variant, not a retry. (ii) and (iii) return the true stored hold and write nothing.
 
-Answer:
+Answer: (b), Owner, 2026-10-27, after commit `0f9dfbb`.
+
+Built on `0f9dfbb`, uncommitted:
+
+- **Domain:** `AncillaryReservationServiceSelectionArgs` now starts with `Family` and `VariantCode`. `AncillaryReservationUnit.IsSelectedBy` also requires the stored `VariantCode` to equal the request's `VariantCode`, and the static profile of that variant (`AncillaryVariant.Find`) to equal the request's family.
+- **Application:** `HoldAncillaryServicesService.SelectionArgs` passes `selection.Family` and `selection.VariantCode`.
+- **Tests:**
+  - Domain `V11_L01_L02_L03_V12_Q1…`: another variant and another family each answer 16403.
+  - Acceptance `V11_L02_L03_V12_W02_W03_Q1…`: the A11 meal sent as A12, and as an upgrade, each answer 16403 / 409, with still one hold of 4 units.
+- **Reservation source pin:** 133 files, `295971EE1093046651DB395298CFA005BA4199862D978A704CA4F70F8F9D1A7E`.
+- **Proof:**
+  - clean solution build: 0 errors, 59 warnings;
+  - Domain: 293 discovered, 293 passed;
+  - Holds + Boundary: 101 discovered, 101 passed;
+  - no aborted line.
+
+  A red run against the old code was not executed.
+- **Unchanged:** cases (ii) and (iii) stay as described above.
 
 ## 8. Remaining (outside Gate 2)
 

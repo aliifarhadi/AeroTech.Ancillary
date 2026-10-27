@@ -16,7 +16,7 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap
     {
         private const string SeatMapAuthority = "AirInfo";
 
-        private readonly IShoppingSource _source;
+        private readonly IFlightOfferShoppingSource _source;
         private readonly IAircraftSeatMapProvider _seatMaps;
         private readonly IOccupiedSeatProvider _occupiedSeats;
         private readonly ISeatMapPricingEngine _engine;
@@ -25,7 +25,7 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap
         private readonly IAirlineReference _airlines;
 
         public GetSeatMapService(
-            IShoppingSource source,
+            IFlightOfferShoppingSource source,
             IAircraftSeatMapProvider seatMaps,
             IOccupiedSeatProvider occupiedSeats,
             ISeatMapPricingEngine engine,
@@ -43,7 +43,7 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap
         }
 
         public async Task<SeatMapSnapshot> ExecuteAsync(ISeatMapQuery query, AncillarySalesScope scope, CancellationToken cancellationToken = default)
-            => await BuildAsync(await _source.LoadAsync(query.OfferId, query.OrderId, scope, cancellationToken), scope, cancellationToken);
+            => await BuildAsync(await _source.LoadAsync(query.OfferId, scope, cancellationToken), scope, cancellationToken);
 
         public async Task<SeatMapSnapshot> BuildAsync(FlightOfferShopping shopping, AncillarySalesScope scope, CancellationToken cancellationToken = default)
         {

@@ -10,9 +10,46 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillary
     public static class BackofficeAncillaryOffersMapper
     {
         public static BackofficeAncillaryOffersDto Map(AncillaryOffersSnapshot snapshot)
-            => new(
+        {
+            var families = Families(snapshot);
+
+            return new(
                 snapshot.OfferId,
                 snapshot.CurrencyId,
+                families.Baggages,
+                families.Meals,
+                families.Pets,
+                families.AssistedTravel,
+                families.AirportServices,
+                families.PriorityServices,
+                families.Connectivity,
+                families.Upgrades,
+                families.ExtraSeats,
+                families.TravelInsurance);
+        }
+
+        public static BackofficeOrderAncillaryOffersDto Map(OrderAncillaryOffersSnapshot snapshot)
+        {
+            var families = Families(snapshot.Offers);
+
+            return new(
+                snapshot.OrderId,
+                snapshot.OrderCommercialVersion,
+                snapshot.Offers.CurrencyId,
+                families.Baggages,
+                families.Meals,
+                families.Pets,
+                families.AssistedTravel,
+                families.AirportServices,
+                families.PriorityServices,
+                families.Connectivity,
+                families.Upgrades,
+                families.ExtraSeats,
+                families.TravelInsurance);
+        }
+
+        private static BackofficeAncillaryOfferFamilies Families(AncillaryOffersSnapshot snapshot)
+            => new(
                 Family(snapshot, AncillaryProfile.Baggage, row => Baggage(AncillaryOffersMapper.Baggage(row.Definition))),
                 Family(snapshot, AncillaryProfile.Meal, row => Meal(AncillaryOffersMapper.Meal(row.Definition))),
                 Family(snapshot, AncillaryProfile.Pet, row => Pet(AncillaryOffersMapper.Pet(row.Definition))),

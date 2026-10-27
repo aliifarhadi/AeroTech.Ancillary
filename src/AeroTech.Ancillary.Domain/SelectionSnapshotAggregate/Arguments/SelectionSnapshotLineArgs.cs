@@ -8,7 +8,7 @@ namespace AeroTech.Ancillary.Domain.SelectionSnapshotAggregate.Arguments
         ServiceCoverageScope CoverageScope,
         string? TravellerRef,
         string CoverageRef,
-        string OfferBinding,
+        string SourceBinding,
         string SalesBinding,
         int Quantity,
         string? SelectedJson);

@@ -56,14 +56,15 @@ namespace AeroTech.Ancillary.Shopping.Selections
                 identity.CoverageRef,
                 minQuantity,
                 maxQuantity,
-                SelectionBindings.Offer(source.TrustedSourceReference!, source.TrustedSourceVersion!),
+                SelectionBindings.Source(source)!,
                 SelectionBindings.Sales(context),
                 expiresAtUtc));
         }
 
         private DateTimeOffset? ExpiryOf(AncillaryShoppingContext context, CanonicalAncillaryOfferCandidate candidate)
         {
-            if (context.SourceIdentity is not { SourceKind: ShoppingSourceKind.Offer, TrustedSourceReference.Length: > 0, TrustedSourceVersion.Length: > 0, ValidUntilUtc: { } validUntilUtc }
+            if (context.SourceIdentity is not { ValidUntilUtc: { } validUntilUtc } source
+                || SelectionBindings.Source(source) is null
                 || !SellableCandidate.Is(candidate, context.CurrencyId))
                 return null;
 

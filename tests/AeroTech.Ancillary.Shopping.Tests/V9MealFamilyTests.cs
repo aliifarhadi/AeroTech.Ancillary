@@ -64,7 +64,7 @@ public sealed class V9MealFamilyTests
         Assert.StartsWith("selections[1]: ", refused.Message);
         Assert.Contains("MAIN_MEAL", refused.Message);
         Assert.Empty(lab.Shop.Catalog.Snapshots);
-        Assert.Single(await lab.Resolver.ResolveAsync((await lab.SubmitAsync([preorder], context)).SelectionId));
+        Assert.Single((await lab.Resolver.ResolveAsync((await lab.SubmitAsync([preorder], context)).SelectionId)).Lines);
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public sealed class V9MealFamilyTests
         var rows = await lab.ShopAsync(context);
         var selectionId = (await lab.SubmitAsync([V8Lab.Direct(Row(rows, "A11", "T1").OfferItemId!), V8Lab.Direct(Row(rows, "A11", "T2").OfferItemId!)], context)).SelectionId;
 
-        var meals = await lab.Resolver.ResolveAsync(selectionId);
+        var meals = (await lab.Resolver.ResolveAsync(selectionId)).Lines;
 
         Assert.Equal(["T1", "T2"], meals.Select(meal => meal.TravellerRef));
     }
@@ -101,7 +101,7 @@ public sealed class V9MealFamilyTests
                 1,
                 null))
             .ToList();
-        lab.Shop.Catalog.Snapshots.Add(SelectionSnapshot.Create("s_".PadRight(24, '1'), V8Lab.Offer, lines, ShoppingLab.Now, ShoppingLab.Now.AddMinutes(15)));
+        lab.Shop.Catalog.Snapshots.Add(SelectionSnapshot.CreateForOffer("s_".PadRight(24, '1'), V8Lab.Offer, lines, ShoppingLab.Now, ShoppingLab.Now.AddMinutes(15)));
 
         var refused = await BusinessAssert.ThrowsAsync(NotSellable, 409, () => lab.Resolver.ResolveAsync("s_".PadRight(24, '1')));
 

@@ -63,7 +63,7 @@ public sealed class V9PriceRevalidationTests
         Assert.Equal((1, 3), (row.QuantityPolicy.Min, row.QuantityPolicy.Max));
         Assert.StartsWith("selections[0]: ", refused.Message);
         Assert.Contains("QuantityExceedsVerifiedRemaining", refused.Message);
-        Assert.Equal(1, Assert.Single(await lab.Resolver.ResolveAsync(one.SelectionId)).Quantity);
+        Assert.Equal(1, Assert.Single((await lab.Resolver.ResolveAsync(one.SelectionId)).Lines).Quantity);
     }
 
     [Fact(Skip = "Open: /Price checks each line alone and does not sum one counting family across lines. Not reachable today: no counting-family source is connected, so no policy with a usage limit can be activated.")]

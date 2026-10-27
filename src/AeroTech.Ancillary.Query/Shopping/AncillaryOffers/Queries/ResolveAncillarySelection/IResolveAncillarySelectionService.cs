@@ -4,6 +4,6 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveAncil
 {
     public interface IResolveAncillarySelectionService
     {
-        Task<IReadOnlyList<ResolvedSelection>> ExecuteAsync(string? selectionId, CancellationToken cancellationToken = default);
+        Task<ResolvedSelections> ExecuteAsync(string? selectionId, CancellationToken cancellationToken = default);
     }
 }

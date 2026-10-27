@@ -1,11 +1,12 @@
 using AeroTech.Ancillary.Application.FlightOffers;
 using AeroTech.Ancillary.Query.Shopping.Common.FlightOffers;
+using AeroTech.Ancillary.Query.Shopping.Common.Orders;
 using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
 using AeroTech.Ancillary.Shopping.Context;
 
 namespace AeroTech.Ancillary.Shopping.Tests.Fixtures;
 
-public sealed class LabShoppingSource : IFlightOfferShoppingSource
+public sealed class LabShoppingSource : IFlightOfferShoppingSource, IOrderShoppingSource
 {
     private readonly IReadOnlyList<AncillaryShoppingContext> _contexts;
 
@@ -28,5 +29,8 @@ public sealed class LabShoppingSource : IFlightOfferShoppingSource
     }
 
     public Task<FlightOfferShopping> ContextualizeAsync(FlightOffer offer, AncillarySalesScope scope, string sourceVersion, CancellationToken cancellationToken = default)
+        => throw new NotSupportedException();
+
+    public Task<OrderShopping> LoadAsync(long? orderId, AncillarySalesScope scope, CancellationToken cancellationToken = default)
         => throw new NotSupportedException();
 }

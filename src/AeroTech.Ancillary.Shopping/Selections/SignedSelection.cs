@@ -10,7 +10,7 @@ namespace AeroTech.Ancillary.Shopping.Selections
         string CoverageRef,
         int? MinQuantity,
         int? MaxQuantity,
-        string OfferBinding,
+        string SourceBinding,
         string SalesBinding,
         DateTimeOffset ExpiresAtUtc);
 }

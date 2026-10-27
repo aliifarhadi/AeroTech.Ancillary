@@ -8,7 +8,7 @@ namespace AeroTech.Ancillary.Shopping.Options
         ServiceCoverageScope CoverageScope,
         string TravellerRef,
         string CoverageRef,
-        string OfferBinding,
+        string SourceBinding,
         string SalesBinding,
         int Quantity,
         DateTimeOffset ExpiresAtUtc,

@@ -1,6 +1,7 @@
 using System.Globalization;
 using AeroTech.Ancillary.Application.FlightOffers;
 using AeroTech.Ancillary.Domain._Shared.Resources;
+using AeroTech.Ancillary.Providers._Shared;
 using AeroTech.Ancillary.Providers.Offer.Wire;
 using AeroTech.Messages.AirPrice.Enums;
 using AeroTech.Messages.Ancillary.Enums;
@@ -121,12 +122,12 @@ namespace AeroTech.Ancillary.Providers.Offer.Services
                 string.IsNullOrWhiteSpace(component.BookingClass) ? null : component.BookingClass,
                 string.IsNullOrWhiteSpace(component.FareBasis) ? null : component.FareBasis,
                 string.IsNullOrWhiteSpace(component.FareFamily) ? null : component.FareFamily,
-                Named<AirFareType>(component.FareType));
+                WireEnum.Named<AirFareType>(component.FareType));
         }
 
         private static FlightOfferTicket MapTicket(OfferTicket ticket, IReadOnlyList<FlightOfferBound> bounds)
         {
-            var passengerType = Named<PassengerTypeCode>(ticket.PassengerTypeCode);
+            var passengerType = WireEnum.Named<PassengerTypeCode>(ticket.PassengerTypeCode);
             var sold = bounds.SelectMany(bound => bound.Flights.Select(flight => (bound.BoundId, flight.FlightId))).ToList();
             var covered = ticket.Coupons.Select(coupon => (coupon.BoundId, coupon.FlightId)).ToList();
 
@@ -196,11 +197,7 @@ namespace AeroTech.Ancillary.Providers.Offer.Services
         }
 
         private static FlightOfferBaggage? Baggage(int pieces, decimal weight, string? unit)
-            => Named<WeightUnit>(unit) is { } known && pieces >= 0 && weight >= 0 ? new FlightOfferBaggage(pieces, weight, known) : null;
-
-        private static TEnum? Named<TEnum>(string? name)
-            where TEnum : struct, Enum
-            => name is not null && Enum.GetNames<TEnum>().Contains(name, StringComparer.Ordinal) ? Enum.Parse<TEnum>(name) : null;
+            => WireEnum.Named<WeightUnit>(unit) is { } known && pieces >= 0 && weight >= 0 ? new FlightOfferBaggage(pieces, weight, known) : null;
 
         private static void Unique(IEnumerable<string> values, string field)
         {

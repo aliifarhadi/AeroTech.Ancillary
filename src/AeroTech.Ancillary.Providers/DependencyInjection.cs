@@ -5,7 +5,7 @@ using AeroTech.Ancillary.Providers.AirInfo.Services;
 using AeroTech.Ancillary.Providers.FlightFlow.Services;
 using AeroTech.Ancillary.Providers.InventoryReferences;
 using AeroTech.Ancillary.Providers.Offer.Services;
-using AeroTech.Ancillary.Providers.Orders;
+using AeroTech.Ancillary.Providers.Ordering.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -49,10 +49,21 @@ namespace AeroTech.Ancillary.Providers
                     client.Timeout = TimeSpan.FromSeconds(seconds);
             });
 
+            var orderingBaseUrl = configuration["Ordering:BaseUrl"];
+            var orderingRequestTimeout = configuration["Ordering:RequestTimeout"];
+
+            services.AddHttpClient<IOrderCommercialContextReader, OrderingCommercialContextReader>(client =>
+            {
+                if (!string.IsNullOrWhiteSpace(orderingBaseUrl))
+                    client.BaseAddress = new Uri(orderingBaseUrl);
+
+                if (int.TryParse(orderingRequestTimeout, out var seconds) && seconds > 0)
+                    client.Timeout = TimeSpan.FromSeconds(seconds);
+            });
+
             services.AddScoped<IInventoryResourceReference, NotConnectedInventoryResourceReference>();
             services.AddScoped<IAirportFacilityReference, NotConnectedAirportFacilityReference>();
             services.AddScoped<ICountingFamilyReference, NotConnectedCountingFamilyReference>();
-            services.AddScoped<IOrderCommercialContextReader, NotConnectedOrderCommercialContextReader>();
 
             return services;
         }

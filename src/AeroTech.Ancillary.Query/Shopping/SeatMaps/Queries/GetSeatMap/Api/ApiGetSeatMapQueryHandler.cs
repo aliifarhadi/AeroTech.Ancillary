@@ -1,4 +1,3 @@
-using AeroTech.Ancillary.Query.Shopping.Common;
 using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
 using AeroTech.Ancillary.Query.Shopping.SeatMaps.Dto;
 using MediatR;
@@ -17,15 +16,6 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap.Api
         }
 
         public async Task<SeatMapsDto> Handle(ApiGetSeatMapQuery query, CancellationToken cancellationToken)
-        {
-            var snapshot = await _service.ExecuteAsync(query, await _salesScope.ResolveAsync(cancellationToken), cancellationToken);
-
-            var travelerIds = ApiOfferIdentifiers.TravelerIds(snapshot.Offer);
-            var segmentIds = ApiOfferIdentifiers.Segments(snapshot.Offer)
-                .GroupBy(segment => segment.FlightRef, StringComparer.Ordinal)
-                .ToDictionary(group => group.Key, group => group.First().Id, StringComparer.Ordinal);
-
-            return SeatMapMapper.Map(snapshot, travellerRef => travelerIds[travellerRef], flight => segmentIds[flight.FlightRef]);
-        }
+            => ApiSeatMapMapper.Map(await _service.ExecuteAsync(query, await _salesScope.ResolveAsync(cancellationToken), cancellationToken));
     }
 }

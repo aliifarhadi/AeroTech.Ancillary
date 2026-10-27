@@ -10,17 +10,22 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.FlightOffers
     {
         private const char Separator = '\n';
 
-        public static string Of(FlightOffer offer)
+        public static string Of(FlightOffer offer) => Hash([offer.OfferId, .. Parts(offer, includePrices: true)]);
+
+        internal static string Hash(IEnumerable<string> parts)
+            => Base64Url.EncodeToString(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join(Separator, parts))));
+
+        internal static List<string> Parts(FlightOffer offer, bool includePrices)
         {
-            var parts = new List<string>
-            {
-                offer.OfferId,
-                Instant(offer.PricedAt),
-                offer.CurrencyId.ToString(CultureInfo.InvariantCulture),
-                Number(offer.BaseAmount),
-                Number(offer.ChargeAmount),
-                Number(offer.TotalAmount)
-            };
+            var parts = new List<string>();
+
+            if (includePrices)
+                parts.Add(Instant(offer.PricedAt));
+
+            parts.Add(offer.CurrencyId.ToString(CultureInfo.InvariantCulture));
+
+            if (includePrices)
+                parts.AddRange([Number(offer.BaseAmount), Number(offer.ChargeAmount), Number(offer.TotalAmount)]);
 
             parts.Add(offer.SalesChannel?.ToString() ?? string.Empty);
             parts.Add(Optional(offer.CustomerId));
@@ -95,9 +100,14 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.FlightOffers
                     parts.Add(Flag(coupon.IsUpgradable));
                     parts.Add(Optional(coupon.IsOpenForUse));
                     parts.Add(string.Join(',', coupon.AirFareIds.Order().Select(id => id.ToString(CultureInfo.InvariantCulture))));
-                    parts.AddRange(Lines(coupon.PriceLines));
+
+                    if (includePrices)
+                        parts.AddRange(Lines(coupon.PriceLines));
                 }
             }
+
+            if (!includePrices)
+                return parts;
 
             parts.AddRange(Lines(offer.OrderCharges));
 
@@ -114,7 +124,7 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.FlightOffers
                 parts.Add(rate.RoundingFactor.ToString(CultureInfo.InvariantCulture));
             }
 
-            return Base64Url.EncodeToString(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join(Separator, parts))));
+            return parts;
         }
 
         private static string Flag(bool value) => value ? "1" : "0";

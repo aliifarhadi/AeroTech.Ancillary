@@ -13,7 +13,8 @@ namespace AeroTech.Ancillary.Persistence.SelectionSnapshotAggregate
             builder.Property(snapshot => snapshot.Id).HasColumnType("varchar(24)").ValueGeneratedNever();
 
             builder.Property(snapshot => snapshot.Version).HasColumnType("smallint");
-            builder.Property(snapshot => snapshot.OfferId).HasMaxLength(512).IsRequired();
+            builder.Property(snapshot => snapshot.OfferId).HasMaxLength(512);
+            builder.Ignore(snapshot => snapshot.SourceKind);
             builder.HasMany(snapshot => snapshot.Lines)
                 .WithOne()
                 .HasForeignKey(line => line.SelectionSnapshotId)

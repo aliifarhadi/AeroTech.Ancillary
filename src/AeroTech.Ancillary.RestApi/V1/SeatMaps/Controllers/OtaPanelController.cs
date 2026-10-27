@@ -1,3 +1,4 @@
+using AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetOrderSeatMap.OtaPanel;
 using AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap.OtaPanel;
 using AeroTech.Ancillary.RestApi.V1._Shared;
 using Asp.Versioning;
@@ -21,6 +22,10 @@ namespace AeroTech.Ancillary.RestApi.V1.SeatMaps.Controllers
 
         [HttpPost]
         public async Task<IActionResult> GetByOfferId([FromBody] OtaPanelGetSeatMapQuery query, CancellationToken cancellationToken)
+            => Ok(await _mediator.Send(query, cancellationToken));
+
+        [HttpPost("Orders")]
+        public async Task<IActionResult> GetByOrderId([FromBody] OtaPanelGetOrderSeatMapQuery query, CancellationToken cancellationToken)
             => Ok(await _mediator.Send(query, cancellationToken));
     }
 }

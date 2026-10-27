@@ -221,7 +221,7 @@ public sealed class V8OptionsTests
         var second = await lab.SubmitAsync(reference, AncillaryProfile.AssistedTravel, options, context);
 
         Assert.NotEqual(first.SelectionId, second.SelectionId);
-        Assert.Single(await lab.Resolver.ResolveAsync(first.SelectionId));
-        Assert.Single(await lab.Resolver.ResolveAsync(second.SelectionId));
+        Assert.Single((await lab.Resolver.ResolveAsync(first.SelectionId)).Lines);
+        Assert.Single((await lab.Resolver.ResolveAsync(second.SelectionId)).Lines);
     }
 }

@@ -9,7 +9,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveAncil
 
         public ResolveAncillarySelectionService(ISelectionResolver resolver) => _resolver = resolver;
 
-        public Task<IReadOnlyList<ResolvedSelection>> ExecuteAsync(string? selectionId, CancellationToken cancellationToken = default)
+        public Task<ResolvedSelections> ExecuteAsync(string? selectionId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(selectionId))
                 throw ExceptionFactory.ShoppingContextIsInvalid("selectionId is required");

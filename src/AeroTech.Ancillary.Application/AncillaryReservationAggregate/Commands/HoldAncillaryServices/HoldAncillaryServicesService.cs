@@ -180,6 +180,8 @@ namespace AeroTech.Ancillary.Application.AncillaryReservationAggregate.Commands.
 
         private static AncillaryReservationServiceSelectionArgs SelectionArgs(HoldSelection selection)
             => new(
+                selection.Family,
+                selection.VariantCode,
                 selection.OrderServiceId,
                 selection.ProvisionId,
                 selection.TravellerId,

@@ -216,7 +216,7 @@ No migration was modified, so no roll-forward or roll-back plan is needed. Rolli
 
 | # | Risk | Impact | Likelihood | Mitigation / state |
 |---|---|---|---|---|
-| R1 | Replay ignores family and `variantCode` (Gate 2 Q1) | Low: the stored receipt is returned, nothing is written | Low: needs a client bug that reuses a key | Owner decision (§11) |
+| R1 | Replay ignored family and `variantCode` (Gate 2 Q1) | Low | Low | Closed: Owner chose (b) after `0f9dfbb`; built (Gate 2 report §7) |
 | R2 | A concurrent duplicate gets 16416 instead of the receipt | Low: 409 is retryable; a retry returns the same hold | Medium under client retries | Owner decision (§11) |
 | R3 | Local stock is not live on dev | Local products cannot be sold live | Certain until the references exist | GATED |
 | R4 | The Ordering integration is untested | Production flow unproven | High until run | NOT VERIFIED |
@@ -225,7 +225,7 @@ No migration was modified, so no roll-forward or roll-back plan is needed. Rolli
 
 ## 11. Open questions for the Owner
 
-1. **Gate 2 Q1:** should replay also compare the request's family and `variantCode`? My recommendation is (b), yes. See `reports/V12-GATE2-TYPED-REHYDRATION.md` §7.
+1. **Gate 2 Q1:** answered (b) by the Owner and built after `0f9dfbb`. Replay now also compares the family and `variantCode`. See `reports/V12-GATE2-TYPED-REHYDRATION.md` §7.
 2. **Gate 3 I05:** may a concurrent duplicate that hits the busy order lock keep answering 16416? My recommendation is to keep it. See `reports/V12-GATE3-INVENTORY-LIFECYCLE.md` §6.
 
 ## 12. Pack integrity
