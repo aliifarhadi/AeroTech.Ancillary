@@ -41,7 +41,7 @@ public sealed class V8Lab
 
     public SelectionSigner Signer => new(Codec, Options, Clock);
 
-    public AncillaryOfferListing Listing => new(Shop.Engine, Shop.Catalog, Shop.Catalog, Signer);
+    public AncillaryOfferListing Listing => new(Shop.Engine, Signer);
 
     public SelectionProofService Proofs => new(Codec, Shop.Catalog, Shop.Catalog, Shop.Catalog, Shop.Engine, Options, Clock);
 

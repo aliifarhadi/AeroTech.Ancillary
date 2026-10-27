@@ -6,7 +6,6 @@ using AeroTech.Ancillary.Domain._Shared.Resources;
 using AeroTech.Ancillary.Shopping.Context;
 using AeroTech.Ancillary.Shopping.Engine;
 using AeroTech.Ancillary.Shopping.Options;
-using AeroTech.Ancillary.Shopping.Reading;
 using AeroTech.Ancillary.Shopping.Results;
 using AeroTech.Ancillary.Shopping.Selections;
 using AeroTech.Messages.Ancillary.Enums;
@@ -18,19 +17,11 @@ namespace AeroTech.Ancillary.Shopping.Offers
         private const int SingleUnit = 1;
 
         private readonly IAncillaryShoppingEngine _engine;
-        private readonly IActiveAncillaryDefinitionReader _definitions;
-        private readonly IActiveAncillaryProvisionReader _provisions;
         private readonly ISelectionSigner _signer;
 
-        public AncillaryOfferListing(
-            IAncillaryShoppingEngine engine,
-            IActiveAncillaryDefinitionReader definitions,
-            IActiveAncillaryProvisionReader provisions,
-            ISelectionSigner signer)
+        public AncillaryOfferListing(IAncillaryShoppingEngine engine, ISelectionSigner signer)
         {
             _engine = engine;
-            _definitions = definitions;
-            _provisions = provisions;
             _signer = signer;
         }
 
@@ -49,15 +40,14 @@ namespace AeroTech.Ancillary.Shopping.Offers
 
             foreach (var context in contexts)
             {
-                var candidates = (await _engine.ShopAsync(context, filter, cancellationToken)).Candidates;
+                var result = await _engine.ShopAsync(context, filter, cancellationToken);
+                var candidates = result.Candidates;
 
                 if (candidates.Count == 0)
                     continue;
 
-                var definitions = (await _definitions.FindActiveDefinitionsAsync(candidates.Select(candidate => candidate.DefinitionVersionId).Distinct().ToList(), cancellationToken))
-                    .ToDictionary(definition => definition.Id);
-                var provisions = (await _provisions.FindActiveProvisionsAsync(candidates.Select(candidate => candidate.ProvisionId).Distinct().ToList(), cancellationToken))
-                    .ToDictionary(provision => provision.Id);
+                var definitions = result.Definitions.ToDictionary(definition => definition.Id);
+                var provisions = result.Provisions.ToDictionary(provision => provision.Id);
                 var salesBinding = SelectionBindings.Sales(context);
 
                 foreach (var candidate in candidates)

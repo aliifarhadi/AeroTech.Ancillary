@@ -22,7 +22,8 @@ namespace AeroTech.Ancillary.Shopping.Engine
             InventoryReferenceProbe references)
         {
             Definitions = definitions;
-            _provisions = provisions.ToLookup(provision => provision.ServiceDefinitionId);
+            Provisions = provisions.ToList();
+            _provisions = Provisions.ToLookup(provision => provision.ServiceDefinitionId);
             _pricings = pricings.ToLookup(pricing => pricing.AncillaryProvisionId);
             _inventory = inventory
                 .GroupBy(configuration => configuration.Policy.ServiceDefinitionRef, StringComparer.Ordinal)
@@ -33,6 +34,8 @@ namespace AeroTech.Ancillary.Shopping.Engine
         }
 
         public IReadOnlyList<AncillaryServiceDefinition> Definitions { get; }
+
+        public IReadOnlyList<AncillaryProvision> Provisions { get; }
 
         public IReadOnlyDictionary<int, int> CurrencyDecimalPlaces { get; }
 

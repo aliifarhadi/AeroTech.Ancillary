@@ -130,7 +130,9 @@ namespace AeroTech.Ancillary.Shopping.Engine
                     .OfType<PublishedRateOfExchange>()
                     .DistinctBy(rate => rate.RateOfExchangeTableId, StringComparer.Ordinal)
                     .OrderBy(rate => rate.FromCurrencyId)
-                    .ToList());
+                    .ToList(),
+                catalog.Definitions,
+                catalog.Provisions);
         }
 
         public async Task<CanonicalAncillarySelectionEvaluation> EvaluateSelectionAsync(
