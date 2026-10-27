@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using AeroTech.Ancillary.Application.AcceptanceTests.Fakes;
 using AeroTech.Ancillary.Application.AcceptanceTests.Fixtures;
 using AeroTech.Ancillary.Application.AncillaryInventoryPolicyAggregate.Commands.DefineInventoryPolicy;
@@ -352,7 +353,7 @@ public class V10InventoryAllocationAcceptanceTests
     }
 
     [Fact]
-    public async Task V10_I17_I18_I19_I20_L19_L20_slots_are_taken_per_contiguous_slice_with_guests_counted_as_persons()
+    public async Task V10_I17_I18_I19_I20_L19_L20_V12_D07_W03_slots_are_taken_per_contiguous_slice_with_guests_counted_as_persons_and_the_appointment_keeps_its_offset()
     {
         var (fixture, airlineId, supplierId) = await OperatorAsync();
         var lounge = await LoungeSlotProductAsync(fixture, airlineId, supplierId);
@@ -368,7 +369,17 @@ public class V10InventoryAllocationAcceptanceTests
 
         Assert.Equal(hold.HoldId, replay.HoldId);
         Assert.Equal(new[] { Uses(AirportSlot, morning, "3.000"), Uses(AirportSlot, noon, "3.000") }.Order(), (await _harness.AllocationsAsync(first)).Order());
+
+        await using (var reader = new AncillaryScope(_database, _clock))
+        {
+            var unit = Assert.Single(Assert.Single(Assert.Single((await reader.GetHoldById.ExecuteAsync(hold.HoldId)).AirportServices!).Products).Units);
+            var appointment = unit.Selected.Options!.AirportService;
+
+            Assert.Equal((tehran, Utc(10), (int?)2), (appointment.TimeWithOffset!.Value.Offset, appointment.TimeWithOffset.Value, appointment.GuestCount));
+        }
+
         await RefusedAsync(16403, 409, Hold(first, Service(lounge, first, appointment: new AirportServiceSelectionOptions(Utc(10).ToOffset(tehran), 1))));
+        await RefusedAsync(16403, 409, Hold(first, Service(lounge, first, appointment: new AirportServiceSelectionOptions(Utc(10, 30).ToOffset(tehran), 2))));
         await RefusedAsync(16419, 409, Hold(gap, Service(lounge, gap, appointment: new AirportServiceSelectionOptions(Utc(11, 30), 0))));
         await RefusedAsync(16417, 409, Hold(crowd, Service(lounge, crowd, appointment: new AirportServiceSelectionOptions(Utc(10), 1))));
         await RefusedAsync(16402, 422, Hold(crowd, Service(lounge, crowd)));
@@ -411,6 +422,40 @@ public class V10InventoryAllocationAcceptanceTests
             Assert.Equal(1, raced.Succeeded);
             Assert.Equal(new[] { 16417 }, raced.Codes);
             Assert.Equal(race.Capacity, await _harness.UsageAsync(race.Kind, race.Source));
+        }
+    }
+
+    [Fact]
+    public async Task V12_I05_the_same_hold_sent_concurrently_creates_one_hold_and_every_answer_is_that_hold_or_a_busy_order()
+    {
+        var (fixture, airlineId, supplierId) = await OperatorAsync();
+        var meal = await ProductAsync(fixture, airlineId, supplierId, "V12_SAME_KEY",
+            id => Local(airlineId, "V12_SAME_KEY", id, LocalInventoryPattern.FlightCount, count: Count(MealResource, 1, InventoryCountUnit.Item)));
+        var source = await CountSourceAsync(fixture, airlineId, MealResource, 10);
+        var used = 0;
+
+        foreach (var sharedOrderLock in new[] { true, false })
+        {
+            var orderId = NextOrderId;
+            var command = Hold(orderId, Service(meal, orderId));
+            var orderLock = new TestOnlyHoldLock();
+            var receipts = new ConcurrentBag<AncillaryHoldReceipt>();
+
+            var raced = await _harness.RaceAsync(Enumerable.Range(0, 4).Select(_ => (Func<Task>)(async () =>
+            {
+                await using var scope = new AncillaryScope(_database, _clock, sharedOrderLock ? orderLock : null);
+                receipts.Add(await scope.HoldAncillaryServices.HoldAsync(command));
+            })));
+            var retried = await HoldAsync(command);
+            int[] refusals = !sharedOrderLock || raced.Succeeded == 4 ? [] : [16416];
+            used++;
+
+            Assert.InRange(raced.Succeeded, sharedOrderLock ? 1 : 4, 4);
+            Assert.Equal(refusals, raced.Codes);
+            Assert.Single(receipts.Append(retried).Select(receipt => (receipt.HoldId, string.Join(',', receipt.Units.Select(unit => unit.UnitId)))).Distinct());
+            Assert.Equal(
+                ("1|1", "1|1.000", $"{used}.000"),
+                (await ReservationsAsync(orderId), await AllocationRowsAsync(retried.HoldId), await _harness.UsageAsync(FlightCount, source)));
         }
     }
 
@@ -607,6 +652,86 @@ public class V10InventoryAllocationAcceptanceTests
 
         Assert.Equal(held.HoldId, replay.HoldId);
         Assert.Equal(("1|1", "1.000"), (await ReservationsAsync(orderId), await _harness.UsageAsync(FlightCount, source)));
+    }
+
+    private async Task<string> UnitStatesAsync(long holdId)
+        => string.Join('|', await _harness.RowsAsync($"SELECT CONCAT(Status, '') AS Value FROM Ancillary.AncillaryReservationUnits WHERE AncillaryReservationId = {holdId} ORDER BY OrderServiceId"));
+
+    private async Task<string> AllocationRowsAsync(long holdId)
+        => (await _harness.RowsAsync($"""
+            SELECT CONCAT(COUNT(*), '|', COALESCE(SUM(allocation.Amount), 0)) AS Value
+            FROM Ancillary.AncillaryReservationUnitAllocations AS allocation
+            JOIN Ancillary.AncillaryReservationUnits AS unit ON unit.Id = allocation.AncillaryReservationUnitId
+            WHERE unit.AncillaryReservationId = {holdId}
+            """)).Single();
+
+    [Fact]
+    public async Task V12_L01_L02_L03_L04_a_release_over_http_reads_only_unitIds_and_refuses_any_other_query_key_before_any_change()
+    {
+        var (fixture, airlineId, supplierId) = await OperatorAsync();
+        var meal = await ProductAsync(fixture, airlineId, supplierId, "V12_RELEASE",
+            id => Local(airlineId, "V12_RELEASE", id, LocalInventoryPattern.FlightCount, count: Count(MealResource, 1, InventoryCountUnit.Item)));
+        var source = await CountSourceAsync(fixture, airlineId, MealResource, 10);
+        var orderId = NextOrderId;
+        var hold = await HoldAsync(Hold(
+            orderId,
+            M1Commands.Lounge(meal.ProvisionId, orderId * 10 + 1, 71, [Flight], 1),
+            M1Commands.Lounge(meal.ProvisionId, orderId * 10 + 2, 72, [Flight], 1),
+            M1Commands.Lounge(meal.ProvisionId, orderId * 10 + 3, 73, [Flight], 1)));
+        var units = hold.Units.OrderBy(unit => unit.OrderServiceId).Select(unit => unit.UnitId).ToArray();
+        var (held, released) = ($"{(int)AncillaryReservationUnitStatus.Held}", $"{(int)AncillaryReservationUnitStatus.Released}");
+        var path = $"Service/v1/Ancillaries/Hold/{hold.HoldId}";
+        await using var host = await ReservationHttpHost.StartAsync(_database, _clock);
+
+        var before = (await UnitStatesAsync(hold.HoldId), await AllocationRowsAsync(hold.HoldId), await _harness.UsageAsync(FlightCount, source));
+
+        foreach (var query in new[]
+                 {
+                     $"unitId={units[0]}", $"unitIds[]={units[0]}", $"unitIds[0]={units[0]}", "foo=1", $"unitIds={units[0]}&unitId={units[1]}",
+                     "unitIds=", "unitIds=abc", "unitIds=0", $"unitIds={units[0]}&unitIds={units[0]}"
+                 })
+        {
+            var refused = await host.Client.DeleteAsync($"{path}?{query}");
+
+            Assert.Equal((query, System.Net.HttpStatusCode.BadRequest), (query, refused.StatusCode));
+        }
+
+        Assert.Equal(($"{held}|{held}|{held}", "3|3.000", "3.000"), before);
+        Assert.Equal(before, (await UnitStatesAsync(hold.HoldId), await AllocationRowsAsync(hold.HoldId), await _harness.UsageAsync(FlightCount, source)));
+
+        Assert.Equal(System.Net.HttpStatusCode.OK, (await host.Client.DeleteAsync($"{path}?unitIds={units[0]}")).StatusCode);
+        Assert.Equal(($"{released}|{held}|{held}", "2.000"), (await UnitStatesAsync(hold.HoldId), await _harness.UsageAsync(FlightCount, source)));
+
+        Assert.Equal(System.Net.HttpStatusCode.OK, (await host.Client.DeleteAsync($"{path}?UNITIDS={units[1]}")).StatusCode);
+        Assert.Equal(($"{released}|{released}|{held}", "1.000"), (await UnitStatesAsync(hold.HoldId), await _harness.UsageAsync(FlightCount, source)));
+
+        Assert.Equal(System.Net.HttpStatusCode.OK, (await host.Client.DeleteAsync(path)).StatusCode);
+        Assert.Equal(($"{released}|{released}|{released}", "3|3.000", "0.000"), (await UnitStatesAsync(hold.HoldId), await AllocationRowsAsync(hold.HoldId), await _harness.UsageAsync(FlightCount, source)));
+    }
+
+    [Fact]
+    public async Task V12_L05_get_confirm_and_cancel_answer_on_the_hold_route_an_empty_cancel_list_is_refused_and_the_old_route_is_gone()
+    {
+        var (fixture, airlineId, supplierId) = await OperatorAsync();
+        var meal = await ProductAsync(fixture, airlineId, supplierId, "V12_ROUTE",
+            id => Local(airlineId, "V12_ROUTE", id, LocalInventoryPattern.FlightCount, count: Count(MealResource, 1, InventoryCountUnit.Item)));
+        await CountSourceAsync(fixture, airlineId, MealResource, 10);
+        var orderId = NextOrderId;
+        var hold = await HoldAsync(Hold(orderId, Service(meal, orderId)));
+        var path = $"Service/v1/Ancillaries/Hold/{hold.HoldId}";
+        await using var host = await ReservationHttpHost.StartAsync(_database, _clock);
+
+        var read = await host.Client.GetAsync(path);
+        var emptyCancel = await host.Client.PostAsync($"{path}/Cancellations", new StringContent("""{"reasonCode":"CUSTOMER_REQUEST","unitIds":[]}""", System.Text.Encoding.UTF8, "application/json"));
+        var confirmed = await host.Client.PostAsync($"{path}/Confirmations", null);
+        var oldRead = await host.Client.GetAsync($"Service/v1/Ancillaries/Service-Holds/{hold.HoldId}");
+        var oldRelease = await host.Client.DeleteAsync($"Service/v1/Ancillaries/Service-Holds/{hold.HoldId}");
+
+        Assert.Equal(
+            (System.Net.HttpStatusCode.OK, System.Net.HttpStatusCode.BadRequest, System.Net.HttpStatusCode.OK, System.Net.HttpStatusCode.NotFound, System.Net.HttpStatusCode.NotFound),
+            (read.StatusCode, emptyCancel.StatusCode, confirmed.StatusCode, oldRead.StatusCode, oldRelease.StatusCode));
+        Assert.Equal($"{(int)AncillaryReservationUnitStatus.Confirmed}", await UnitStatesAsync(hold.HoldId));
+        Assert.Contains("\"status\":\"Confirmed\"", await confirmed.Content.ReadAsStringAsync(), StringComparison.Ordinal);
     }
 
     [Fact]

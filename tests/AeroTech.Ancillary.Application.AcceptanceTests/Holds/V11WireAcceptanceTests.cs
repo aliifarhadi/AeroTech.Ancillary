@@ -268,23 +268,31 @@ public class V11WireAcceptanceTests
     }
 
     [Fact]
-    public async Task V11_L01_a_replay_answers_from_the_stored_hold_after_the_provision_is_retired()
+    public async Task V11_L01_V12_D10_a_replay_and_the_get_answer_from_the_stored_hold_after_the_provision_and_the_definition_are_retired()
     {
         var lounge = await LoungeAsync();
         var orderId = NextOrderId;
         var command = Hold(orderId, "L01", M1Commands.Lounge(lounge.SingleProvisionId, orderId * 10 + 1, 71, [301]));
         AncillaryHoldReceipt first;
+        string before;
 
         await using (var scope = new AncillaryScope(_database, _clock))
+        {
             first = await scope.HoldAncillaryServices.HoldAsync(command);
+            before = JsonSerializer.Serialize(await scope.GetHoldById.ExecuteAsync(first.HoldId), HostJson.Options);
+        }
 
         await using (var scope = new AncillaryScope(_database, _clock))
+        {
             await scope.RetireProvision.RetireAsync(new TestProvisionLifecycleCommand(lounge.SingleProvisionId));
+            await scope.RetireServiceDefinition.RetireAsync(new TestServiceDefinitionLifecycleCommand(lounge.DefinitionId));
+        }
 
         await using var replayScope = new AncillaryScope(_database, _clock);
         var replay = await replayScope.HoldAncillaryServices.HoldAsync(command);
 
         Assert.Equal((first.HoldId, first.Units.Single().UnitId), (replay.HoldId, replay.Units.Single().UnitId));
+        Assert.Equal(before, JsonSerializer.Serialize(await replayScope.GetHoldById.ExecuteAsync(first.HoldId), HostJson.Options));
         await BusinessAssert.ThrowsAsync(16403, 409, () => replayScope.HoldAncillaryServices.HoldAsync(
             Hold(orderId, "L01", M1Commands.Lounge(lounge.SingleProvisionId, orderId * 10 + 1, 72, [301]))));
     }

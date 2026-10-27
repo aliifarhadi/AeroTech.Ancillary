@@ -74,7 +74,7 @@ public class V11TypedSelectionAcceptanceTests
         => M1Commands.Hold($"V11-{orderId}-{key}", orderId, _clock.Now.AddMinutes(30), selections);
 
     [Fact]
-    public async Task V11_D01_D10_D21_W17_W18_every_family_reads_back_its_chosen_and_fixed_values_from_sql()
+    public async Task V11_D01_D10_D21_W17_W18_V12_D02_every_family_reads_back_its_chosen_and_fixed_values_from_sql_with_three_decimals()
     {
         var catalog = await CatalogAsync("A03", "A06", "A10", "A11", "A12", "A15", "A20", "A23", "A24");
         var orderId = NextOrderId;
@@ -84,7 +84,7 @@ public class V11TypedSelectionAcceptanceTests
         var hold = await scope.HoldAncillaryServices.HoldAsync(Hold(
             orderId,
             "ALL",
-            Unit("A03", catalog["A03"], service + 1, new BaggageSelectionOptions("B-32", 27.5m, null, null), 1),
+            Unit("A03", catalog["A03"], service + 1, new BaggageSelectionOptions("B-32", 27.125m, null, null), 1),
             Unit("A06", catalog["A06"], service + 2, new BaggageSelectionOptions(null, null, new SelectedDimensionsInput(150m, 60m, 30m), 18.25m)),
             Unit("A10", catalog["A10"], service + 3),
             Unit("A11", catalog["A11"], service + 4),
@@ -103,7 +103,7 @@ public class V11TypedSelectionAcceptanceTests
         var overweightUnit = Assert.Single(overweight.Units);
 
         Assert.Equal(("OVERWEIGHT_32", null), (overweight.ServiceDefinitionRef, overweight.Details));
-        Assert.Equal((1, "B-32", (decimal?)27.5m), (overweightUnit.Selected.Quantity, overweightUnit.Selected.Options!.Baggage.BagRef, overweightUnit.Selected.Options.Baggage.MeasuredWeightKg));
+        Assert.Equal((1, "B-32", (decimal?)27.125m), (overweightUnit.Selected.Quantity, overweightUnit.Selected.Options!.Baggage.BagRef, overweightUnit.Selected.Options.Baggage.MeasuredWeightKg));
         Assert.Equal("BIKE", bike.Details!.EquipmentKind);
         Assert.Equal((150m, 60m, 30m, (decimal?)18.25m), (bikeSize.LengthCm, bikeSize.WidthCm, bikeSize.HeightCm, bikeOptions.WeightKg));
 
@@ -167,7 +167,7 @@ public class V11TypedSelectionAcceptanceTests
     }
 
     [Fact]
-    public async Task V11_D23_an_option_outside_the_definition_rules_is_refused_before_any_write()
+    public async Task V11_D23_V12_D02_an_option_outside_the_definition_rules_or_finer_than_three_decimals_is_refused_before_any_write()
     {
         var catalog = await CatalogAsync("A03", "A06", "A15", "A23", "A24");
         var orderId = NextOrderId;
@@ -181,6 +181,7 @@ public class V11TypedSelectionAcceptanceTests
         await Refused("DEVICES", Unit("A24", catalog["A24"], service, new ConnectivitySelectionOptions(3)));
         await Refused("WEIGHT", Unit("A03", catalog["A03"], service, new BaggageSelectionOptions("B-1", 23m, null, null), 1));
         await Refused("BAGREF", Unit("A03", catalog["A03"], service, new BaggageSelectionOptions(null, 27m, null, null), 1));
+        await Refused("SCALE", Unit("A03", catalog["A03"], service, new BaggageSelectionOptions("B-1", 27.1255m, null, null), 1));
         await Refused("FIELD", Unit("A06", catalog["A06"], service, new BaggageSelectionOptions("B-1", null, new SelectedDimensionsInput(100m, 50m, 30m), 10m)));
         await Refused("OPT-IN", Unit("A23", catalog["A23"], service, new PrioritySelectionOptions(false)));
 

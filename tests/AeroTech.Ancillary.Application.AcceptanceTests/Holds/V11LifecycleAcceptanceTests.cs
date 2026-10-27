@@ -1,4 +1,7 @@
+using System.Net;
+using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using AeroTech.Ancillary.Application.AcceptanceTests.Fakes;
 using AeroTech.Ancillary.Application.AcceptanceTests.Fixtures;
 using AeroTech.Ancillary.Application.AncillaryPricingAggregate.Commands.DefineAncillaryPricing;
@@ -75,7 +78,7 @@ public class V11LifecycleAcceptanceTests
     private static long UnitOf(AncillaryHoldReceipt hold, long orderServiceId) => hold.Units.Single(unit => unit.OrderServiceId == orderServiceId).UnitId;
 
     [Fact]
-    public async Task V11_L02_L03_a_replay_in_another_order_returns_the_same_hold_and_a_changed_option_conflicts()
+    public async Task V11_L02_L03_V12_W02_W03_a_replay_in_another_order_returns_the_same_hold_and_a_changed_option_or_quantity_conflicts_without_a_write()
     {
         var catalog = await CatalogAsync("A03", "A11", "A15");
         var orderId = NextOrderId;
@@ -97,9 +100,114 @@ public class V11LifecycleAcceptanceTests
             hold.Units.Select(unit => (unit.OrderServiceId, unit.UnitId)).Order(),
             replay.Units.Select(unit => (unit.OrderServiceId, unit.UnitId)).Order());
 
-        selections[3] = selections[3] with { Options = new BaggageSelectionOptions("B-33", 27.5m, null, null) };
+        var bagRef = selections.ToArray();
+        var ssr = selections.ToArray();
+        var quantity = selections.ToArray();
+        bagRef[3] = bagRef[3] with { Options = new BaggageSelectionOptions("B-33", 27.5m, null, null) };
+        ssr[2] = ssr[2] with { Options = new AssistedTravelHoldSelectionOptions("BLND") };
+        quantity[3] = quantity[3] with { Quantity = 2 };
 
-        await BusinessAssert.ThrowsAsync(16403, 409, () => scope.HoldAncillaryServices.HoldAsync(Hold(orderId, "SET", selections)));
+        foreach (var changed in new[] { bagRef, ssr, quantity })
+            await BusinessAssert.ThrowsAsync(16403, 409, () => scope.HoldAncillaryServices.HoldAsync(Hold(orderId, "SET", changed)));
+
+        Assert.Equal(
+            new[] { "1|4" },
+            await _harness.RowsAsync($"""
+                SELECT CONCAT(COUNT(DISTINCT reservation.Id), '|', COUNT(unit.Id)) AS Value
+                FROM Ancillary.AncillaryReservations AS reservation
+                JOIN Ancillary.AncillaryReservationUnits AS unit ON unit.AncillaryReservationId = reservation.Id
+                WHERE reservation.OrderId = {orderId}
+                """));
+    }
+
+    [Fact]
+    public async Task V12_W01_W02_W03_W04_W05_W06_the_hold_route_binds_strict_json_over_http_holds_on_sql_and_replays_only_the_same_request()
+    {
+        var catalog = await CatalogAsync("A01", "A11", "A15", "A20");
+        var orderId = NextOrderId;
+        var service = orderId * 10;
+        await using var host = await ReservationHttpHost.StartAsync(_database, _clock);
+        var body = new JsonObject
+        {
+            ["idempotencyKey"] = $"V12-HTTP-{orderId}",
+            ["orderId"] = orderId,
+            ["reference"] = $"ORD-{orderId}",
+            ["requestedExpiresAt"] = _clock.Now.AddMinutes(30),
+            ["baggages"] = Family("A01", catalog["A01"], service + 1, new JsonObject { ["quantity"] = 1 }),
+            ["meals"] = Family("A11", catalog["A11"], service + 2),
+            ["assistedTravel"] = Family("A15", catalog["A15"], service + 3, Options("assistedTravel", new JsonObject { ["assistanceSsrCode"] = "WCHR" })),
+            ["airportServices"] = Family("A20", catalog["A20"], service + 4, Options("airportService", new JsonObject { ["guestCount"] = 1 }))
+        };
+        var reordered = new JsonObject(Enumerable.Reverse(body).Select(member => KeyValuePair.Create(member.Key, member.Value?.DeepClone())));
+        var changedSsr = Changed(body, json => json["assistedTravel"]![0]!["products"]![0]!["units"]![0]!["selected"]!["options"]!["assistedTravel"]!["assistanceSsrCode"] = "BLND");
+        var refused = new[]
+        {
+            Changed(body, json => json["baggages"]![0]!["products"]![0]!["units"]![0]!["coverageScope"] = "Sector"),
+            Changed(body, json => json["meals"]![0]!["products"]![0]!["serviceDefinitionId"] = 1),
+            Changed(body, json => json["inventoryFacts"] = new JsonObject()),
+            Changed(body, json => json["meals"]![0]!["products"]![0]!["units"]![0]!["selected"] = Options("baggage", new JsonObject { ["bagRef"] = "B-1" })),
+            Changed(body, json => json["pets"] = new JsonArray())
+        };
+
+        var created = await PostAsync(host, body);
+        var replayed = await PostAsync(host, reordered);
+        var conflicted = await PostAsync(host, changedSsr);
+        var shapes = new List<HttpStatusCode>();
+
+        foreach (var wrong in refused)
+            shapes.Add((await PostAsync(host, wrong)).Status);
+
+        Assert.Equal((HttpStatusCode.Created, 4), (created.Status, created.Body["data"]!["units"]!.AsArray().Count));
+        Assert.Equal((HttpStatusCode.Created, created.Body["data"]!["holdId"]!.GetValue<string>()), (replayed.Status, replayed.Body["data"]!["holdId"]!.GetValue<string>()));
+        Assert.Equal(HttpStatusCode.Conflict, conflicted.Status);
+        Assert.Contains("16403", conflicted.Body.ToJsonString(), StringComparison.Ordinal);
+        Assert.All(shapes, status => Assert.Equal(HttpStatusCode.BadRequest, status));
+        Assert.Equal(
+            new[] { "1|4" },
+            await _harness.RowsAsync($"""
+                SELECT CONCAT(COUNT(DISTINCT reservation.Id), '|', COUNT(unit.Id)) AS Value
+                FROM Ancillary.AncillaryReservations AS reservation
+                JOIN Ancillary.AncillaryReservationUnits AS unit ON unit.AncillaryReservationId = reservation.Id
+                WHERE reservation.OrderId = {orderId}
+                """));
+    }
+
+    private static JsonArray Family(string code, Product product, long orderServiceId, JsonObject? selected = null)
+    {
+        var unit = new JsonObject
+        {
+            ["orderServiceId"] = orderServiceId,
+            ["unit"] = new JsonObject { ["travellerId"] = 71 },
+            ["coverage"] = new JsonObject { ["flightIds"] = new JsonArray(Flight) }
+        };
+
+        if (selected is not null)
+            unit["selected"] = selected;
+
+        return new JsonArray(new JsonObject
+        {
+            ["variantCode"] = code,
+            ["products"] = new JsonArray(new JsonObject { ["provisionId"] = product.ProvisionId, ["units"] = new JsonArray(unit) })
+        });
+    }
+
+    private static JsonObject Options(string family, JsonObject options) => new() { ["options"] = new JsonObject { [family] = options } };
+
+    private static JsonObject Changed(JsonObject body, Action<JsonObject> change)
+    {
+        var copy = body.DeepClone().AsObject();
+
+        change(copy);
+
+        return copy;
+    }
+
+    private static async Task<(HttpStatusCode Status, JsonNode Body)> PostAsync(ReservationHttpHost host, JsonObject body)
+    {
+        var response = await host.Client.PostAsync("Service/v1/Ancillaries/Hold", new StringContent(body.ToJsonString(), Encoding.UTF8, "application/json"));
+        var text = await response.Content.ReadAsStringAsync();
+
+        return (response.StatusCode, JsonNode.Parse(text is { Length: > 0 } ? text : "{}")!);
     }
 
     [Fact]
