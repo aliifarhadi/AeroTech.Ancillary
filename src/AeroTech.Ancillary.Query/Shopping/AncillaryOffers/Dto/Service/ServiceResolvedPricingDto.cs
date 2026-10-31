@@ -10,6 +10,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Service
         int Quantity,
         decimal UnitAmount,
         decimal TotalAmount,
+        bool IsUnitTotalComplete,
         PricingUnit PricingUnit,
         decimal BaseAmount,
         IReadOnlyList<ServicePriceLineDto> TaxLines,

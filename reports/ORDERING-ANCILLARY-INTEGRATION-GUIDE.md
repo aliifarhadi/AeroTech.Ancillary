@@ -171,6 +171,8 @@ The answer is:
 ```text
 {
   orderId, orderCommercialVersion,          (null for an offer selection)
+sourceKind, sourceReference,              (Offer + the exact offerId, or Order + the orderId as text)
+expiresAtUtc, selectedLineCount,          (selectedLineCount = every stored line)
   baggages[], meals[], pets[], assistedTravel[], airportServices[],
   priorityServices[], connectivity[], upgrades[], extraSeats[], travelInsurance[]
 }
@@ -184,7 +186,7 @@ Each item has these fields:
 | `sourceBinding` | `{ offerHash, salesHash }`: the source and sales bindings of the signed id. Keep them for audit; for an order source you cannot recompute `offerHash` |
 | `definition` | `definitionVersionId`, `serviceDefinitionRef`, `variantCode`, `serviceTypeCode`, `serviceSubCode`, `rfic`, `rfisc`, `ssrCode` |
 | `provision` | `provisionId`, `coverageScope` (`Sector`, `Portion`, `Journey`, `Order`), `purchaseStage`, `bookingMethod`, `bookingRequired`, `confirmationRequirement`, `fulfillmentProviderKey`, `documentRouting` (`NoAncillaryDocument`, `Emd`, `TicketOrExchange`), `documentType` (`None`, `EmdAssociated`, `EmdStandalone`), `documentRequired`, `requiresCheckAtReserve` |
-| `pricing` | `pricingId`, `pricingRateId`, `pricingVersion`, `currencyId`, `quantity`, `unitAmount`, `totalAmount`, `pricingUnit`, `baseAmount`, `taxLines[]`, `feeLines[]` (`code`, `amount`, `currencyId`, `countryId`, `stationAirportId`, `taxTreatment`, `feeApplicationUnit`) |
+| `pricing` | `pricingId`, `pricingRateId`, `pricingVersion`, `currencyId`, `quantity`, `unitAmount`, `totalAmount`, `isUnitTotalComplete`, `pricingUnit`, `baseAmount`, `taxLines[]`, `feeLines[]` (`code`, `amount`, `currencyId`, `countryId`, `stationAirportId`, `taxTreatment`, `feeApplicationUnit`) |
 | `details` | family details (weights, meal code, lounge airport and so on) |
 | `selected` | `quantity` and the chosen `options` |
 
@@ -192,10 +194,12 @@ Check before you store anything:
 
 1. `orderId` equals your order.
 2. `orderCommercialVersion` equals the order's current commercial version. If it doesn't, ask the customer to price again.
+3. `sourceKind` and `sourceReference` name the same source you are selling from, `expiresAtUtc` is in the future, and the items you received equal `selectedLineCount`.
+4. `pricing.isUnitTotalComplete` is true. A zero amount alone does not mean free.
 
 **Seats.** `POST Service/v1/Ancillaries/SeatMaps/Resolve` with body `{ "selectionId": "<seat selectionId>" }`.
 
-The answer carries `orderId`, `orderCommercialVersion` (both null for an offer sale) and `seats[]`. Make the same two checks as above. Each seat carries `id`, `travellerRef`, `flightId`, `seatNumber`, `pointOfSaleId`, `expiresAtUtc`, plus:
+The answer carries `orderId`, `orderCommercialVersion` (both null for an offer sale), `sourceKind`, `sourceReference`, `expiresAtUtc`, `selectedLineCount` and `seats[]`. `sourceKind` is a plain name here, although the enums inside each seat are `{value,name,title}` objects. Make the same checks as above. Each seat carries `id`, `travellerRef`, `flightId`, `seatNumber`, `pointOfSaleId`, `expiresAtUtc`, plus:
 - `serviceDefinition`: the full definition with its seat specification;
 - `provision`;
 - `pricing`: with its one final `rate`: `currencyId`, `baseAmount`, `unitTotal` and `components`.

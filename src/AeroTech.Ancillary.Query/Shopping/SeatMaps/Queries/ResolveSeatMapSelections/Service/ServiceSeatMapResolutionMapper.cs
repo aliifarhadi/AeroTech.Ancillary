@@ -15,6 +15,10 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.ResolveSeatMapSelec
             => new(
                 resolution.OrderId,
                 resolution.OrderCommercialVersion,
+                resolution.SourceKind,
+                resolution.SourceReference,
+                resolution.ExpiresAtUtc,
+                resolution.SelectedLineCount,
                 resolution.Seats.Select(seat => Seat(seat, resolution.ExpiresAtUtc)).ToList());
 
         private static ServiceResolvedSeatDto Seat(ResolvedSeatSnapshot seat, DateTimeOffset expiresAtUtc)

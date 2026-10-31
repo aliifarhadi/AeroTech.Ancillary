@@ -1,4 +1,5 @@
 using AeroTech.Ancillary.Domain._Shared.Resources;
+using AeroTech.Ancillary.Query.Shopping.Common;
 using AeroTech.Ancillary.Query.Shopping.SeatMaps.Snapshots;
 using AeroTech.Ancillary.Shopping.Reading;
 using AeroTech.Ancillary.Shopping.Resolution;
@@ -43,7 +44,10 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.ResolveSeatMapSelec
             return new SeatMapResolutionSnapshot(
                 snapshot.OrderId,
                 snapshot.OrderCommercialVersion,
+                snapshot.SourceKind,
+                SelectionSource.ReferenceOf(snapshot),
                 snapshot.ExpiresAtUtc,
+                lines.Count,
                 lines
                     .Select(line => SeatMapSelectionId.Decode(line.OfferItemId) is { } selection
                                     && rates.TryGetValue(line.PricingRateId, out var owner)

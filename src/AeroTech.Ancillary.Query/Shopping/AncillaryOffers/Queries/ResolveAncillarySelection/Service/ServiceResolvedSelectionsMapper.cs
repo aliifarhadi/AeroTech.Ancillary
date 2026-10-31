@@ -2,6 +2,7 @@ using AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Entities;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Dto.Service;
 using AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.GetAncillaryOffers;
+using AeroTech.Ancillary.Query.Shopping.Common;
 using AeroTech.Ancillary.Shopping.Resolution;
 using AeroTech.Messages.Ancillary.Enums;
 
@@ -16,6 +17,10 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveAncil
             return new ServiceResolvedSelectionsDto(
                 resolved.Selection.OrderId,
                 resolved.Selection.OrderCommercialVersion,
+                resolved.Selection.SourceKind,
+                SelectionSource.ReferenceOf(resolved.Selection),
+                resolved.Selection.ExpiresAtUtc,
+                resolved.Selection.Lines.Count,
                 Family(selections, AncillaryProfile.Baggage, selection => AncillaryOffersMapper.Baggage(selection.Definition)),
                 Family(selections, AncillaryProfile.Meal, selection => AncillaryOffersMapper.Meal(selection.Definition)),
                 Family(selections, AncillaryProfile.Pet, selection => AncillaryOffersMapper.Pet(selection.Definition)),
@@ -101,6 +106,7 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.ResolveAncil
                 selection.Quantity,
                 selection.UnitAmount,
                 selection.TotalAmount,
+                selection.Rate.IsUnitTotalComplete,
                 selection.PricingUnit,
                 selection.Rate.BaseAmount,
                 Lines(selection.Rate, AncillaryPriceLineCategory.Tax),
