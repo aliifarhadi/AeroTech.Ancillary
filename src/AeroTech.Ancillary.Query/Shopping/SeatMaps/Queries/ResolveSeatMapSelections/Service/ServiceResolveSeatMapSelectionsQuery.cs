@@ -5,6 +5,6 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.ResolveSeatMapSelec
 {
     public sealed class ServiceResolveSeatMapSelectionsQuery : IRequest<ServiceSeatMapResolutionDto>
     {
-        public IReadOnlyList<string>? Ids { get; set; }
+        public string? SelectionId { get; set; }
     }
 }

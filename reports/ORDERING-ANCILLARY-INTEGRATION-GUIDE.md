@@ -28,7 +28,7 @@ Ancillary owns the product catalog, eligibility, prices, seat maps and the inven
 | JSON | camelCase; `long` ids are written as strings (both strings and numbers are accepted on input); enum members travel as their names |
 | Success body | `{ "data": … }` |
 | Error body | `{ "errors": [ { "code": 16820, "title": "…" } ] }` with the HTTP status of the error |
-| Unknown request members | refused (400) by the AncillaryOffers, Price, Resolve, Hold and Cancellations requests; the SeatMaps, seat Resolve and seat Hold requests ignore them |
+| Unknown request members | refused (400) by the AncillaryOffers, Price, seat Price, Resolve, Hold and Cancellations requests; the SeatMaps, seat Resolve and seat Hold requests ignore them |
 
 ---
 
@@ -74,6 +74,7 @@ Customer surface (Backoffice / OtaPanel / Api)          Ordering service        
 1  POST {S}/v1/AncillaryOffers/Orders {orderId}  ------------------------------------------->  reads your AncillaryContext, lists offers
    POST {S}/v1/SeatMaps/Orders {orderId}         ------------------------------------------->  seat maps with seat ids
 2  POST {S}/v1/AncillaryOffers/Orders/Price      ------------------------------------------->  stores a priced selection, returns selectionId
+   POST {S}/v1/SeatMaps/Orders/Price {orderId, ids} ---------------------------------------->  stores priced seats, returns a seat selectionId
 3  "add these services to my order" ----------->  your own endpoint (your design)
                                                   4  POST Service/v1/AncillaryOffers/Resolve ->  definition, provision, price of every line
                                                      POST Service/v1/Ancillaries/SeatMaps/Resolve (seats)
@@ -148,9 +149,13 @@ The answer is `{ "selectionId": "s_…", "expiresAtUtc": "…" }`. The selection
 - 410 / 16817 after expiry;
 - 409 / 16820 if the order changed since pricing (another commercial version or other order facts).
 
+**Seats.** `POST {S}/v1/SeatMaps/Orders/Price` with body `{ "orderId": "…", "ids": ["<travelerPricing id>", …] }`. Offer-based sales use `POST {S}/v1/SeatMaps/Price` with `{ "offerId": "…", "ids": […] }`. No surface sends a point of sale here.
+
+Ancillary rebuilds the seat map and accepts only seats that are still available with the same id. The answer is the same as Price: `selectionId` and `expiresAtUtc`. A seat that was taken or changed price answers 409 / 16820 and nothing is stored. At most 50 ids, a seat of a flight once, and one seat per traveller per flight.
+
 ### 4.3 Hand over to Ordering
 
-The customer surface sends Ordering the `selectionId` (and seat-map selection ids for seats). This endpoint is yours to design.
+The customer surface sends Ordering the `selectionId` of the ancillaries and the `selectionId` of the seats. This endpoint is yours to design.
 
 ### 4.4 Resolve the selection (Ordering → Ancillary)
 
@@ -188,14 +193,14 @@ Check before you store anything:
 1. `orderId` equals your order.
 2. `orderCommercialVersion` equals the order's current commercial version. If it doesn't, ask the customer to price again.
 
-**Seats.** `POST Service/v1/Ancillaries/SeatMaps/Resolve` with body `{ "ids": ["<seat-map selection id>", …] }`.
+**Seats.** `POST Service/v1/Ancillaries/SeatMaps/Resolve` with body `{ "selectionId": "<seat selectionId>" }`.
 
-The answer is `seats[]`. Each seat carries `id`, `travellerRef`, `flightId`, `seatNumber`, plus:
+The answer carries `orderId`, `orderCommercialVersion` (both null for an offer sale) and `seats[]`. Make the same two checks as above. Each seat carries `id`, `travellerRef`, `flightId`, `seatNumber`, `pointOfSaleId`, `expiresAtUtc`, plus:
 - `serviceDefinition`: the full definition with its seat specification;
 - `provision`;
-- `pricing`: with all its `rates`, each with `currencyId`, `baseAmount`, `unitTotal` and `components`.
+- `pricing`: with its one final `rate`: `currencyId`, `baseAmount`, `unitTotal` and `components`.
 
-Seat Resolve is a pure catalog lookup. Seat eligibility and occupancy are checked again at the seat Hold.
+Seat Resolve reads the stored selection: it does not re-check the seat. Seat eligibility and occupancy are checked again at the seat Hold. Send each seat's `id` as `seatMapSelectionId` and its `pointOfSaleId` in the Hold.
 
 ### 4.5 Create the ancillary order services (Ordering)
 
@@ -335,7 +340,7 @@ It is idempotent: calling it again on a Confirmed hold returns the same receipt.
 | choice | `quantity` and the chosen options per family | Resolve `selected` | Hold `selected` |
 | source | `selectionId`, `orderCommercialVersion` at pricing, `offerHash`, `salesHash` | Price answer, Resolve | audit; version check |
 | reservation | `holdId`, `unitId`, unit status, `expiresAt`, `idempotencyKey`, `reference` | Hold receipt | confirm, release, cancel |
-| seat only | `seatNumber`, `seatMapSelectionId`, `flightId` | Seat Resolve | seat hold, boarding pass |
+| seat only | `seatNumber`, `seatMapSelectionId`, `flightId`, `pointOfSaleId` | Seat Resolve | seat hold, boarding pass |
 | state | your commercial state (`Active`, `Replaced`, `Cancelled`, `Transferred`) and document numbers (EMD) | yours | your AncillaryContext `ancillaryServices[].commercialState` |
 
 ### 5.2 Facts the seat hold needs from your order
@@ -431,7 +436,7 @@ The other products can be shopped, priced and resolved, but not held:
 ## 9. Recommended order of work for Ordering
 
 1. Add the ancillary order service type and the fields of §5.1.
-2. Add an endpoint that receives a `selectionId` (and seat-map selection ids), calls Resolve, checks `orderId` and `orderCommercialVersion`, and creates the order services.
+2. Add an endpoint that receives the `selectionId` of the ancillaries and of the seats, calls each Resolve, checks `orderId` and `orderCommercialVersion`, and creates the order services.
 3. Call Hold, keep `holdId` and the `unitId`s; release the hold when the customer abandons.
 4. Take payment, issue EMDs where `documentRequired` is true (RFIC/RFISC from the definition), then call Confirmations.
 5. Return the new services in your AncillaryContext `ancillaryServices[]`, but only after Ancillary can read them (see §10, item 1).
@@ -445,4 +450,4 @@ The other products can be shopped, priced and resolved, but not held:
 2. **Prices at hold time.** The Hold does not re-price. Keep the Resolve price, and re-resolve if your process waits long enough for the selection to expire.
 3. **Order changes between Price and Hold.** Resolve does not re-read the order. Compare `orderCommercialVersion` yourself (§4.4).
 4. **Products that cannot be held (§7).** Decide whether Ordering offers them as "on request" outside the hold, or hides them, until Ancillary connects external suppliers and supplier confirmation.
-5. **Point of sale for the seat hold.** Your AncillaryContext carries no point of sale, but the seat hold needs `pointOfSaleId`. Ordering must know the sale's point of sale.
+5. **Point of sale for the seat hold.** Closed: seat Resolve answers `pointOfSaleId` per seat. Keep it and send it in the seat hold. Seat `ValidateForAcceptance` (AC-03 in your pack v2.0) is not built: seat Price plus seat Resolve replace it.

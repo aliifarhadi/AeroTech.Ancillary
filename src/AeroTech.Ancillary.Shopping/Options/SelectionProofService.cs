@@ -52,16 +52,28 @@ namespace AeroTech.Ancillary.Shopping.Options
                 _ => throw ExceptionFactory.SelectionSignatureIsInvalid()
             };
 
+        public async Task<SelectionProofBasket> OpenBasketAsync(
+            IReadOnlyList<SignedSelection> selections,
+            IReadOnlyList<AncillaryShoppingContext> contexts,
+            CancellationToken cancellationToken = default)
+        {
+            var pricings = await _pricings.FindActiveByRateIdsAsync(selections.Select(selection => selection.PricingRateId).Distinct().ToList(), cancellationToken);
+            var provisions = await _provisions.FindActiveProvisionsAsync(pricings.Select(pricing => pricing.AncillaryProvisionId).Distinct().ToList(), cancellationToken);
+            var definitions = await _definitions.FindActiveDefinitionsAsync(provisions.Select(provision => provision.ServiceDefinitionId).Distinct().ToList(), cancellationToken);
+
+            return new SelectionProofBasket(contexts, pricings, provisions, definitions);
+        }
+
         public async Task<SelectionProof> ProveDirectAsync(
             SignedSelection selection,
             int? quantity,
-            IReadOnlyList<AncillaryShoppingContext> contexts,
+            SelectionProofBasket basket,
             CancellationToken cancellationToken = default)
         {
             if (selection is not { MinQuantity: { } minimum, MaxQuantity: { } maximum })
                 throw ExceptionFactory.SelectionSignatureIsInvalid();
 
-            var target = await TargetAsync(selection, null, contexts, cancellationToken);
+            var target = TargetOf(selection, null, basket);
             var requested = quantity ?? minimum;
 
             if (requested < minimum || requested > maximum)
@@ -71,6 +83,7 @@ namespace AeroTech.Ancillary.Shopping.Options
                 target,
                 selection,
                 new AncillarySelection { Quantity = target.Definition.SelectionContract!.Kind == SelectionKind.QuantityChoice ? requested : null },
+                basket,
                 cancellationToken);
 
             return Proof(selection, requested, target.Definition);
@@ -80,23 +93,23 @@ namespace AeroTech.Ancillary.Shopping.Options
             SignedSelection reference,
             AncillaryProfile family,
             AncillarySelection selection,
-            IReadOnlyList<AncillaryShoppingContext> contexts,
+            SelectionProofBasket basket,
             CancellationToken cancellationToken = default)
         {
-            var target = await TargetAsync(reference, family, contexts, cancellationToken);
+            var target = TargetOf(reference, family, basket);
 
             if (target.Definition.VariantCode == AncillaryVariant.PriorityBoardingCheckin && selection.OptIn != true)
                 throw ExceptionFactory.SelectionOptionsAreInvalid("optIn must be true");
 
-            await EvaluateAsync(target, reference, selection, cancellationToken);
+            await EvaluateAsync(target, reference, selection, basket, cancellationToken);
 
             return Proof(reference, SingleUnit, target.Definition);
         }
 
-        private async Task EvaluateAsync(Target target, SignedSelection signed, AncillarySelection selection, CancellationToken cancellationToken)
+        private async Task EvaluateAsync(Target target, SignedSelection signed, AncillarySelection selection, SelectionProofBasket basket, CancellationToken cancellationToken)
         {
-            var evaluation = await _engine.EvaluateSelectionAsync(
-                target.Context,
+            var evaluator = await EvaluatorAsync(target.Context, signed.SalesBinding, basket, cancellationToken);
+            var evaluation = await evaluator.EvaluateAsync(
                 new CandidateIdentity(target.Definition.Id, target.Provision.Id, signed.CoverageScope, signed.TravellerRef, signed.CoverageRef, target.Pricing.Id),
                 TypedSelectionForm.WithFixedChoices(selection, target.Definition, target.Provision),
                 cancellationToken);
@@ -108,6 +121,21 @@ namespace AeroTech.Ancillary.Shopping.Options
 
             if (evaluation.Candidate.Price.PricingRateId != signed.PricingRateId || !SellableCandidate.Is(evaluation.Candidate, target.Context.CurrencyId))
                 throw ExceptionFactory.SelectionIsNotSellable("the price or the sale conditions changed; ask for the ancillary offers again");
+        }
+
+        private async Task<ISelectionEvaluator> EvaluatorAsync(
+            AncillaryShoppingContext context,
+            string salesBinding,
+            SelectionProofBasket basket,
+            CancellationToken cancellationToken)
+        {
+            if (basket.Evaluators.TryGetValue(salesBinding, out var evaluator))
+                return evaluator;
+
+            evaluator = await _engine.OpenSelectionEvaluatorAsync(context, basket.Definitions, cancellationToken);
+            basket.Evaluators.Add(salesBinding, evaluator);
+
+            return evaluator;
         }
 
         private SelectionProof Proof(SignedSelection selection, int quantity, AncillaryServiceDefinition definition)
@@ -130,23 +158,19 @@ namespace AeroTech.Ancillary.Shopping.Options
                 definition);
         }
 
-        private async Task<Target> TargetAsync(
-            SignedSelection selection,
-            AncillaryProfile? family,
-            IReadOnlyList<AncillaryShoppingContext> contexts,
-            CancellationToken cancellationToken)
+        private static Target TargetOf(SignedSelection selection, AncillaryProfile? family, SelectionProofBasket basket)
         {
-            var context = contexts.FirstOrDefault(candidate => SelectionBindings.Sales(candidate) == selection.SalesBinding)
+            var context = basket.Contexts.FirstOrDefault(candidate => SelectionBindings.Sales(candidate) == selection.SalesBinding)
                           ?? throw ExceptionFactory.SelectionBindingMismatch();
 
             if (SelectionBindings.Source(context.SourceIdentity) is not { } binding || binding != selection.SourceBinding)
                 throw ExceptionFactory.SelectionIsNotSellable("the offer or order does not match the selection; ask for the ancillary offers again");
 
-            var pricing = (await _pricings.FindActiveByRateIdsAsync([selection.PricingRateId], cancellationToken)).SingleOrDefault()
+            var pricing = basket.PricingOf(selection.PricingRateId)
                           ?? throw ExceptionFactory.SelectionIsNotSellable("the price is no longer active");
-            var provision = (await _provisions.FindActiveProvisionsAsync([pricing.AncillaryProvisionId], cancellationToken)).SingleOrDefault()
+            var provision = basket.ProvisionOf(pricing.AncillaryProvisionId)
                             ?? throw ExceptionFactory.SelectionIsNotSellable("the product rule is no longer active");
-            var definition = (await _definitions.FindActiveDefinitionsAsync([provision.ServiceDefinitionId], cancellationToken)).SingleOrDefault()
+            var definition = basket.DefinitionOf(provision.ServiceDefinitionId)
                              ?? throw ExceptionFactory.SelectionIsNotSellable("the product is no longer active");
 
             if (family is not null && definition.Profile != family)

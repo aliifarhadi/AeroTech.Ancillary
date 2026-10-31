@@ -5,6 +5,8 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Dto.Service
         string TravellerRef,
         long FlightId,
         string SeatNumber,
+        long PointOfSaleId,
+        DateTimeOffset ExpiresAtUtc,
         ServiceSeatDefinitionDto ServiceDefinition,
         ServiceSeatProvisionDto Provision,
         ServiceSeatPricingDto Pricing);

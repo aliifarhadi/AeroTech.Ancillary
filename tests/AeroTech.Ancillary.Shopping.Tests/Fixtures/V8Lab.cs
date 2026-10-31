@@ -102,7 +102,7 @@ public sealed class V8Lab
 
     public GetPricedAncillaryOffersService Selected(LabShoppingSource source) => new(Resolver, new GetAncillaryOffersService(source, Listing));
 
-    public PriceAncillaryOffersService Submissions(LabShoppingSource source, SnapshotStore store) => new(Verifier(source), store, store, Clock);
+    public PriceAncillaryOffersService Submissions(LabShoppingSource source, SnapshotStore store) => new(Verifier(source), new LabSeatPrices(), store, store, Clock);
 
     public Task<SelectionSnapshotResult> SubmitAsync(IReadOnlyList<AncillarySelectionLine> lines, params AncillaryShoppingContext[] contexts)
         => Submissions(new LabShoppingSource(contexts), new SnapshotStore(Shop.Catalog)).SubmitAsync(new ApiPriceAncillaryOffersCommand(Offer, lines));

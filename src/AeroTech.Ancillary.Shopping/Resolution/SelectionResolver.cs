@@ -36,6 +36,9 @@ namespace AeroTech.Ancillary.Shopping.Resolution
             _clock = clock;
         }
 
+        public Task<SelectionSnapshot> OpenAsync(string selectionId, CancellationToken cancellationToken = default)
+            => FindOpenAsync(selectionId, null, cancellationToken);
+
         public Task<SelectionSnapshot> OpenAsync(string selectionId, ShoppingSourceKind source, CancellationToken cancellationToken = default)
             => FindOpenAsync(selectionId, source, cancellationToken);
 

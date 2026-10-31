@@ -1,4 +1,5 @@
 using AeroTech.Ancillary.Domain.AncillaryPricingAggregate;
+using AeroTech.Ancillary.Domain.AncillaryPricingAggregate.Entities;
 using AeroTech.Ancillary.Domain.AncillaryProvisionAggregate;
 using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 
@@ -9,5 +10,6 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Snapshots
         SeatMapSelection Selection,
         AncillaryServiceDefinition Definition,
         AncillaryProvision Provision,
-        AncillaryPricing Pricing);
+        AncillaryPricing Pricing,
+        AncillaryPricingRate Rate);
 }

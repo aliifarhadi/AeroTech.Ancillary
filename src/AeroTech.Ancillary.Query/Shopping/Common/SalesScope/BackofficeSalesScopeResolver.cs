@@ -22,25 +22,34 @@ namespace AeroTech.Ancillary.Query.Shopping.Common.SalesScope
 
         public async Task<AncillarySalesScope> ResolveAsync(BackofficeAncillaryOfferOptions? options, CancellationToken cancellationToken = default)
         {
-            if (_caller is not { ContextType: CallerContextType.Airline, AirlineUserId: > 0, AirlineOfficeId: > 0 })
-                throw ExceptionFactory.ShoppingCallerNotAuthorized();
-
-            var homeAirlineId = await _operatorAirline.FindHomeAirlineIdAsync(cancellationToken);
-
-            if (homeAirlineId is not (> 0 and <= int.MaxValue))
-                throw ExceptionFactory.ShoppingCallerNotAuthorized();
+            var homeAirlineId = await HomeAirlineIdAsync(cancellationToken);
 
             return new AncillarySalesScope(
-                (int)homeAirlineId.Value,
+                homeAirlineId,
                 Channel.BackOffice,
                 options?.PointOfSaleId is { } named
                     ? [named]
                     : await AuthorizedPointsOfSale.ResolveAsync(
                         _pointsOfSale,
-                        new PointOfSaleEligibilityQuery(Channel.BackOffice, options?.CountryId, [_caller.AirlineOfficeId.Value], null),
+                        new PointOfSaleEligibilityQuery(Channel.BackOffice, options?.CountryId, [_caller.AirlineOfficeId!.Value], null),
                         cancellationToken),
-                AirlineOfficeId: _caller.AirlineOfficeId.Value,
+                AirlineOfficeId: _caller.AirlineOfficeId!.Value,
                 CountryId: options?.CountryId);
+        }
+
+        public async Task<AncillarySalesScope> ResolveForPointsOfSaleAsync(IReadOnlyList<long> pointOfSaleIds, CancellationToken cancellationToken = default)
+            => new(await HomeAirlineIdAsync(cancellationToken), Channel.BackOffice, pointOfSaleIds, AirlineOfficeId: _caller.AirlineOfficeId!.Value);
+
+        private async Task<int> HomeAirlineIdAsync(CancellationToken cancellationToken)
+        {
+            if (_caller is not { ContextType: CallerContextType.Airline, AirlineUserId: > 0, AirlineOfficeId: > 0 })
+                throw ExceptionFactory.ShoppingCallerNotAuthorized();
+
+            var homeAirlineId = await _operatorAirline.FindHomeAirlineIdAsync(cancellationToken);
+
+            return homeAirlineId is > 0 and <= int.MaxValue
+                ? (int)homeAirlineId.Value
+                : throw ExceptionFactory.ShoppingCallerNotAuthorized();
         }
     }
 }

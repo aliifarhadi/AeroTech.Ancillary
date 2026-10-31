@@ -135,16 +135,24 @@ namespace AeroTech.Ancillary.Shopping.Engine
                 catalog.Provisions);
         }
 
-        public async Task<CanonicalAncillarySelectionEvaluation> EvaluateSelectionAsync(
+        public async Task<ISelectionEvaluator> OpenSelectionEvaluatorAsync(
             AncillaryShoppingContext context,
-            CandidateIdentity candidate,
-            AncillarySelection selection,
+            IReadOnlyList<AncillaryServiceDefinition> definitions,
             CancellationToken cancellationToken = default)
         {
             ShoppingContextValidator.Validate(context, ShoppingFilter.None);
 
-            var catalog = await LoadAsync(context, definition => definition.Id == candidate.DefinitionVersionId, cancellationToken);
-            var definition = catalog.Definitions.SingleOrDefault() ?? throw ExceptionFactory.ShoppingCandidateNotFound();
+            return new CatalogSelectionEvaluator(this, context, await LoadAsync(context, definitions, _ => true, cancellationToken));
+        }
+
+        private async Task<CanonicalAncillarySelectionEvaluation> EvaluateSelectionAsync(
+            AncillaryShoppingContext context,
+            ShoppingCatalog catalog,
+            CandidateIdentity candidate,
+            AncillarySelection selection,
+            CancellationToken cancellationToken)
+        {
+            var definition = catalog.Definitions.FirstOrDefault(row => row.Id == candidate.DefinitionVersionId) ?? throw ExceptionFactory.ShoppingCandidateNotFound();
             var traveller = candidate.CoverageScope == ServiceCoverageScope.Order
                 ? candidate.TravellerRef.Length == 0 && CoveragePlanner.AllowsOrderScope(definition) ? null : throw ExceptionFactory.ShoppingCandidateNotFound()
                 : context.Travellers.FirstOrDefault(row => row.TravellerRef == candidate.TravellerRef) ?? throw ExceptionFactory.ShoppingCandidateNotFound();
@@ -266,8 +274,15 @@ namespace AeroTech.Ancillary.Shopping.Engine
                        or InventoryCapacityReadState.UnsupportedPattern);
 
         private async Task<ShoppingCatalog> LoadAsync(AncillaryShoppingContext context, Func<AncillaryServiceDefinition, bool> selected, CancellationToken cancellationToken)
+            => await LoadAsync(context, await _definitions.ListActiveAsync(context.OwnerAirlineId, cancellationToken), selected, cancellationToken);
+
+        private async Task<ShoppingCatalog> LoadAsync(
+            AncillaryShoppingContext context,
+            IReadOnlyList<AncillaryServiceDefinition> active,
+            Func<AncillaryServiceDefinition, bool> selected,
+            CancellationToken cancellationToken)
         {
-            var definitions = (await _definitions.ListActiveAsync(context.OwnerAirlineId, cancellationToken))
+            var definitions = active
                 .Where(definition => definition.OwnerAirlineId == context.OwnerAirlineId && definition.Status == ServiceDefinitionStatus.Active && selected(definition))
                 .OrderBy(definition => definition.ServiceDefinitionRef, StringComparer.Ordinal)
                 .ThenBy(definition => definition.Id)
@@ -410,5 +425,25 @@ namespace AeroTech.Ancillary.Shopping.Engine
         }
 
         private sealed record Decision(CanonicalAncillaryOfferCandidate Candidate, RuleOutcome Outcome);
+
+        private sealed class CatalogSelectionEvaluator : ISelectionEvaluator
+        {
+            private readonly AncillaryShoppingEngine _engine;
+            private readonly AncillaryShoppingContext _context;
+            private readonly ShoppingCatalog _catalog;
+
+            public CatalogSelectionEvaluator(AncillaryShoppingEngine engine, AncillaryShoppingContext context, ShoppingCatalog catalog)
+            {
+                _engine = engine;
+                _context = context;
+                _catalog = catalog;
+            }
+
+            public Task<CanonicalAncillarySelectionEvaluation> EvaluateAsync(
+                CandidateIdentity candidate,
+                AncillarySelection selection,
+                CancellationToken cancellationToken = default)
+                => _engine.EvaluateSelectionAsync(_context, _catalog, candidate, selection, cancellationToken);
+        }
     }
 }

@@ -12,17 +12,22 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.ResolveSeatMapSelec
     public static class ServiceSeatMapResolutionMapper
     {
         public static ServiceSeatMapResolutionDto Map(SeatMapResolutionSnapshot resolution)
-            => new(resolution.Seats.Select(Seat).ToList());
+            => new(
+                resolution.OrderId,
+                resolution.OrderCommercialVersion,
+                resolution.Seats.Select(seat => Seat(seat, resolution.ExpiresAtUtc)).ToList());
 
-        private static ServiceResolvedSeatDto Seat(ResolvedSeatSnapshot seat)
+        private static ServiceResolvedSeatDto Seat(ResolvedSeatSnapshot seat, DateTimeOffset expiresAtUtc)
             => new(
                 seat.Id,
                 seat.Selection.TravellerRef,
                 seat.Selection.FlightId,
                 seat.Selection.SeatNumber,
+                seat.Selection.PointOfSaleId,
+                expiresAtUtc,
                 Definition(seat.Definition),
                 Provision(seat.Provision),
-                Pricing(seat.Pricing));
+                Pricing(seat.Pricing, seat.Rate));
 
         private static ServiceSeatDefinitionDto Definition(AncillaryServiceDefinition definition)
             => new(
@@ -82,8 +87,8 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.ResolveSeatMapSelec
                 new ServiceSeatAvailabilityDto(provision.Availability.MustCheckAvailability),
                 new ServiceSeatFulfillmentDto(provision.Fulfillment.FulfillmentProviderKey));
 
-        private static ServiceSeatPricingDto Pricing(AncillaryPricing pricing)
-            => new(pricing.Id, pricing.Version, EnumValueDto.OfNullable(pricing.PricingUnit), pricing.Rates.OrderBy(rate => rate.Id).Select(Rate).ToList());
+        private static ServiceSeatPricingDto Pricing(AncillaryPricing pricing, AncillaryPricingRate rate)
+            => new(pricing.Id, pricing.Version, EnumValueDto.OfNullable(pricing.PricingUnit), Rate(rate));
 
         private static ServiceSeatRateDto Rate(AncillaryPricingRate rate)
             => new(

@@ -91,7 +91,7 @@ public class V10SeatAndLifecycleAcceptanceTests
     }
 
     private static string SeatId(string travellerRef, string seatNumber, long pricingId = PricingId)
-        => SeatMapSelectionId.Encode(travellerRef, Flight, pricingId, seatNumber);
+        => SeatMapSelectionId.Encode(travellerRef, Flight, pricingId, seatNumber, 1);
 
     private static SeatHoldSelectionInput Seat(long orderServiceId, long travellerId, string seatMapSelectionId)
         => new(

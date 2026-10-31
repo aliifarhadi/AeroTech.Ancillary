@@ -8,5 +8,7 @@ public sealed class LabSalesScopes : IBackofficeSalesScopeResolver, IOtaPanelSal
 
     public Task<AncillarySalesScope> ResolveAsync(BackofficeAncillaryOfferOptions? options, CancellationToken cancellationToken = default) => Task.FromResult(Scope);
 
+    public Task<AncillarySalesScope> ResolveForPointsOfSaleAsync(IReadOnlyList<long> pointOfSaleIds, CancellationToken cancellationToken = default) => Task.FromResult(Scope);
+
     public Task<AncillarySalesScope> ResolveAsync(CancellationToken cancellationToken = default) => Task.FromResult(Scope);
 }

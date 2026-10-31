@@ -1,6 +1,6 @@
+using AeroTech.Ancillary.Domain.AncillaryServiceDefinitionAggregate;
 using AeroTech.Ancillary.Shopping.Context;
 using AeroTech.Ancillary.Shopping.Results;
-using AeroTech.Ancillary.Shopping.Selection;
 
 namespace AeroTech.Ancillary.Shopping.Engine
 {
@@ -11,10 +11,9 @@ namespace AeroTech.Ancillary.Shopping.Engine
             ShoppingFilter? filter = null,
             CancellationToken cancellationToken = default);
 
-        Task<CanonicalAncillarySelectionEvaluation> EvaluateSelectionAsync(
+        Task<ISelectionEvaluator> OpenSelectionEvaluatorAsync(
             AncillaryShoppingContext context,
-            CandidateIdentity candidate,
-            AncillarySelection selection,
+            IReadOnlyList<AncillaryServiceDefinition> definitions,
             CancellationToken cancellationToken = default);
     }
 }

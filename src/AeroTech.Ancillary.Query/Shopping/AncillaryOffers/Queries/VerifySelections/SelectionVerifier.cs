@@ -4,7 +4,6 @@ using AeroTech.Ancillary.Query.Shopping.Common;
 using AeroTech.Ancillary.Query.Shopping.Common.FlightOffers;
 using AeroTech.Ancillary.Query.Shopping.Common.Orders;
 using AeroTech.Ancillary.Query.Shopping.Common.SalesScope;
-using AeroTech.Ancillary.Shopping.Context;
 using AeroTech.Ancillary.Shopping.Options;
 using AeroTech.Ancillary.Shopping.Selections;
 using AeroTech.Messages.Shared.Enums;
@@ -76,11 +75,11 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.VerifySelect
             FlightOfferShopping shopping,
             CancellationToken cancellationToken)
         {
-            var contexts = shopping.PointsOfSale.Select(pointOfSale => pointOfSale.Context).ToList();
+            var basket = await _proofs.OpenBasketAsync(signed, shopping.PointsOfSale.Select(pointOfSale => pointOfSale.Context).ToList(), cancellationToken);
             var proofs = new List<SelectionProof>(selections.Count);
 
             for (var index = 0; index < selections.Count; index++)
-                proofs.Add(await SelectionBatch.ItemAsync(SelectionsMember, index, () => ProveAsync(selections[index], signed[index], proofs, contexts, cancellationToken)));
+                proofs.Add(await SelectionBatch.ItemAsync(SelectionsMember, index, () => ProveAsync(selections[index], signed[index], proofs, basket, cancellationToken)));
 
             return proofs.Select(Verified).ToList();
         }
@@ -89,13 +88,13 @@ namespace AeroTech.Ancillary.Query.Shopping.AncillaryOffers.Queries.VerifySelect
             SubmittedSelection selection,
             SignedSelection signed,
             IReadOnlyList<SelectionProof> earlier,
-            IReadOnlyList<AncillaryShoppingContext> contexts,
+            SelectionProofBasket basket,
             CancellationToken cancellationToken)
         {
             var proof = selection switch
             {
-                TypedSelection typed => await _proofs.ProveTypedAsync(signed, typed.Family, TypedSelectionMapper.ToSelection(typed.Options), contexts, cancellationToken),
-                DirectSelection direct => await _proofs.ProveDirectAsync(signed, direct.Quantity, contexts, cancellationToken),
+                TypedSelection typed => await _proofs.ProveTypedAsync(signed, typed.Family, TypedSelectionMapper.ToSelection(typed.Options), basket, cancellationToken),
+                DirectSelection direct => await _proofs.ProveDirectAsync(signed, direct.Quantity, basket, cancellationToken),
                 _ => throw new ArgumentOutOfRangeException(nameof(selection), selection, null)
             };
 

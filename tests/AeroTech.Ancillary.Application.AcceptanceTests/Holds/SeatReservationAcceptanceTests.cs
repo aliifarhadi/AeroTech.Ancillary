@@ -40,7 +40,7 @@ public class SeatReservationAcceptanceTests
         return (NextOrderId, scope);
     }
 
-    private static string SeatId(string travellerRef, string seatNumber, long pricingId = PricingId) => SeatMapSelectionId.Encode(travellerRef, FlightId, pricingId, seatNumber);
+    private static string SeatId(string travellerRef, string seatNumber, long pricingId = PricingId) => SeatMapSelectionId.Encode(travellerRef, FlightId, pricingId, seatNumber, 1);
 
     private static SeatHoldSelectionInput Seat(long orderServiceId, long travellerId, string id, PassengerTypeCode type = PassengerTypeCode.ADT)
         => new(orderServiceId, travellerId, id, type, null, new SeatHoldFlightInput("111", 1, 1, 2, 6, new DateTimeOffset(2026, 12, 1, 10, 0, 0, TimeSpan.Zero), new DateTimeOffset(2026, 12, 1, 13, 0, 0, TimeSpan.Zero), 1, 1, 11), null);

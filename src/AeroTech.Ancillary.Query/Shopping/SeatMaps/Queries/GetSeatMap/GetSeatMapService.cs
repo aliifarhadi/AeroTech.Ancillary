@@ -111,7 +111,7 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.GetSeatMap
                         seat.SeatNumber,
                         seat.Status,
                         seat.Status == SeatAvailabilityStatus.Available && seat.Candidate?.Price.PricingRevisionId is { } pricingId
-                            ? SeatMapSelectionId.Encode(seat.TravellerRef, flightIds[seat.FlightRef], pricingId, seat.SeatNumber)
+                            ? SeatMapSelectionId.Encode(seat.TravellerRef, flightIds[seat.FlightRef], pricingId, seat.SeatNumber, pointOfSaleId)
                             : null,
                         seat.Candidate,
                         pointOfSaleId));

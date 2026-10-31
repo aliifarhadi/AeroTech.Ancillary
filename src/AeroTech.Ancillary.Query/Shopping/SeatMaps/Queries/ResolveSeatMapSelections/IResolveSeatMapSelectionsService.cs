@@ -4,6 +4,6 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.ResolveSeatMapSelec
 {
     public interface IResolveSeatMapSelectionsService
     {
-        Task<SeatMapResolutionSnapshot> ExecuteAsync(IReadOnlyList<string>? ids, CancellationToken cancellationToken = default);
+        Task<SeatMapResolutionSnapshot> ExecuteAsync(string? selectionId, CancellationToken cancellationToken = default);
     }
 }

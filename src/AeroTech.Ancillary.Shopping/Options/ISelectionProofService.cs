@@ -9,17 +9,22 @@ namespace AeroTech.Ancillary.Shopping.Options
     {
         Task<SignedSelection> ReadAsync(string? id, SelectionIdKind kind);
 
+        Task<SelectionProofBasket> OpenBasketAsync(
+            IReadOnlyList<SignedSelection> selections,
+            IReadOnlyList<AncillaryShoppingContext> contexts,
+            CancellationToken cancellationToken = default);
+
         Task<SelectionProof> ProveDirectAsync(
             SignedSelection selection,
             int? quantity,
-            IReadOnlyList<AncillaryShoppingContext> contexts,
+            SelectionProofBasket basket,
             CancellationToken cancellationToken = default);
 
         Task<SelectionProof> ProveTypedAsync(
             SignedSelection reference,
             AncillaryProfile family,
             AncillarySelection selection,
-            IReadOnlyList<AncillaryShoppingContext> contexts,
+            SelectionProofBasket basket,
             CancellationToken cancellationToken = default);
     }
 }

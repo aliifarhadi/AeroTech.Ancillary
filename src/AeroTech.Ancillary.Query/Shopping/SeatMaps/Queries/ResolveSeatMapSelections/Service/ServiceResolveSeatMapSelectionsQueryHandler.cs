@@ -10,6 +10,6 @@ namespace AeroTech.Ancillary.Query.Shopping.SeatMaps.Queries.ResolveSeatMapSelec
         public ServiceResolveSeatMapSelectionsQueryHandler(IResolveSeatMapSelectionsService service) => _service = service;
 
         public async Task<ServiceSeatMapResolutionDto> Handle(ServiceResolveSeatMapSelectionsQuery query, CancellationToken cancellationToken)
-            => ServiceSeatMapResolutionMapper.Map(await _service.ExecuteAsync(query.Ids, cancellationToken));
+            => ServiceSeatMapResolutionMapper.Map(await _service.ExecuteAsync(query.SelectionId, cancellationToken));
     }
 }

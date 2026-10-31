@@ -279,7 +279,7 @@ public class V11LifecycleAcceptanceTests
         var seat = new SeatHoldSelectionInput(
             seatService,
             71,
-            SeatMapSelectionId.Encode("ADT-1", Flight, PricingId, "12A"),
+            SeatMapSelectionId.Encode("ADT-1", Flight, PricingId, "12A", 1),
             PassengerTypeCode.ADT,
             null,
             new SeatHoldFlightInput("111", 1, 1, 2, 6, new DateTimeOffset(2026, 12, 1, 10, 0, 0, TimeSpan.Zero), new DateTimeOffset(2026, 12, 1, 13, 0, 0, TimeSpan.Zero), 1, 1, 11),

@@ -2,6 +2,7 @@ using System.Buffers.Text;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.PriceSeats;
 using AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Services;
 using AeroTech.Ancillary.Domain.SelectionSnapshotAggregate;
 using AeroTech.Ancillary.Domain.SelectionSnapshotAggregate.Arguments;
@@ -25,17 +26,20 @@ namespace AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.Pri
         };
 
         private readonly ISelectionVerifier _verifier;
+        private readonly ISeatPriceVerifier _seatPrices;
         private readonly ISelectionSnapshotRepository _snapshots;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IClock _clock;
 
         public PriceAncillaryOffersService(
             ISelectionVerifier verifier,
+            ISeatPriceVerifier seatPrices,
             ISelectionSnapshotRepository snapshots,
             IUnitOfWork unitOfWork,
             IClock clock)
         {
             _verifier = verifier;
+            _seatPrices = seatPrices;
             _snapshots = snapshots;
             _unitOfWork = unitOfWork;
             _clock = clock;
@@ -70,6 +74,33 @@ namespace AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.Pri
                 cancellationToken);
         }
 
+        public async Task<SelectionSnapshotResult> SubmitAsync(IPriceOfferSeatsCommand command, CancellationToken cancellationToken = default)
+        {
+            var createdAtUtc = _clock.GetDateTime();
+            var verified = await _seatPrices.VerifyAsync(new SeatPriceVerification(command.Surface, command.OfferId, command.Ids), cancellationToken);
+
+            return await SaveAsync(
+                SelectionSnapshot.CreateForOffer(NewId(), command.OfferId!, Lines(verified, Seats(command)), createdAtUtc, verified.Min(line => line.ExpiresAtUtc)),
+                cancellationToken);
+        }
+
+        public async Task<SelectionSnapshotResult> SubmitAsync(IPriceOrderSeatsCommand command, CancellationToken cancellationToken = default)
+        {
+            var createdAtUtc = _clock.GetDateTime();
+            var orderId = command.OrderId!.Value;
+            var verified = await _seatPrices.VerifyAsync(new OrderSeatPriceVerification(command.Surface, orderId, command.Ids), cancellationToken);
+
+            return await SaveAsync(
+                SelectionSnapshot.CreateForOrder(
+                    NewId(),
+                    orderId,
+                    verified.OrderCommercialVersion,
+                    Lines(verified.Selections, Seats(command)),
+                    createdAtUtc,
+                    verified.Selections.Min(line => line.ExpiresAtUtc)),
+                cancellationToken);
+        }
+
         private async Task<SelectionSnapshotResult> SaveAsync(SelectionSnapshot snapshot, CancellationToken cancellationToken)
         {
             await _snapshots.AddAsync(snapshot, cancellationToken);
@@ -92,6 +123,9 @@ namespace AeroTech.Ancillary.Application.SelectionSnapshotAggregate.Commands.Pri
                 { OfferItemId: { } id, Options.Connectivity: { } options } => new TypedSelection(id, AncillaryProfile.Connectivity, options),
                 _ => throw ExceptionFactory.SelectionOptionsAreInvalid("the options of one family are required")
             };
+
+        private static IReadOnlyList<SubmittedSelection> Seats(IPriceSeatsCommand command)
+            => command.Ids.Select(id => new DirectSelection(id, null)).ToList();
 
         private static IReadOnlyList<SelectionSnapshotLineArgs> Lines(IReadOnlyList<VerifiedSelection> verified, IReadOnlyList<SubmittedSelection> selections)
             => selections.Select((selection, index) => Line(verified[index], selection)).ToList();

@@ -14,12 +14,12 @@ namespace AeroTech.Ancillary.Providers.Offer.Wire
 
         private static readonly IReadOnlyDictionary<int, Channel> ProducerChannels = new Dictionary<int, Channel>
         {
-            [1] = Channel.IBE,
-            [2] = Channel.BackOffice,
+            [1] = Channel.BackOffice,
+            [2] = Channel.IBE,
             [3] = Channel.PartnerAPI,
             [4] = Channel.AgencyPanel,
             [5] = Channel.GDS,
-            [6] = Channel.System
+            [99] = Channel.System
         };
 
         public static bool TryRead(string offerId, out PricedOfferCommercial? commercial)

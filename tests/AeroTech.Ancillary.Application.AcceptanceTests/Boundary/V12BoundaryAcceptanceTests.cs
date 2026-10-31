@@ -255,6 +255,8 @@ public class V12BoundaryAcceptanceTests
             "POST Backoffice/AncillaryOffers/Price",
             "POST Backoffice/SeatMaps",
             "POST Backoffice/SeatMaps/Orders",
+            "POST Backoffice/SeatMaps/Price",
+            "POST Backoffice/SeatMaps/Orders/Price",
             "POST Api/AncillaryOffers",
             "POST Api/AncillaryOffers/Orders",
             "POST Api/AncillaryOffers/Orders/Price",
@@ -263,6 +265,8 @@ public class V12BoundaryAcceptanceTests
             "POST Api/AncillaryOffers/Price",
             "POST Api/SeatMaps",
             "POST Api/SeatMaps/Orders",
+            "POST Api/SeatMaps/Price",
+            "POST Api/SeatMaps/Orders/Price",
             "POST OtaPanel/AncillaryOffers",
             "POST OtaPanel/AncillaryOffers/Orders",
             "POST OtaPanel/AncillaryOffers/Orders/Price",
@@ -271,6 +275,8 @@ public class V12BoundaryAcceptanceTests
             "POST OtaPanel/AncillaryOffers/Price",
             "POST OtaPanel/SeatMaps",
             "POST OtaPanel/SeatMaps/Orders",
+            "POST OtaPanel/SeatMaps/Price",
+            "POST OtaPanel/SeatMaps/Orders/Price",
             "POST Service/Ancillaries/SeatMaps/Resolve",
             "POST Service/AncillaryOffers/Resolve",
             "POST Backoffice/AncillaryPricings",
@@ -375,7 +381,7 @@ public class V12BoundaryAcceptanceTests
         Assert.Equal(
             preserved.Concat(added).Concat(typed).Concat(forms).Concat(inventory).OrderBy(route => route, StringComparer.Ordinal),
             routes.OrderBy(route => route, StringComparer.Ordinal));
-        Assert.Equal(167, routes.Count);
+        Assert.Equal(173, routes.Count);
         Assert.Equal(36, inventory.Length);
         Assert.DoesNotContain(routes, route => new[] { "Sell", "Reserve", "Release", "Expire" }.Any(term => route.Contains(term, StringComparison.Ordinal)));
         Assert.Equal(
